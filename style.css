@@ -75,36 +75,39 @@ body.light-theme .notification-bar {
 
 /* ================== سربرگ و منوی ناوبری ================== */
 .main-header {
-    position: fixed;
-    top: 40px;
-    left: 0;
-    width: 100%;
-    padding: 1rem 0;
+    position: sticky;
+    top: 0;
     z-index: 100;
+    /* این بخش برای حالت چسبنده بودن هدر بعد از نوار اعلان است */
+    padding-top: 40px; 
+    margin-top: -40px;
+}
+.main-header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0 0 15px 15px;
     transition: background-color 0.4s, border-color 0.4s;
 }
-body.dark-theme .main-header {
+body.dark-theme .main-header .container {
     background: rgba(1, 42, 43, 0.3);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--glass-border-dark);
+    border: 1px solid var(--glass-border-dark);
+    border-top: none;
 }
-body.light-theme .main-header {
+body.light-theme .main-header .container {
     background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--glass-border-light);
-}
-
-.main-header .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    border: 1px solid var(--glass-border-light);
+    border-top: none;
 }
 
 .logo {
-    font-size: 1.5rem;
     font-weight: bold;
+    font-size: 1.4rem;
     text-decoration: none;
 }
 body.dark-theme .logo {
@@ -114,47 +117,62 @@ body.light-theme .logo {
     color: var(--primary-color-light-theme);
 }
 
-/* --- تغییر اصلی برای اصلاح رنگ متن منو در این بخش است --- */
+/* --- تغییرات اصلی در این بخش اعمال شده است --- */
 .main-nav ul {
     display: flex;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
     list-style: none;
 }
 
-.main-nav ul li {
-    margin-right: 1.5rem;
+.main-nav li {
+    position: relative;
 }
 
 .main-nav a {
-    text-decoration: none;
-    padding-bottom: 5px;
     display: flex;
     align-items: center;
-    /* 1. تعریف رنگ و ترنزیشن برای کل لینک (متن و آیکون) */
-    color: var(--text-color-dark);
-    transition: color 0.3s;
+    gap: 0.4em;
+    padding: 0.4em 1em;
+    border-radius: 2em;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background-color 0.2s, color 0.2s;
 }
+
+.nav-icon {
+    display: flex;
+    align-items: center;
+}
+.nav-text {
+    display: inline-block;
+}
+
+/* استایل لینک‌ها در حالت تاریک */
+body.dark-theme .main-nav a {
+    color: var(--text-color-dark);
+}
+body.dark-theme .main-nav a:hover:not([aria-current="page"]) {
+    background: rgba(232, 195, 142, 0.12);
+    color: var(--primary-color);
+}
+body.dark-theme .main-nav a[aria-current="page"] {
+    background: var(--primary-color);
+    color: var(--background-color-dark);
+}
+
+/* استایل لینک‌ها در حالت روشن */
 body.light-theme .main-nav a {
     color: var(--text-color-light);
 }
-
-.main-nav a svg {
-    /* 2. رنگ آیکون از والد خود (تگ a) به ارث برده می شود */
-    stroke: currentColor;
-    margin-left: 0.5rem;
-}
-
-.main-nav a span {
-    font-size: 1.1rem;
-}
-
-/* 3. تعریف حالت هاور و فعال برای کل لینک */
-.main-nav a:hover,
-.main-nav a.active {
-    color: var(--primary-color);
-}
-body.light-theme .main-nav a:hover,
-body.light-theme .main-nav a.active {
+body.light-theme .main-nav a:hover:not([aria-current="page"]) {
+    background: rgba(26, 92, 93, 0.1);
     color: var(--primary-color-light-theme);
+}
+body.light-theme .main-nav a[aria-current="page"] {
+    background: var(--primary-color-light-theme);
+    color: #fff;
 }
 
 
@@ -164,9 +182,11 @@ body.light-theme .main-nav a.active {
     border: none;
     cursor: pointer;
     padding: 0.5rem;
+    display: flex;
+    align-items: center;
 }
 #theme-toggle svg {
-    stroke: currentColor; /* رنگ را از والد به ارث می برد */
+    stroke: currentColor;
     color: var(--text-color-dark);
     transition: color 0.3s;
 }
@@ -190,16 +210,16 @@ body.light-theme #theme-toggle:hover svg {
 
 /* ================== بخش اصلی (Main) ================== */
 main {
-    padding-top: 140px;
+    padding-top: 2rem;
 }
 
 .hero {
-    min-height: 60vh;
+    min-height: 50vh;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 4rem 0;
+    padding: 2rem 0;
 }
 
 .hero h1 {
