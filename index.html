@@ -3,23 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>انجمن علمی علوم کامپیوتر دانشگاه چمران | به زودی</title>
-    <link rel="stylesheet" href="style.css">
+    <title>انجمن علمی علوم کامپیوتر | صفحه اصلی</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+
     <div id="particles-js"></div>
 
-    <div class="container">
-        <h1>انجمن علمی علوم کامپیوتر</h1>
-        <p>وب‌سایت رسمی انجمن در حال آماده‌سازی است و به زودی راه‌اندازی خواهد شد.</p>
-        <div class="contact">
-            <ul>
-                <li><a href="mailto:anjomancsscu@gmail.com">ایمیل انجمن</a></li>
-                <li><a href="http://t.me/scu_cs" target="_blank">کانال تلگرام</a></li>
-            </ul>
+    <header class="main-header">
+        <div class="container">
+            <a href="/" class="logo">انجمن علمی کامپیوتر</a>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="/" class="active">صفحه اصلی</a></li>
+                    <li><a href="/about/">درباره ما</a></li>
+                    <li><a href="/news/">اخبار</a></li>
+                    <li><a href="/contact/">تماس با ما</a></li>
+                </ul>
+            </nav>
         </div>
-    </div>
+    </header>
 
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>پیشرو در دانش، همراه با تکنولوژی</h1>
+                <p>به وب‌سایت رسمی انجمن علمی دانشجویی علوم کامپیوتر دانشگاه شهید چمران اهواز خوش آمدید.</p>
+                <a href="/about/" class="btn btn-primary">بیشتر با ما آشنا شوید</a>
+            </div>
+        </section>
+
+        <section class="latest-news">
+            <div class="container">
+                <h2>آخرین اخبار و اطلاعیه‌ها</h2>
+                <div class="news-grid">
+                    
+                    <article class="news-card">
+                        <img src="https://picsum.photos/seed/tech/400/200" alt="تصویر تزئینی فناوری">
+                        <div class="news-card-content">
+                            <h3>لورم ایپسوم ساختگی</h3>
+                            <p class="news-meta">منتشر شده در تاریخ ۲۲ تیر ۱۴۰۴</p>
+                            <p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است.</p>
+                            <a href="#">اطلاعات بیشتر &larr;</a>
+                        </div>
+                    </article>
+                    
+                    <article class="news-card">
+                        <img src="https://picsum.photos/seed/science/400/200" alt="تصویر تزئینی علم">
+                        <div class="news-card-content">
+                            <h3>طراحان گرافیک</h3>
+                            <p class="news-meta">منتشر شده در تاریخ ۲۰ تیر ۱۴۰۴</p>
+                            <p>چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز است.</p>
+                            <a href="#">اطلاعات بیشتر &larr;</a>
+                        </div>
+                    </article>
+
+                    <article class="news-card">
+                        <img src="https://picsum.photos/seed/code/400/200" alt="تصویر تزئینی کد">
+                        <div class="news-card-content">
+                            <h3>کاربردهای متنوع</h3>
+                            <p class="news-meta">منتشر شده در تاریخ ۱۸ تیر ۱۴۰۴</p>
+                            <p>کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد.</p>
+                            <a href="#">اطلاعات بیشتر &larr;</a>
+                        </div>
+                    </article>
+
+                </div>
+                <a href="/news/" class="btn btn-secondary">آرشیو اخبار</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="mailto:your-email@example.com">ایمیل</a>
+                <a href="https://t.me/your_channel_id" target="_blank">تلگرام</a>
+            </div>
+            <p>&copy; <span id="current-year"></span> انجمن علمی علوم کامپیوتر. تمامی حقوق محفوظ است.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.9.3/tsparticles.bundle.min.js"></script>
     <script>
         tsParticles.load("particles-js", {
@@ -41,5 +108,6 @@
             retina_detect: true
         });
     </script>
+
 </body>
 </html>

@@ -1,3 +1,27 @@
+/* ================== تنظیمات کلی و فونت ================== */
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+
+:root {
+    --primary-color: #e8c38e; /* طلایی */
+    --background-color: #012a2b; /* پس‌زمینه اصلی تیره */
+    --text-color: rgba(255, 255, 255, 0.9);
+    --glass-bg-dark: rgba(20, 20, 20, 0.25);
+    --glass-border-dark: rgba(232, 195, 142, 0.2);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Vazirmatn', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.7;
+}
+
 #particles-js {
     position: fixed;
     width: 100%;
@@ -7,69 +31,214 @@
     z-index: -1;
 }
 
-body {
-    font-family: 'Vazirmatn', sans-serif;
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ================== سربرگ و منوی ناوبری ================== */
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem 0;
+    z-index: 100;
+    background: rgba(1, 42, 43, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border-dark);
+}
+
+.main-header .container {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    height: 100vh;
-    margin: 0;
-    text-align: center;
-    overflow: hidden;
 }
 
-h1 {
-    font-size: 2em;
+.logo {
+    font-size: 1.5rem;
     font-weight: bold;
-    color: #e8c38e;
-    animation: pulse-glow 4s ease-in-out infinite;
-}
-
-p {
-    color: rgba(255, 255, 255, 0.9);
-    line-height: 1.6;
-}
-
-.contact ul {
-    list-style: none;
-    padding: 0;
-    margin-top: 20px;
-}
-
-.contact a {
+    color: var(--primary-color);
     text-decoration: none;
-    color: #e8c38e;
+}
+
+.main-nav ul {
+    display: flex;
+    list-style: none;
+}
+
+.main-nav ul li {
+    margin-right: 2rem;
+}
+
+.main-nav a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 1.1rem;
+    padding-bottom: 5px;
+    transition: color 0.3s, border-color 0.3s;
+}
+
+.main-nav a:hover,
+.main-nav a.active {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+
+/* ================== بخش اصلی (Main) ================== */
+main {
+    padding-top: 100px;
+}
+
+.hero {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 0;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    color: var(--primary-color);
+    animation: pulse-glow 4s ease-in-out infinite;
+    margin-bottom: 1rem;
+}
+
+/* --- تغییر اصلی در این بخش اعمال شده --- */
+.hero p {
+    font-size: 1.2rem;
+    max-width: 900px; /* افزایش عرض برای جلوگیری از شکستگی */
+    margin: 0 auto 2rem auto;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    text-decoration: none;
     font-weight: bold;
-    font-size: 1.1em;
     transition: all 0.3s ease;
 }
 
-.contact a:hover {
-    color: #fff;
-    text-shadow: 0 0 15px #e8c38e;
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--background-color);
 }
 
-.container {
-    max-width: 600px;
-    padding: 50px;
-    border-radius: 20px;
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    transition: background-color 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
-
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(232, 195, 142, 0.3);
 }
 
-@media (prefers-color-scheme: dark) {
-    .container {
-        background: rgba(20, 20, 20, 0.25);
-        border: 1px solid rgba(232, 195, 142, 0.2);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    }
+.btn-secondary {
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+.btn-secondary:hover {
+    background-color: var(--primary-color);
+    color: var(--background-color);
 }
 
+
+/* بخش آخرین اخبار */
+.latest-news {
+    padding: 4rem 0;
+    text-align: center;
+}
+
+.latest-news h2 {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 3rem;
+}
+
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.news-card {
+    background: var(--glass-bg-dark);
+    border: 1px solid var(--glass-border-dark);
+    border-radius: 15px;
+    overflow: hidden;
+    backdrop-filter: blur(5px);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.news-card:hover {
+    transform: translateY(-10px);
+}
+
+.news-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.news-card-content {
+    padding: 1.5rem;
+    text-align: right;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.news-card-content h3 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.news-card-content .news-meta {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-bottom: 1rem;
+}
+
+.news-card-content a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: auto;
+}
+
+
+/* ================== پاورق (Footer) ================== */
+.main-footer {
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: 2rem;
+    border-top: 1px solid var(--glass-border-dark);
+}
+
+.footer-links a {
+    color: var(--text-color);
+    text-decoration: none;
+    margin: 0 1rem;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover {
+    color: var(--primary-color);
+}
+
+.main-footer p {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+
+/* ================== انیمیشن درخشش ================== */
 @keyframes pulse-glow {
     0% {
         text-shadow: 0 0 10px rgba(232, 195, 142, 0.3);
