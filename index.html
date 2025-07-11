@@ -16,7 +16,7 @@
 
     <header class="main-header">
         <div class="container">
-            <a href="/" class="logo">انجمن علمی علوم کامپیوتر</a>
+            <a href="/" class="logo">انجمن علمی کامپیوتر</a>
             <nav class="main-nav">
                 <ul>
                     <li><a href="/" class="active" title="صفحه اصلی"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>صفحه اصلی</span></a></li>
@@ -93,11 +93,16 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.9.3/tsparticles.bundle.min.js"></script>
     <script>
-        tsParticles.load("particles-js", {
-            background: { color: "#012a2b" },
+        // --- تغییر اصلی در این بخش است ---
+        let particlesInstance = null;
+
+        const particleOptions = {
+            background: {
+                color: { value: 'transparent' }
+            },
             particles: {
                 number: { value: 150, density: { enable: true, value_area: 800 } },
-                color: { value: "#e8c38e" },
+                color: { value: "#e8c38e" }, // رنگ پیش‌فرض برای حالت تاریک
                 shape: { type: "circle" },
                 opacity: { value: { min: 0.1, max: 0.5 }, animation: { enable: true, speed: 1.5, minimumValue: 0.1, sync: false } },
                 size: { value: { min: 1, max: 2.5 } },
@@ -110,20 +115,29 @@
                 modes: { bubble: { distance: 200, duration: 2, opacity: 1, size: 3, color: "#ffffff" } }
             },
             retina_detect: true
+        };
+
+        tsParticles.load("particles-js", particleOptions).then(container => {
+            particlesInstance = container;
         });
-    </script>
-    <script>
+
         const themeToggle = document.getElementById('theme-toggle');
         const body = document.body;
 
-        // تابع برای اعمال تم
         const applyTheme = (theme) => {
             body.classList.remove('light-theme', 'dark-theme');
             body.classList.add(theme);
             localStorage.setItem('theme', theme);
+
+            if (particlesInstance) {
+                const newParticleColor = theme === 'dark-theme' ? '#e8c38e' : '#555555';
+                particlesInstance.options.particles.color.value = newParticleColor;
+                // در حالت روشن سایه را حذف می‌کنیم تا واضح‌تر باشد
+                particlesInstance.options.particles.shadow.enable = theme === 'dark-theme';
+                particlesInstance.refresh();
+            }
         };
 
-        // بررسی تم ذخیره شده یا تم سیستم
         const savedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
@@ -135,7 +149,6 @@
             applyTheme('light-theme');
         }
 
-        // رویداد کلیک برای دکمه
         themeToggle.addEventListener('click', () => {
             const currentTheme = body.classList.contains('dark-theme') ? 'dark-theme' : 'light-theme';
             const newTheme = currentTheme === 'dark-theme' ? 'light-theme' : 'dark-theme';

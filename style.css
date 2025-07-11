@@ -45,9 +45,7 @@ body.light-theme {
     z-index: -1;
     transition: opacity 0.4s;
 }
-body.light-theme #particles-js {
-    opacity: 0;
-}
+
 
 .container {
     width: 90%;
