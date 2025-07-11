@@ -2,11 +2,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
 
 :root {
-    --primary-color: #e8c38e; /* طلایی */
-    --background-color: #012a2b; /* پس‌زمینه اصلی تیره */
-    --text-color: rgba(255, 255, 255, 0.9);
+    --primary-color: #e8c38e;
+    --primary-color-light-theme: #1a5c5d;
+    --background-color-dark: #012a2b;
+    --text-color-dark: rgba(255, 255, 255, 0.9);
     --glass-bg-dark: rgba(20, 20, 20, 0.25);
     --glass-border-dark: rgba(232, 195, 142, 0.2);
+    
+    --background-color-light: #f0f2f5;
+    --text-color-light: #333;
+    --glass-bg-light: rgba(255, 255, 255, 0.5);
+    --glass-border-light: rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -17,9 +23,17 @@
 
 body {
     font-family: 'Vazirmatn', sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
-    line-height: 1.7;
+    transition: background-color 0.4s, color 0.4s;
+}
+
+/* ================== استایل تم‌ها ================== */
+body.dark-theme {
+    background-color: var(--background-color-dark);
+    color: var(--text-color-dark);
+}
+body.light-theme {
+    background-color: var(--background-color-light);
+    color: var(--text-color-light);
 }
 
 #particles-js {
@@ -29,6 +43,10 @@ body {
     top: 0;
     left: 0;
     z-index: -1;
+    transition: opacity 0.4s;
+}
+body.light-theme #particles-js {
+    opacity: 0;
 }
 
 .container {
@@ -37,18 +55,47 @@ body {
     margin: 0 auto;
 }
 
+/* ================== نوار اعلان ================== */
+.notification-bar {
+    text-align: center;
+    padding: 0.7rem 0;
+    font-weight: bold;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 101;
+    transition: background-color 0.4s, color 0.4s;
+}
+body.dark-theme .notification-bar {
+    background-color: var(--primary-color);
+    color: var(--background-color-dark);
+}
+body.light-theme .notification-bar {
+    background-color: var(--primary-color-light-theme);
+    color: #fff;
+}
+
 /* ================== سربرگ و منوی ناوبری ================== */
 .main-header {
     position: fixed;
-    top: 0;
+    top: 40px;
     left: 0;
     width: 100%;
     padding: 1rem 0;
     z-index: 100;
+    transition: background-color 0.4s, border-color 0.4s;
+}
+body.dark-theme .main-header {
     background: rgba(1, 42, 43, 0.3);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--glass-border-dark);
+}
+body.light-theme .main-header {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border-light);
 }
 
 .main-header .container {
@@ -60,37 +107,92 @@ body {
 .logo {
     font-size: 1.5rem;
     font-weight: bold;
-    color: var(--primary-color);
     text-decoration: none;
 }
+body.dark-theme .logo {
+    color: var(--primary-color);
+}
+body.light-theme .logo {
+    color: var(--primary-color-light-theme);
+}
 
+/* --- تغییر اصلی برای اصلاح رنگ متن منو در این بخش است --- */
 .main-nav ul {
     display: flex;
     list-style: none;
 }
 
 .main-nav ul li {
-    margin-right: 2rem;
+    margin-right: 1.5rem;
 }
 
 .main-nav a {
-    color: var(--text-color);
     text-decoration: none;
-    font-size: 1.1rem;
     padding-bottom: 5px;
-    transition: color 0.3s, border-color 0.3s;
+    display: flex;
+    align-items: center;
+    /* 1. تعریف رنگ و ترنزیشن برای کل لینک (متن و آیکون) */
+    color: var(--text-color-dark);
+    transition: color 0.3s;
+}
+body.light-theme .main-nav a {
+    color: var(--text-color-light);
 }
 
+.main-nav a svg {
+    /* 2. رنگ آیکون از والد خود (تگ a) به ارث برده می شود */
+    stroke: currentColor;
+    margin-left: 0.5rem;
+}
+
+.main-nav a span {
+    font-size: 1.1rem;
+}
+
+/* 3. تعریف حالت هاور و فعال برای کل لینک */
 .main-nav a:hover,
 .main-nav a.active {
     color: var(--primary-color);
-    border-bottom: 2px solid var(--primary-color);
+}
+body.light-theme .main-nav a:hover,
+body.light-theme .main-nav a.active {
+    color: var(--primary-color-light-theme);
+}
+
+
+/* ================== دکمه تغییر تم ================== */
+#theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+#theme-toggle svg {
+    stroke: currentColor; /* رنگ را از والد به ارث می برد */
+    color: var(--text-color-dark);
+    transition: color 0.3s;
+}
+body.light-theme #theme-toggle svg {
+    color: var(--text-color-light);
+}
+#theme-toggle:hover svg {
+    color: var(--primary-color);
+}
+body.light-theme #theme-toggle:hover svg {
+    color: var(--primary-color-light-theme);
+}
+
+.dark-theme .moon, .light-theme .sun {
+    display: block;
+}
+.dark-theme .sun, .light-theme .moon {
+    display: none;
 }
 
 
 /* ================== بخش اصلی (Main) ================== */
 main {
-    padding-top: 100px;
+    padding-top: 140px;
 }
 
 .hero {
@@ -104,9 +206,15 @@ main {
 
 .hero h1 {
     font-size: 3rem;
-    color: var(--primary-color);
-    animation: pulse-glow 4s ease-in-out infinite;
     margin-bottom: 1rem;
+    animation: pulse-glow 4s ease-in-out infinite;
+}
+body.dark-theme .hero h1 {
+    color: var(--primary-color);
+}
+body.light-theme .hero h1 {
+    color: var(--primary-color-light-theme);
+    animation: none;
 }
 
 .hero p {
@@ -126,12 +234,18 @@ main {
 
 .btn-primary {
     background-color: var(--primary-color);
-    color: var(--background-color);
+    color: var(--background-color-dark);
 }
-
 .btn-primary:hover {
     transform: translateY(-3px);
     box-shadow: 0 5px 15px rgba(232, 195, 142, 0.3);
+}
+body.light-theme .btn-primary {
+    background-color: var(--primary-color-light-theme);
+    color: #fff;
+}
+body.light-theme .btn-primary:hover {
+     box-shadow: 0 5px 15px rgba(26, 92, 93, 0.3);
 }
 
 .btn-secondary {
@@ -140,7 +254,15 @@ main {
 }
 .btn-secondary:hover {
     background-color: var(--primary-color);
-    color: var(--background-color);
+    color: var(--background-color-dark);
+}
+body.light-theme .btn-secondary {
+    border-color: var(--primary-color-light-theme);
+    color: var(--primary-color-light-theme);
+}
+body.light-theme .btn-secondary:hover {
+    background-color: var(--primary-color-light-theme);
+    color: #fff;
 }
 
 
@@ -152,8 +274,13 @@ main {
 
 .latest-news h2 {
     font-size: 2.5rem;
-    color: var(--primary-color);
     margin-bottom: 3rem;
+}
+body.dark-theme .latest-news h2 {
+    color: var(--primary-color);
+}
+body.light-theme .latest-news h2 {
+    color: var(--primary-color-light-theme);
 }
 
 .news-grid {
@@ -163,22 +290,30 @@ main {
     margin-bottom: 3rem;
 }
 
-/* --- تغییر اصلی در این بخش‌ها اعمال شده --- */
 .news-card {
-    background: var(--glass-bg-dark);
-    border: 1px solid var(--glass-border-dark);
     border-radius: 15px;
     overflow: hidden;
-    backdrop-filter: blur(5px);
     display: flex;
     flex-direction: column;
-    /* تغییر ۱: تعریف ترنزیشن فقط برای حاشیه */
-    transition: border-color 0.3s ease;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+body.dark-theme .news-card {
+    background: var(--glass-bg-dark);
+    border: 1px solid var(--glass-border-dark);
+    backdrop-filter: blur(5px);
+}
+body.light-theme .news-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
-/* تغییر ۲: تعریف افکت هاور مینیمال */
 .news-card:hover {
     border-color: var(--primary-color);
+}
+body.light-theme .news-card:hover {
+    border-color: var(--primary-color-light-theme);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
 }
 
 .news-card img {
@@ -196,8 +331,13 @@ main {
 }
 
 .news-card-content h3 {
-    color: var(--primary-color);
     margin-bottom: 0.5rem;
+}
+body.dark-theme .news-card-content h3 {
+    color: var(--primary-color);
+}
+body.light-theme .news-card-content h3 {
+    color: var(--primary-color-light-theme);
 }
 
 .news-card-content .news-meta {
@@ -207,16 +347,19 @@ main {
 }
 
 .news-card-content a {
-    color: var(--primary-color);
     text-decoration: none;
     font-weight: bold;
     margin-top: auto;
-    display: inline-block; /* برای اعمال ترنزیشن */
-    /* تغییر ۳: افزودن ترنزیشن برای حرکت فلش */
+    display: inline-block;
     transition: transform 0.3s ease;
 }
+body.dark-theme .news-card-content a {
+    color: var(--primary-color);
+}
+body.light-theme .news-card-content a {
+    color: var(--primary-color-light-theme);
+}
 
-/* تغییر ۴: حرکت فلش هنگام هاور روی کارت */
 .news-card:hover .news-card-content a {
     transform: translateX(-5px);
 }
@@ -227,18 +370,32 @@ main {
     text-align: center;
     padding: 2rem 0;
     margin-top: 2rem;
+    transition: border-color 0.4s;
+}
+body.dark-theme .main-footer {
     border-top: 1px solid var(--glass-border-dark);
+}
+body.light-theme .main-footer {
+    border-top: 1px solid #ddd;
 }
 
 .footer-links a {
-    color: var(--text-color);
     text-decoration: none;
     margin: 0 1rem;
     transition: color 0.3s;
 }
+body.dark-theme .footer-links a {
+    color: var(--text-color-dark);
+}
+body.light-theme .footer-links a {
+    color: var(--text-color-light);
+}
 
 .footer-links a:hover {
     color: var(--primary-color);
+}
+body.light-theme .footer-links a:hover {
+    color: var(--primary-color-light-theme);
 }
 
 .main-footer p {
