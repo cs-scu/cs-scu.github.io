@@ -383,6 +383,49 @@ body.light-theme .news-card-content a {
 }
 
 
+/* ================== سربرگ (Header) ================== */
+
+.main-header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    gap: 0;
+}
+.main-header #theme-toggle {
+    order: 3;
+    flex: 0 0 auto;
+    margin-left: 0;
+    margin-right: 0;
+}
+.main-header .logo {
+    order: 2;
+    flex: 1 1 auto;
+    margin: 0;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.3em;
+    position: static;
+    width: 100%;
+    z-index: 1;
+}
+.main-header .main-nav {
+    order: 1;
+    flex: 0 0 auto;
+    margin-left: 0;
+    margin-right: 0;
+}
+.main-header .main-nav ul {
+    display: flex;
+    gap: 1.5rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    justify-content: flex-end;
+}
+
+
+
 /* ================== پاورق (Footer) ================== */
 .main-footer {
     text-align: center;
@@ -422,6 +465,147 @@ body.light-theme .footer-links a:hover {
     opacity: 0.7;
 }
 
+@media (max-width: 700px) {
+    .main-header .container {
+        flex-direction: row;
+        gap: 0;
+        position: static;
+        justify-content: center;
+    }
+    .main-header .logo {
+        position: static;
+        margin: 0;
+        width: auto;
+        text-align: center;
+        flex: 1 1 auto;
+    }
+    .main-header .main-nav {
+        display: none !important;
+    }
+    .main-header #theme-toggle {
+        order: 2;
+        margin: 0 0 0 0.5rem;
+    }
+}
+
+/* Bottom navigation bar for mobile */
+@media (max-width: 700px) {
+    body {
+        padding-bottom: 80px; /* space for floating nav */
+    }
+    .bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 12px;
+        right: 0;
+        left: 0;
+        width: 94vw;
+        max-width: 420px;
+        margin: 0 auto;
+        background: var(--footer-bg, #fff);
+        border-top: none;
+        border-radius: 2rem;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1.5px 8px rgba(0,0,0,0.06);
+        z-index: 1000;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0.35rem 0.35rem;
+        transition: box-shadow 0.2s;
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+    }
+    .dark-theme .bottom-nav {
+    background: rgba(30, 30, 30, 0.1);
+    border: 1px solid rgba(232, 195, 142, 0.2);
+    }
+    .light-theme .bottom-nav {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    .bottom-nav a {
+        flex: 1 1 0;
+        text-align: center;
+        color: #222; /* ← رنگ پیش‌فرض متن دکمه‌ها */
+        text-decoration: none;
+        padding: 0.25rem 0 0.25rem 0;
+        font-size: 0.8em;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.1em;
+        border-radius: 1.5rem;
+        transition: background 0.15s, color 0.15s;
+    }
+    .bottom-nav .nav-text {
+    font-weight: 500;
+    }
+    .bottom-nav .nav-icon {
+    width: 24px;
+    height: 24px;
+    }
+    .dark-theme .bottom-nav a {
+    color: #eee; /* ← رنگ متن دکمه‌ها در حالت تاریک */
+    }
+    .light-theme .bottom-nav a {
+    color: #222; /* ← رنگ متن دکمه‌ها در حالت روشن */
+    }
+    .bottom-nav a[aria-current="page"],
+    .bottom-nav a.active {
+        background: #ffe9b3;
+        color: #ffae00; /* ← رنگ متن دکمه فعال */
+        font-weight: bold;
+    }
+    .bottom-nav a[aria-current="page"] .nav-icon,
+    .bottom-nav a.active .nav-icon {
+        color: #fff;
+    }
+    .dark-theme .bottom-nav a[aria-current="page"] .nav-icon,
+    .bottom-nav a.active .nav-icon {
+        color: #222;
+    }
+    .dark-theme .bottom-nav a[aria-current="page"] {
+    background: var(--primary-color, #e8c38e);
+    color: #222;
+    font-weight: bold;
+    }
+    .light-theme .bottom-nav a[aria-current="page"] {
+    background: var(--primary-color-light-theme, #1a5c5d);
+    color: #fff;
+    font-weight: bold;
+    }
+    body {
+        padding-bottom: 80px; /* space for floating nav */
+    }
+}
+@media (min-width: 701px) {
+    .bottom-nav {
+        display: none !important;
+    }
+}
+
+.notification-bar {
+    background: #ffe9b3;
+    color: #1b7a2e;
+    text-align: center;
+    padding: 0.5rem 0.75rem;
+    font-size: 1em;
+    font-weight: 500;
+    position: relative;
+    z-index: 1002;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+@media (max-width: 700px) {
+    .notification-bar {
+        font-size: 0.92em;
+        padding: 0.45rem 0.5rem;
+    }
+}
+.main-header {
+    z-index: 1001;
+    position: relative;
+}
 
 /* ================== انیمیشن درخشش ================== */
 @keyframes pulse-glow {
