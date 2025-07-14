@@ -58,10 +58,7 @@ body.light-theme {
     text-align: center;
     padding: 0.7rem 0;
     font-weight: bold;
-    position: fixed;
     width: 100%;
-    top: 0;
-    z-index: 101;
     transition: background-color 0.4s, color 0.4s;
 }
 body.dark-theme .notification-bar {
@@ -74,14 +71,15 @@ body.light-theme .notification-bar {
 }
 
 /* ================== سربرگ و منوی ناوبری ================== */
-.main-header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
+/* .main-header { */
+    /* position: sticky; */
+    /* top: 0; */
+    /* z-index: 100; */
     /* این بخش برای حالت چسبنده بودن هدر بعد از نوار اعلان است */
-    padding-top: 40px; 
-    margin-top: -40px;
-}
+    /* padding-top: 40px;  */
+    /* margin-top: -40px; */
+    /* } */
+
 .main-header .container {
     display: flex;
     align-items: center;
@@ -488,100 +486,7 @@ body.light-theme .footer-links a:hover {
     }
 }
 
-/* Bottom navigation bar for mobile */
-@media (max-width: 700px) {
-    body {
-        padding-bottom: 80px; /* space for floating nav */
-    }
-    .bottom-nav {
-        display: flex;
-        position: fixed;
-        bottom: 12px;
-        right: 0;
-        left: 0;
-        width: 94vw;
-        max-width: 420px;
-        margin: 0 auto;
-        background: var(--footer-bg, #fff);
-        border-top: none;
-        border-radius: 2rem;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1.5px 8px rgba(0,0,0,0.06);
-        z-index: 1000;
-        justify-content: space-around;
-        align-items: center;
-        padding: 0.35rem 0.35rem;
-        transition: box-shadow 0.2s;
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-    }
-    .dark-theme .bottom-nav {
-    background: rgba(30, 30, 30, 0.1);
-    border: 1px solid rgba(232, 195, 142, 0.2);
-    }
-    .light-theme .bottom-nav {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    }
-    .bottom-nav a {
-        flex: 1 1 0;
-        text-align: center;
-        color: #222; /* ← رنگ پیش‌فرض متن دکمه‌ها */
-        text-decoration: none;
-        padding: 0.25rem 0 0.25rem 0;
-        font-size: 0.8em;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.1em;
-        border-radius: 1.5rem;
-        transition: background 0.15s, color 0.15s;
-    }
-    .bottom-nav .nav-text {
-    font-weight: 500;
-    }
-    .bottom-nav .nav-icon {
-    width: 24px;
-    height: 24px;
-    }
-    .dark-theme .bottom-nav a {
-    color: #eee; /* ← رنگ متن دکمه‌ها در حالت تاریک */
-    }
-    .light-theme .bottom-nav a {
-    color: #222; /* ← رنگ متن دکمه‌ها در حالت روشن */
-    }
-    .bottom-nav a[aria-current="page"],
-    .bottom-nav a.active {
-        background: #ffe9b3;
-        color: #ffae00; /* ← رنگ متن دکمه فعال */
-        font-weight: bold;
-    }
-    .bottom-nav a[aria-current="page"] .nav-icon,
-    .bottom-nav a.active .nav-icon {
-        color: #fff;
-    }
-    .dark-theme .bottom-nav a[aria-current="page"] .nav-icon,
-    .bottom-nav a.active .nav-icon {
-        color: #222;
-    }
-    .dark-theme .bottom-nav a[aria-current="page"] {
-    background: var(--primary-color, #e8c38e);
-    color: #222;
-    font-weight: bold;
-    }
-    .light-theme .bottom-nav a[aria-current="page"] {
-    background: var(--primary-color-light-theme, #1a5c5d);
-    color: #fff;
-    font-weight: bold;
-    }
-    body {
-        padding-bottom: 80px; /* space for floating nav */
-    }
-}
-@media (min-width: 701px) {
-    .bottom-nav {
-        display: none !important;
-    }
-}
+
 
 .notification-bar {
     background: #ffe9b3;
@@ -618,4 +523,146 @@ body.light-theme .footer-links a:hover {
     100% {
         text-shadow: 0 0 10px rgba(232, 195, 142, 0.3);
     }
+}
+
+/* ================== منوی بازشونده موبایل ================== */
+#mobile-menu-toggle {
+    display: flex; 
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: inherit;
+}
+#mobile-menu-toggle svg {
+    stroke: currentColor;
+    transition: color 0.3s;
+}
+body.dark-theme #mobile-menu-toggle:hover svg {
+    color: var(--primary-color);
+}
+body.light-theme #mobile-menu-toggle:hover svg {
+    color: var(--primary-color-light-theme);
+}
+
+#mobile-dropdown-menu {
+    /* تغییر display به opacity و visibility برای انیمیشن */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px); /* کمی به بالا می‌رود تا افکت بهتری داشته باشد */
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out, visibility 0.2s;
+
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    left: auto;
+    width: auto;
+    min-width: 180px;
+    border-radius: 10px;
+    overflow: hidden;
+    z-index: 99;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* این قانون جدید، حالت باز بودن منو را کنترل می‌کند */
+#mobile-dropdown-menu.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* استایل لینک‌ها برای حالت جمع و جور */
+#mobile-dropdown-menu a {
+    padding: 0.7rem 1.2rem; /* کاهش padding */
+    font-size: 0.9rem; /* کاهش اندازه فونت */
+}
+#mobile-dropdown-menu.is-open {
+    display: block; /* با این کلاس نمایان می‌شود */
+}
+#mobile-dropdown-menu a {
+    display: flex; /* برای چیدمان افقی آیکون و متن */
+    align-items: center; /* تراز عمودی در وسط */
+    gap: 0.8rem; /* ایجاد فاصله بین آیکون و متن */
+    padding: 0.8rem 1.2rem;
+    font-size: 0.9rem;
+    text-decoration: none;
+    text-align: right;
+    border-bottom: 1px solid;
+    transition: background-color 0.2s, color 0.2s;
+}
+#mobile-dropdown-menu a:last-child {
+    border-bottom: none;
+}
+
+/* استایل‌های منو برای تم تاریک */
+body.dark-theme #mobile-dropdown-menu {
+    background: rgba(1, 42, 43, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border-dark);
+    border-top: none;
+}
+body.dark-theme #mobile-dropdown-menu a {
+    color: var(--text-color-dark);
+    border-color: var(--glass-border-dark);
+}
+body.dark-theme #mobile-dropdown-menu a:hover,
+body.dark-theme #mobile-dropdown-menu a[aria-current="page"] {
+    background-color: var(--primary-color);
+    color: var(--background-color-dark);
+}
+
+/* استایل‌های منو برای تم روشن */
+body.light-theme #mobile-dropdown-menu {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border-light);
+    border-top: none;
+}
+body.light-theme #mobile-dropdown-menu a {
+    color: var(--text-color-light);
+    border-color: var(--glass-border-light);
+}
+body.light-theme #mobile-dropdown-menu a:hover,
+body.light-theme #mobile-dropdown-menu a[aria-current="page"] {
+    background-color: var(--primary-color-light-theme);
+    color: #fff;
+}
+
+
+/* تغییرات هدر در حالت موبایل */
+@media (max-width: 700px) {
+    #mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        order: 0; /* دکمه منو در سمت چپ قرار می‌گیرد */
+    }
+    .main-header .container {
+        justify-content: space-between; /* آیتم‌ها را در طرفین پخش می‌کند */
+    }
+    .main-header .logo {
+        order: 1; /* لوگو در وسط باقی می‌ماند */
+    }
+    .main-header #theme-toggle {
+        order: 2; /* دکمه تم در سمت راست قرار می‌گیرد */
+        margin: 0;
+    }
+}
+
+
+
+/* استایل برای نگه‌دارنده چسبنده */
+.sticky-container {
+    position: -webkit-sticky; /* برای سازگاری با مرورگرهای قدیمی */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+
+.menu-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
 }

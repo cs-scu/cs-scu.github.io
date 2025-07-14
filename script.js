@@ -59,3 +59,22 @@ themeToggle.addEventListener('click', () => {
 });
 
 
+// --- کنترل منوی بازشونده موبایل ---
+document.addEventListener('DOMContentLoaded', () => {
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const mobileDropdownMenu = document.getElementById('mobile-dropdown-menu');
+
+    if (mobileMenuToggle && mobileDropdownMenu) {
+        mobileMenuToggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            mobileDropdownMenu.classList.toggle('is-open');
+        });
+
+        // بستن منو با کلیک بیرون از آن
+        document.addEventListener('click', (event) => {
+            if (mobileDropdownMenu.classList.contains('is-open') && !mobileDropdownMenu.contains(event.target)) {
+                mobileDropdownMenu.classList.remove('is-open');
+            }
+        });
+    }
+});
