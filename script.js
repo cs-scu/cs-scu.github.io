@@ -34,23 +34,19 @@ const body = document.body;
 const applyTheme = (theme) => {
     body.classList.remove('light-theme', 'dark-theme');
     body.classList.add(theme);
-    localStorage.setItem('theme', theme);
+    // localStorage.setItem('theme', theme); // << این خط حذف یا کامنت بشه
 
     if (particlesInstance) {
         const newParticleColor = theme === 'dark-theme' ? '#e8c38e' : '#555555';
         particlesInstance.options.particles.color.value = newParticleColor;
-        // در حالت روشن سایه را حذف می‌کنیم تا واضح‌تر باشد
         particlesInstance.options.particles.shadow.enable = theme === 'dark-theme';
         particlesInstance.refresh();
     }
 };
 
-const savedTheme = localStorage.getItem('theme');
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-if (savedTheme) {
-    applyTheme(savedTheme);
-} else if (prefersDark) {
+if (prefersDark) {
     applyTheme('dark-theme');
 } else {
     applyTheme('light-theme');
@@ -62,4 +58,4 @@ themeToggle.addEventListener('click', () => {
     applyTheme(newTheme);
 });
 
-// اسکریپت باز و بسته کردن منوی موبایل حذف شد
+
