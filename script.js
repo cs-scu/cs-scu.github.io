@@ -112,40 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- منطق پیشرفته فرم ثبت نام ---
 document.addEventListener('DOMContentLoaded', () => {
-    // ---- مدیریت منوی وابسته سال ورود ----
-    const academicLevelSelect = document.getElementById('academicLevel');
-    const entryYearSelect = document.getElementById('entryYear');
-
-    const yearOptions = {
-        associate: ['1404', '1403', '1402', '1401'],
-        bachelor: ['1404', '1403', '1402', '1401', '1400'],
-        master: ['1404', '1403', '1402', '1401']
-    };
-
-    if (academicLevelSelect) {
-        academicLevelSelect.addEventListener('change', (e) => {
-            const selectedLevel = e.target.value;
-            // خالی کردن گزینه‌های قبلی
-            entryYearSelect.innerHTML = '<option value="">انتخاب کنید...</option>';
-
-            if (selectedLevel && yearOptions[selectedLevel]) {
-                // فعال کردن منوی سال ورود
-                entryYearSelect.disabled = false;
-                // افزودن گزینه‌های جدید
-                yearOptions[selectedLevel].forEach(year => {
-                    const option = document.createElement('option');
-                    option.value = year;
-                    option.textContent = year;
-                    entryYearSelect.appendChild(option);
-                });
-            } else {
-                // غیرفعال کردن اگر مقطعی انتخاب نشده باشد
-                entryYearSelect.disabled = true;
-                entryYearSelect.innerHTML = '<option value="">ابتدا مقطع را انتخاب کنید</option>';
-            }
-        });
-    }
-
     // ---- مدیریت سیستم تگ‌ها ----
     function setupTagSelection(containerId, hiddenInputId) {
         const container = document.getElementById(containerId);
@@ -180,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // دیگر نیازی به این دو متغیر نیست چون فرم را مخفی نمی‌کنیم
     // const successMessage = document.getElementById('success-message');
     // const formContentWrapper = document.getElementById('form-content-wrapper');
-    const formspreeEndpoint = 'https://formspree.io/f/xldlrayk'; // URL خود را اینجا قرار دهید
+    const formspreeEndpoint = 'https://formsubmit.co/pejmansadrin@gmail.com'; // URL خود را اینجا قرار دهید
 
     form.addEventListener('submit', function(event) {
         event.preventDefault();

@@ -147,7 +147,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.9.3/tsparticles.bundle.min.js"></script>
     <script src="script.js"></script>
 
-    
+
     <div id="register-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-modal" title="بستن">&times;</button>
@@ -194,8 +194,13 @@
                         </div>
                         <div class="form-group">
                             <label for="entryYear">سال ورود:</label>
-                            <select id="entryYear" name="سال ورود" required disabled>
-                                <option value="">ابتدا مقطع را انتخاب کنید</option>
+                            <select id="entryYear" name="سال ورود" required>
+                                <option value="" disabled selected>انتخاب کنید...</option>
+                                <option value="1404">1404</option>
+                                <option value="1403">1403</option>
+                                <option value="1402">1402</option>
+                                <option value="1401">1401</option>
+                                <option value="1400">1400</option>
                             </select>
                         </div>
                     </div>
