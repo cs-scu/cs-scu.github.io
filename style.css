@@ -812,46 +812,6 @@ body.light-theme #mobile-dropdown-menu a[aria-current="page"] {
     flex: 1; /* باعث می‌شود ستون‌ها عرض یکسانی بگیرند */
 }
 
-/* استایل برای تگ‌ها */
-.tag-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding-top: 0.5rem;
-}
-
-.tag {
-    display: inline-block;
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.9rem;
-}
-
-/* استایل تگ در حالت عادی */
-.dark-theme .tag {
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--glass-border-dark);
-    color: var(--text-color-dark);
-}
-.light-theme .tag {
-    background-color: rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--glass-border-light);
-    color: var(--text-color-light);
-}
-
-/* استایل تگ در حالت فعال (انتخاب شده) */
-.dark-theme .tag.active {
-    background-color: var(--primary-color);
-    color: var(--background-color-dark);
-    border-color: var(--primary-color);
-}
-.light-theme .tag.active {
-    background-color: var(--primary-color-light-theme);
-    color: #fff;
-    border-color: var(--primary-color-light-theme);
-}
 
 /* استایل برای select که غیرفعال است */
 select:disabled {

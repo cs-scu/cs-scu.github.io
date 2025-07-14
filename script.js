@@ -112,28 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- منطق پیشرفته فرم ثبت نام ---
 document.addEventListener('DOMContentLoaded', () => {
-    // ---- مدیریت سیستم تگ‌ها ----
-    function setupTagSelection(containerId, hiddenInputId) {
-        const container = document.getElementById(containerId);
-        const hiddenInput = document.getElementById(hiddenInputId);
-
-        if (container && hiddenInput) {
-            container.addEventListener('click', (e) => {
-                if (e.target.classList.contains('tag')) {
-                    // فعال یا غیرفعال کردن کلاس active
-                    e.target.classList.toggle('active');
-                    
-                    // به‌روزرسانی مقدار فیلد مخفی
-                    const activeTags = container.querySelectorAll('.tag.active');
-                    const selectedValues = Array.from(activeTags).map(tag => tag.dataset.value);
-                    hiddenInput.value = selectedValues.join(', ');
-                }
-            });
-        }
-    }
-
-    setupTagSelection('abilities-container', 'selectedAbilities');
-    setupTagSelection('skills-container', 'selectedSkills');
 });
 
 // --- ارسال فرم ثبت نام با AJAX و بازخورد کامل به کاربر ---
