@@ -661,3 +661,10 @@ body.light-theme #mobile-dropdown-menu a[aria-current="page"] {
     display: flex;
     align-items: center;
 }
+
+/* استایل برای لینک‌های غیرفعال در منو */
+.nav-link-disabled {
+    opacity: 0.5; /* کم‌رنگ‌تر کردن آیتم */
+    cursor: not-allowed; /* تغییر نشانگر موس به حالت غیرمجاز */
+    pointer-events: none; /* غیرفعال کردن کامل رویدادهای کلیک و هاور */
+}
