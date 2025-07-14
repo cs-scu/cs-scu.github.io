@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).then(response => {
             if (response.ok) {
                 // در صورت موفقیت، پیام را در کادر وضعیت نمایش می‌دهیم
-                statusMessage.textContent = 'درخواست شما با موفقیت ثبت شد! ✅';
+                statusMessage.textContent = 'درخواست شما با موفقیت ثبت شد و به زودی با شما تماس میگیریم!👾';
                 statusMessage.className = 'success'; // اعمال استایل موفقیت
                 statusMessage.style.display = 'block';
                 
