@@ -1,15 +1,10 @@
-
-
-// --- تغییر اصلی در این بخش است ---
+// --- کنترل انیمیشن ذرات ---
 let particlesInstance = null;
-
 const particleOptions = {
-    background: {
-        color: { value: 'transparent' }
-    },
+    background: { color: { value: 'transparent' } },
     particles: {
         number: { value: 150, density: { enable: true, value_area: 800 } },
-        color: { value: "#e8c38e" }, // رنگ پیش‌فرض برای حالت تاریک
+        color: { value: "#e8c38e" },
         shape: { type: "circle" },
         opacity: { value: { min: 0.1, max: 0.5 }, animation: { enable: true, speed: 1.5, minimumValue: 0.1, sync: false } },
         size: { value: { min: 1, max: 2.5 } },
@@ -23,18 +18,21 @@ const particleOptions = {
     },
     retina_detect: true
 };
-
 tsParticles.load("particles-js", particleOptions).then(container => {
     particlesInstance = container;
+    // تم اولیه را پس از بارگذاری انیمیشن اعمال می‌کنیم
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(prefersDark ? 'dark-theme' : 'light-theme');
 });
 
+
+// --- کنترل تم ---
 const themeToggle = document.getElementById('theme-toggle');
 const body = document.body;
 
 const applyTheme = (theme) => {
     body.classList.remove('light-theme', 'dark-theme');
     body.classList.add(theme);
-    // localStorage.setItem('theme', theme); // << این خط حذف یا کامنت بشه
 
     if (particlesInstance) {
         const newParticleColor = theme === 'dark-theme' ? '#e8c38e' : '#555555';
@@ -44,14 +42,13 @@ const applyTheme = (theme) => {
     }
 };
 
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+// گوش دادن به تغییرات تم دستگاه
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+    const newTheme = event.matches ? 'dark-theme' : 'light-theme';
+    applyTheme(newTheme);
+});
 
-if (prefersDark) {
-    applyTheme('dark-theme');
-} else {
-    applyTheme('light-theme');
-}
-
+// عملکرد دکمه تغییر تم دستی
 themeToggle.addEventListener('click', () => {
     const currentTheme = body.classList.contains('dark-theme') ? 'dark-theme' : 'light-theme';
     const newTheme = currentTheme === 'dark-theme' ? 'light-theme' : 'dark-theme';
