@@ -75,3 +75,153 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// --- کنترل Modal ثبت نام ---
+document.addEventListener('DOMContentLoaded', () => {
+    const registerModal = document.getElementById('register-modal');
+    const openModalBtn = document.getElementById('open-register-btn');
+    const closeModalBtn = registerModal.querySelector('.close-modal');
+
+    const openModal = () => {
+        document.body.classList.add('modal-is-open');
+        registerModal.classList.add('is-open');
+    };
+
+    const closeModal = () => {
+        document.body.classList.remove('modal-is-open');
+        registerModal.classList.remove('is-open');
+    };
+
+    if (openModalBtn) {
+        openModalBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            openModal();
+        });
+    }
+
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeModal);
+    }
+
+    registerModal.addEventListener('click', (event) => {
+        if (event.target === registerModal) {
+            closeModal();
+        }
+    });
+});
+
+// --- منطق پیشرفته فرم ثبت نام ---
+document.addEventListener('DOMContentLoaded', () => {
+    // ---- مدیریت منوی وابسته سال ورود ----
+    const academicLevelSelect = document.getElementById('academicLevel');
+    const entryYearSelect = document.getElementById('entryYear');
+
+    const yearOptions = {
+        associate: ['1404', '1403', '1402', '1401'],
+        bachelor: ['1404', '1403', '1402', '1401', '1400'],
+        master: ['1404', '1403', '1402', '1401']
+    };
+
+    if (academicLevelSelect) {
+        academicLevelSelect.addEventListener('change', (e) => {
+            const selectedLevel = e.target.value;
+            // خالی کردن گزینه‌های قبلی
+            entryYearSelect.innerHTML = '<option value="">انتخاب کنید...</option>';
+
+            if (selectedLevel && yearOptions[selectedLevel]) {
+                // فعال کردن منوی سال ورود
+                entryYearSelect.disabled = false;
+                // افزودن گزینه‌های جدید
+                yearOptions[selectedLevel].forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    entryYearSelect.appendChild(option);
+                });
+            } else {
+                // غیرفعال کردن اگر مقطعی انتخاب نشده باشد
+                entryYearSelect.disabled = true;
+                entryYearSelect.innerHTML = '<option value="">ابتدا مقطع را انتخاب کنید</option>';
+            }
+        });
+    }
+
+    // ---- مدیریت سیستم تگ‌ها ----
+    function setupTagSelection(containerId, hiddenInputId) {
+        const container = document.getElementById(containerId);
+        const hiddenInput = document.getElementById(hiddenInputId);
+
+        if (container && hiddenInput) {
+            container.addEventListener('click', (e) => {
+                if (e.target.classList.contains('tag')) {
+                    // فعال یا غیرفعال کردن کلاس active
+                    e.target.classList.toggle('active');
+                    
+                    // به‌روزرسانی مقدار فیلد مخفی
+                    const activeTags = container.querySelectorAll('.tag.active');
+                    const selectedValues = Array.from(activeTags).map(tag => tag.dataset.value);
+                    hiddenInput.value = selectedValues.join(', ');
+                }
+            });
+        }
+    }
+
+    setupTagSelection('abilities-container', 'selectedAbilities');
+    setupTagSelection('skills-container', 'selectedSkills');
+});
+
+// --- ارسال فرم ثبت نام با AJAX و بازخورد کامل به کاربر ---
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('registration-form');
+    if (!form) return;
+
+    const statusMessage = document.getElementById('form-status-message');
+    const submitButton = form.querySelector('button[type="submit"]');
+    // دیگر نیازی به این دو متغیر نیست چون فرم را مخفی نمی‌کنیم
+    // const successMessage = document.getElementById('success-message');
+    // const formContentWrapper = document.getElementById('form-content-wrapper');
+    const formspreeEndpoint = 'https://formspree.io/f/xldlrayk'; // URL خود را اینجا قرار دهید
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        statusMessage.style.display = 'none';
+        submitButton.disabled = true;
+        submitButton.textContent = 'در حال ارسال...';
+
+        const formData = new FormData(form);
+
+        fetch(formspreeEndpoint, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+                // در صورت موفقیت، پیام را در کادر وضعیت نمایش می‌دهیم
+                statusMessage.textContent = 'درخواست شما با موفقیت ثبت شد! ✅';
+                statusMessage.className = 'success'; // اعمال استایل موفقیت
+                statusMessage.style.display = 'block';
+                
+                form.reset(); // خالی کردن فیلدهای فرم
+                submitButton.textContent = 'ارسال شد'; // تغییر متن دکمه به حالت نهایی
+                // دکمه غیرفعال باقی می‌ماند تا از ارسال مجدد جلوگیری شود
+            } else {
+                // در صورت بروز خطای سمت سرور
+                statusMessage.textContent = 'خطایی در سرور رخ داد. لطفاً دوباره تلاش کنید.';
+                statusMessage.className = 'error';
+                statusMessage.style.display = 'block';
+                submitButton.disabled = false;
+                submitButton.textContent = 'ارسال درخواست';
+            }
+        }).catch(error => {
+            // در صورت بروز خطای شبکه
+            statusMessage.textContent = 'خطای شبکه. لطفاً اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.';
+            statusMessage.className = 'error';
+            statusMessage.style.display = 'block';
+            submitButton.disabled = false;
+            submitButton.textContent = 'ارسال درخواست';
+        });
+    });
+});
