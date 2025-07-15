@@ -227,8 +227,27 @@ body.light-theme #theme-toggle svg { color: var(--text-color-light); }
 body.dark-theme #theme-toggle:hover svg { color: var(--primary-color); }
 body.light-theme #theme-toggle:hover svg { color: var(--primary-color-light-theme); }
 
-.dark-theme .moon, .light-theme .sun { display: block; }
-.dark-theme .sun, .light-theme .moon { display: none; }
+/* .dark-theme .moon, .light-theme .sun { display: block; }
+.dark-theme .sun, .light-theme .moon { display: none; } */
+
+/* ================== کنترل آیکون تم سه‌حالته ================== */
+#theme-toggle .sun,
+#theme-toggle .moon,
+#theme-toggle .system {
+    display: none;
+}
+
+#theme-toggle[data-theme-state="light"] .sun {
+    display: block;
+}
+
+#theme-toggle[data-theme-state="dark"] .moon {
+    display: block;
+}
+
+#theme-toggle[data-theme-state="system"] .system {
+    display: block;
+}
 
 /* ================== بخش اصلی و قهرمان (Main & Hero) ================== */
 main {
@@ -326,7 +345,6 @@ body.light-theme .btn-secondary:hover {
 }
 
 .latest-news h2 {
-    font-size: 2.5rem;
     margin-bottom: 3rem;
 }
 body.dark-theme .latest-news h2 { color: var(--primary-color); }
@@ -847,6 +865,15 @@ body.light-theme .member-card .card-socials a:hover svg { color: var(--primary-c
     }
     .notification-bar-content{
     font-size: clamp(3vw, 3.5vw, 4vw);
+    }
+    .latest-news h2 {
+    font-size: clamp(6vw, 6vw , 6vw);
+    }
+    .hero h1 {
+    font-size: clamp(6vw, 6vw , 6vw);
+    }
+    .hero p {
+    font-size: clamp(4vw, 4vw , 4vw);
     }
 }
 

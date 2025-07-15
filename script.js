@@ -15,24 +15,76 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 2. کنترل تم ---
+    // --- 2. کنترل تم ---
     const themeToggle = document.getElementById('theme-toggle');
-    const applyTheme = (theme) => {
+    const THEME_STATES = ['system', 'light', 'dark'];
+    const THEME_TITLES = { system: 'سیستم', light: 'روشن', dark: 'تیره' };
+
+    const getSystemThemeClass = () => window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark-theme' : 'light-theme';
+
+    const applyVisualTheme = (themeClass) => {
         body.classList.remove('light-theme', 'dark-theme');
-        body.classList.add(theme);
+        body.classList.add(themeClass);
+
         if (particlesInstance) {
-            const newParticleColor = theme === 'dark-theme' ? '#e8c38e' : '#555555';
+            const isDark = themeClass === 'dark-theme';
+            const newParticleColor = isDark ? '#e8c38e' : '#555555';
             particlesInstance.options.particles.color.value = newParticleColor;
-            particlesInstance.options.particles.shadow.enable = theme === 'dark-theme';
+            particlesInstance.options.particles.shadow.enable = isDark;
             particlesInstance.refresh();
         }
     };
-    themeToggle.addEventListener('click', () => applyTheme(body.classList.contains('dark-theme') ? 'light-theme' : 'dark-theme'));
-    const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)');
-    applyTheme(preferredTheme.matches ? 'dark-theme' : 'light-theme');
-    preferredTheme.addEventListener('change', e => applyTheme(e.matches ? 'dark-theme' : 'light-theme'));
+
+    const setThemeState = (state) => {
+        themeToggle.setAttribute('data-theme-state', state);
+        themeToggle.setAttribute('title', `تغییر تم (حالت فعلی: ${THEME_TITLES[state]})`);
+        
+        const themeClass = (state === 'system') ? getSystemThemeClass() : `${state}-theme`;
+        applyVisualTheme(themeClass);
+        
+        localStorage.setItem('themeState', state);
+    };
+
+    themeToggle.addEventListener('click', () => {
+        const currentState = localStorage.getItem('themeState') || 'system';
+        const currentIndex = THEME_STATES.indexOf(currentState);
+        const nextState = THEME_STATES[(currentIndex + 1) % THEME_STATES.length];
+        setThemeState(nextState);
+    });
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (localStorage.getItem('themeState') === 'system') {
+            applyVisualTheme(getSystemThemeClass());
+        }
+    });
+
+    // Set initial theme on load
+    document.addEventListener('DOMContentLoaded', () => {
+        // We must wait for particlesInstance to be loaded, so this logic is moved
+        // to the .then() block of the tsParticles.load promise.
+    });
+
+    // The initial theme setting must be deferred until after particles.js is loaded.
+    // The original `setThemeState` call needs to be placed inside the `tsParticles.load(...).then()` block.
+    // Find this block:
+    /*
+    tsParticles.load("particles-js", { ... }).then(container => {
+        particlesInstance = container;
+        applyTheme(preferredTheme.matches ? 'dark-theme' : 'light-theme');
+    });
+    */
+    // And replace it with this:
+    /*
+    tsParticles.load("particles-js", { ... }).then(container => {
+        particlesInstance = container;
+        const initialThemeState = localStorage.getItem('themeState') || 'system';
+        setThemeState(initialThemeState);
+    });
+    */
 
     // --- 3. راه‌اندازی انیمیشن ذرات ---
     tsParticles.load("particles-js", {
+        // ... all particle options remain the same
         background: { color: { value: 'transparent' } },
         particles: {
             number: { value: 150, density: { enable: true, value_area: 800 } },
@@ -46,7 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
         interactivity: { events: { onhover: { enable: true, mode: "bubble" } }, modes: { bubble: { distance: 200, duration: 2, opacity: 1, size: 3 } } },
     }).then(container => {
         particlesInstance = container;
-        applyTheme(preferredTheme.matches ? 'dark-theme' : 'light-theme');
+        const initialThemeState = localStorage.getItem('themeState') || 'system';
+        setThemeState(initialThemeState);
     });
     
     // --- 4. کنترل‌های رابط کاربری (منو و مودال) ---
