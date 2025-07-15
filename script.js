@@ -231,18 +231,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const template = document.getElementById('member-card-template');
                 if (!template) throw new Error('قالب کارت اعضا یافت نشد.');
 
+                // URL تصویر پیش‌فرض برای کاربرانی که تصویر ندارند
+                const DEFAULT_AVATAR_URL = 'https://icons.veryicon.com/png/o/miscellaneous/rookie-official-icon-gallery/225-default-avatar.png';
+
                 const fragment = document.createDocumentFragment();
                 members.forEach(member => {
                     const cardClone = template.content.cloneNode(true);
                     
-                    // --- Basic Info ---
-                    cardClone.querySelector('.member-photo').src = member.imageUrl;
+                    // بررسی وجود تصویر و استفاده از تصویر پیش‌فرض در صورت نیاز
+                    cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
                     cardClone.querySelector('.member-photo').alt = member.name;
                     cardClone.querySelector('.member-name').textContent = member.name;
-                    cardClone.querySelector('.role').textContent = member.role;
                     cardClone.querySelector('.description').textContent = member.description;
                     
-                    // --- Tags Logic ---
                     const tagsContainer = cardClone.querySelector('.card-tags');
                     if (member.tags && Array.isArray(member.tags)) {
                         member.tags.forEach(tagText => {
@@ -252,14 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             tagsContainer.appendChild(tagElement);
                         });
                     }
-                    if (member.entryYear) {
-                        const entryYearTag = document.createElement('span');
-                        entryYearTag.className = 'tag entry-year';
-                        entryYearTag.textContent = `ورودی ${member.entryYear}`;
-                        tagsContainer.appendChild(entryYearTag);
-                    }
                     
-                    // --- Social Links Logic (Conditional) ---
                     if (member.social) {
                         const socialLinks = {
                             linkedin: cardClone.querySelector('.social-linkedin'),
@@ -283,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 membersGrid.appendChild(fragment);
 
                 pageHTML = `<section class="members-container"><div class="container"><h1>اعضای انجمن</h1>${membersGrid.outerHTML}</div></section>`;
-
+            
             
             } else if (path === '/about' || path === '/contact') {
                 const response = await fetch(path.substring(1) + '.html');
