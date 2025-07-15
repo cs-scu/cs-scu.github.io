@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// --- منطق کامل و نهایی SPA (نسخه پایدار) ---
+// --- منطق کامل و نهایی SPA (نسخه بازسازی شده) ---
 document.addEventListener('DOMContentLoaded', () => {
     const mainContent = document.querySelector('main');
     if (!mainContent) return;
@@ -189,10 +189,50 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     };
- /**
-     * رندر کردن محتوای صفحه در تگ <main> (نسخه نهایی و اصلاح‌شده)
-     * @param {string} path - مسیر صفحه برای رندر
-     */
+
+    const initializeContactForm = () => {
+        const contactForm = document.getElementById('contact-form');
+        if (!contactForm || contactForm.dataset.listenerAttached) return;
+
+        const statusBox = contactForm.querySelector('.form-status');
+        const submitBtn = contactForm.querySelector('button[type="submit"]');
+        const formspreeEndpoint = 'https://formspree.io/f/xjkovbqp'; // آدرس فرم تماس شما
+
+        contactForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            statusBox.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'در حال ارسال...';
+            
+            fetch(formspreeEndpoint, {
+                method: 'POST',
+                body: new FormData(contactForm),
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(response => {
+                if (response.ok) {
+                    statusBox.textContent = 'پیام شما با موفقیت ارسال شد. ✅';
+                    statusBox.className = 'form-status success';
+                    contactForm.reset();
+                    submitBtn.textContent = 'ارسال شد';
+                } else {
+                    statusBox.textContent = 'خطایی در ارسال رخ داد. لطفاً دوباره تلاش کنید.';
+                    statusBox.className = 'form-status error';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'ارسال پیام';
+                }
+                statusBox.style.display = 'block';
+            })
+            .catch(error => {
+                statusBox.textContent = 'خطای شبکه. لطفاً اتصال خود را بررسی کنید.';
+                statusBox.className = 'form-status error';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'ارسال پیام';
+            });
+        });
+        contactForm.dataset.listenerAttached = 'true';
+    };
+
     const renderPage = async (path) => {
         updateActiveLink(path);
 
@@ -204,19 +244,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             if (path === '/members') {
-                // منطق بارگذاری و رندر صفحه اعضا از فایل JSON
                 const response = await fetch('/members.json');
                 if (!response.ok) throw new Error('فایل اطلاعات اعضا یافت نشد.');
-                
                 const members = await response.json();
+                
                 let membersHTML = '<div class="members-grid">';
                 members.forEach(member => {
+                    // **بخش تکمیل شده برای ساخت کارت اعضا**
                     membersHTML += `
                         <div class="member-card">
                             <img src="${member.imageUrl}" alt="تصویر ${member.name}" class="member-photo">
                             <div class="card-header"><h3>${member.name}</h3><p class="role">${member.role}</p></div>
                             <p class="description">${member.description}</p>
-                            <div class="card-tags"><span class="tag entry-year">ورودی ${member.entryYear}</span></div>
+                            <div class="card-tags">
+                                <span class="tag entry-year">ورودی ${member.entryYear}</span>
+                                ${member.role.includes('فرعی') ? `<span class="tag major">${member.major}</span>` : ''}
+                            </div>
                             <div class="card-socials">
                                 <a href="${member.social.linkedin}" target="_blank" title="لینکدین"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
                                 <a href="${member.social.telegram}" target="_blank" title="تلگرام"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 L11 13 L2 9 L22 2 Z M22 2 L15 22 L11 13 L2 9 L22 2 Z"></path></svg></a>
@@ -229,51 +272,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 pageCache[path] = pageHTML;
                 mainContent.innerHTML = pageHTML;
 
-            } else if (path === '/about') {
-                // منطق بارگذاری صفحه درباره ما از فایل HTML
-                const response = await fetch('/about.html');
-                if (!response.ok) throw new Error('محتوای "درباره ما" یافت نشد.');
+            } else if (path === '/about' || path === '/contact') {
+                const response = await fetch(path.substring(1) + '.html');
+                if (!response.ok) throw new Error(`محتوای صفحه ${path} یافت نشد.`);
                 const pageHTML = await response.text();
                 pageCache[path] = pageHTML;
                 mainContent.innerHTML = pageHTML;
-
-            } else if (path === '/contact') {
-                // ساخت مستقیم HTML صفحه تماس با ما (بدون نیاز به فایل خارجی)
-                const pageHTML = `
-                    <section class="page-container">
-                        <div class="container">
-                            <h1>تماس با ما</h1>
-                            <div class="content-box">
-                                <p>شما می‌توانید از طریق راه‌های زیر با ما در ارتباط باشید یا فرم تماس را پر کنید.</p>
-                                <div class="contact-info">
-                                    <div class="info-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg><a href="mailto:anjomancsscu@gmail.com">anjomancsscu@gmail.com</a></div>
-                                    <div class="info-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 L11 13 L2 9 L22 2 Z M22 2 L15 22 L11 13 L2 9 L22 2 Z"></path></svg><a href="https://t.me/scu_cs" target="_blank">@cs_scu</a></div>
-                                </div>
-                                <form id="contact-form">
-                                    <h2>ارسال پیام مستقیم</h2>
-                                    <div class="form-group"><label for="contact-name">نام شما:</label><input type="text" id="contact-name" name="نام" required></div>
-                                    <div class="form-group"><label for="contact-email">ایمیل شما:</label><input type="email" id="contact-email" name="ایمیل" required></div>
-                                    <div class="form-group"><label for="contact-message">پیام شما:</label><textarea id="contact-message" name="پیام" rows="6" required></textarea></div>
-                                    <div class="form-status"></div>
-                                    <button type="submit" class="btn btn-primary">ارسال پیام</button>
-                                </form>
-                            </div>
-                        </div>
-                    </section>
-                `;
-                pageCache[path] = pageHTML;
-                mainContent.innerHTML = pageHTML;
-                initializeContactForm(); // فعال کردن منطق فرم
-
+                if (path === '/contact') initializeContactForm();
             } else {
-                // بازگشت به صفحه اصلی
                 mainContent.innerHTML = initialContent;
             }
         } catch (error) {
             mainContent.innerHTML = `<p style="text-align: center;">خطا: ${error.message}</p>`;
         }
     };
-
 
     const navigate = (path, doPushState = true) => {
         if (doPushState) {
@@ -282,9 +294,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderPage(path);
     };
 
-    // --- بخش اصلی اجرای برنامه ---
-
-    // مدیریت کلیک روی لینک‌ها
     document.body.addEventListener('click', e => {
         const link = e.target.closest('a[data-page]');
         if (link) {
@@ -293,21 +302,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // مدیریت دکمه‌های back/forward
     window.addEventListener('popstate', e => {
         const path = (e.state && e.state.path) ? e.state.path : '/';
-        renderPage(path);
+        navigate(path, false);
     });
 
-    // مدیریت بارگذاری اولیه صفحه
-    const redirectedUrl = sessionStorage.getItem('redirect');
-    if (redirectedUrl) {
+    // --- مدیریت نهایی بارگذاری اولیه صفحه ---
+    const getRelativePath = () => {
+        const fullPath = window.location.pathname;
+        const repoName = location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? '' : fullPath.split('/')[1];
+        return repoName ? fullPath.replace(`/${repoName}`, '') : fullPath;
+    };
+    
+    const redirectedUrlString = sessionStorage.getItem('redirect');
+    if (redirectedUrlString) {
         sessionStorage.removeItem('redirect');
-        const url = new URL(redirectedUrl);
-        navigate(url.pathname, false); // آدرس را تغییر می‌دهیم اما به تاریخچه اضافه نمی‌کنیم
-        window.history.replaceState({ path: url.pathname }, '', url.pathname); // آدرس URL را به درستی تنظیم می‌کنیم
+        const redirectedUrl = new URL(redirectedUrlString);
+        const path = redirectedUrl.pathname;
+        history.replaceState({ path }, '', path);
+        renderPage(path);
     } else {
-        navigate(window.location.pathname, false);
+        renderPage(getRelativePath());
     }
 });
 

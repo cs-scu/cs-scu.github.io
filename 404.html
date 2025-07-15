@@ -4,13 +4,13 @@
     <meta charset="utf-8">
     <title>Redirecting...</title>
     <script>
-      // مسیر کامل درخواستی را در sessionStorage ذخیره می‌کند
-      sessionStorage.redirect = location.href;
-      // به صفحه اصلی سایت (ریشه) بازمی‌گرداند
-      location.href = '/';
+      const pathWithQuery = location.pathname + location.search;
+      const repoNameMatch = /^\/([^\/]+)/.exec(location.pathname);
+      const repoName = repoNameMatch ? repoNameMatch[1] : '';
+
+      sessionStorage.setItem('redirect', pathWithQuery.substring(repoName.length + 1));
+      location.replace('/' + repoName + '/');
     </script>
   </head>
-  <body>
-    <p>در حال انتقال...</p>
-  </body>
+  <body></body>
 </html>
