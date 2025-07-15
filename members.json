@@ -1,106 +1,114 @@
 [
   {
     "id": 1,
-    "name": "آرمان رضایی",
-    "role": "دبیر انجمن",
-    "entryYear": "1401",
-    "major": "مهندسی کامپیوتر",
+    "name": "پژمان صدری نژاد",
+    "role": "",
+    "entryYear": "1402",
     "imageUrl": "https://i.pravatar.cc/150?u=arman",
-    "description": "علاقه‌مند به توسعه وب و هوش مصنوعی. تلاش برای ایجاد رویدادهای علمی مفید و کاربردی برای دانشجویان.",
+    "description": "",
+    "tags": ["علوم کامپیوتر"],
     "social": {
       "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/"
+      "telegram": "https://t.me/",
+      "github": "https://github.com/"
     }
   },
   {
     "id": 2,
-    "name": "سارا محمدی",
-    "role": "نائب دبیر",
-    "entryYear": "1400",
-    "major": "علوم کامپیوتر",
+    "name": "هومن سلحشوری",
+    "role": "",
+    "entryYear": "1402",
     "imageUrl": "https://i.pravatar.cc/150?u=sara",
-    "description": "متخصص در زمینه امنیت شبکه و تحلیل داده. به دنبال گسترش دانش و همکاری‌های تیمی در انجمن.",
+    "description": "",
+    "tags": ["علوم کامپیوتر"],
     "social": {
       "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/"
+      "telegram": "https://t.me/",
+      "github": null
     }
   },
-  {
+    {
     "id": 3,
-    "name": "علی کریمی",
-    "role": "عضو فرعی",
+    "name": "محمد مهدی اشرف مدرس",
+    "role": "",
     "entryYear": "1402",
-    "major": "مهندسی فناوری اطلاعات",
-    "imageUrl": "https://i.pravatar.cc/150?u=ali",
-    "description": "فعال در حوزه طراحی گرافیک و رابط کاربری. مشتاق به یادگیری و کمک به پروژه‌های بصری انجمن.",
-    "social": {
-      "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/"
-    }
-  },
-  {
-    "id": 4,
-    "name": "فاطمه حسینی",
-    "role": "عضو اصلی",
-    "entryYear": "1402",
-    "major": "هوش مصنوعی",
-    "imageUrl": "https://i.pravatar.cc/150?u=fatemeh",
-    "description": "پژوهشگر حوزه یادگیری عمیق و پردازش تصویر. به دنبال ایجاد کارگاه‌های آموزشی پیشرفته.",
-    "social": {
-      "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/"
-    }
-  },
- {
-    "id": 1,
-    "name": "آرمان رضایی",
-    "role": "دبیر انجمن",
-    "entryYear": "1401",
-    "major": "مهندسی کامپیوتر",
     "imageUrl": "https://i.pravatar.cc/150?u=arman",
-    "description": "علاقه‌مند به توسعه وب و هوش مصنوعی. تلاش برای ایجاد رویدادهای علمی مفید و کاربردی برای دانشجویان.",
+    "description": "",
+    "tags": ["علوم کامپیوتر"],
     "social": {
       "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/"
-    }
-  },
-  {
-    "id": 2,
-    "name": "سارا محمدی",
-    "role": "نائب دبیر",
-    "entryYear": "1400",
-    "major": "علوم کامپیوتر",
-    "imageUrl": "https://i.pravatar.cc/150?u=sara",
-    "description": "متخصص در زمینه امنیت شبکه و تحلیل داده. به دنبال گسترش دانش و همکاری‌های تیمی در انجمن.",
-    "social": {
-      "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/"
-    }
-  },
-  {
-    "id": 3,
-    "name": "علی کریمی",
-    "role": "عضو فرعی",
-    "entryYear": "1402",
-    "major": "مهندسی فناوری اطلاعات",
-    "imageUrl": "https://i.pravatar.cc/150?u=ali",
-    "description": "فعال در حوزه طراحی گرافیک و رابط کاربری. مشتاق به یادگیری و کمک به پروژه‌های بصری انجمن.",
-    "social": {
-      "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/"
+      "telegram": "https://t.me/",
+      "github": "https://github.com/"
     }
   },
   {
     "id": 4,
-    "name": "فاطمه حسینی",
-    "role": "عضو اصلی",
+    "name": "آریا عزیزیه",
+    "role": "",
     "entryYear": "1402",
-    "major": "هوش مصنوعی",
-    "imageUrl": "https://i.pravatar.cc/150?u=fatemeh",
-    "description": "پژوهشگر حوزه یادگیری عمیق و پردازش تصویر. به دنبال ایجاد کارگاه‌های آموزشی پیشرفته.",
+    "imageUrl": "https://i.pravatar.cc/150?u=sara",
+    "description": "",
+    "tags": ["علوم کامپیوتر"],
     "social": {
       "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/"
+      "telegram": "https://t.me/",
+      "github": null
+    }
+  },
+    {
+    "id": 5,
+    "name": "رضا فولادی وندا",
+    "role": "",
+    "entryYear": "1402",
+    "imageUrl": "https://i.pravatar.cc/150?u=arman",
+    "description": "",
+    "tags": ["علوم کامپیوتر"],
+    "social": {
+      "linkedin": "https://linkedin.com/",
+      "telegram": "https://t.me/",
+      "github": "https://github.com/"
+    }
+  },
+  {
+    "id": 6,
+    "name": "فرزاد فرزانه",
+    "role": "",
+    "entryYear": "1402",
+    "imageUrl": "https://i.pravatar.cc/150?u=sara",
+    "description": "",
+    "tags": ["ریاضیات و کاربرد ها"],
+    "social": {
+      "linkedin": "https://linkedin.com/",
+      "telegram": "https://t.me/",
+      "github": null
+    }
+  },
+      {
+    "id": 5,
+    "name": "سید مخمد مهدی موسوی اصل",
+    "role": "",
+    "entryYear": "1401",
+    "imageUrl": "https://i.pravatar.cc/150?u=arman",
+    "description": "",
+    "tags": ["علوم کامپیوتر"],
+    "social": {
+      "linkedin": "https://linkedin.com/",
+      "telegram": "https://t.me/",
+      "github": "https://github.com/"
+    }
+  },
+      {
+    "id": 5,
+    "name": "امیر محمد بهین",
+    "role": "",
+    "entryYear": "1403",
+    "imageUrl": "https://i.pravatar.cc/150?u=arman",
+    "description": "",
+    "tags": ["مهندسی کامپیوتر"],
+    "social": {
+      "linkedin": "https://linkedin.com/",
+      "telegram": "https://t.me/",
+      "github": "https://github.com/"
     }
   }
 ]

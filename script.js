@@ -1,4 +1,3 @@
-// --- ساختار یکپارچه و نهایی اسکریپت ---
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. متغیرهای عمومی و اولیه ---
@@ -9,6 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const initialContent = mainContent.innerHTML;
     const pageCache = { '/': initialContent };
     let particlesInstance = null;
+    
+    const currentYearSpan = document.getElementById('current-year');
+    if(currentYearSpan) {
+        currentYearSpan.textContent = new Date().getFullYear();
+    }
 
     // --- 2. کنترل تم ---
     const themeToggle = document.getElementById('theme-toggle');
@@ -23,7 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     themeToggle.addEventListener('click', () => applyTheme(body.classList.contains('dark-theme') ? 'light-theme' : 'dark-theme'));
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => applyTheme(e.matches ? 'dark-theme' : 'light-theme'));
+    const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)');
+    applyTheme(preferredTheme.matches ? 'dark-theme' : 'light-theme');
+    preferredTheme.addEventListener('change', e => applyTheme(e.matches ? 'dark-theme' : 'light-theme'));
 
     // --- 3. راه‌اندازی انیمیشن ذرات ---
     tsParticles.load("particles-js", {
@@ -40,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         interactivity: { events: { onhover: { enable: true, mode: "bubble" } }, modes: { bubble: { distance: 200, duration: 2, opacity: 1, size: 3 } } },
     }).then(container => {
         particlesInstance = container;
-        applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark-theme' : 'light-theme');
+        applyTheme(preferredTheme.matches ? 'dark-theme' : 'light-theme');
     });
     
     // --- 4. کنترل‌های رابط کاربری (منو و مودال) ---
@@ -93,7 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         statusMessage.style.display = 'block';
                     }
                     registrationForm.reset();
-                    submitButton.textContent = 'ارسال شد';
                 } else { throw new Error('Server error'); }
             }).catch(error => {
                 if (statusMessage) {
@@ -101,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     statusMessage.className = 'form-status error';
                     statusMessage.style.display = 'block';
                 }
+            }).finally(() => {
                 submitButton.disabled = false;
                 submitButton.textContent = 'ارسال درخواست';
             });
@@ -111,12 +117,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const contactForm = document.getElementById('contact-form');
         if (!contactForm || contactForm.dataset.listenerAttached) return;
 
-        const statusBox = contactForm.querySelector('.form-status');
-        const submitBtn = contactForm.querySelector('button[type="submit"]');
-        const formspreeEndpoint = 'https://formspree.io/f/xjkovbqp';
-
         contactForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            const statusBox = contactForm.querySelector('.form-status');
+            const submitBtn = contactForm.querySelector('button[type="submit"]');
+            const formspreeEndpoint = 'https://formspree.io/f/xjkovbqp';
+            
             if (statusBox) { statusBox.style.display = 'none'; statusBox.className = 'form-status'; }
             submitBtn.disabled = true;
             submitBtn.textContent = 'در حال ارسال...';
@@ -133,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         statusBox.style.display = 'block';
                     }
                     contactForm.reset();
-                    submitBtn.textContent = 'ارسال شد';
                 } else { throw new Error('Server error'); }
             }).catch(error => {
                 if (statusBox) {
@@ -141,6 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     statusBox.className = 'form-status error';
                     statusBox.style.display = 'block';
                 }
+            }).finally(() => {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'ارسال پیام';
             });
@@ -148,23 +154,70 @@ document.addEventListener('DOMContentLoaded', () => {
         contactForm.dataset.listenerAttached = 'true';
     };
 
-    // --- 6. منطق مسیریابی SPA ---
+    // --- 6. منطق بارگذاری محتوای داینامیک ---
+    const loadLatestNews = async () => {
+        const newsGrid = document.querySelector('.news-grid');
+        if (!newsGrid) return;
+
+        try {
+            const response = await fetch('news.json');
+            if (!response.ok) throw new Error('فایل اخبار یافت نشد.');
+            const newsItems = await response.json();
+            
+            newsGrid.innerHTML = ''; 
+            
+            newsItems.slice(0, 3).forEach(item => {
+                const newsCardHTML = `
+                    <article class="news-card">
+                        <img src="${item.image}" alt="تصویر خبر: ${item.title}">
+                        <div class="news-card-content">
+                            <h3>${item.title}</h3>
+                            <p class="news-meta">منتشر شده در تاریخ ${item.date}</p>
+                            <p>${item.summary}</p>
+                            <a href="${item.link}">اطلاعات بیشتر &larr;</a>
+                        </div>
+                    </article>
+                `;
+                newsGrid.insertAdjacentHTML('beforeend', newsCardHTML);
+            });
+
+        } catch (error) {
+            newsGrid.innerHTML = `<p style="text-align: center; grid-column: 1 / -1;">${error.message}</p>`;
+        }
+    };
+
+
+    // --- 7. منطق مسیریابی SPA (مبتنی بر هش) ---
+    const getCurrentPath = () => location.hash.substring(1) || '/';
+
     const updateActiveLink = (path) => {
         document.querySelectorAll('a[data-page]').forEach(link => {
-            const linkPath = link.getAttribute('href');
-            if (linkPath === path || (path === '/' && linkPath === '/index.html')) {
+            const linkHref = link.getAttribute('href');
+            if (linkHref === `#${path}` || (path === '/' && linkHref === '#/')) {
                 link.setAttribute('aria-current', 'page');
             } else {
                 link.removeAttribute('aria-current');
             }
         });
+        if (mobileDropdownMenu.classList.contains('is-open')) {
+            mobileDropdownMenu.classList.remove('is-open');
+        }
     };
 
     const renderPage = async (path) => {
         updateActiveLink(path);
+
+        if (path === '/') {
+            mainContent.innerHTML = pageCache['/'];
+            loadLatestNews();
+            window.scrollTo(0, 0);
+            return;
+        }
+
         if (pageCache[path]) {
             mainContent.innerHTML = pageCache[path];
             if (path === '/contact') initializeContactForm();
+            window.scrollTo(0, 0);
             return;
         }
 
@@ -174,73 +227,85 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch('members.json');
                 if (!response.ok) throw new Error('فایل اطلاعات اعضا یافت نشد.');
                 const members = await response.json();
-                let membersGridHTML = '<div class="members-grid">';
+
+                const template = document.getElementById('member-card-template');
+                if (!template) throw new Error('قالب کارت اعضا یافت نشد.');
+
+                const fragment = document.createDocumentFragment();
                 members.forEach(member => {
-                    membersGridHTML += `
-                        <div class="member-card">
-                            <img src="${member.imageUrl}" alt="${member.name}" class="member-photo">
-                            <div class="card-header"><h3>${member.name}</h3><p class="role">${member.role}</p></div>
-                            <p class="description">${member.description}</p>
-                            <div class="card-tags"><span class="tag entry-year">ورودی ${member.entryYear}</span></div>
-                            <div class="card-socials">
-                                <a href="${member.social.linkedin}" target="_blank" title="LinkedIn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
-                                <a href="${member.social.telegram}" target="_blank" title="Telegram"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 L11 13 L2 9 L22 2 Z M22 2 L15 22 L11 13 L2 9 L22 2 Z"></path></svg></a>
-                            </div>
-                        </div>`;
+                    const cardClone = template.content.cloneNode(true);
+                    
+                    // --- Basic Info ---
+                    cardClone.querySelector('.member-photo').src = member.imageUrl;
+                    cardClone.querySelector('.member-photo').alt = member.name;
+                    cardClone.querySelector('.member-name').textContent = member.name;
+                    cardClone.querySelector('.role').textContent = member.role;
+                    cardClone.querySelector('.description').textContent = member.description;
+                    
+                    // --- Tags Logic ---
+                    const tagsContainer = cardClone.querySelector('.card-tags');
+                    if (member.tags && Array.isArray(member.tags)) {
+                        member.tags.forEach(tagText => {
+                            const tagElement = document.createElement('span');
+                            tagElement.className = 'tag';
+                            tagElement.textContent = tagText;
+                            tagsContainer.appendChild(tagElement);
+                        });
+                    }
+                    if (member.entryYear) {
+                        const entryYearTag = document.createElement('span');
+                        entryYearTag.className = 'tag entry-year';
+                        entryYearTag.textContent = `ورودی ${member.entryYear}`;
+                        tagsContainer.appendChild(entryYearTag);
+                    }
+                    
+                    // --- Social Links Logic (Conditional) ---
+                    if (member.social) {
+                        const socialLinks = {
+                            linkedin: cardClone.querySelector('.social-linkedin'),
+                            telegram: cardClone.querySelector('.social-telegram'),
+                            github: cardClone.querySelector('.social-github')
+                        };
+
+                        for (const key in socialLinks) {
+                            if (member.social[key]) {
+                                socialLinks[key].href = member.social[key];
+                                socialLinks[key].style.display = 'inline-block';
+                            }
+                        }
+                    }
+                    
+                    fragment.appendChild(cardClone);
                 });
-                membersGridHTML += '</div>';
-                pageHTML = `<section class="members-container"><div class="container"><h1>اعضای انجمن</h1>${membersGridHTML}</div></section>`;
+                
+                const membersGrid = document.createElement('div');
+                membersGrid.className = 'members-grid';
+                membersGrid.appendChild(fragment);
+
+                pageHTML = `<section class="members-container"><div class="container"><h1>اعضای انجمن</h1>${membersGrid.outerHTML}</div></section>`;
+
+            
             } else if (path === '/about' || path === '/contact') {
                 const response = await fetch(path.substring(1) + '.html');
                 if (!response.ok) throw new Error(`محتوای صفحه یافت نشد.`);
                 pageHTML = await response.text();
-                if (path === '/contact') { setTimeout(initializeContactForm, 0); }
             } else {
-                pageHTML = initialContent;
+                mainContent.innerHTML = pageCache['/'];
+                loadLatestNews();
+                return;
             }
             pageCache[path] = pageHTML;
             mainContent.innerHTML = pageHTML;
+            if (path === '/contact') initializeContactForm();
+            window.scrollTo(0, 0);
 
         } catch (error) {
-            mainContent.innerHTML = `<p style="text-align: center;">خطا: ${error.message}</p>`;
+            mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>خطا: ${error.message}</p></div>`;
         }
     };
     
-    const navigate = (path, doPushState = true) => {
-        if (doPushState) {
-            history.pushState({ path }, '', path);
-        }
-        renderPage(path);
-    };
-
-    document.body.addEventListener('click', e => {
-        const link = e.target.closest('a[data-page]');
-        if (link) {
-            e.preventDefault();
-            navigate(link.getAttribute('href'));
-        }
-    });
-
-    window.addEventListener('popstate', e => {
-        navigate(e.state ? e.state.path : '/', false);
-    });
+    // --- 8. راه‌اندازی اولیه و شنوندگان رویداد ---
     
-    // --- 7. مدیریت بارگذاری اولیه صفحه ---
-    const getInitialPath = () => {
-        const redirectedPath = sessionStorage.getItem('redirect');
-        if (redirectedPath) {
-            sessionStorage.removeItem('redirect');
-            const url = new URL(redirectedPath);
-            const repoName = location.pathname.split('/')[1];
-            // مسیر را نسبت به ریشه ریپازیتوری استخراج می‌کند
-            const relativePath = url.pathname.startsWith(`/${repoName}`) ? url.pathname.substring(repoName.length + 1) : url.pathname;
-            history.replaceState({ path: relativePath }, '', relativePath);
-            return relativePath || '/';
-        }
-        const repoName = location.pathname.split('/')[1];
-        const relativePath = location.pathname.startsWith(`/${repoName}`) ? location.pathname.substring(repoName.length + 1) : location.pathname;
-        return relativePath || '/';
-    };
-    
-    navigate(getInitialPath(), false);
+    renderPage(getCurrentPath());
+    window.addEventListener('hashchange', () => renderPage(getCurrentPath()));
 });

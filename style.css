@@ -1,5 +1,4 @@
 /* ================== تنظیمات کلی و فونت ================== */
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
 
 :root {
     --primary-color: #e8c38e;
@@ -26,11 +25,11 @@ body {
     transition: background-color 0.4s, color 0.4s;
 }
 
-/* ================== استایل تم‌ها ================== */
 body.dark-theme {
     background-color: var(--background-color-dark);
     color: var(--text-color-dark);
 }
+
 body.light-theme {
     background-color: var(--background-color-light);
     color: var(--text-color-light);
@@ -46,51 +45,62 @@ body.light-theme {
     transition: opacity 0.4s;
 }
 
-
 .container {
     width: 90%;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-/* ================== نوار اعلان ================== */
+/* ================== نگهدارنده و نوار اعلان ================== */
+.sticky-container {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
 .notification-bar {
+    background: #ffe9b3;
+    color: #1b7a2e;
     text-align: center;
-    padding: 0.7rem 0;
+    padding: 0.7rem;
     font-weight: bold;
     width: 100%;
     transition: background-color 0.4s, color 0.4s;
 }
+
 body.dark-theme .notification-bar {
     background-color: var(--primary-color);
     color: var(--background-color-dark);
 }
+
 body.light-theme .notification-bar {
     background-color: var(--primary-color-light-theme);
     color: #fff;
 }
 
+/* ================== سربرگ (Header) ================== */
 .main-header .container {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: relative;
     padding: 0.5rem 1.5rem;
     border-radius: 0 0 15px 15px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: none;
     transition: background-color 0.4s, border-color 0.4s;
 }
+
 body.dark-theme .main-header .container {
     background: rgba(1, 42, 43, 0.3);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--glass-border-dark);
-    border-top: none;
 }
+
 body.light-theme .main-header .container {
     background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--glass-border-light);
-    border-top: none;
 }
 
 .logo {
@@ -98,71 +108,106 @@ body.light-theme .main-header .container {
     font-size: 1.4rem;
     text-decoration: none;
 }
+
 body.dark-theme .logo {
     color: var(--primary-color);
 }
+
 body.light-theme .logo {
     color: var(--primary-color-light-theme);
 }
 
-/* --- تغییرات اصلی در این بخش اعمال شده است --- */
-.main-nav ul {
-    display: flex;
-    gap: 0.5rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.main-nav li {
+/* ================== منوی ناوبری ================== */
+.menu-wrapper {
     position: relative;
-}
-
-.main-nav a {
     display: flex;
     align-items: center;
-    gap: 0.4em;
-    padding: 0.4em 1em;
-    border-radius: 2em;
+}
+
+#mobile-menu-toggle {
+    display: flex; 
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: inherit;
+}
+
+#mobile-dropdown-menu {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out, visibility 0.2s;
+    position: absolute;
+    top: calc(100% + 10px);
+    min-width: 180px;
+    border-radius: 10px;
+    overflow: hidden;
+    z-index: 99;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#mobile-dropdown-menu.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+#mobile-dropdown-menu a {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.9rem;
     text-decoration: none;
-    font-size: 1rem;
+    text-align: right;
+    border-bottom: 1px solid;
     transition: background-color 0.2s, color 0.2s;
 }
 
-.nav-icon {
-    display: flex;
-    align-items: center;
-}
-.nav-text {
-    display: inline-block;
+#mobile-dropdown-menu a:last-child {
+    border-bottom: none;
 }
 
-/* استایل لینک‌ها در حالت تاریک */
-body.dark-theme .main-nav a {
+body.dark-theme #mobile-dropdown-menu {
+    background: rgba(1, 42, 43, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border-dark);
+}
+
+body.dark-theme #mobile-dropdown-menu a {
     color: var(--text-color-dark);
+    border-color: var(--glass-border-dark);
 }
-body.dark-theme .main-nav a:hover:not([aria-current="page"]) {
-    background: rgba(232, 195, 142, 0.12);
-    color: var(--primary-color);
-}
-body.dark-theme .main-nav a[aria-current="page"] {
-    background: var(--primary-color);
+
+body.dark-theme #mobile-dropdown-menu a:hover,
+body.dark-theme #mobile-dropdown-menu a[aria-current="page"] {
+    background-color: var(--primary-color);
     color: var(--background-color-dark);
 }
 
-/* استایل لینک‌ها در حالت روشن */
-body.light-theme .main-nav a {
+body.light-theme #mobile-dropdown-menu {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border-light);
+}
+
+body.light-theme #mobile-dropdown-menu a {
     color: var(--text-color-light);
+    border-color: var(--glass-border-light);
 }
-body.light-theme .main-nav a:hover:not([aria-current="page"]) {
-    background: rgba(26, 92, 93, 0.1);
-    color: var(--primary-color-light-theme);
-}
-body.light-theme .main-nav a[aria-current="page"] {
-    background: var(--primary-color-light-theme);
+
+body.light-theme #mobile-dropdown-menu a:hover,
+body.light-theme #mobile-dropdown-menu a[aria-current="page"] {
+    background-color: var(--primary-color-light-theme);
     color: #fff;
 }
 
+.nav-link-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
 
 /* ================== دکمه تغییر تم ================== */
 #theme-toggle {
@@ -175,28 +220,17 @@ body.light-theme .main-nav a[aria-current="page"] {
 }
 #theme-toggle svg {
     stroke: currentColor;
-    color: var(--text-color-dark);
     transition: color 0.3s;
 }
-body.light-theme #theme-toggle svg {
-    color: var(--text-color-light);
-}
-#theme-toggle:hover svg {
-    color: var(--primary-color);
-}
-body.light-theme #theme-toggle:hover svg {
-    color: var(--primary-color-light-theme);
-}
+body.dark-theme #theme-toggle svg { color: var(--text-color-dark); }
+body.light-theme #theme-toggle svg { color: var(--text-color-light); }
+body.dark-theme #theme-toggle:hover svg { color: var(--primary-color); }
+body.light-theme #theme-toggle:hover svg { color: var(--primary-color-light-theme); }
 
-.dark-theme .moon, .light-theme .sun {
-    display: block;
-}
-.dark-theme .sun, .light-theme .moon {
-    display: none;
-}
+.dark-theme .moon, .light-theme .sun { display: block; }
+.dark-theme .sun, .light-theme .moon { display: none; }
 
-
-/* ================== بخش اصلی (Main) ================== */
+/* ================== بخش اصلی و قهرمان (Main & Hero) ================== */
 main {
     padding-top: 2rem;
 }
@@ -213,14 +247,15 @@ main {
 .hero h1 {
     font-size: 3rem;
     margin-bottom: 1rem;
-    animation: pulse-glow 4s ease-in-out infinite;
 }
+
 body.dark-theme .hero h1 {
     color: var(--primary-color);
+    animation: pulse-glow 4s ease-in-out infinite;
 }
+
 body.light-theme .hero h1 {
     color: var(--primary-color-light-theme);
-    animation: none;
 }
 
 .hero p {
@@ -229,6 +264,12 @@ body.light-theme .hero h1 {
     margin: 0 auto 2rem auto;
 }
 
+@keyframes pulse-glow {
+    0%, 100% { text-shadow: 0 0 10px rgba(255, 149, 0, 0.3); }
+    50% { text-shadow: 0 0 25px rgba(232, 195, 142, 0.8); }
+}
+
+/* ================== دکمه‌ها (Buttons) ================== */
 .btn {
     display: inline-block;
     padding: 0.8rem 2rem;
@@ -271,8 +312,14 @@ body.light-theme .btn-secondary:hover {
     color: #fff;
 }
 
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+    transform: none;
+}
 
-/* بخش آخرین اخبار */
+/* ================== بخش آخرین اخبار ================== */
 .latest-news {
     padding: 4rem 0;
     text-align: center;
@@ -282,12 +329,8 @@ body.light-theme .btn-secondary:hover {
     font-size: 2.5rem;
     margin-bottom: 3rem;
 }
-body.dark-theme .latest-news h2 {
-    color: var(--primary-color);
-}
-body.light-theme .latest-news h2 {
-    color: var(--primary-color-light-theme);
-}
+body.dark-theme .latest-news h2 { color: var(--primary-color); }
+body.light-theme .latest-news h2 { color: var(--primary-color-light-theme); }
 
 .news-grid {
     display: grid;
@@ -314,17 +357,13 @@ body.light-theme .news-card {
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
-.news-card:hover {
+body.dark-theme .news-card:hover {
     border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(232, 195, 142, 0.25);
 }
 body.light-theme .news-card:hover {
     border-color: var(--primary-color-light-theme);
     box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-}
-/* تغییر رنگ حاشیه کارت‌های خبر در حالت تاریک هنگام هاور */
-body.dark-theme .news-card:hover {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 15px rgba(232, 195, 142, 0.25);
 }
 
 .news-card img {
@@ -344,12 +383,8 @@ body.dark-theme .news-card:hover {
 .news-card-content h3 {
     margin-bottom: 0.5rem;
 }
-body.dark-theme .news-card-content h3 {
-    color: var(--primary-color);
-}
-body.light-theme .news-card-content h3 {
-    color: var(--primary-color-light-theme);
-}
+body.dark-theme .news-card-content h3 { color: var(--primary-color); }
+body.light-theme .news-card-content h3 { color: var(--primary-color-light-theme); }
 
 .news-card-content .news-meta {
     font-size: 0.8rem;
@@ -364,60 +399,12 @@ body.light-theme .news-card-content h3 {
     display: inline-block;
     transition: transform 0.3s ease;
 }
-body.dark-theme .news-card-content a {
-    color: var(--primary-color);
-}
-body.light-theme .news-card-content a {
-    color: var(--primary-color-light-theme);
-}
+body.dark-theme .news-card-content a { color: var(--primary-color); }
+body.light-theme .news-card-content a { color: var(--primary-color-light-theme); }
 
 .news-card:hover .news-card-content a {
     transform: translateX(-5px);
 }
-
-
-/* ================== سربرگ (Header) ================== */
-
-.main-header .container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: relative;
-    gap: 0;
-}
-.main-header #theme-toggle {
-    order: 3;
-    flex: 0 0 auto;
-    margin-left: 0;
-    margin-right: 0;
-}
-.main-header .logo {
-    order: 2;
-    flex: 1 1 auto;
-    margin: 0;
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.3em;
-    position: static;
-    width: 100%;
-    z-index: 1;
-}
-.main-header .main-nav {
-    order: 1;
-    flex: 0 0 auto;
-    margin-left: 0;
-    margin-right: 0;
-}
-.main-header .main-nav ul {
-    display: flex;
-    gap: 1.5rem;
-    padding: 0;
-    margin: 0;
-    list-style: none;
-    justify-content: flex-end;
-}
-
-
 
 /* ================== پاورق (Footer) ================== */
 .main-footer {
@@ -426,31 +413,19 @@ body.light-theme .news-card-content a {
     margin-top: 2rem;
     transition: border-color 0.4s;
 }
-body.dark-theme .main-footer {
-    border-top: 1px solid var(--glass-border-dark);
-}
-body.light-theme .main-footer {
-    border-top: 1px solid #ddd;
-}
+body.dark-theme .main-footer { border-top: 1px solid var(--glass-border-dark); }
+body.light-theme .main-footer { border-top: 1px solid #ddd; }
 
 .footer-links a {
     text-decoration: none;
     margin: 0 1rem;
     transition: color 0.3s;
 }
-body.dark-theme .footer-links a {
-    color: var(--text-color-dark);
-}
-body.light-theme .footer-links a {
-    color: var(--text-color-light);
-}
+body.dark-theme .footer-links a { color: var(--text-color-dark); }
+body.light-theme .footer-links a { color: var(--text-color-light); }
 
-.footer-links a:hover {
-    color: var(--primary-color);
-}
-body.light-theme .footer-links a:hover {
-    color: var(--primary-color-light-theme);
-}
+body.dark-theme .footer-links a:hover { color: var(--primary-color); }
+body.light-theme .footer-links a:hover { color: var(--primary-color-light-theme); }
 
 .main-footer p {
     margin-top: 1rem;
@@ -458,219 +433,7 @@ body.light-theme .footer-links a:hover {
     opacity: 0.7;
 }
 
-@media (max-width: 700px) {
-    .main-header .container {
-        flex-direction: row;
-        gap: 0;
-        position: static;
-        justify-content: center;
-    }
-    .main-header .logo {
-        position: static;
-        margin: 0;
-        width: auto;
-        text-align: center;
-        flex: 1 1 auto;
-    }
-    .main-header .main-nav {
-        display: none !important;
-    }
-    .main-header #theme-toggle {
-        order: 2;
-        margin: 0 0 0 0.5rem;
-    }
-}
-
-
-
-.notification-bar {
-    background: #ffe9b3;
-    color: #1b7a2e;
-    text-align: center;
-    padding: 0.5rem 0.75rem;
-    font-size: 1em;
-    font-weight: 500;
-    position: relative;
-    z-index: 1002;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-@media (max-width: 700px) {
-    .notification-bar {
-        font-size: 0.92em;
-        padding: 0.45rem 0.5rem;
-    }
-}
-.main-header {
-    z-index: 1001;
-    position: relative;
-}
-
-/* ================== انیمیشن درخشش ================== */
-@keyframes pulse-glow {
-    0% {
-        text-shadow: 0 0 10px rgba(255, 149, 0, 0.3);
-    }
-    50% {
-        text-shadow: 0 0 25px rgba(232, 195, 142, 0.8);
-    }
-    100% {
-        text-shadow: 0 0 10px rgba(255, 149, 0, 0.3);
-    }
-}
-
-/* ================== منوی بازشونده موبایل ================== */
-#mobile-menu-toggle {
-    display: flex; 
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    color: inherit;
-}
-#mobile-menu-toggle svg {
-    stroke: currentColor;
-    transition: color 0.3s;
-}
-body.dark-theme #mobile-menu-toggle:hover svg {
-    color: var(--primary-color);
-}
-body.light-theme #mobile-menu-toggle:hover svg {
-    color: var(--primary-color-light-theme);
-}
-
-#mobile-dropdown-menu {
-    /* تغییر display به opacity و visibility برای انیمیشن */
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px); /* کمی به بالا می‌رود تا افکت بهتری داشته باشد */
-    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out, visibility 0.2s;
-
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
-    left: auto;
-    width: auto;
-    min-width: 180px;
-    border-radius: 10px;
-    overflow: hidden;
-    z-index: 99;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* این قانون جدید، حالت باز بودن منو را کنترل می‌کند */
-#mobile-dropdown-menu.is-open {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-/* استایل لینک‌ها برای حالت جمع و جور */
-#mobile-dropdown-menu a {
-    padding: 0.7rem 1.2rem; /* کاهش padding */
-    font-size: 0.9rem; /* کاهش اندازه فونت */
-}
-#mobile-dropdown-menu.is-open {
-    display: block; /* با این کلاس نمایان می‌شود */
-}
-#mobile-dropdown-menu a {
-    display: flex; /* برای چیدمان افقی آیکون و متن */
-    align-items: center; /* تراز عمودی در وسط */
-    gap: 0.8rem; /* ایجاد فاصله بین آیکون و متن */
-    padding: 0.8rem 1.2rem;
-    font-size: 0.9rem;
-    text-decoration: none;
-    text-align: right;
-    border-bottom: 1px solid;
-    transition: background-color 0.2s, color 0.2s;
-}
-#mobile-dropdown-menu a:last-child {
-    border-bottom: none;
-}
-
-/* استایل‌های منو برای تم تاریک */
-body.dark-theme #mobile-dropdown-menu {
-    background: rgba(1, 42, 43, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-border-dark);
-    border-top: none;
-}
-body.dark-theme #mobile-dropdown-menu a {
-    color: var(--text-color-dark);
-    border-color: var(--glass-border-dark);
-}
-body.dark-theme #mobile-dropdown-menu a:hover,
-body.dark-theme #mobile-dropdown-menu a[aria-current="page"] {
-    background-color: var(--primary-color);
-    color: var(--background-color-dark);
-}
-
-/* استایل‌های منو برای تم روشن */
-body.light-theme #mobile-dropdown-menu {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-border-light);
-    border-top: none;
-}
-body.light-theme #mobile-dropdown-menu a {
-    color: var(--text-color-light);
-    border-color: var(--glass-border-light);
-}
-body.light-theme #mobile-dropdown-menu a:hover,
-body.light-theme #mobile-dropdown-menu a[aria-current="page"] {
-    background-color: var(--primary-color-light-theme);
-    color: #fff;
-}
-
-
-/* تغییرات هدر در حالت موبایل */
-@media (max-width: 700px) {
-    #mobile-menu-toggle {
-        display: flex;
-        align-items: center;
-        order: 0; /* دکمه منو در سمت چپ قرار می‌گیرد */
-    }
-    .main-header .container {
-        justify-content: space-between; /* آیتم‌ها را در طرفین پخش می‌کند */
-    }
-    .main-header .logo {
-        order: 1; /* لوگو در وسط باقی می‌ماند */
-    }
-    .main-header #theme-toggle {
-        order: 2; /* دکمه تم در سمت راست قرار می‌گیرد */
-        margin: 0;
-    }
-}
-
-
-
-/* استایل برای نگه‌دارنده چسبنده */
-.sticky-container {
-    position: -webkit-sticky; /* برای سازگاری با مرورگرهای قدیمی */
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-
-.menu-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-/* استایل برای لینک‌های غیرفعال در منو */
-.nav-link-disabled {
-    opacity: 0.5; /* کم‌رنگ‌تر کردن آیتم */
-    cursor: not-allowed; /* تغییر نشانگر موس به حالت غیرمجاز */
-    pointer-events: none; /* غیرفعال کردن کامل رویدادهای کلیک و هاور */
-}
-
-
-/* استایل‌های جدید و کامل پنجره Modal */
+/* ================== مودال (Modal) ================== */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -680,14 +443,10 @@ body.light-theme #mobile-dropdown-menu a[aria-current="page"] {
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    
-    display: flex; /* استفاده از flex برای چینش */
+    display: flex;
     align-items: center;
     justify-content: center;
-    
     z-index: 2000;
-    
-    /* کنترل انیمیشن با opacity و visibility */
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
@@ -702,30 +461,27 @@ body.light-theme #mobile-dropdown-menu a[aria-current="page"] {
     position: relative;
     width: 90%;
     max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
     padding: 2rem;
     border-radius: 15px;
     text-align: right;
-    
-    /* انیمیشن حرکت از بالا به پایین */
     transform: translateY(-20px);
     transition: transform 0.3s ease-in-out;
 }
 
-/* وقتی Modal باز است، محتوا به جای اصلی خود برمی‌گردد */
 .modal-overlay.is-open .modal-content {
     transform: translateY(0);
 }
 
-/* ظاهر شیشه‌ای برای تم تاریک */
-.dark-theme .modal-content {
-    background: rgba(20, 20, 20, 0.95); /* پس‌زمینه نیمه‌شفاف */
+body.dark-theme .modal-content {
+    background: rgba(20, 20, 20, 0.95);
     border: 1px solid var(--glass-border-dark);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
 }
 
-/* ظاهر شیشه‌ای برای تم روشن */
-.light-theme .modal-content {
-    background: rgba(255, 255, 255, 0.95); /* پس‌زمینه نیمه‌شفاف */
+body.light-theme .modal-content {
+    background: rgba(255, 255, 255, 0.95);
     border: 1px solid rgba(0, 0, 0, 0.1);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
@@ -742,18 +498,33 @@ body.light-theme #mobile-dropdown-menu a[aria-current="page"] {
     color: inherit;
     opacity: 0.7;
     transition: opacity 0.2s;
+
 }
 
 .close-modal:hover {
     opacity: 1;
 }
 
-/* استایل فرم داخل Modal (بدون تغییر باقی می‌ماند) */
-#registration-form {
+body.modal-is-open {
+    overflow: hidden;
+}
+
+/* ================== فرم‌ها (Forms) ================== */
+#registration-form, #contact-form {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     margin-top: 1.5rem;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+
+.form-row .form-group {
+    flex: 1;
 }
 
 .form-group {
@@ -768,187 +539,68 @@ body.light-theme #mobile-dropdown-menu a[aria-current="page"] {
 }
 
 .form-group input,
-.form-group textarea,
-.form-group select { /* select به اینجا اضافه شد */
+.form-group select,
+.form-group textarea {
     padding: 0.8rem;
-    border: 1px solid;
     border-radius: 8px;
     background: transparent;
     color: inherit;
     font-family: 'Vazirmatn', sans-serif;
     font-size: 1rem;
-    width: 100%; /* عرض کامل برای هماهنگی */
+    width: 100%;
+    border: 1px solid;
 }
 
-.dark-theme .form-group input,
-.dark-theme .form-group textarea {
+body.dark-theme .form-group input,
+body.dark-theme .form-group select,
+body.dark-theme .form-group textarea {
     border-color: var(--glass-border-dark);
 }
 
-.light-theme .form-group input,
-.light-theme .form-group textarea {
+body.light-theme .form-group input,
+body.light-theme .form-group select,
+body.light-theme .form-group textarea {
     border-color: var(--glass-border-light);
 }
 
 .form-group input:focus,
+.form-group select:focus,
 .form-group textarea:focus {
     outline: none;
     border-color: var(--primary-color);
 }
 
-.light-theme .form-group input:focus,
-.light-theme .form-group textarea:focus {
+body.light-theme .form-group input:focus,
+body.light-theme .form-group select:focus,
+body.light-theme .form-group textarea:focus {
     border-color: var(--primary-color-light-theme);
 }
 
-/* استایل برای ردیف‌های چند ستونی فرم */
-.form-row {
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-}
-
-.form-row .form-group {
-    flex: 1; /* باعث می‌شود ستون‌ها عرض یکسانی بگیرند */
-}
-
-
-/* استایل برای select که غیرفعال است */
-select:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* رفع مشکل ظاهری select در حالت دارک */
-.dark-theme select option {
-    background-color: var(--background-color-dark);
-    color: var(--text-color-dark);
-}
-
-/* کلاسی برای جلوگیری از اسکرول صفحه اصلی */
-body.modal-is-open {
-    overflow: hidden;
-}
-
-/* اعمال حداکثر ارتفاع و اسکرول داخلی به محتوای Modal */
-.modal-content {
-    max-height: 90vh; /* حداکثر ارتفاع: ۹۰ درصد ارتفاع صفحه */
-    overflow-y: auto; /* نمایش اسکرول در صورت نیاز */
-    padding: 2rem 1.5rem; /* کمی کاهش پدینگ افقی برای جای دادن اسکرول */
-}
-
-
-/* حذف ظاهر پیش‌فرض و افزودن فلش سفارشی */
 .form-group select {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
     background-repeat: no-repeat;
-    background-position: left 0.75rem center; /* موقعیت فلش در حالت راست‌چین */
-    padding-left: 2.5rem; /* ایجاد فضا برای فلش */
+    background-position: left 0.75rem center;
+    padding-left: 2.5rem;
 }
 
-/* فلش سفارشی برای تم تاریک */
-.dark-theme .form-group select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='rgba(255,255,255,0.7)' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+body.dark-theme .form-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='rgba(255,255,255,0.7)' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
 }
 
-/* فلش سفارشی برای تم روشن */
-.light-theme .form-group select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='rgba(0,0,0,0.7)' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
-}
-/* === استایل اسکرول‌بار مدرن === */
-
-/* استایل کلی اسکرول‌بار برای مرورگرهای WebKit */
-.modal-content::-webkit-scrollbar {
-    width: 10px; /* عرض کلی اسکرول‌بار */
+body.light-theme .form-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='rgba(0,0,0,0.7)' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
 }
 
-/* استایل ترک (پس‌زمینه) اسکرول‌بار */
-.modal-content::-webkit-scrollbar-track {
-    background: transparent; /* بدون پس‌زمینه */
+.dark-theme select option {
+    background-color: var(--background-color-dark);
+    color: var(--text-color-dark);
 }
 
-/* استایل دستگیره اسکرول‌بار */
-.modal-content::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    border: 3px solid transparent; /* ایجاد حاشیه شفاف برای افکت "بیرون از فرم" */
-    background-clip: content-box;
-}
-
-/* رنگ دستگیره در حالت هاور */
-.modal-content::-webkit-scrollbar-thumb:hover {
-    border-width: 0; /* حذف حاشیه در حالت هاور برای پر شدن دستگیره */
-}
-
-/* رنگ‌بندی دستگیره بر اساس تم */
-.dark-theme .modal-content::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-.dark-theme .modal-content::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 255, 255, 0.4);
-}
-
-.light-theme .modal-content::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
-}
-.light-theme .modal-content::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.4);
-}
-
-/* === طراحی واکنش‌گرای Modal === */
-
-/* حالت دسکتاپ (صفحات بزرگتر از 768 پیکسل) */
-@media (min-width: 768px) {
-    .modal-content {
-        max-width: 750px; /* افزایش عرض پنجره در دسکتاپ */
-    }
-}
-
-/* حالت موبایل (صفحات کوچکتر از 700 پیکسل) */
-@media (max-width: 700px) {
-    .modal-content {
-        padding: 1.5rem 1rem; /* کاهش پدینگ داخلی */
-        max-height: 95vh;     /* کمی افزایش ارتفاع مجاز */
-    }
-
-    .modal-content h2 {
-        font-size: 1.4rem; /* کوچک کردن عنوان اصلی */
-    }
-    
-    /* در موبایل، ستون‌ها زیر هم قرار می‌گیرند */
-    .form-row {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .form-group label {
-        font-size: 0.85rem; /* کوچک کردن لیبل‌ها */
-    }
-
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-        font-size: 0.9rem; /* کوچک کردن فونت ورودی‌ها */
-        padding: 0.75rem;
-    }
-    
-    .tag {
-        font-size: 0.8rem; /* کوچک کردن تگ‌ها */
-        padding: 0.35rem 0.7rem;
-    }
-    
-    .modal-content .btn {
-        padding: 0.7rem 1.5rem; /* کوچک کردن دکمه */
-        font-size: 0.9rem;
-    }
-}
-
-
-/* استایل برای پیام‌های وضعیت فرم (با استفاده از کلاس) */
 .form-status {
     padding: 0.8rem;
-    margin-bottom: 1rem;
+    margin-top: 1rem;
     border-radius: 8px;
     text-align: center;
     font-size: 0.9rem;
@@ -956,61 +608,111 @@ body.modal-is-open {
     display: none;
     transition: all 0.3s ease;
 }
-/* استایل برای پیام موفقیت (بخش جدید) */
+
 .form-status.success {
     display: block;
 }
-.dark-theme .form-status.success {
-    background-color: rgba(0, 255, 100, 0.1); /* پس‌زمینه طلایی ملایم */
+body.dark-theme .form-status.success {
+    background-color: rgba(0, 255, 100, 0.1);
     color: #96ff6f;
 }
-.light-theme .form-status.success {
-    background-color: rgba(26, 93, 54, 0.15); /* پس‌زمینه سبز ملایم */
+body.light-theme .form-status.success {
+    background-color: rgba(26, 93, 54, 0.15);
     color: #004004;
 }
 
-/* استایل برای پیام خطا */
 .form-status.error {
-    background-color: rgba(220, 53, 69, 0.15); /* پس‌زمینه قرمز ملایم */
-    color: #dc3545; /* رنگ متن قرمز */
     display: block;
+    background-color: rgba(220, 53, 69, 0.15);
 }
-
-.dark-theme .form-status.error {
+body.dark-theme .form-status.error {
     color: #ff8a8a;
 }
-/* === استایل برای دکمه غیرفعال === */
-
-/* استایل کلی برای همه دکمه‌های غیرفعال */
-.btn:disabled {
-    cursor: not-allowed; /* تغییر نشانگر موس به حالت غیرمجاز */
-    opacity: 0.6;        /* کم‌رنگ کردن دکمه */
-    box-shadow: none;      /* حذف سایه */
-    transform: none;       /* حذف هرگونه افکت حرکتی */
+body.light-theme .form-status.error {
+    color: #dc3545;
 }
 
-/* اطمینان از اینکه رنگ‌ها در حالت غیرفعال ثابت می‌مانند */
-/* (جلوگیری از تغییر رنگ در حالت هاور) */
 
-.dark-theme .btn-primary:disabled {
-    background-color: var(--primary-color);
-    color: var(--background-color-dark);
+/* ================== صفحات داخلی (Members, About, Contact) ================== */
+.page-container, .members-container {
+    padding: 2rem 0;
+    text-align: right;
 }
 
-.light-theme .btn-primary:disabled {
-    background-color: var(--primary-color-light-theme);
-    color: #fff;
-}
-
-/* === استایل نهایی صفحه اعضا === */
-.members-container {
-    padding: 4rem 0;
+.page-container h1, .members-container h1 {
     text-align: center;
+    margin-bottom: 2.5rem;
+}
+body.dark-theme .page-container h1, body.dark-theme .members-container h1 { color: var(--primary-color); }
+body.light-theme .page-container h1, body.light-theme .members-container h1 { color: var(--primary-color-light-theme); }
+
+.content-box {
+    padding: 2rem;
+    border-radius: 15px;
+    line-height: 2;
+    font-size: 1.1rem;
+}
+body.dark-theme .content-box {
+    background: var(--glass-bg-dark);
+    border: 1px solid var(--glass-border-dark);
+}
+body.light-theme .content-box {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #e0e0e0;
 }
 
+.content-box h2 {
+    margin-top: -6rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid;
+    padding-bottom: 0.5rem;
+}
+body.dark-theme .content-box h2 { border-color: var(--primary-color); }
+body.light-theme .content-box h2 { border-color: var(--primary-color-light-theme); }
+
+.content-box ul {
+    list-style-position: inside;
+    padding-right: 1rem;
+}
+
+/* --- صفحه تماس با ما --- */
+.contact-info {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.info-item svg { color: var(--primary-color); }
+body.light-theme .info-item svg { color: var(--primary-color-light-theme); }
+
+#contact-form {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid;
+}
+body.dark-theme #contact-form { border-top-color: var(--glass-border-dark); }
+body.light-theme #contact-form { border-top-color: var(--glass-border-light); }
+
+#contact-form h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    /* border: none; */
+}
+
+/* --- صفحه اعضا --- */
 .members-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 300px));
+    justify-content: center;
     gap: 1.5rem;
     margin-top: 3rem;
 }
@@ -1020,32 +722,30 @@ body.modal-is-open {
     flex-direction: column;
     padding: 1.5rem;
     border-radius: 15px;
-    text-align: center; /* بازگرداندن به حالت وسط‌چین برای عکس */
+    text-align: center;
     transition: all 0.3s ease;
 }
-
-.dark-theme .member-card {
+body.dark-theme .member-card {
     background: var(--glass-bg-dark);
     border: 1px solid var(--glass-border-dark);
 }
-
-.light-theme .member-card {
-    background: rgba(255, 255, 255, 0.75); /* پس‌زمینه سفید نیمه‌شفاف */
+body.light-theme .member-card {
+    background: rgba(255, 255, 255, 0.75);
     border: 1px solid rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px); /* اعمال افکت تاری به پس‌زمینه */
-    -webkit-backdrop-filter: blur(10px); /* برای سازگاری با مرورگرهای وب‌کیت */
+    backdrop-filter: blur(10px);
 }
 
 .member-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
-.dark-theme .member-card:hover {
+body.dark-theme .member-card:hover {
     border-color: var(--primary-color);
     box-shadow: 0 0 20px rgba(232, 195, 142, 0.15);
 }
+body.light-theme .member-card:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
 
-/* استایل عکس پروفایل */
 .member-card .member-photo {
     width: 100px;
     height: 100px;
@@ -1054,41 +754,32 @@ body.modal-is-open {
     margin: 0 auto 1rem auto;
     object-fit: cover;
 }
-.dark-theme .member-card .member-photo {
-    border-color: var(--primary-color);
-}
-.light-theme .member-card .member-photo {
-    border-color: var(--primary-color-light-theme);
-}
+body.dark-theme .member-card .member-photo { border-color: var(--primary-color); }
+body.light-theme .member-card .member-photo { border-color: var(--primary-color-light-theme); }
 
 .member-card .card-header h3 {
     margin-bottom: 0.25rem;
     font-size: 1.2rem;
 }
-.dark-theme .member-card .card-header h3 {
-    color: var(--primary-color);
-}
-.light-theme .member-card .card-header h3 {
-    color: var(--primary-color-light-theme);
-}
+body.dark-theme .member-card .card-header h3 { color: var(--primary-color); }
+body.light-theme .member-card .card-header h3 { color: var(--primary-color-light-theme); }
 
 .member-card .card-header .role {
     opacity: 0.8;
     font-size: 0.9rem;
 }
 
-/* استایل بیوگرافی */
 .member-card .description {
     font-size: 0.85rem;
     opacity: 0.9;
     margin: 1rem 0;
     line-height: 1.6;
-    flex-grow: 1; /* باعث می‌شود بیوگرافی فضای خالی را پر کند */
+    flex-grow: 1;
 }
 
 .member-card .card-tags {
     display: flex;
-    justify-content: center; /* وسط‌چین کردن تگ‌ها */
+    justify-content: center;
     gap: 0.5rem;
     flex-wrap: wrap;
     margin-bottom: 1.5rem;
@@ -1099,26 +790,18 @@ body.modal-is-open {
     padding: 0.2rem 0.6rem;
     border-radius: 5px;
 }
-.dark-theme .member-card .tag {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-.light-theme .member-card .tag {
-    background-color: rgba(0, 0, 0, 0.05);
-}
+body.dark-theme .member-card .tag { background-color: rgba(255, 255, 255, 0.1); }
+body.light-theme .member-card .tag { background-color: rgba(0, 0, 0, 0.05); }
 
 .member-card .card-socials {
     padding-top: 1rem;
     border-top: 1px solid;
     display: flex;
-    justify-content: center; /* وسط‌چین کردن آیکون‌ها */
+    justify-content: center;
     gap: 1.5rem;
 }
-.dark-theme .member-card .card-socials {
-    border-color: var(--glass-border-dark);
-}
-.light-theme .member-card .card-socials {
-    border-color: var(--glass-border-light);
-}
+body.dark-theme .member-card .card-socials { border-color: var(--glass-border-dark); }
+body.light-theme .member-card .card-socials { border-color: var(--glass-border-light); }
 
 .member-card .card-socials a svg {
     width: 20px;
@@ -1130,92 +813,75 @@ body.modal-is-open {
 .member-card .card-socials a:hover svg {
     opacity: 1;
     transform: scale(1.1);
-    color: var(--primary-color);
 }
-.light-theme .member-card .card-socials a:hover svg {
-    color: var(--primary-color-light-theme);
-}
+body.dark-theme .member-card .card-socials a:hover svg { color: var(--primary-color); }
+body.light-theme .member-card .card-socials a:hover svg { color: var(--primary-color-light-theme); }
 
 
-/* === استایل صفحات داخلی مانند درباره ما === */
-.page-container {
-    padding: 4rem 0;
-    text-align: right;
+/* ================== طراحی واکنش‌گرا (Responsive) ================== */
+@media (max-width: 700px) {
+    .main-header .container {
+        justify-content: space-between;
+        position: static;
+        flex-wrap: nowrap;
+    }
+    .main-header .logo {
+        flex: 1;
+        text-align: center;
+        order: 1;
+    }
+    #mobile-menu-toggle {
+        order: 0;
+    }
+    #theme-toggle {
+        order: 2;
+    }
+    .form-row {
+        flex-direction: column;
+    }
+    .modal-content {
+        padding: 1.5rem 1rem;
+    }
+    .modal-content h2 {
+        font-size: 1.4rem;
+    }
 }
 
-.page-container h1 {
-    text-align: center;
-    margin-bottom: 2.5rem;
-    color: var(--primary-color);
+/* اسکرول‌بار سفارشی برای مودال */
+.modal-content::-webkit-scrollbar {
+    width: 10px;
 }
-.light-theme .page-container h1 {
-    color: var(--primary-color-light-theme);
+.modal-content::-webkit-scrollbar-track {
+    background: transparent;
 }
-
-.content-box {
-    padding: 2rem;
-    border-radius: 15px;
-    line-height: 2;
-    font-size: 1.1rem;
+.modal-content::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    border: 3px solid transparent;
+    background-clip: content-box;
 }
-.dark-theme .content-box {
-    background: var(--glass-bg-dark);
-    border: 1px solid var(--glass-border-dark);
+.modal-content::-webkit-scrollbar-thumb:hover {
+    border-width: 0;
 }
-.light-theme .content-box {
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid #e0e0e0;
+.dark-theme .modal-content::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
 }
-
-.content-box h2 {
-    margin-top: -6rem;
-    margin-bottom: 1rem;
-    border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 0.5rem;
+.dark-theme .modal-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.4);
 }
-.light-theme .content-box h2 {
-    border-color: var(--primary-color-light-theme);
+.light-theme .modal-content::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+.light-theme .modal-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.4);
 }
 
-.content-box ul {
-    list-style-position: inside;
-    padding-right: 1rem;
-}
-
-
-/* === استایل صفحه تماس با ما === */
-.contact-info {
-    display: flex;
-    gap: 2rem;
-    justify-content: center;
-    margin: 2rem 0;
-    flex-wrap: wrap;
-}
-
-.info-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 1.1rem;
-}
-
-.info-item svg {
-    color: var(--primary-color);
-}
-.light-theme .info-item svg {
-    color: var(--primary-color-light-theme);
-}
-
-#contact-form {
-    margin-top: 2.5rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--glass-border-dark);
-}
-.light-theme #contact-form {
-    border-top-color: var(--glass-border-light);
-}
-
-#contact-form h2 {
-    text-align: center;
-    margin-bottom: 2rem;
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
