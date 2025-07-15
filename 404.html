@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <script>
+      // این اسکریپت مسیر درخواستی را می‌خواند و در sessionStorage مرورگر ذخیره می‌کند.
+      // سپس کاربر را به صفحه اصلی (index.html) بازمی‌گرداند.
+      const path = location.pathname;
+      const search = location.search;
+      const hash = location.hash;
+      
+      // اگر مسیری وجود داشت آن را ذخیره کن
+      if (path !== '/' && path.toLowerCase() !== '/404.html') {
+        sessionStorage.setItem('redirectPath', path + search + hash);
+      }
+      
+      // به ریشه سایت ریدایرکت کن. مرورگر آدرس را به index.html تبدیل می‌کند.
+      // نام ریپازیتوری شما به صورت خودکار در این آدرس لحاظ می‌شود.
+      location.replace(location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '') + '/' + (path.split('/')[1] || ''));
+    </script>
+  </head>
+  <body>
+    <p>در حال انتقال...</p>
+  </body>
+</html>

@@ -171,114 +171,121 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// --- منطق SPA برای ناوبری بدون رفرش صفحه (نسخه نهایی) ---
+// --- منطق کامل و نهایی SPA ---
 document.addEventListener('DOMContentLoaded', () => {
     const mainContent = document.querySelector('main');
     const navLinks = document.querySelectorAll('a[data-page]');
-    if (!mainContent) return;
-    
-    let initialHomePageHTML = mainContent.innerHTML;
 
-    // تابع جدید برای مدیریت هایلایت منو
+    if (!mainContent) return;
+
+    // محتوای اولیه صفحه اصلی را ذخیره می‌کنیم
+    const initialHomePageHTML = mainContent.innerHTML;
+
+    // آبجکتی برای نگهداری محتوای صفحات مختلف
+    const pageCache = {
+        '/': initialHomePageHTML
+    };
+
+    /**
+     * هایلایت کردن لینک فعال در منو
+     * @param {string} path - مسیر صفحه فعلی (مثلا '/' یا '/members')
+     */
     const updateActiveLink = (path) => {
         navLinks.forEach(link => {
-            // ابتدا هایلایت را از همه لینک‌ها حذف می‌کنیم
             link.removeAttribute('aria-current');
-            
             // اگر href لینک با مسیر فعلی یکی بود، آن را هایلایت می‌کنیم
             if (link.getAttribute('href') === path) {
                 link.setAttribute('aria-current', 'page');
             }
         });
     };
-// تابع برای رندر کردن صفحه اعضا (نسخه جدید با عکس و بیوگرافی)
-    const renderMembersPage = (members) => {
-        let membersHTML = '<div class="members-grid">';
-        members.forEach(member => {
-            membersHTML += `
-                <div class="member-card">
-                    <img src="${member.imageUrl}" alt="تصویر ${member.name}" class="member-photo">
-                    <div class="card-header">
-                        <h3>${member.name}</h3>
-                        <p class="role">${member.role}</p>
-                    </div>
-                    <p class="description">${member.description}</p>
-                    <div class="card-tags">
-                        <span class="tag entry-year">ورودی ${member.entryYear}</span>
-                        ${member.role.includes('فرعی') ? `<span class="tag major">${member.major}</span>` : ''}
-                    </div>
-                    <div class="card-socials">
-                        <a href="${member.social.linkedin}" target="_blank" title="لینکدین">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-                        </a>
-                        <a href="${member.social.telegram}" target="_blank" title="تلگرام">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 L11 13 L2 9 L22 2 Z M22 2 L15 22 L11 13 L2 9 L22 2 Z"></path></svg>
-                        </a>
-                    </div>
-                </div>
-            `;
-        });
-        membersHTML += '</div>';
 
-        mainContent.innerHTML = `
-            <section class="members-container">
-                <div class="container">
-                    <h1>اعضای انجمن</h1>
-                    ${membersHTML}
-                </div>
-            </section>
-        `;
-    };
-    // تابع برای بارگذاری صفحه اعضا
-    const loadMembersPage = async () => {
-        try {
-            const response = await fetch('/members.json');
-            if (!response.ok) throw new Error('Network response was not ok');
-            const members = await response.json();
-            renderMembersPage(members);
-        } catch (error) {
-            mainContent.innerHTML = '<p style="text-align: center;">خطا در بارگذاری اطلاعات اعضا.</p>';
-            console.error('Fetch error:', error);
+    /**
+     * رندر کردن محتوای صفحه در تگ <main>
+     * @param {string} path - مسیر صفحه برای رندر
+     */
+    const renderPage = async (path) => {
+        updateActiveLink(path);
+
+        // اگر محتوا از قبل در کش موجود بود، نمایش بده
+        if (pageCache[path]) {
+            mainContent.innerHTML = pageCache[path];
+            return;
         }
-    };
 
-    // تابع برای بازگرداندن صفحه اصلی
-    const loadHomePage = () => {
-        mainContent.innerHTML = initialHomePageHTML;
-    };
-
-    // مسیریاب (Router) ساده
-    const navigate = (path) => {
+        // اگر محتوا در کش نبود، آن را بساز
         if (path === '/members') {
-            loadMembersPage();
-        } else {
-            loadHomePage();
+            try {
+                const response = await fetch('/members.json');
+                if (!response.ok) throw new Error('فایل اطلاعات اعضا یافت نشد.');
+                
+                const members = await response.json();
+                let membersHTML = '<div class="members-grid">';
+                members.forEach(member => {
+                    membersHTML += `
+                        <div class="member-card">
+                            <img src="${member.imageUrl}" alt="تصویر ${member.name}" class="member-photo">
+                            <div class="card-header"><h3>${member.name}</h3><p class="role">${member.role}</p></div>
+                            <p class="description">${member.description}</p>
+                            <div class="card-tags"><span class="tag entry-year">ورودی ${member.entryYear}</span></div>
+                            <div class="card-socials">
+                                <a href="${member.social.linkedin}" target="_blank" title="لینکدین"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
+                                <a href="${member.social.telegram}" target="_blank" title="تلگرام"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 L11 13 L2 9 L22 2 Z M22 2 L15 22 L11 13 L2 9 L22 2 Z"></path></svg></a>
+                            </div>
+                        </div>`;
+                });
+                membersHTML += '</div>';
+                
+                const pageHTML = `<section class="members-container"><div class="container"><h1>اعضای انجمن</h1>${membersHTML}</div></section>`;
+                pageCache[path] = pageHTML; // ذخیره در کش
+                mainContent.innerHTML = pageHTML;
+
+            } catch (error) {
+                mainContent.innerHTML = `<p style="text-align: center;">خطا: ${error.message}</p>`;
+            }
         }
-        window.history.pushState({path}, '', path);
-        updateActiveLink(path); // هایلایت کردن لینک جدید
     };
 
-    // مدیریت کلیک روی لینک‌های SPA
+    /**
+     * مدیریت ناوبری و تاریخچه مرورگر
+     * @param {string} path - مسیر جدید
+     */
+    const navigate = (path) => {
+        // جلوگیری از ناوبری به همان صفحه
+        if (window.location.pathname.endsWith(path) && window.location.pathname.length - path.length <= 1) return;
+
+        window.history.pushState({path}, '', path);
+        renderPage(path);
+    };
+
+    // --- بخش اصلی اجرای برنامه ---
+
+    // مدیریت کلیک روی لینک‌های ناوبری
     document.body.addEventListener('click', (e) => {
         const link = e.target.closest('a[data-page]');
         if (link) {
             e.preventDefault();
-            const path = link.getAttribute('href');
-            navigate(path);
+            navigate(link.getAttribute('href'));
         }
     });
 
     // مدیریت دکمه‌های back/forward مرورگر
     window.addEventListener('popstate', (e) => {
         const path = (e.state && e.state.path) ? e.state.path : '/';
-        if (path === '/members') {
-            loadMembersPage();
-        } else {
-            loadHomePage();
-        }
-        updateActiveLink(path); // هایلایت کردن لینک بر اساس تاریخچه مرورگر
+        renderPage(path);
     });
 
-    // تنظیم هایلایت اولیه در زمان بارگذاری صفحه
-    updateActiveLink(window.location.pathname);
+    // مدیریت بارگذاری اولیه صفحه (با حل مشکل رفرش)
+    const redirectedPath = sessionStorage.getItem('redirectPath');
+    if (redirectedPath) {
+        // اگر از صفحه 404 آمده‌ایم
+        sessionStorage.removeItem('redirectPath');
+        const repoName = location.pathname.split('/')[1];
+        const correctPath = redirectedPath.replace(`/${repoName}`, ''); // حذف نام ریپازیتوری از مسیر
+        window.history.replaceState({path: correctPath}, '', correctPath);
+        renderPage(correctPath);
+    } else {
+        // بارگذاری عادی
+        renderPage(location.pathname);
+    }
 });
