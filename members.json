@@ -1,0 +1,106 @@
+[
+  {
+    "id": 1,
+    "name": "آرمان رضایی",
+    "role": "دبیر انجمن",
+    "entryYear": "1401",
+    "major": "مهندسی کامپیوتر",
+    "imageUrl": "https://i.pravatar.cc/150?u=arman",
+    "description": "علاقه‌مند به توسعه وب و هوش مصنوعی. تلاش برای ایجاد رویدادهای علمی مفید و کاربردی برای دانشجویان.",
+    "social": {
+      "linkedin": "https://linkedin.com/",
+      "telegram": "https://t.me/"
+    }
+  },
+  {
+    "id": 2,
+    "name": "سارا محمدی",
+    "role": "نائب دبیر",
+    "entryYear": "1400",
+    "major": "علوم کامپیوتر",
+    "imageUrl": "https://i.pravatar.cc/150?u=sara",
+    "description": "متخصص در زمینه امنیت شبکه و تحلیل داده. به دنبال گسترش دانش و همکاری‌های تیمی در انجمن.",
+    "social": {
+      "linkedin": "https://linkedin.com/",
+      "telegram": "https://t.me/"
+    }
+  },
+  {
+    "id": 3,
+    "name": "علی کریمی",
+    "role": "عضو فرعی",
+    "entryYear": "1402",
+    "major": "مهندسی فناوری اطلاعات",
+    "imageUrl": "https://i.pravatar.cc/150?u=ali",
+    "description": "فعال در حوزه طراحی گرافیک و رابط کاربری. مشتاق به یادگیری و کمک به پروژه‌های بصری انجمن.",
+    "social": {
+      "linkedin": "https://linkedin.com/",
+      "telegram": "https://t.me/"
+    }
+  },
+  {
+    "id": 4,
+    "name": "فاطمه حسینی",
+    "role": "عضو اصلی",
+    "entryYear": "1402",
+    "major": "هوش مصنوعی",
+    "imageUrl": "https://i.pravatar.cc/150?u=fatemeh",
+    "description": "پژوهشگر حوزه یادگیری عمیق و پردازش تصویر. به دنبال ایجاد کارگاه‌های آموزشی پیشرفته.",
+    "social": {
+      "linkedin": "https://linkedin.com/",
+      "telegram": "https://t.me/"
+    }
+  },
+ {
+    "id": 1,
+    "name": "آرمان رضایی",
+    "role": "دبیر انجمن",
+    "entryYear": "1401",
+    "major": "مهندسی کامپیوتر",
+    "imageUrl": "https://i.pravatar.cc/150?u=arman",
+    "description": "علاقه‌مند به توسعه وب و هوش مصنوعی. تلاش برای ایجاد رویدادهای علمی مفید و کاربردی برای دانشجویان.",
+    "social": {
+      "linkedin": "https://linkedin.com/",
+      "telegram": "https://t.me/"
+    }
+  },
+  {
+    "id": 2,
+    "name": "سارا محمدی",
+    "role": "نائب دبیر",
+    "entryYear": "1400",
+    "major": "علوم کامپیوتر",
+    "imageUrl": "https://i.pravatar.cc/150?u=sara",
+    "description": "متخصص در زمینه امنیت شبکه و تحلیل داده. به دنبال گسترش دانش و همکاری‌های تیمی در انجمن.",
+    "social": {
+      "linkedin": "https://linkedin.com/",
+      "telegram": "https://t.me/"
+    }
+  },
+  {
+    "id": 3,
+    "name": "علی کریمی",
+    "role": "عضو فرعی",
+    "entryYear": "1402",
+    "major": "مهندسی فناوری اطلاعات",
+    "imageUrl": "https://i.pravatar.cc/150?u=ali",
+    "description": "فعال در حوزه طراحی گرافیک و رابط کاربری. مشتاق به یادگیری و کمک به پروژه‌های بصری انجمن.",
+    "social": {
+      "linkedin": "https://linkedin.com/",
+      "telegram": "https://t.me/"
+    }
+  },
+  {
+    "id": 4,
+    "name": "فاطمه حسینی",
+    "role": "عضو اصلی",
+    "entryYear": "1402",
+    "major": "هوش مصنوعی",
+    "imageUrl": "https://i.pravatar.cc/150?u=fatemeh",
+    "description": "پژوهشگر حوزه یادگیری عمیق و پردازش تصویر. به دنبال ایجاد کارگاه‌های آموزشی پیشرفته.",
+    "social": {
+      "linkedin": "https://linkedin.com/",
+      "telegram": "https://t.me/"
+    }
+  }
+]

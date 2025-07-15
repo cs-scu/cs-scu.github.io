@@ -1002,3 +1002,137 @@ body.modal-is-open {
     background-color: var(--primary-color-light-theme);
     color: #fff;
 }
+
+/* === استایل نهایی صفحه اعضا === */
+.members-container {
+    padding: 4rem 0;
+    text-align: center;
+}
+
+.members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 3rem;
+}
+
+.member-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border-radius: 15px;
+    text-align: center; /* بازگرداندن به حالت وسط‌چین برای عکس */
+    transition: all 0.3s ease;
+}
+
+.dark-theme .member-card {
+    background: var(--glass-bg-dark);
+    border: 1px solid var(--glass-border-dark);
+}
+
+.light-theme .member-card {
+    background: rgba(255, 255, 255, 0.75); /* پس‌زمینه سفید نیمه‌شفاف */
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px); /* اعمال افکت تاری به پس‌زمینه */
+    -webkit-backdrop-filter: blur(10px); /* برای سازگاری با مرورگرهای وب‌کیت */
+}
+
+.member-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+.dark-theme .member-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 20px rgba(232, 195, 142, 0.15);
+}
+
+/* استایل عکس پروفایل */
+.member-card .member-photo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid;
+    margin: 0 auto 1rem auto;
+    object-fit: cover;
+}
+.dark-theme .member-card .member-photo {
+    border-color: var(--primary-color);
+}
+.light-theme .member-card .member-photo {
+    border-color: var(--primary-color-light-theme);
+}
+
+.member-card .card-header h3 {
+    margin-bottom: 0.25rem;
+    font-size: 1.2rem;
+}
+.dark-theme .member-card .card-header h3 {
+    color: var(--primary-color);
+}
+.light-theme .member-card .card-header h3 {
+    color: var(--primary-color-light-theme);
+}
+
+.member-card .card-header .role {
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+/* استایل بیوگرافی */
+.member-card .description {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    margin: 1rem 0;
+    line-height: 1.6;
+    flex-grow: 1; /* باعث می‌شود بیوگرافی فضای خالی را پر کند */
+}
+
+.member-card .card-tags {
+    display: flex;
+    justify-content: center; /* وسط‌چین کردن تگ‌ها */
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.member-card .tag {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 5px;
+}
+.dark-theme .member-card .tag {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.light-theme .member-card .tag {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.member-card .card-socials {
+    padding-top: 1rem;
+    border-top: 1px solid;
+    display: flex;
+    justify-content: center; /* وسط‌چین کردن آیکون‌ها */
+    gap: 1.5rem;
+}
+.dark-theme .member-card .card-socials {
+    border-color: var(--glass-border-dark);
+}
+.light-theme .member-card .card-socials {
+    border-color: var(--glass-border-light);
+}
+
+.member-card .card-socials a svg {
+    width: 20px;
+    height: 20px;
+    opacity: 0.7;
+    transition: all 0.2s;
+}
+
+.member-card .card-socials a:hover svg {
+    opacity: 1;
+    transform: scale(1.1);
+    color: var(--primary-color);
+}
+.light-theme .member-card .card-socials a:hover svg {
+    color: var(--primary-color-light-theme);
+}
