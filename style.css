@@ -63,7 +63,7 @@ body.light-theme {
     background: #ffe9b3;
     color: #1b7a2e;
     text-align: center;
-    padding: 0.7rem;
+    /* padding: 0.7rem; */
     font-weight: bold;
     width: 100%;
     transition: background-color 0.4s, color 0.4s;
@@ -85,7 +85,7 @@ body.light-theme .notification-bar {
     align-items: center;
     justify-content: space-between;
     position: relative;
-    padding: 0.5rem 1.5rem;
+    padding: 0.2rem 0.2rem;
     border-radius: 0 0 15px 15px;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -105,7 +105,7 @@ body.light-theme .main-header .container {
 
 .logo {
     font-weight: bold;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     text-decoration: none;
 }
 
@@ -170,7 +170,7 @@ body.light-theme .logo {
 }
 
 body.dark-theme #mobile-dropdown-menu {
-    background: rgba(1, 42, 43, 0.7);
+    background: rgba(1, 42, 43, 0.8);
     backdrop-filter: blur(10px);
     border: 1px solid var(--glass-border-dark);
 }
@@ -413,8 +413,8 @@ body.light-theme .news-card-content a { color: var(--primary-color-light-theme);
     margin-top: 2rem;
     transition: border-color 0.4s;
 }
-body.dark-theme .main-footer { border-top: 1px solid var(--glass-border-dark); }
-body.light-theme .main-footer { border-top: 1px solid #ddd; }
+body.dark-theme .main-footer { border-top: 1px solid var(--glass-border-dark);background-color: #00000020;}
+body.light-theme .main-footer { border-top: 1px solid #ddd;background-color: #00000020;}
 
 .footer-links a {
     text-decoration: none;
