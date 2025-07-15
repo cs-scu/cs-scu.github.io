@@ -171,55 +171,38 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// --- منطق کامل و نهایی SPA ---
+// --- منطق کامل و نهایی SPA (نسخه پایدار) ---
 document.addEventListener('DOMContentLoaded', () => {
     const mainContent = document.querySelector('main');
-    const navLinks = document.querySelectorAll('a[data-page]');
-
     if (!mainContent) return;
 
-    // محتوای اولیه صفحه اصلی را ذخیره می‌کنیم
-    const initialHomePageHTML = mainContent.innerHTML;
+    const navLinks = document.querySelectorAll('a[data-page]');
+    const initialContent = mainContent.innerHTML;
+    const pageCache = { '/': initialContent };
 
-    // آبجکتی برای نگهداری محتوای صفحات مختلف
-    const pageCache = {
-        '/': initialHomePageHTML
-    };
-
-    /**
-     * هایلایت کردن لینک فعال در منو
-     * @param {string} path - مسیر صفحه فعلی (مثلا '/' یا '/members')
-     */
     const updateActiveLink = (path) => {
         navLinks.forEach(link => {
             link.removeAttribute('aria-current');
-            // اگر href لینک با مسیر فعلی یکی بود، آن را هایلایت می‌کنیم
             if (link.getAttribute('href') === path) {
                 link.setAttribute('aria-current', 'page');
             }
         });
     };
 
-    /**
-     * رندر کردن محتوای صفحه در تگ <main>
-     * @param {string} path - مسیر صفحه برای رندر
-     */
     const renderPage = async (path) => {
         updateActiveLink(path);
 
-        // اگر محتوا از قبل در کش موجود بود، نمایش بده
         if (pageCache[path]) {
             mainContent.innerHTML = pageCache[path];
             return;
         }
 
-        // اگر محتوا در کش نبود، آن را بساز
         if (path === '/members') {
             try {
                 const response = await fetch('/members.json');
                 if (!response.ok) throw new Error('فایل اطلاعات اعضا یافت نشد.');
-                
                 const members = await response.json();
+                
                 let membersHTML = '<div class="members-grid">';
                 members.forEach(member => {
                     membersHTML += `
@@ -235,33 +218,30 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>`;
                 });
                 membersHTML += '</div>';
-                
+
                 const pageHTML = `<section class="members-container"><div class="container"><h1>اعضای انجمن</h1>${membersHTML}</div></section>`;
-                pageCache[path] = pageHTML; // ذخیره در کش
+                pageCache[path] = pageHTML;
                 mainContent.innerHTML = pageHTML;
 
             } catch (error) {
                 mainContent.innerHTML = `<p style="text-align: center;">خطا: ${error.message}</p>`;
             }
+        } else {
+             mainContent.innerHTML = initialContent; // بازگشت به صفحه اصلی اگر مسیر ناشناخته بود
         }
     };
 
-    /**
-     * مدیریت ناوبری و تاریخچه مرورگر
-     * @param {string} path - مسیر جدید
-     */
-    const navigate = (path) => {
-        // جلوگیری از ناوبری به همان صفحه
-        if (window.location.pathname.endsWith(path) && window.location.pathname.length - path.length <= 1) return;
-
-        window.history.pushState({path}, '', path);
+    const navigate = (path, doPushState = true) => {
+        if (doPushState) {
+            window.history.pushState({ path }, '', path);
+        }
         renderPage(path);
     };
 
     // --- بخش اصلی اجرای برنامه ---
 
-    // مدیریت کلیک روی لینک‌های ناوبری
-    document.body.addEventListener('click', (e) => {
+    // مدیریت کلیک روی لینک‌ها
+    document.body.addEventListener('click', e => {
         const link = e.target.closest('a[data-page]');
         if (link) {
             e.preventDefault();
@@ -269,23 +249,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // مدیریت دکمه‌های back/forward مرورگر
-    window.addEventListener('popstate', (e) => {
+    // مدیریت دکمه‌های back/forward
+    window.addEventListener('popstate', e => {
         const path = (e.state && e.state.path) ? e.state.path : '/';
         renderPage(path);
     });
 
-    // مدیریت بارگذاری اولیه صفحه (با حل مشکل رفرش)
-    const redirectedPath = sessionStorage.getItem('redirectPath');
-    if (redirectedPath) {
-        // اگر از صفحه 404 آمده‌ایم
-        sessionStorage.removeItem('redirectPath');
-        const repoName = location.pathname.split('/')[1];
-        const correctPath = redirectedPath.replace(`/${repoName}`, ''); // حذف نام ریپازیتوری از مسیر
-        window.history.replaceState({path: correctPath}, '', correctPath);
-        renderPage(correctPath);
+    // مدیریت بارگذاری اولیه صفحه
+    const redirectedUrl = sessionStorage.getItem('redirect');
+    if (redirectedUrl) {
+        sessionStorage.removeItem('redirect');
+        const url = new URL(redirectedUrl);
+        navigate(url.pathname, false); // آدرس را تغییر می‌دهیم اما به تاریخچه اضافه نمی‌کنیم
+        window.history.replaceState({ path: url.pathname }, '', url.pathname); // آدرس URL را به درستی تنظیم می‌کنیم
     } else {
-        // بارگذاری عادی
-        renderPage(location.pathname);
+        navigate(window.location.pathname, false);
     }
 });
