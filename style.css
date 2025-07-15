@@ -945,8 +945,8 @@ body.modal-is-open {
 }
 
 
-/* استایل برای پیام‌های وضعیت فرم */
-#form-status-message {
+/* استایل برای پیام‌های وضعیت فرم (با استفاده از کلاس) */
+.form-status {
     padding: 0.8rem;
     margin-bottom: 1rem;
     border-radius: 8px;
@@ -956,28 +956,27 @@ body.modal-is-open {
     display: none;
     transition: all 0.3s ease;
 }
-
 /* استایل برای پیام موفقیت (بخش جدید) */
-#form-status-message.success {
+.form-status.success {
     display: block;
 }
-.dark-theme #form-status-message.success {
+.dark-theme .form-status.success {
     background-color: rgba(0, 255, 100, 0.1); /* پس‌زمینه طلایی ملایم */
     color: #96ff6f;
 }
-.light-theme #form-status-message.success {
+.light-theme .form-status.success {
     background-color: rgba(26, 93, 54, 0.15); /* پس‌زمینه سبز ملایم */
     color: #004004;
 }
 
 /* استایل برای پیام خطا */
-#form-status-message.error {
+.form-status.error {
     background-color: rgba(220, 53, 69, 0.15); /* پس‌زمینه قرمز ملایم */
     color: #dc3545; /* رنگ متن قرمز */
     display: block;
 }
 
-.dark-theme #form-status-message.error {
+.dark-theme .form-status.error {
     color: #ff8a8a;
 }
 /* === استایل برای دکمه غیرفعال === */
@@ -1181,4 +1180,42 @@ body.modal-is-open {
 .content-box ul {
     list-style-position: inside;
     padding-right: 1rem;
+}
+
+
+/* === استایل صفحه تماس با ما === */
+.contact-info {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.info-item svg {
+    color: var(--primary-color);
+}
+.light-theme .info-item svg {
+    color: var(--primary-color-light-theme);
+}
+
+#contact-form {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--glass-border-dark);
+}
+.light-theme #contact-form {
+    border-top-color: var(--glass-border-light);
+}
+
+#contact-form h2 {
+    text-align: center;
+    margin-bottom: 2rem;
 }
