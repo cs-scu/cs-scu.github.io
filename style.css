@@ -845,6 +845,9 @@ body.light-theme .member-card .card-socials a:hover svg { color: var(--primary-c
     .modal-content h2 {
         font-size: 1.4rem;
     }
+    .notification-bar-content{
+    font-size: clamp(3vw, 3.5vw, 4vw);
+    }
 }
 
 /* اسکرول‌بار سفارشی برای مودال */
