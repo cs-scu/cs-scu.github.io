@@ -188,21 +188,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     };
-
+/**
+     * رندر کردن محتوای صفحه در تگ <main> (نسخه نهایی و اصلاح‌شده)
+     * @param {string} path - مسیر صفحه برای رندر
+     */
     const renderPage = async (path) => {
         updateActiveLink(path);
 
+        // اگر محتوا از قبل در کش موجود بود، آن را نمایش بده و خارج شو
         if (pageCache[path]) {
             mainContent.innerHTML = pageCache[path];
             return;
         }
 
-        if (path === '/members') {
-            try {
+        try {
+            if (path === '/members') {
+                // منطق بارگذاری و رندر صفحه اعضا از فایل JSON
                 const response = await fetch('/members.json');
                 if (!response.ok) throw new Error('فایل اطلاعات اعضا یافت نشد.');
-                const members = await response.json();
                 
+                const members = await response.json();
                 let membersHTML = '<div class="members-grid">';
                 members.forEach(member => {
                     membersHTML += `
@@ -210,7 +215,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             <img src="${member.imageUrl}" alt="تصویر ${member.name}" class="member-photo">
                             <div class="card-header"><h3>${member.name}</h3><p class="role">${member.role}</p></div>
                             <p class="description">${member.description}</p>
-                            <div class="card-tags"><span class="tag entry-year">ورودی ${member.entryYear}</span></div>
+                            <div class="card-tags">
+                                <span class="tag entry-year">ورودی ${member.entryYear}</span>
+                                ${member.role.includes('فرعی') ? `<span class="tag major">${member.major}</span>` : ''}
+                            </div>
                             <div class="card-socials">
                                 <a href="${member.social.linkedin}" target="_blank" title="لینکدین"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
                                 <a href="${member.social.telegram}" target="_blank" title="تلگرام"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 L11 13 L2 9 L22 2 Z M22 2 L15 22 L11 13 L2 9 L22 2 Z"></path></svg></a>
@@ -218,16 +226,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>`;
                 });
                 membersHTML += '</div>';
-
+                
                 const pageHTML = `<section class="members-container"><div class="container"><h1>اعضای انجمن</h1>${membersHTML}</div></section>`;
+                pageCache[path] = pageHTML; // ذخیره در کش
+                mainContent.innerHTML = pageHTML;
+
+            } else if (path === '/about') {
+                // منطق بارگذاری و رندر صفحات استاتیک مانند "درباره ما"
+                const response = await fetch('/about.html');
+                if (!response.ok) throw new Error('محتوای "درباره ما" یافت نشد.');
+                const pageHTML = await response.text();
                 pageCache[path] = pageHTML;
                 mainContent.innerHTML = pageHTML;
 
-            } catch (error) {
-                mainContent.innerHTML = `<p style="text-align: center;">خطا: ${error.message}</p>`;
+            } else {
+                // بازگشت به صفحه اصلی برای مسیرهای دیگر
+                mainContent.innerHTML = initialContent;
             }
-        } else {
-             mainContent.innerHTML = initialContent; // بازگشت به صفحه اصلی اگر مسیر ناشناخته بود
+        } catch (error) {
+            mainContent.innerHTML = `<p style="text-align: center;">خطا: ${error.message}</p>`;
         }
     };
 
