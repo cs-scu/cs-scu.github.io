@@ -294,12 +294,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     const cleanupPageSpecifics = (newPath) => {
-        // Always remove the scroll handler; it will be re-added if needed.
         if (newsScrollHandler) {
             window.removeEventListener('scroll', newsScrollHandler);
             newsScrollHandler = null;
         }
-        // If we are navigating to a page that is NOT part of the news section, reset the news state.
         if (!newPath.startsWith('/news')) {
             loadedNewsCount = 0;
             allNews = [];
@@ -312,7 +310,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateActiveLink(path);
         window.scrollTo(0, 0);
 
-        // Check cache first for non-dynamic pages
         if (pageCache[path] && !path.startsWith('/news')) {
             mainContent.innerHTML = pageCache[path];
             if (path === '/') loadLatestNews();
@@ -323,7 +320,6 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             let pageHTML;
             if (path.startsWith('/news/')) { // Handler for individual news articles
-                // Ensure all news data is available
                 if (allNews.length === 0) {
                     const response = await fetch('news.json');
                     if (!response.ok) throw new Error('فایل اخبار یافت نشد.');
@@ -334,16 +330,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (item) {
                     pageHTML = `
-                        <section class="page-container">
+                        <section class="page-container news-detail-page">
                             <div class="container">
-                                <article class="content-box" style="text-align: right; margin-top: 2rem;">
-                                    <h1>${item.title}</h1>
-                                    <p class="news-meta" style="opacity: 0.8; margin-bottom: 1.5rem;">
-                                        ${item.date} | ${item.readingTime}
-                                    </p>
-                                    <img src="${item.image}" alt="${item.title}" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 10px; margin-bottom: 2rem;">
-                                    <p style="line-height: 2; font-size: 1.1rem;">${item.summary}</p>
-                                    <a href="#/news" class="btn btn-secondary" style="margin-top: 2rem;">بازگشت به لیست اخبار</a>
+                                <a href="#/news" class="btn-back">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                                    <span>بازگشت به اخبار</span>
+                                </a>
+                                <article class="content-box">
+                                    <header class="news-detail-header">
+                                        <img src="${item.image}" alt="${item.title}" class="news-detail-image">
+                                        <div class="news-detail-title-wrapper">
+                                            <h1>${item.title}</h1>
+                                            <p class="news-meta">
+                                                <span>${item.date}</span>
+                                                <span>|</span>
+                                                <span>${item.readingTime}</span>
+                                            </p>
+                                        </div>
+                                    </header>
+                                    <div class="news-detail-body">
+                                        <p>${item.summary}</p>
+                                        </div>
                                 </article>
                             </div>
                         </section>
@@ -365,12 +372,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 window.addEventListener('scroll', newsScrollHandler);
 
-                if (allNews.length > 0) {
-                    // Re-render the already loaded items from cache instantly
+                if (allNews.length > 0 && loadedNewsCount > 0) {
                     const loadedItems = allNews.slice(0, loadedNewsCount);
                     renderNewsItems(loadedItems);
                 } else {
-                    // First time loading this page
                     const response = await fetch('news.json');
                     if (!response.ok) throw new Error('فایل اخبار یافت نشد.');
                     allNews = await response.json();

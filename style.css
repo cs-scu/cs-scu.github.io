@@ -964,6 +964,87 @@ body.dark-theme #news-loader { color: var(--primary-color); }
 body.light-theme #news-loader { color: var(--primary-color-light-theme); }
 
 
+/* ================== صفحه جزئیات خبر ================== */
+
+.news-detail-page .container {
+    max-width: 900px;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+
+body.dark-theme .btn-back {
+    color: var(--text-color-dark);
+    background-color: var(--glass-bg-dark);
+}
+body.light-theme .btn-back {
+    color: var(--text-color-light);
+    background-color: var(--glass-bg-light);
+}
+
+body.dark-theme .btn-back:hover {
+    background-color: var(--primary-color);
+    color: var(--background-color-dark);
+}
+body.light-theme .btn-back:hover {
+    background-color: var(--primary-color-light-theme);
+    color: #fff;
+}
+
+
+.news-detail-page .content-box {
+    padding: 2.5rem;
+}
+
+.news-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+}
+body.dark-theme .news-detail-header {
+    border-bottom: 1px solid var(--glass-border-dark);
+}
+body.light-theme .news-detail-header {
+    border-bottom: 1px solid var(--glass-border-light);
+}
+
+.news-detail-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 15px;
+    flex-shrink: 0;
+}
+
+.news-detail-title-wrapper h1 {
+    text-align: right;
+    margin: 0;
+    font-size: 2rem;
+    line-height: 1.4;
+}
+
+.news-detail-title-wrapper .news-meta {
+    opacity: 0.8;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.news-detail-body {
+    line-height: 2.2;
+    font-size: 1.1rem;
+}
+
 /* ================== طراحی واکنش‌گرا (Responsive) ================== */
 @media (max-width: 700px) {
     .main-header .container {
@@ -1018,6 +1099,15 @@ body.light-theme #news-loader { color: var(--primary-color-light-theme); }
         flex-direction: column;
         align-items: flex-start;
         gap: 0.75rem;
+    }
+
+    .news-detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    .news-detail-title-wrapper h1 {
+        font-size: 1.6rem;
     }
 }
 
