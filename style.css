@@ -970,7 +970,7 @@ body.light-theme #news-loader { color: var(--primary-color-light-theme); }
     max-width: 900px;
 }
 
-.btn-back {
+.news-detail-page .btn-back {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -982,68 +982,106 @@ body.light-theme #news-loader { color: var(--primary-color-light-theme); }
     transition: all 0.3s ease;
 }
 
-body.dark-theme .btn-back {
+body.dark-theme .news-detail-page .btn-back {
     color: var(--text-color-dark);
     background-color: var(--glass-bg-dark);
 }
-body.light-theme .btn-back {
+body.light-theme .news-detail-page .btn-back {
     color: var(--text-color-light);
     background-color: var(--glass-bg-light);
 }
 
-body.dark-theme .btn-back:hover {
+body.dark-theme .news-detail-page .btn-back:hover {
     background-color: var(--primary-color);
     color: var(--background-color-dark);
 }
-body.light-theme .btn-back:hover {
+body.light-theme .news-detail-page .btn-back:hover {
     background-color: var(--primary-color-light-theme);
     color: #fff;
 }
 
-
-.news-detail-page .content-box {
-    padding: 2.5rem;
+/* ================== استایل محتوای مقاله اخبار ================== */
+.news-content-area {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem;
+    line-height: 1.8;
+    font-size: 1.1rem;
+    text-align: justify;
 }
 
-.news-detail-header {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-}
-body.dark-theme .news-detail-header {
-    border-bottom: 1px solid var(--glass-border-dark);
-}
-body.light-theme .news-detail-header {
-    border-bottom: 1px solid var(--glass-border-light);
-}
-
-.news-detail-image {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 15px;
-    flex-shrink: 0;
-}
-
-.news-detail-title-wrapper h1 {
+.news-content-area h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
     text-align: right;
-    margin: 0;
-    font-size: 2rem;
-    line-height: 1.4;
+    color: var(--primary-color);
+}
+.light-theme .news-content-area h1 {
+    color: var(--primary-color-light-theme);
 }
 
-.news-detail-title-wrapper .news-meta {
-    opacity: 0.8;
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
+.news-content-area h2 {
+    font-size: 1.8rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-color);
+    text-align: right;
+}
+.light-theme .news-content-area h2 {
+    border-bottom-color: var(--primary-color-light-theme);
 }
 
-.news-detail-body {
-    line-height: 2.2;
+.news-content-area blockquote {
+    margin: 2rem 1rem;
+    padding: 1rem 1.5rem;
+    border-right: 5px solid var(--primary-color);
+    background-color: rgba(0, 0, 0, 0.1);
+    font-style: italic;
     font-size: 1.1rem;
 }
+.light-theme .news-content-area blockquote {
+    border-right-color: var(--primary-color-light-theme);
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.news-content-area img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 2rem auto;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.news-content-area figcaption {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #888;
+    margin-top: -1.2rem;
+    margin-bottom: 2rem;
+}
+
+.news-content-area p {
+    margin-bottom: 1rem;
+}
+
+.news-content-area pre {
+    background-color: #2d2d2d;
+    color: #f1f1f1;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    text-align: left;
+    direction: ltr;
+    font-family: 'Courier New', Courier, monospace;
+}
+.light-theme .news-content-area pre {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
 
 /* ================== طراحی واکنش‌گرا (Responsive) ================== */
 @media (max-width: 700px) {
@@ -1101,13 +1139,11 @@ body.light-theme .news-detail-header {
         gap: 0.75rem;
     }
 
-    .news-detail-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
+    .news-content-area h1 {
+        font-size: 1.8rem;
     }
-    .news-detail-title-wrapper h1 {
-        font-size: 1.6rem;
+    .news-content-area h2 {
+        font-size: 1.5rem;
     }
 }
 

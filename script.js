@@ -260,7 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const newsToLoad = allNews.slice(loadedNewsCount, loadedNewsCount + NEWS_PER_PAGE);
         
-        // Simulate network delay
         setTimeout(() => {
             renderNewsItems(newsToLoad);
             loadedNewsCount += newsToLoad.length;
@@ -273,7 +272,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 500);
     };
-
 
     // --- 7. منطق مسیریابی SPA (مبتنی بر هش) ---
     const getCurrentPath = () => location.hash.substring(1) || '/';
@@ -320,15 +318,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             let pageHTML;
             if (path.startsWith('/news/')) { // Handler for individual news articles
-                if (allNews.length === 0) {
-                    const response = await fetch('news.json');
-                    if (!response.ok) throw new Error('فایل اخبار یافت نشد.');
-                    allNews = await response.json();
-                }
+                const slug = path.substring(6); // Remove '/news/'
+                const articlePath = `/news/${slug}.html`;
                 
-                const item = allNews.find(article => article.link === `#${path}`);
-
-                if (item) {
+                try {
+                    const response = await fetch(articlePath);
+                    if (!response.ok) throw new Error('فایل خبر یافت نشد.');
+                    const articleHTML = await response.text();
+                    
                     pageHTML = `
                         <section class="page-container news-detail-page">
                             <div class="container">
@@ -336,30 +333,16 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                                     <span>بازگشت به اخبار</span>
                                 </a>
-                                <article class="content-box">
-                                    <header class="news-detail-header">
-                                        <img src="${item.image}" alt="${item.title}" class="news-detail-image">
-                                        <div class="news-detail-title-wrapper">
-                                            <h1>${item.title}</h1>
-                                            <p class="news-meta">
-                                                <span>${item.date}</span>
-                                                <span>|</span>
-                                                <span>${item.readingTime}</span>
-                                            </p>
-                                        </div>
-                                    </header>
-                                    <div class="news-detail-body">
-                                        <p>${item.summary}</p>
-                                        </div>
-                                </article>
+                                ${articleHTML}
                             </div>
                         </section>
                     `;
                     mainContent.innerHTML = pageHTML;
-                } else {
-                    throw new Error('مقاله خبری یافت نشد.');
-                }
 
+                } catch (e) {
+                     throw new Error('محتوای خبر مورد نظر یافت نشد.');
+                }
+                
             } else if (path === '/news') { // Handler for the news list page
                 pageHTML = `<section class="news-page-container"><div class="container"><h1>اخبار و اطلاعیه‌ها</h1><div class="news-list"></div><div id="news-loader">در حال بارگذاری...</div></div></section>`;
                 mainContent.innerHTML = pageHTML;
@@ -379,6 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const response = await fetch('news.json');
                     if (!response.ok) throw new Error('فایل اخبار یافت نشد.');
                     allNews = await response.json();
+                    loadedNewsCount = 0; // Reset count
                     loadMoreNews();
                 }
 

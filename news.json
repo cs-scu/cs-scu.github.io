@@ -10,7 +10,7 @@
       ["کارگاه", "#3b82f6"],
       ["Git", "#ef4444"]
     ],
-    "link": "#/news/git-workshop"
+    "link": "#/news/1-git-workshop"
   },
   {
     "id": 2,
@@ -23,7 +23,7 @@
       ["مسابقه", "#10b981"],
       ["الگوریتم", "#f97316"]
     ],
-    "link": "#/news/algo-contest"
+    "link": "#/news/2-algo-contest"
   },
   {
     "id": 3,
@@ -35,7 +35,7 @@
     "tags": [
       ["نشریه", "#8b5cf6"]
     ],
-    "link": "#/news/journal-issue-3"
+    "link": "#/news/3-journal-issue"
   },
   {
     "id": 4,
@@ -60,7 +60,7 @@
     "tags": [
       ["رویداد", "#65a30d"]
     ],
-    "link": "#/news/intro-meeting"
+    "link": "#/news/4-intro-meeting"
   },
   {
     "id": 6,
@@ -72,7 +72,7 @@
     "tags": [
       ["اطلاعیه", "#f59e0b"]
     ],
-    "link": "#/news/new-members"
+    "link": "#/news/5-new-members"
   },
   {
     "id": 7,
@@ -85,7 +85,7 @@
       ["کارگاه", "#3b82f6"],
       ["امنیت", "#0ea5e9"]
     ],
-    "link": "#/news/security-workshop"
+    "link": "#/news/6-security-workshop"
   },
   {
     "id": 8,
@@ -97,7 +97,7 @@
     "tags": [
       ["اطلاعیه", "#f59e0b"]
     ],
-    "link": "#/news/elections"
+    "link": "#/news/7-elections"
   },
   {
     "id": 9,
@@ -110,7 +110,7 @@
       ["دوره آموزشی", "#10b981"],
       ["پایتون", "#facc15"]
     ],
-    "link": "#/news/python-course"
+    "link": "#/news/8-python-course"
   },
   {
     "id": 10,
@@ -123,7 +123,7 @@
       ["رویداد", "#65a30d"],
       ["پژوهش", "#a855f7"]
     ],
-    "link": "#/news/expo"
+    "link": "#/news/9-expo"
   },
   {
     "id": 11,
@@ -136,7 +136,7 @@
       ["وبینار", "#14b8a6"],
       ["شغل", "#ec4899"]
     ],
-    "link": "#/news/webdev-career"
+    "link": "#/news/10-webdev-career"
   },
   {
     "id": 12,
@@ -148,6 +148,6 @@
     "tags": [
       ["اطلاعیه", "#f59e0b"]
     ],
-    "link": "#/news/ds-practice"
+    "link": "#/news/11-ds-practice"
   }
 ]
