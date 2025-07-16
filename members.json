@@ -90,6 +90,19 @@
       "github": "https://github.com/"
     }
   },
+        {
+    "id": 5,
+    "name":"هیوا عباسیان",
+    "role": "",
+    "imageUrl": "",
+    "description": "",
+    "tags": ["علوم کامپیوتر"],
+    "social": {
+      "linkedin": "https://linkedin.com/",
+      "telegram": "https://t.me/",
+      "github": "https://github.com/"
+    }
+  },
       {
     "id": 5,
     "name": "امیر محمد بهین",
