@@ -307,6 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateActiveLink(path);
         window.scrollTo(0, 0);
 
+        // Check cache first for non-dynamic pages
         if (pageCache[path] && path !== '/news') {
             mainContent.innerHTML = pageCache[path];
             if (path === '/') loadLatestNews();
@@ -316,7 +317,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             let pageHTML;
-            if (path === '/news') {
+            if (path.startsWith('/news/')) { // Handler for individual news articles
+                // Ensure all news data is available
+                if (allNews.length === 0) {
+                    const response = await fetch('news.json');
+                    if (!response.ok) throw new Error('فایل اخبار یافت نشد.');
+                    allNews = await response.json();
+                }
+                
+                // Find the specific news item by matching the link
+                const item = allNews.find(article => article.link === `#${path}`);
+
+                if (item) {
+                    pageHTML = `
+                        <section class="page-container">
+                            <div class="container">
+                                <article class="content-box" style="text-align: right; margin-top: 2rem;">
+                                    <h1>${item.title}</h1>
+                                    <p class="news-meta" style="opacity: 0.8; margin-bottom: 1.5rem;">
+                                        ${item.date} | ${item.readingTime}
+                                    </p>
+                                    <img src="${item.image}" alt="${item.title}" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 10px; margin-bottom: 2rem;">
+                                    <p style="line-height: 2; font-size: 1.1rem;">${item.summary}</p>
+                                    <a href="#/news" class="btn btn-secondary" style="margin-top: 2rem;">بازگشت به لیست اخبار</a>
+                                </article>
+                            </div>
+                        </section>
+                    `;
+                    mainContent.innerHTML = pageHTML;
+                } else {
+                    throw new Error('مقاله خبری یافت نشد.');
+                }
+
+            } else if (path === '/news') { // Handler for the news list page
                 pageHTML = `<section class="news-page-container"><div class="container"><h1>اخبار و اطلاعیه‌ها</h1><div class="news-list"></div><div id="news-loader">در حال بارگذاری...</div></div></section>`;
                 mainContent.innerHTML = pageHTML;
 
