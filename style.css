@@ -652,17 +652,22 @@ body.light-theme .form-status.error {
 
 
 /* ================== صفحات داخلی (Members, About, Contact) ================== */
-.page-container, .members-container {
+.page-container, .members-container, .news-page-container {
     padding: 2rem 0;
     text-align: right;
 }
 
-.page-container h1, .members-container h1 {
+.page-container h1, .members-container h1, .news-page-container h1 {
     text-align: center;
     margin-bottom: 2.5rem;
 }
-body.dark-theme .page-container h1, body.dark-theme .members-container h1 { color: var(--primary-color); }
-body.light-theme .page-container h1, body.light-theme .members-container h1 { color: var(--primary-color-light-theme); }
+body.dark-theme .page-container h1, 
+body.dark-theme .members-container h1,
+body.dark-theme .news-page-container h1 { color: var(--primary-color); }
+
+body.light-theme .page-container h1, 
+body.light-theme .members-container h1,
+body.light-theme .news-page-container h1 { color: var(--primary-color-light-theme); }
 
 .content-box {
     padding: 2rem;
@@ -835,6 +840,129 @@ body.light-theme .member-card .card-socials { border-color: var(--glass-border-l
 body.dark-theme .member-card .card-socials a:hover svg { color: var(--primary-color); }
 body.light-theme .member-card .card-socials a:hover svg { color: var(--primary-color-light-theme); }
 
+/* ================== صفحه اخبار ================== */
+.news-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.news-list-item {
+    display: flex;
+    flex-direction: row;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    text-align: right;
+}
+
+body.dark-theme .news-list-item {
+    background: var(--glass-bg-dark);
+    border: 1px solid var(--glass-border-dark);
+}
+body.light-theme .news-list-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+body.dark-theme .news-list-item:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(232, 195, 142, 0.2);
+}
+body.light-theme .news-list-item:hover {
+    border-color: var(--primary-color-light-theme);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.news-item-image-link {
+    flex-shrink: 0;
+}
+
+.news-item-image {
+    width: 200px;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.news-list-item:hover .news-item-image {
+    transform: scale(1.05);
+}
+
+.news-item-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.news-item-header {
+    margin-bottom: 0.75rem;
+}
+
+.news-item-title-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.news-item-title {
+    font-size: 1.4rem;
+    margin: 0;
+}
+body.dark-theme .news-item-title { color: var(--primary-color); }
+body.light-theme .news-item-title { color: var(--primary-color-light-theme); }
+.news-item-title-link:hover .news-item-title {
+    text-decoration: underline;
+}
+
+.news-item-summary {
+    font-size: 1rem;
+    line-height: 1.8;
+    opacity: 0.9;
+    flex-grow: 1;
+}
+
+.news-item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 1rem;
+    gap: 1rem;
+}
+
+.news-item-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.news-tag {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 20px;
+    color: #fff;
+    font-weight: bold;
+}
+
+.news-item-meta {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+#news-loader {
+    text-align: center;
+    padding: 2rem;
+    display: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+body.dark-theme #news-loader { color: var(--primary-color); }
+body.light-theme #news-loader { color: var(--primary-color-light-theme); }
+
 
 /* ================== طراحی واکنش‌گرا (Responsive) ================== */
 @media (max-width: 700px) {
@@ -874,6 +1002,22 @@ body.light-theme .member-card .card-socials a:hover svg { color: var(--primary-c
     }
     .hero p {
     font-size: clamp(4vw, 4vw , 4vw);
+    }
+    
+    .news-list-item {
+        flex-direction: column;
+    }
+    .news-item-image {
+        width: 100%;
+        height: 180px;
+    }
+    .news-item-content {
+        padding: 1rem;
+    }
+    .news-item-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
     }
 }
 

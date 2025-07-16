@@ -9,12 +9,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageCache = { '/': initialContent };
     let particlesInstance = null;
     
+    // متغیرهای مربوط به صفحه اخبار
+    let allNews = [];
+    let loadedNewsCount = 0;
+    const NEWS_PER_PAGE = 10;
+    let isLoadingNews = false;
+    let newsScrollHandler = null;
+
+
     const currentYearSpan = document.getElementById('current-year');
     if(currentYearSpan) {
         currentYearSpan.textContent = new Date().getFullYear();
     }
 
-    // --- 2. کنترل تم ---
     // --- 2. کنترل تم ---
     const themeToggle = document.getElementById('theme-toggle');
     const THEME_STATES = ['system', 'light', 'dark'];
@@ -58,33 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Set initial theme on load
-    document.addEventListener('DOMContentLoaded', () => {
-        // We must wait for particlesInstance to be loaded, so this logic is moved
-        // to the .then() block of the tsParticles.load promise.
-    });
-
-    // The initial theme setting must be deferred until after particles.js is loaded.
-    // The original `setThemeState` call needs to be placed inside the `tsParticles.load(...).then()` block.
-    // Find this block:
-    /*
-    tsParticles.load("particles-js", { ... }).then(container => {
-        particlesInstance = container;
-        applyTheme(preferredTheme.matches ? 'dark-theme' : 'light-theme');
-    });
-    */
-    // And replace it with this:
-    /*
-    tsParticles.load("particles-js", { ... }).then(container => {
-        particlesInstance = container;
-        const initialThemeState = localStorage.getItem('themeState') || 'system';
-        setThemeState(initialThemeState);
-    });
-    */
-
     // --- 3. راه‌اندازی انیمیشن ذرات ---
     tsParticles.load("particles-js", {
-        // ... all particle options remain the same
         background: { color: { value: 'transparent' } },
         particles: {
             number: { value: 150, density: { enable: true, value_area: 800 } },
@@ -238,6 +220,59 @@ document.addEventListener('DOMContentLoaded', () => {
             newsGrid.innerHTML = `<p style="text-align: center; grid-column: 1 / -1;">${error.message}</p>`;
         }
     };
+    
+    const loadMoreNews = () => {
+        if (isLoadingNews || (loadedNewsCount > 0 && loadedNewsCount >= allNews.length)) return;
+
+        isLoadingNews = true;
+        const loader = document.getElementById('news-loader');
+        if (loader) loader.style.display = 'block';
+
+        const newsToLoad = allNews.slice(loadedNewsCount, loadedNewsCount + NEWS_PER_PAGE);
+        const newsList = document.querySelector('.news-list');
+        const template = document.getElementById('news-item-template');
+
+        if (!newsList || !template) {
+            isLoadingNews = false;
+            if(loader) loader.style.display = 'none';
+            return;
+        }
+
+        setTimeout(() => { // Simulate network delay
+            newsToLoad.forEach(item => {
+                const cardClone = template.content.cloneNode(true);
+                cardClone.querySelector('.news-item-image').src = item.image;
+                cardClone.querySelector('.news-item-image').alt = item.title;
+                cardClone.querySelector('.news-item-image-link').href = item.link;
+                cardClone.querySelector('.news-item-title').textContent = item.title;
+                cardClone.querySelector('.news-item-title-link').href = item.link;
+                cardClone.querySelector('.news-item-summary').textContent = item.summary;
+                cardClone.querySelector('.news-item-date').textContent = item.date;
+                cardClone.querySelector('.news-item-reading-time').textContent = item.readingTime;
+
+                const tagsContainer = cardClone.querySelector('.news-item-tags');
+                tagsContainer.innerHTML = '';
+                item.tags.forEach(([text, color]) => {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'news-tag';
+                    tagEl.textContent = text;
+                    tagEl.style.backgroundColor = color;
+                    tagsContainer.appendChild(tagEl);
+                });
+
+                newsList.appendChild(cardClone);
+            });
+
+            loadedNewsCount += newsToLoad.length;
+            isLoadingNews = false;
+            if (loader) loader.style.display = 'none';
+            
+            if (loadedNewsCount >= allNews.length) {
+                 if (loader) loader.style.display = 'none';
+                 if (newsScrollHandler) window.removeEventListener('scroll', newsScrollHandler);
+            }
+        }, 500);
+    };
 
 
     // --- 7. منطق مسیریابی SPA (مبتنی بر هش) ---
@@ -256,27 +291,50 @@ document.addEventListener('DOMContentLoaded', () => {
             mobileDropdownMenu.classList.remove('is-open');
         }
     };
+    
+    const cleanupPageSpecifics = () => {
+        if (newsScrollHandler) {
+            window.removeEventListener('scroll', newsScrollHandler);
+            newsScrollHandler = null;
+        }
+        loadedNewsCount = 0;
+        allNews = [];
+        isLoadingNews = false;
+    };
 
     const renderPage = async (path) => {
+        cleanupPageSpecifics();
         updateActiveLink(path);
+        window.scrollTo(0, 0);
 
-        if (path === '/') {
-            mainContent.innerHTML = pageCache['/'];
-            loadLatestNews();
-            window.scrollTo(0, 0);
-            return;
-        }
-
-        if (pageCache[path]) {
+        if (pageCache[path] && path !== '/news') {
             mainContent.innerHTML = pageCache[path];
+            if (path === '/') loadLatestNews();
             if (path === '/contact') initializeContactForm();
-            window.scrollTo(0, 0);
             return;
         }
 
         try {
             let pageHTML;
-            if (path === '/members') {
+            if (path === '/news') {
+                pageHTML = `<section class="news-page-container"><div class="container"><h1>اخبار و اطلاعیه‌ها</h1><div class="news-list"></div><div id="news-loader">در حال بارگذاری...</div></div></section>`;
+                mainContent.innerHTML = pageHTML;
+
+                const response = await fetch('news.json');
+                if (!response.ok) throw new Error('فایل اخبار یافت نشد.');
+                allNews = await response.json();
+                
+                loadMoreNews();
+                
+                newsScrollHandler = () => {
+                    if (isLoadingNews || !allNews.length) return;
+                    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 200) {
+                        loadMoreNews();
+                    }
+                };
+                window.addEventListener('scroll', newsScrollHandler);
+
+            } else if (path === '/members') {
                 const response = await fetch('members.json');
                 if (!response.ok) throw new Error('فایل اطلاعات اعضا یافت نشد.');
                 const members = await response.json();
@@ -284,14 +342,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const template = document.getElementById('member-card-template');
                 if (!template) throw new Error('قالب کارت اعضا یافت نشد.');
 
-                // URL تصویر پیش‌فرض برای کاربرانی که تصویر ندارند
                 const DEFAULT_AVATAR_URL = 'https://icons.veryicon.com/png/o/miscellaneous/rookie-official-icon-gallery/225-default-avatar.png';
 
                 const fragment = document.createDocumentFragment();
                 members.forEach(member => {
                     const cardClone = template.content.cloneNode(true);
                     
-                    // بررسی وجود تصویر و استفاده از تصویر پیش‌فرض در صورت نیاز
                     cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
                     cardClone.querySelector('.member-photo').alt = member.name;
                     cardClone.querySelector('.member-name').textContent = member.name;
@@ -330,21 +386,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 membersGrid.appendChild(fragment);
 
                 pageHTML = `<section class="members-container"><div class="container"><h1>اعضای انجمن</h1>${membersGrid.outerHTML}</div></section>`;
-            
-            
+                pageCache[path] = pageHTML;
+                mainContent.innerHTML = pageHTML;
+
             } else if (path === '/about' || path === '/contact') {
                 const response = await fetch(path.substring(1) + '.html');
                 if (!response.ok) throw new Error(`محتوای صفحه یافت نشد.`);
                 pageHTML = await response.text();
-            } else {
+                pageCache[path] = pageHTML;
+                mainContent.innerHTML = pageHTML;
+                if (path === '/contact') initializeContactForm();
+            
+            } else { // Fallback to home
                 mainContent.innerHTML = pageCache['/'];
                 loadLatestNews();
-                return;
             }
-            pageCache[path] = pageHTML;
-            mainContent.innerHTML = pageHTML;
-            if (path === '/contact') initializeContactForm();
-            window.scrollTo(0, 0);
 
         } catch (error) {
             mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>خطا: ${error.message}</p></div>`;
