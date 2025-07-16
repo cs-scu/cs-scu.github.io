@@ -2,6 +2,7 @@
   {
     "id": 1,
     "title": "کارگاه آموزشی Git و GitHub",
+    "authorId": 1,
     "date": "۲۵ تیر ۱۴۰۴",
     "readingTime": "۷ دقیقه مطالعه",
     "image": "https://picsum.photos/seed/git/400/200",
@@ -15,6 +16,7 @@
   {
     "id": 2,
     "title": "مسابقه برنامه‌نویسی الگوریتمی",
+    "authorId": 1,
     "date": "۱۵ تیر ۱۴۰۴",
     "readingTime": "۴ دقیقه مطالعه",
     "image": "https://picsum.photos/seed/algo/400/200",
@@ -28,6 +30,7 @@
   {
     "id": 3,
     "title": "انتشار شماره جدید نشریه",
+    "authorId": 1,
     "date": "۵ تیر ۱۴۰۴",
     "readingTime": "۳ دقیقه مطالعه",
     "image": "https://picsum.photos/seed/journal/400/200",
@@ -40,6 +43,7 @@
   {
     "id": 4,
     "title": "سمینار هوش مصنوعی و کاربردها",
+    "authorId": 1,
     "date": "۳۰ خرداد ۱۴۰۴",
     "readingTime": "۵ دقیقه مطالعه",
     "image": "https://picsum.photos/seed/ai/400/200",
@@ -53,6 +57,7 @@
   {
     "id": 5,
     "title": "جلسه معارفه ورودی‌های جدید",
+    "authorId": 1,
     "date": "۱۵ خرداد ۱۴۰۴",
     "readingTime": "۲ دقیقه مطالعه",
     "image": "https://picsum.photos/seed/intro/400/200",
@@ -65,6 +70,7 @@
   {
     "id": 6,
     "title": "فراخوان جذب اعضای جدید",
+    "authorId": 1,
     "date": "۱۰ خرداد ۱۴۰۴",
     "readingTime": "۴ دقیقه مطالعه",
     "image": "https://picsum.photos/seed/join/400/200",
@@ -77,6 +83,7 @@
   {
     "id": 7,
     "title": "کارگاه آنلاین امنیت شبکه",
+    "authorId": 1,
     "date": "۵ خرداد ۱۴۰۴",
     "readingTime": "۱۰ دقیقه مطالعه",
     "image": "https://picsum.photos/seed/security/400/200",
@@ -90,6 +97,7 @@
   {
     "id": 8,
     "title": "انتخابات شورای مرکزی انجمن",
+    "authorId": 1,
     "date": "۱ خرداد ۱۴۰۴",
     "readingTime": "۳ دقیقه مطالعه",
     "image": "https://picsum.photos/seed/election/400/200",
@@ -102,6 +110,7 @@
   {
     "id": 9,
     "title": "آغاز دوره آموزشی پایتون مقدماتی",
+    "authorId": 1,
     "date": "۲۸ اردیبهشت ۱۴۰۴",
     "readingTime": "۶ دقیقه مطالعه",
     "image": "https://picsum.photos/seed/python/400/200",
@@ -115,6 +124,7 @@
   {
     "id": 10,
     "title": "نمایشگاه دستاوردهای پژوهشی دانشجویان",
+    "authorId": 1,
     "date": "۲۰ اردیبهشت ۱۴۰۴",
     "readingTime": "۵ دقیقه مطالعه",
     "image": "https://picsum.photos/seed/expo/400/200",
@@ -128,6 +138,7 @@
   {
     "id": 11,
     "title": "وبینار آشنایی با مسیر شغلی توسعه‌دهنده وب",
+    "authorId": 1,
     "date": "۱۵ اردیبهشت ۱۴۰۴",
     "readingTime": "۸ دقیقه مطالعه",
     "image": "https://picsum.photos/seed/webdev/400/200",
@@ -141,6 +152,7 @@
   {
     "id": 12,
     "title": "کلاس‌های حل تمرین ساختمان داده",
+    "authorId": 1,
     "date": "۱۰ اردیبهشت ۱۴۰۴",
     "readingTime": "۲ دقیقه مطالعه",
     "image": "https://picsum.photos/seed/ds/400/200",

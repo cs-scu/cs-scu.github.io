@@ -1185,3 +1185,108 @@ body.light-theme .news-detail-page .btn-back:hover {
   clip: rect(0, 0, 0, 0);
   border: 0;
 }
+/* ================== استایل پروفایل نویسنده در کارت خبر ================== */
+.news-item-author {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.3rem;
+    border-radius: 50px;
+    transition: background-color 0.2s ease;
+}
+.light-theme .news-item-author:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+.dark-theme .news-item-author:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.news-item-author .author-photo {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--glass-border-dark);
+}
+.light-theme .news-item-author .author-photo {
+    border: 2px solid var(--glass-border-light);
+}
+
+.news-item-author .author-name {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+
+/* ================== استایل پروفایل نویسنده در صفحه جزئیات خبر ================== */
+.news-detail-author {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.dark-theme .news-detail-author {
+    background: var(--glass-bg-dark);
+    border: 1px solid var(--glass-border-dark);
+}
+.light-theme .news-detail-author {
+    background: var(--glass-bg-light);
+    border: 1px solid var(--glass-border-light);
+}
+.dark-theme .news-detail-author:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(232, 195, 142, 0.2);
+}
+.light-theme .news-detail-author:hover {
+    border-color: var(--primary-color-light-theme);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.news-detail-author img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0;
+    box-shadow: none;
+}
+.news-detail-author div {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+}
+.news-detail-author strong {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+.news-detail-author span {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* بهبود استایل مودال عمومی */
+#generic-modal .modal-content {
+    max-width: 380px; /* سایز مناسب برای نمایش کارت عضو */
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+}
+#generic-modal .close-modal {
+    top: -15px;
+    left: -15px;
+    font-size: 1.5rem;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    border-radius: 50%;
+    color: #fff;
+    background: rgba(0,0,0,0.5);
+}

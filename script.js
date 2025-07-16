@@ -9,13 +9,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageCache = { '/': initialContent };
     let particlesInstance = null;
     
-    // متغیرهای مربوط به صفحه اخبار
+    // Data stores
     let allNews = [];
+    let membersMap = new Map();
+
+    // News page state
     let loadedNewsCount = 0;
     const NEWS_PER_PAGE = 10;
     let isLoadingNews = false;
     let newsScrollHandler = null;
-
+    
+    const DEFAULT_AVATAR_URL = 'https://icons.veryicon.com/png/o/miscellaneous/rookie-official-icon-gallery/225-default-avatar.png';
 
     const currentYearSpan = document.getElementById('current-year');
     if(currentYearSpan) {
@@ -84,12 +88,31 @@ document.addEventListener('DOMContentLoaded', () => {
         setThemeState(initialThemeState);
     });
     
-    // --- 4. کنترل‌های رابط کاربری (منو و مودال) ---
+    // --- 4. بارگذاری داده‌های اولیه ---
+    const loadInitialData = async () => {
+        try {
+            const [membersResponse, newsResponse] = await Promise.all([
+                fetch('members.json'),
+                fetch('news.json')
+            ]);
+
+            if (!membersResponse.ok) throw new Error('فایل اعضا یافت نشد.');
+            const members = await membersResponse.json();
+            members.forEach(member => membersMap.set(member.id, member));
+
+            if (!newsResponse.ok) throw new Error('فایل اخبار یافت نشد.');
+            allNews = await newsResponse.json();
+
+        } catch (error) {
+            console.error("Failed to load initial data:", error);
+            mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>خطا در بارگذاری اطلاعات اولیه. لطفا صفحه را رفرش کنید.</p></div>`;
+        }
+    };
+
+
+    // --- 5. کنترل‌های رابط کاربری (منو و مودال) ---
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const mobileDropdownMenu = document.getElementById('mobile-dropdown-menu');
-    const registerModal = document.getElementById('register-modal');
-    const openRegisterBtn = document.getElementById('open-register-btn');
-
     if (mobileMenuToggle && mobileDropdownMenu) {
         mobileMenuToggle.addEventListener('click', (e) => { e.stopPropagation(); mobileDropdownMenu.classList.toggle('is-open'); });
         document.addEventListener('click', (e) => {
@@ -99,6 +122,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const registerModal = document.getElementById('register-modal');
+    const openRegisterBtn = document.getElementById('open-register-btn');
     if (registerModal && openRegisterBtn) {
         const closeRegisterBtn = registerModal.querySelector('.close-modal');
         const openModal = () => { body.classList.add('modal-is-open'); registerModal.classList.add('is-open'); };
@@ -108,8 +133,75 @@ document.addEventListener('DOMContentLoaded', () => {
         closeRegisterBtn.addEventListener('click', closeModal);
         registerModal.addEventListener('click', (e) => { if (e.target === registerModal) closeModal(); });
     }
+    
+    const genericModal = document.getElementById('generic-modal');
+    const genericModalContent = document.getElementById('generic-modal-content');
+    const closeGenericModalBtn = genericModal.querySelector('.close-modal');
 
-    // --- 5. منطق ارسال فرم‌ها ---
+    const showMemberModal = (memberId) => {
+        const member = membersMap.get(parseInt(memberId, 10));
+        if (!member) return;
+
+        const template = document.getElementById('member-card-template');
+        if (!template) return;
+
+        const cardClone = template.content.cloneNode(true);
+        cardClone.querySelector('.member-card').classList.add('in-modal');
+        cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
+        cardClone.querySelector('.member-photo').alt = member.name;
+        cardClone.querySelector('.member-name').textContent = member.name;
+        cardClone.querySelector('.role').textContent = member.role;
+        cardClone.querySelector('.description').textContent = member.description;
+        
+        const tagsContainer = cardClone.querySelector('.card-tags');
+        tagsContainer.innerHTML = '';
+        if (member.tags && Array.isArray(member.tags)) {
+            member.tags.forEach(tagText => {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'tag';
+                tagElement.textContent = tagText;
+                tagsContainer.appendChild(tagElement);
+            });
+        }
+        
+        if (member.social) {
+            const socialLinks = {
+                linkedin: cardClone.querySelector('.social-linkedin'),
+                telegram: cardClone.querySelector('.social-telegram'),
+                github: cardClone.querySelector('.social-github')
+            };
+            for (const key in socialLinks) {
+                if (member.social[key] && socialLinks[key]) {
+                    socialLinks[key].href = member.social[key];
+                    socialLinks[key].style.display = 'inline-block';
+                }
+            }
+        }
+
+        genericModalContent.innerHTML = '';
+        genericModalContent.appendChild(cardClone);
+        
+        body.classList.add('modal-is-open');
+        genericModal.classList.add('is-open');
+    };
+    
+    const closeGenericModal = () => {
+        body.classList.remove('modal-is-open');
+        genericModal.classList.remove('is-open');
+    };
+    
+    closeGenericModalBtn.addEventListener('click', closeGenericModal);
+    genericModal.addEventListener('click', (e) => { if (e.target === genericModal) closeGenericModal(); });
+    
+    mainContent.addEventListener('click', (e) => {
+        const authorTrigger = e.target.closest('.clickable-author');
+        if (authorTrigger && authorTrigger.dataset.authorId) {
+            e.preventDefault();
+            showMemberModal(authorTrigger.dataset.authorId);
+        }
+    });
+
+    // --- 6. منطق ارسال فرم‌ها ---
     const registrationForm = document.getElementById('registration-form');
     if (registrationForm) {
         registrationForm.addEventListener('submit', function (e) {
@@ -128,12 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Accept': 'application/json' }
             }).then(response => {
                 if (response.ok) {
-                    if (statusMessage) {
-                        statusMessage.textContent = 'درخواست شما با موفقیت ثبت شد! به زودی با شما تماس میگیریم. 👾';
-                        statusMessage.className = 'form-status success';
-                        statusMessage.style.display = 'block';
-                    }
-                    registrationForm.reset();
+                    document.getElementById('form-content-wrapper').style.display = 'none';
+                    document.getElementById('success-message').style.display = 'block';
                 } else { throw new Error('Server error'); }
             }).catch(error => {
                 if (statusMessage) {
@@ -189,36 +277,40 @@ document.addEventListener('DOMContentLoaded', () => {
         contactForm.dataset.listenerAttached = 'true';
     };
 
-    // --- 6. منطق بارگذاری محتوای داینامیک ---
-    const loadLatestNews = async () => {
+    // --- 7. منطق بارگذاری محتوای داینامیک ---
+    const createAuthorHTML = (author) => {
+        if (!author) return '';
+        return `
+            <div class="news-item-author clickable-author" data-author-id="${author.id}">
+                <img src="${author.imageUrl || DEFAULT_AVATAR_URL}" alt="${author.name}" class="author-photo">
+                <span class="author-name">${author.name}</span>
+            </div>
+        `;
+    };
+    
+    const loadLatestNews = () => {
         const newsGrid = document.querySelector('.news-grid');
         if (!newsGrid) return;
-
-        try {
-            const response = await fetch('news.json');
-            if (!response.ok) throw new Error('فایل اخبار یافت نشد.');
-            const newsItems = await response.json();
-            
-            newsGrid.innerHTML = ''; 
-            
-            newsItems.slice(0, 3).forEach(item => {
-                const newsCardHTML = `
-                    <article class="news-card">
-                        <img src="${item.image}" alt="تصویر خبر: ${item.title}">
-                        <div class="news-card-content">
-                            <h3>${item.title}</h3>
-                            <p class="news-meta">منتشر شده در تاریخ ${item.date}</p>
-                            <p>${item.summary}</p>
-                            <a href="${item.link}">اطلاعات بیشتر &larr;</a>
+        newsGrid.innerHTML = ''; 
+        
+        allNews.slice(0, 3).forEach(item => {
+            const newsCardHTML = `
+                <article class="news-card">
+                    <a href="${item.link}" class="news-card-image-link">
+                        <img src="${item.image}" alt="${item.title}">
+                    </a>
+                    <div class="news-card-content">
+                        <a href="${item.link}"><h3>${item.title}</h3></a>
+                        <p>${item.summary}</p>
+                        <div class="news-card-footer">
+                            ${createAuthorHTML(membersMap.get(item.authorId))}
+                            <span class="news-meta">${item.date}</span>
                         </div>
-                    </article>
-                `;
-                newsGrid.insertAdjacentHTML('beforeend', newsCardHTML);
-            });
-
-        } catch (error) {
-            newsGrid.innerHTML = `<p style="text-align: center; grid-column: 1 / -1;">${error.message}</p>`;
-        }
+                    </div>
+                </article>
+            `;
+            newsGrid.insertAdjacentHTML('beforeend', newsCardHTML);
+        });
     };
     
     const renderNewsItems = (items) => {
@@ -228,6 +320,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         items.forEach(item => {
             const cardClone = template.content.cloneNode(true);
+            const author = membersMap.get(item.authorId);
+            
             cardClone.querySelector('.news-item-image').src = item.image;
             cardClone.querySelector('.news-item-image').alt = item.title;
             cardClone.querySelector('.news-item-image-link').href = item.link;
@@ -235,21 +329,25 @@ document.addEventListener('DOMContentLoaded', () => {
             cardClone.querySelector('.news-item-title-link').href = item.link;
             cardClone.querySelector('.news-item-summary').textContent = item.summary;
             cardClone.querySelector('.news-item-date').textContent = item.date;
-            cardClone.querySelector('.news-item-reading-time').textContent = item.readingTime;
+
+            const authorContainer = cardClone.querySelector('.news-item-author');
+            authorContainer.innerHTML = createAuthorHTML(author);
 
             const tagsContainer = cardClone.querySelector('.news-item-tags');
-            tagsContainer.innerHTML = '';
-            item.tags.forEach(([text, color]) => {
-                const tagEl = document.createElement('span');
-                tagEl.className = 'news-tag';
-                tagEl.textContent = text;
-                tagEl.style.backgroundColor = color;
-                tagsContainer.appendChild(tagEl);
-            });
+            if (tagsContainer) {
+                tagsContainer.innerHTML = '';
+                item.tags.forEach(([text, color]) => {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'news-tag';
+                    tagEl.textContent = text;
+                    tagEl.style.backgroundColor = color;
+                    tagsContainer.appendChild(tagEl);
+                });
+            }
 
             newsList.appendChild(cardClone);
         });
-    }
+    };
 
     const loadMoreNews = () => {
         if (isLoadingNews || (loadedNewsCount > 0 && loadedNewsCount >= allNews.length)) return;
@@ -267,20 +365,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (loader) loader.style.display = 'none';
             
             if (loadedNewsCount >= allNews.length) {
-                 if (loader) loader.style.display = 'none';
                  if (newsScrollHandler) window.removeEventListener('scroll', newsScrollHandler);
             }
         }, 500);
     };
 
-    // --- 7. منطق مسیریابی SPA (مبتنی بر هش) ---
+    // --- 8. منطق مسیریابی SPA (مبتنی بر هش) ---
     const getCurrentPath = () => location.hash.substring(1) || '/';
 
     const updateActiveLink = (path) => {
         document.querySelectorAll('a[data-page]').forEach(link => {
             link.removeAttribute('aria-current');
-            const linkPath = link.getAttribute('href').substring(1);
-             if (path === linkPath || (path === '/' && linkPath === '/')) {
+            const linkPath = link.getAttribute('href').substring(1) || '/';
+             if (path === linkPath) {
                 link.setAttribute('aria-current', 'page');
             } else if (path.startsWith('/news') && link.getAttribute('data-page') === 'news') {
                  link.setAttribute('aria-current', 'page');
@@ -298,7 +395,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (!newPath.startsWith('/news')) {
             loadedNewsCount = 0;
-            allNews = [];
             isLoadingNews = false;
         }
     };
@@ -308,116 +404,115 @@ document.addEventListener('DOMContentLoaded', () => {
         updateActiveLink(path);
         window.scrollTo(0, 0);
 
-        if (pageCache[path] && !path.startsWith('/news')) {
+        if (pageCache[path] && !path.startsWith('/')) {
             mainContent.innerHTML = pageCache[path];
-            if (path === '/') loadLatestNews();
             if (path === '/contact') initializeContactForm();
+            if (path === '/members') { // re-add member card click listeners if loading from cache
+                 document.querySelectorAll('.member-card').forEach(card => {
+                    // This is more for future proofing, current implementation doesn't need it.
+                 });
+            }
             return;
         }
 
         try {
             let pageHTML;
-            if (path.startsWith('/news/')) { // Handler for individual news articles
-                const slug = path.substring(6); // Remove '/news/'
+            if (path.startsWith('/news/')) {
+                const newsItem = allNews.find(n => n.link === `#${path}`);
+                if (!newsItem) throw new Error('محتوای خبر مورد نظر یافت نشد.');
+
+                const slug = path.substring(6);
                 const articlePath = `/news/${slug}.html`;
                 
-                try {
-                    const response = await fetch(articlePath);
-                    if (!response.ok) throw new Error('فایل خبر یافت نشد.');
-                    const articleHTML = await response.text();
-                    
-                    pageHTML = `
-                        <section class="page-container news-detail-page">
-                            <div class="container">
-                                <a href="#/news" class="btn-back">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                                    <span>بازگشت به اخبار</span>
-                                </a>
-                                ${articleHTML}
-                            </div>
-                        </section>
-                    `;
-                    mainContent.innerHTML = pageHTML;
-
-                } catch (e) {
-                     throw new Error('محتوای خبر مورد نظر یافت نشد.');
-                }
+                const response = await fetch(articlePath);
+                if (!response.ok) throw new Error('فایل خبر یافت نشد.');
+                const articleHTML = await response.text();
+                const author = membersMap.get(newsItem.authorId);
                 
-            } else if (path === '/news') { // Handler for the news list page
+                const authorProfileHTML = `
+                    <div class="article-author-profile">
+                        <span class="author-label">نویسنده:</span>
+                        ${createAuthorHTML(author)}
+                    </div>`;
+
+                pageHTML = `
+                    <section class="page-container news-detail-page">
+                        <div class="container">
+                            <a href="#/news" class="btn-back">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                                <span>بازگشت به اخبار</span>
+                            </a>
+                            ${articleHTML}
+                            <hr class="article-divider">
+                            ${authorProfileHTML}
+                        </div>
+                    </section>
+                `;
+                mainContent.innerHTML = pageHTML;
+
+            } else if (path === '/news') {
                 pageHTML = `<section class="news-page-container"><div class="container"><h1>اخبار و اطلاعیه‌ها</h1><div class="news-list"></div><div id="news-loader">در حال بارگذاری...</div></div></section>`;
                 mainContent.innerHTML = pageHTML;
                 
                 newsScrollHandler = () => {
-                    if (isLoadingNews || !allNews.length) return;
+                    if (isLoadingNews) return;
                     if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 200) {
                         loadMoreNews();
                     }
                 };
                 window.addEventListener('scroll', newsScrollHandler);
-
-                if (allNews.length > 0 && loadedNewsCount > 0) {
-                    const loadedItems = allNews.slice(0, loadedNewsCount);
-                    renderNewsItems(loadedItems);
-                } else {
-                    const response = await fetch('news.json');
-                    if (!response.ok) throw new Error('فایل اخبار یافت نشد.');
-                    allNews = await response.json();
-                    loadedNewsCount = 0; // Reset count
-                    loadMoreNews();
-                }
+                
+                loadedNewsCount = 0;
+                loadMoreNews();
 
             } else if (path === '/members') {
-                const response = await fetch('members.json');
-                if (!response.ok) throw new Error('فایل اطلاعات اعضا یافت نشد.');
-                const members = await response.json();
+                const response = await fetch('members.html'); // Assuming you have a members.html for structure
+                if (!response.ok) { // Fallback to generating from scratch
+                     const membersGrid = document.createElement('div');
+                    membersGrid.className = 'members-grid';
+                    const template = document.getElementById('member-card-template');
+                    if (!template) throw new Error('قالب کارت اعضا یافت نشد.');
 
-                const template = document.getElementById('member-card-template');
-                if (!template) throw new Error('قالب کارت اعضا یافت نشد.');
+                    membersMap.forEach(member => {
+                         const cardClone = template.content.cloneNode(true);
+                        cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
+                        cardClone.querySelector('.member-photo').alt = member.name;
+                        cardClone.querySelector('.member-name').textContent = member.name;
+                        cardClone.querySelector('.role').textContent = member.role;
+                        cardClone.querySelector('.description').textContent = member.description;
+                        
+                        const tagsContainer = cardClone.querySelector('.card-tags');
+                        tagsContainer.innerHTML = '';
+                        if (member.tags && Array.isArray(member.tags)) {
+                            member.tags.forEach(tagText => {
+                                const tagElement = document.createElement('span');
+                                tagElement.className = 'tag';
+                                tagElement.textContent = tagText;
+                                tagsContainer.appendChild(tagElement);
+                            });
+                        }
+                        
+                        if (member.social) {
+                            const socialLinks = {
+                                linkedin: cardClone.querySelector('.social-linkedin'),
+                                telegram: cardClone.querySelector('.social-telegram'),
+                                github: cardClone.querySelector('.social-github')
+                            };
 
-                const DEFAULT_AVATAR_URL = 'https://icons.veryicon.com/png/o/miscellaneous/rookie-official-icon-gallery/225-default-avatar.png';
-
-                const fragment = document.createDocumentFragment();
-                members.forEach(member => {
-                    const cardClone = template.content.cloneNode(true);
-                    
-                    cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
-                    cardClone.querySelector('.member-photo').alt = member.name;
-                    cardClone.querySelector('.member-name').textContent = member.name;
-                    cardClone.querySelector('.description').textContent = member.description;
-                    
-                    const tagsContainer = cardClone.querySelector('.card-tags');
-                    if (member.tags && Array.isArray(member.tags)) {
-                        member.tags.forEach(tagText => {
-                            const tagElement = document.createElement('span');
-                            tagElement.className = 'tag';
-                            tagElement.textContent = tagText;
-                            tagsContainer.appendChild(tagElement);
-                        });
-                    }
-                    
-                    if (member.social) {
-                        const socialLinks = {
-                            linkedin: cardClone.querySelector('.social-linkedin'),
-                            telegram: cardClone.querySelector('.social-telegram'),
-                            github: cardClone.querySelector('.social-github')
-                        };
-
-                        for (const key in socialLinks) {
-                            if (member.social[key]) {
-                                socialLinks[key].href = member.social[key];
-                                socialLinks[key].style.display = 'inline-block';
+                            for (const key in socialLinks) {
+                                if (member.social[key]) {
+                                    socialLinks[key].href = member.social[key];
+                                    socialLinks[key].style.display = 'inline-block';
+                                }
                             }
                         }
-                    }
-                    
-                    fragment.appendChild(cardClone);
-                });
-                
-                const membersGrid = document.createElement('div');
-                membersGrid.className = 'members-grid';
-                membersGrid.appendChild(fragment);
+                        membersGrid.appendChild(cardClone);
+                    });
+                     pageHTML = `<section class="page-container"><div class="container"><h1>اعضای انجمن</h1>${membersGrid.outerHTML}</div></section>`;
+                } else {
+                     pageHTML = await response.text();
+                }
 
-                pageHTML = `<section class="members-container"><div class="container"><h1>اعضای انجمن</h1>${membersGrid.outerHTML}</div></section>`;
                 pageCache[path] = pageHTML;
                 mainContent.innerHTML = pageHTML;
 
@@ -429,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 mainContent.innerHTML = pageHTML;
                 if (path === '/contact') initializeContactForm();
             
-            } else { // Fallback to home
+            } else { // Home page
                 mainContent.innerHTML = pageCache['/'];
                 loadLatestNews();
             }
@@ -439,8 +534,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    // --- 8. راه‌اندازی اولیه و شنوندگان رویداد ---
-    
-    renderPage(getCurrentPath());
-    window.addEventListener('hashchange', () => renderPage(getCurrentPath()));
+    // --- 9. راه‌اندازی اولیه و شنوندگان رویداد ---
+    const initializeApp = async () => {
+        await loadInitialData();
+        renderPage(getCurrentPath());
+        window.addEventListener('hashchange', () => renderPage(getCurrentPath()));
+        
+        // Initial form setup if starting on contact page
+        if (getCurrentPath() === '/contact') {
+            initializeContactForm();
+        }
+    };
+
+    initializeApp();
 });

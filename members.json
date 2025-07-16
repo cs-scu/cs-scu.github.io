@@ -1,11 +1,12 @@
 [
+
   {
     "id": 1,
     "name": "پژمان صدری نژاد",
-    "role": "",
+    "role": "دبیر انجمن",
     "imageUrl": "",
     "description": "",
-    "tags": ["علوم کامپیوتر"],
+    "tags": ["علوم کامپیوتر", "Full-Stack", "AI"],
     "social": {
       "linkedin": "https://linkedin.com/",
       "telegram": "https://t.me/",
@@ -15,10 +16,10 @@
   {
     "id": 2,
     "name": "هومن سلحشوری",
-    "role": "",
+    "role": "عضو هیئت مدیره",
     "imageUrl": "",
     "description": "",
-    "tags": ["علوم کامپیوتر"],
+    "tags": ["علوم کامپیوتر", "امنیت", "DevOps"],
     "social": {
       "linkedin": "https://linkedin.com/",
       "telegram": "https://t.me/",
@@ -28,10 +29,10 @@
     {
     "id": 3,
     "name": "محمد مهدی اشرف مدرس",
-    "role": "",
+    "role": "عضو هیئت مدیره",
     "imageUrl": "",
     "description": "",
-    "tags": ["علوم کامپیوتر"],
+    "tags": ["علوم کامپیوتر", "GameDev"],
     "social": {
       "linkedin": "https://linkedin.com/",
       "telegram": "https://t.me/",
@@ -41,10 +42,10 @@
   {
     "id": 4,
     "name": "آریا عزیزیه",
-    "role": "",
+    "role": "عضو فعال",
     "imageUrl": "",
     "description": "",
-    "tags": ["علوم کامپیوتر"],
+    "tags": ["علوم کامپیوتر", "Data Science"],
     "social": {
       "linkedin": "https://linkedin.com/",
       "telegram": "https://t.me/",
@@ -54,16 +55,17 @@
     {
     "id": 5,
     "name": "رضا فولادی وندا",
-    "role": "",
+    "role": "عضو فعال",
     "imageUrl": "",
     "description": "",
-    "tags": ["علوم کامپیوتر"],
+    "tags": ["علوم کامپیوتر", "Android"],
     "social": {
       "linkedin": "https://linkedin.com/",
       "telegram": "https://t.me/",
       "github": "https://github.com/"
     }
-  },
+  }
+,
   {
     "id": 6,
     "name": "فرزاد فرزانه",
@@ -78,7 +80,7 @@
     }
   },
       {
-    "id": 5,
+    "id": 7,
     "name": "سید محمد مهدی موسوی اصل",
     "role": "",
     "imageUrl": "",
@@ -91,7 +93,7 @@
     }
   },
         {
-    "id": 5,
+    "id": 8,
     "name":"هیوا عباسیان",
     "role": "",
     "imageUrl": "",
@@ -104,7 +106,7 @@
     }
   },
       {
-    "id": 5,
+    "id": 9,
     "name": "امیر محمد بهین",
     "role": "",
     "imageUrl": "",
