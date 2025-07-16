@@ -221,6 +221,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
+    const renderNewsItems = (items) => {
+        const newsList = document.querySelector('.news-list');
+        const template = document.getElementById('news-item-template');
+        if (!newsList || !template) return;
+
+        items.forEach(item => {
+            const cardClone = template.content.cloneNode(true);
+            cardClone.querySelector('.news-item-image').src = item.image;
+            cardClone.querySelector('.news-item-image').alt = item.title;
+            cardClone.querySelector('.news-item-image-link').href = item.link;
+            cardClone.querySelector('.news-item-title').textContent = item.title;
+            cardClone.querySelector('.news-item-title-link').href = item.link;
+            cardClone.querySelector('.news-item-summary').textContent = item.summary;
+            cardClone.querySelector('.news-item-date').textContent = item.date;
+            cardClone.querySelector('.news-item-reading-time').textContent = item.readingTime;
+
+            const tagsContainer = cardClone.querySelector('.news-item-tags');
+            tagsContainer.innerHTML = '';
+            item.tags.forEach(([text, color]) => {
+                const tagEl = document.createElement('span');
+                tagEl.className = 'news-tag';
+                tagEl.textContent = text;
+                tagEl.style.backgroundColor = color;
+                tagsContainer.appendChild(tagEl);
+            });
+
+            newsList.appendChild(cardClone);
+        });
+    }
+
     const loadMoreNews = () => {
         if (isLoadingNews || (loadedNewsCount > 0 && loadedNewsCount >= allNews.length)) return;
 
@@ -229,40 +259,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (loader) loader.style.display = 'block';
 
         const newsToLoad = allNews.slice(loadedNewsCount, loadedNewsCount + NEWS_PER_PAGE);
-        const newsList = document.querySelector('.news-list');
-        const template = document.getElementById('news-item-template');
-
-        if (!newsList || !template) {
-            isLoadingNews = false;
-            if(loader) loader.style.display = 'none';
-            return;
-        }
-
-        setTimeout(() => { // Simulate network delay
-            newsToLoad.forEach(item => {
-                const cardClone = template.content.cloneNode(true);
-                cardClone.querySelector('.news-item-image').src = item.image;
-                cardClone.querySelector('.news-item-image').alt = item.title;
-                cardClone.querySelector('.news-item-image-link').href = item.link;
-                cardClone.querySelector('.news-item-title').textContent = item.title;
-                cardClone.querySelector('.news-item-title-link').href = item.link;
-                cardClone.querySelector('.news-item-summary').textContent = item.summary;
-                cardClone.querySelector('.news-item-date').textContent = item.date;
-                cardClone.querySelector('.news-item-reading-time').textContent = item.readingTime;
-
-                const tagsContainer = cardClone.querySelector('.news-item-tags');
-                tagsContainer.innerHTML = '';
-                item.tags.forEach(([text, color]) => {
-                    const tagEl = document.createElement('span');
-                    tagEl.className = 'news-tag';
-                    tagEl.textContent = text;
-                    tagEl.style.backgroundColor = color;
-                    tagsContainer.appendChild(tagEl);
-                });
-
-                newsList.appendChild(cardClone);
-            });
-
+        
+        // Simulate network delay
+        setTimeout(() => {
+            renderNewsItems(newsToLoad);
             loadedNewsCount += newsToLoad.length;
             isLoadingNews = false;
             if (loader) loader.style.display = 'none';
@@ -280,11 +280,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateActiveLink = (path) => {
         document.querySelectorAll('a[data-page]').forEach(link => {
-            const linkHref = link.getAttribute('href');
-            if (linkHref === `#${path}` || (path === '/' && linkHref === '#/')) {
+            link.removeAttribute('aria-current');
+            const linkPath = link.getAttribute('href').substring(1);
+             if (path === linkPath || (path === '/' && linkPath === '/')) {
                 link.setAttribute('aria-current', 'page');
-            } else {
-                link.removeAttribute('aria-current');
+            } else if (path.startsWith('/news') && link.getAttribute('data-page') === 'news') {
+                 link.setAttribute('aria-current', 'page');
             }
         });
         if (mobileDropdownMenu.classList.contains('is-open')) {
@@ -292,23 +293,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    const cleanupPageSpecifics = () => {
+    const cleanupPageSpecifics = (newPath) => {
+        // Always remove the scroll handler; it will be re-added if needed.
         if (newsScrollHandler) {
             window.removeEventListener('scroll', newsScrollHandler);
             newsScrollHandler = null;
         }
-        loadedNewsCount = 0;
-        allNews = [];
-        isLoadingNews = false;
+        // If we are navigating to a page that is NOT part of the news section, reset the news state.
+        if (!newPath.startsWith('/news')) {
+            loadedNewsCount = 0;
+            allNews = [];
+            isLoadingNews = false;
+        }
     };
 
     const renderPage = async (path) => {
-        cleanupPageSpecifics();
+        cleanupPageSpecifics(path);
         updateActiveLink(path);
         window.scrollTo(0, 0);
 
         // Check cache first for non-dynamic pages
-        if (pageCache[path] && path !== '/news') {
+        if (pageCache[path] && !path.startsWith('/news')) {
             mainContent.innerHTML = pageCache[path];
             if (path === '/') loadLatestNews();
             if (path === '/contact') initializeContactForm();
@@ -325,7 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     allNews = await response.json();
                 }
                 
-                // Find the specific news item by matching the link
                 const item = allNews.find(article => article.link === `#${path}`);
 
                 if (item) {
@@ -352,12 +356,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (path === '/news') { // Handler for the news list page
                 pageHTML = `<section class="news-page-container"><div class="container"><h1>اخبار و اطلاعیه‌ها</h1><div class="news-list"></div><div id="news-loader">در حال بارگذاری...</div></div></section>`;
                 mainContent.innerHTML = pageHTML;
-
-                const response = await fetch('news.json');
-                if (!response.ok) throw new Error('فایل اخبار یافت نشد.');
-                allNews = await response.json();
-                
-                loadMoreNews();
                 
                 newsScrollHandler = () => {
                     if (isLoadingNews || !allNews.length) return;
@@ -366,6 +364,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
                 window.addEventListener('scroll', newsScrollHandler);
+
+                if (allNews.length > 0) {
+                    // Re-render the already loaded items from cache instantly
+                    const loadedItems = allNews.slice(0, loadedNewsCount);
+                    renderNewsItems(loadedItems);
+                } else {
+                    // First time loading this page
+                    const response = await fetch('news.json');
+                    if (!response.ok) throw new Error('فایل اخبار یافت نشد.');
+                    allNews = await response.json();
+                    loadMoreNews();
+                }
 
             } else if (path === '/members') {
                 const response = await fetch('members.json');
