@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allNews = [];
     let membersMap = new Map();
     let allEvents = [];
+    let allJournalIssues = []; // Data store for journal
     // News page state
     let loadedNewsCount = 0;
     const NEWS_PER_PAGE = 10;
@@ -23,7 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const currentYearSpan = document.getElementById('current-year');
     if(currentYearSpan) {
-        currentYearSpan.textContent = new Date().getFullYear();
+        const now = new Date();
+        const persianYear = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric' }).format(now);
+        currentYearSpan.textContent = persianYear;
     }
 
     // --- 2. کنترل تم ---
@@ -91,10 +94,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 4. بارگذاری داده‌های اولیه ---
     const loadInitialData = async () => {
         try {
-            const [membersResponse, newsResponse, eventsResponse] = await Promise.all([
+            const [membersResponse, newsResponse, eventsResponse, journalResponse] = await Promise.all([
                 fetch('members.json'),
                 fetch('news.json'),
-                fetch('events.json')
+                fetch('events.json'),
+                fetch('journal.json') // Fetch journal data
             ]);
 
             if (!membersResponse.ok) throw new Error('فایل اعضا یافت نشد.');
@@ -106,6 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!eventsResponse.ok) throw new Error('فایل رویدادها یافت نشد.');
             allEvents = await eventsResponse.json();
+
+            if (!journalResponse.ok) throw new Error('فایل نشریه یافت نشد.');
+            allJournalIssues = await journalResponse.json();
 
         } catch (error) {
             console.error("Failed to load initial data:", error);
@@ -154,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
         cardClone.querySelector('.member-photo').alt = member.name;
         cardClone.querySelector('.member-name').textContent = member.name;
-        cardClone.querySelector('.role').textContent = member.role;
+        cardClone.querySelector('.role').textContent = member.role || 'عضو انجمن';
         cardClone.querySelector('.description').textContent = member.description;
         
         const tagsContainer = cardClone.querySelector('.card-tags');
@@ -168,25 +175,73 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
+        const socials = cardClone.querySelector('.card-socials');
         if (member.social) {
             const socialLinks = {
                 linkedin: cardClone.querySelector('.social-linkedin'),
                 telegram: cardClone.querySelector('.social-telegram'),
                 github: cardClone.querySelector('.social-github')
             };
+            let hasSocial = false;
             for (const key in socialLinks) {
                 if (member.social[key] && socialLinks[key]) {
                     socialLinks[key].href = member.social[key];
                     socialLinks[key].style.display = 'inline-block';
+                    hasSocial = true;
                 }
             }
+             if(!hasSocial) socials.style.display = 'none';
+        } else {
+            socials.style.display = 'none';
         }
 
+        genericModal.classList.remove('wide-modal');
         genericModalContent.innerHTML = '';
         genericModalContent.appendChild(cardClone);
         
         body.classList.add('modal-is-open');
         genericModal.classList.add('is-open');
+    };
+
+    const showEventModal = async (path) => {
+        const event = allEvents.find(e => e.detailPage === `#${path}`);
+        if (!event) return;
+
+        const slug = path.substring(8); // removes `/events/`
+        const eventHtmlPath = `events/${slug}.html`;
+
+        try {
+            const response = await fetch(eventHtmlPath);
+            if (!response.ok) throw new Error('فایل جزئیات رویداد یافت نشد.');
+            const detailHtml = await response.text();
+
+            const modalHtml = `
+                <div class="content-box">
+                    <div class="event-content-area">
+                        <h1>${event.title}</h1>
+                        <div class="event-modal-meta">
+                             <span class="event-meta-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                ${event.displayDate}
+                            </span>
+                            <span class="event-meta-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                ${event.location}
+                            </span>
+                        </div>
+                        <hr>
+                        ${detailHtml}
+                    </div>
+                </div>
+            `;
+            genericModal.classList.add('wide-modal');
+            genericModalContent.innerHTML = modalHtml;
+            body.classList.add('modal-is-open');
+            genericModal.classList.add('is-open');
+        } catch (error) {
+            console.error(error);
+            genericModalContent.innerHTML = `<p>خطا در بارگذاری محتوا.</p>`;
+        }
     };
     
     const closeGenericModal = () => {
@@ -202,6 +257,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (authorTrigger && authorTrigger.dataset.authorId) {
             e.preventDefault();
             showMemberModal(authorTrigger.dataset.authorId);
+            return;
+        }
+
+        const eventCard = e.target.closest('.event-card');
+        if (eventCard) {
+            const registrationLink = e.target.closest('a.btn-primary');
+            if (!registrationLink) {
+                e.preventDefault();
+                const detailLink = eventCard.querySelector('a[href*="#/events/"]');
+                if (detailLink && detailLink.href) {
+                    const path = new URL(detailLink.href).hash.substring(1);
+                    showEventModal(path);
+                }
+            }
         }
     });
 
@@ -370,6 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (loadedNewsCount >= allNews.length) {
                  if (newsScrollHandler) window.removeEventListener('scroll', newsScrollHandler);
+                 if(loader) loader.textContent = "پایان لیست اخبار";
             }
         }, 500);
     };
@@ -435,6 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (event.registrationLink) {
                     button = document.createElement('a');
                     button.href = event.registrationLink;
+                    button.target = "_blank";
                     button.className = 'btn btn-primary';
                     if (new Date(event.endDate) < today) {
                         button.textContent = 'پایان یافته';
@@ -468,17 +539,93 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const renderMembersPage = () => {
+        const membersGrid = document.querySelector('.members-grid');
+        const template = document.getElementById('member-card-template');
+    
+        if (!membersGrid || !template) return;
+        membersGrid.innerHTML = '';
+    
+        membersMap.forEach(member => {
+            const cardClone = template.content.cloneNode(true);
+            cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
+            cardClone.querySelector('.member-photo').alt = member.name;
+            cardClone.querySelector('.member-name').textContent = member.name;
+            cardClone.querySelector('.role').textContent = member.role || 'عضو انجمن';
+            cardClone.querySelector('.description').textContent = member.description;
+    
+            const tagsContainer = cardClone.querySelector('.card-tags');
+            tagsContainer.innerHTML = '';
+            if (member.tags && Array.isArray(member.tags)) {
+                member.tags.forEach(tagText => {
+                    const tagElement = document.createElement('span');
+                    tagElement.className = 'tag';
+                    tagElement.textContent = tagText;
+                    tagsContainer.appendChild(tagElement);
+                });
+            }
+            
+            const socials = cardClone.querySelector('.card-socials');
+            if (member.social) {
+                const socialLinks = {
+                    linkedin: cardClone.querySelector('.social-linkedin'),
+                    telegram: cardClone.querySelector('.social-telegram'),
+                    github: cardClone.querySelector('.social-github')
+                };
+                let hasSocial = false;
+                for (const key in socialLinks) {
+                    if (member.social[key] && socialLinks[key]) {
+                        socialLinks[key].href = member.social[key];
+                        socialLinks[key].style.display = 'inline-block';
+                        hasSocial = true;
+                    }
+                }
+                if(!hasSocial) socials.style.display = 'none';
+            } else {
+                socials.style.display = 'none';
+            }
+            
+            membersGrid.appendChild(cardClone);
+        });
+    };
+
+    const renderJournalPage = () => {
+        const journalGrid = document.querySelector('.journal-grid');
+        if (!journalGrid) return;
+        journalGrid.innerHTML = '';
+
+        allJournalIssues.forEach(issue => {
+            const cardHTML = `
+                <a href="${issue.fileUrl}" target="_blank" class="journal-card">
+                    <img src="${issue.coverUrl}" alt="${issue.title}" class="journal-card-cover">
+                    <div class="journal-card-overlay">
+                        <h3 class="journal-card-title">${issue.title}</h3>
+                        <p class="journal-card-date">${issue.date}</p>
+                        <p class="journal-card-summary">${issue.summary}</p>
+                    </div>
+                    <div class="journal-card-download">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    </div>
+                </a>
+            `;
+            journalGrid.insertAdjacentHTML('beforeend', cardHTML);
+        });
+    };
+
     // --- 8. منطق مسیریابی SPA (مبتنی بر هش) ---
     const getCurrentPath = () => location.hash.substring(1) || '/';
 
     const updateActiveLink = (path) => {
+        const currentBase = path.split('/')[1] || 'home';
         document.querySelectorAll('a[data-page]').forEach(link => {
-            link.removeAttribute('aria-current');
-            const linkPath = link.getAttribute('href').substring(1) || '/';
-             if (path === linkPath || (path.startsWith(linkPath) && linkPath !== '/')) {
-                link.setAttribute('aria-current', 'page');
+            const linkBase = link.getAttribute('data-page');
+            if (linkBase === currentBase) {
+                 link.setAttribute('aria-current', 'page');
+            } else {
+                link.removeAttribute('aria-current');
             }
         });
+        
         if (mobileDropdownMenu.classList.contains('is-open')) {
             mobileDropdownMenu.classList.remove('is-open');
         }
@@ -500,25 +647,17 @@ document.addEventListener('DOMContentLoaded', () => {
         updateActiveLink(path);
         window.scrollTo(0, 0);
 
-        const pageKey = path.split('/').slice(0, 2).join('/');
-        if (pageCache[pageKey] && !path.startsWith('/news/')) {
-            mainContent.innerHTML = pageCache[pageKey];
-            if (pageKey === '/contact') initializeContactForm();
-            if (pageKey === '/events') renderEventsPage();
-            return;
-        }
-
-        try {
-            let pageHTML;
-            if (path.startsWith('/news/')) {
-                const newsItem = allNews.find(n => n.link === `#${path}`);
-                if (!newsItem) throw new Error('محتوای خبر مورد نظر یافت نشد.');
-
-                const slug = path.substring(6);
-                const articlePath = `news/${slug}.html`;
-                
+        if (path.startsWith('/news/')) {
+            const newsItem = allNews.find(n => n.link === `#${path}`);
+            if (!newsItem) {
+                mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>محتوای خبر مورد نظر یافت نشد.</p><a href="#/news" class="btn btn-secondary" style="margin-top: 1rem;">بازگشت به آرشیو</a></div>`;
+                return;
+            }
+            const slug = path.substring(6);
+            const articlePath = `news/${slug}.html`;
+            try {
                 const response = await fetch(articlePath);
-                if (!response.ok) throw new Error('فایل خبر یافت نشد.');
+                if (!response.ok) throw new Error('فایل محتوای خبر یافت نشد.');
                 const articleHTML = await response.text();
                 const author = membersMap.get(newsItem.authorId);
                 
@@ -527,123 +666,86 @@ document.addEventListener('DOMContentLoaded', () => {
                         <img src="${author.imageUrl || DEFAULT_AVATAR_URL}" alt="${author.name}">
                         <div>
                             <strong>${author.name}</strong>
-                            <span>${author.role}</span>
+                            <span>${author.role || 'عضو انجمن'}</span>
                         </div>
                     </div>
                 ` : '';
-
-                pageHTML = `
+        
+                mainContent.innerHTML = `
                     <section class="page-container news-detail-page">
                         <div class="container">
                             <a href="#/news" class="btn-back">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                                 <span>بازگشت به اخبار</span>
                             </a>
+                            <div class="news-detail-meta-header">
+                                ${authorProfileHTML}
+                                <div class="news-item-meta">
+                                    <span>${newsItem.date}</span>
+                                    <span class="separator">&bull;</span>
+                                    <span>${newsItem.readingTime}</span>
+                                </div>
+                            </div>
                             <div class="content-box">
                                 ${articleHTML}
                             </div>
-                            <br>
-                            ${authorProfileHTML}
                         </div>
                     </section>
                 `;
-                mainContent.innerHTML = pageHTML;
-
-            } else if (path === '/news') {
-                pageHTML = `<section class="news-page-container"><div class="container"><h1>اخبار و اطلاعیه‌ها</h1><div class="news-list"></div><div id="news-loader">در حال بارگذاری...</div></div></section>`;
-                mainContent.innerHTML = pageHTML;
-                
-                newsScrollHandler = () => {
-                    if (isLoadingNews) return;
-                    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 200) {
-                        loadMoreNews();
-                    }
-                };
-                window.addEventListener('scroll', newsScrollHandler);
-                
-                loadedNewsCount = 0;
-                loadMoreNews();
-
-            } else if (path === '/members') {
-                let membersGridHTML = '';
-                const template = document.getElementById('member-card-template');
-                if (template) {
-                     const membersGrid = document.createElement('div');
-                     membersGrid.className = 'members-grid';
-                     membersMap.forEach(member => {
-                         const cardClone = template.content.cloneNode(true);
-                        cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
-                        cardClone.querySelector('.member-photo').alt = member.name;
-                        cardClone.querySelector('.member-name').textContent = member.name;
-                        cardClone.querySelector('.role').textContent = member.role;
-                        cardClone.querySelector('.description').textContent = member.description;
-                        
-                        const tagsContainer = cardClone.querySelector('.card-tags');
-                        tagsContainer.innerHTML = '';
-                        if (member.tags && Array.isArray(member.tags)) {
-                            member.tags.forEach(tagText => {
-                                const tagElement = document.createElement('span');
-                                tagElement.className = 'tag';
-                                tagElement.textContent = tagText;
-                                tagsContainer.appendChild(tagElement);
-                            });
-                        }
-                        
-                        if (member.social) {
-                            const socialLinks = {
-                                linkedin: cardClone.querySelector('.social-linkedin'),
-                                telegram: cardClone.querySelector('.social-telegram'),
-                                github: cardClone.querySelector('.social-github')
-                            };
-
-                            for (const key in socialLinks) {
-                                if (member.social[key] && socialLinks[key]) {
-                                    socialLinks[key].href = member.social[key];
-                                    socialLinks[key].style.display = 'inline-block';
-                                }
-                            }
-                        }
-                        membersGrid.appendChild(cardClone);
-                    });
-                    membersGridHTML = membersGrid.outerHTML;
-                }
-                pageHTML = `<section class="members-container"><div class="container"><h1>اعضای انجمن</h1>${membersGridHTML}</div></section>`;
-                pageCache[path] = pageHTML;
-                mainContent.innerHTML = pageHTML;
-            } else if (path === '/events') {
-                const response = await fetch('events.html');
-                if (!response.ok) throw new Error(`محتوای صفحه رویدادها یافت نشد.`);
-                pageHTML = await response.text();
-                pageCache[path] = pageHTML;
-                mainContent.innerHTML = pageHTML;
-                renderEventsPage();
-            } else if (path === '/about' || path === '/contact') {
-                const response = await fetch(path.substring(1) + '.html');
-                if (!response.ok) throw new Error(`محتوای صفحه یافت نشد.`);
-                pageHTML = await response.text();
-                pageCache[path] = pageHTML;
-                mainContent.innerHTML = pageHTML;
-                if (path === '/contact') initializeContactForm();
-            
-            } else { // Home page
-                mainContent.innerHTML = pageCache['/'];
-                loadLatestNews();
+            } catch (error) {
+                console.error(error);
+                mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>خطا در بارگذاری محتوای خبر: ${error.message}</p><a href="#/news" class="btn btn-secondary" style="margin-top: 1rem;">بازگشت به آرشیو</a></div>`;
             }
+            return;
+        }
 
-        } catch (error) {
-            console.error(error);
-            mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>خطا: ${error.message}</p></div>`;
+        let pageKey = path || '/';
+        if (pageKey === '/') {
+            mainContent.innerHTML = initialContent;
+        } else if (pageCache[pageKey]) {
+            mainContent.innerHTML = pageCache[pageKey];
+        } else {
+            const validPages = ['about', 'contact', 'events', 'members', 'news', 'journal'];
+            const pageName = pageKey.substring(1);
+            if (validPages.includes(pageName)) {
+                try {
+                    const response = await fetch(`${pageName}.html`);
+                    if (!response.ok) throw new Error(`صفحه ${pageName}.html یافت نشد.`);
+                    const pageHTML = await response.text();
+                    pageCache[pageKey] = pageHTML;
+                    mainContent.innerHTML = pageHTML;
+                } catch (error) {
+                    console.error(error);
+                    mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>خطا: ${error.message}</p></div>`;
+                    return;
+                }
+            } else {
+                mainContent.innerHTML = initialContent;
+                location.hash = '#/';
+            }
+        }
+
+        if (pageKey === '/') loadLatestNews();
+        if (pageKey === '/contact') initializeContactForm();
+        if (pageKey === '/events') renderEventsPage();
+        if (pageKey === '/members') renderMembersPage();
+        if (pageKey === '/journal') renderJournalPage();
+        if (pageKey === '/news') {
+            loadedNewsCount = 0;
+            loadMoreNews();
+            newsScrollHandler = () => {
+                if (isLoadingNews || window.innerHeight + window.scrollY < document.documentElement.scrollHeight - 200) return;
+                loadMoreNews();
+            };
+            window.addEventListener('scroll', newsScrollHandler);
         }
     };
     
     // --- 9. راه‌اندازی اولیه و شنوندگان رویداد ---
     const initializeApp = async () => {
         await loadInitialData();
-        
-        // Setup routes and initial render
         window.addEventListener('hashchange', () => renderPage(getCurrentPath()));
         renderPage(getCurrentPath());
-        
     };
 
     initializeApp();

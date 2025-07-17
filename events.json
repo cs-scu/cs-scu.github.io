@@ -13,7 +13,7 @@
     ],
     "location": "آنلاین",
     "registrationLink": "#",
-    "detailPage": "#"
+    "detailPage": "#/events/1-react-workshop"
   },
   {
     "id": 2,
@@ -29,7 +29,7 @@
     ],
     "location": "دانشکده علوم ریاضی و کامپیوتر",
     "registrationLink": null,
-    "detailPage": "#"
+    "detailPage": "#/events/2-icpc-contest"
   },
   {
     "id": 3,
@@ -45,7 +45,7 @@
     ],
     "location": "آنلاین",
     "registrationLink": null,
-    "detailPage": "#"
+    "detailPage": "#/events/3-genai-webinar"
   },
   {
     "id": 4,
@@ -61,6 +61,6 @@
     ],
     "location": "آنلاین",
     "registrationLink": "#",
-    "detailPage": "#"
+    "detailPage": "#/events/4-linux-essentials"
   }
 ]
