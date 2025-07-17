@@ -153,7 +153,7 @@ body.light-theme .logo { color: var(--primary-color-light-theme); }
     border-bottom: none;
 }
 body.dark-theme #mobile-dropdown-menu {
-    background: rgba(1, 42, 43, 0.8);
+    background: rgba(1, 42, 43, 0.9);
     border: 1px solid var(--glass-border-dark);
 }
 body.dark-theme #mobile-dropdown-menu a {
@@ -166,7 +166,7 @@ body.dark-theme #mobile-dropdown-menu a[aria-current="page"] {
     color: var(--background-color-dark);
 }
 body.light-theme #mobile-dropdown-menu {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.9);
     border: 1px solid var(--glass-border-light);
 }
 body.light-theme #mobile-dropdown-menu a {
