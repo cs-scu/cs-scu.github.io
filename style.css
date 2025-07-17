@@ -1335,6 +1335,7 @@ body.light-theme .news-detail-meta-header {
     margin-bottom: 1rem;
 }
 .event-card-footer {
+    margin: 1vw;
     padding-top: 1rem;
     border-top: 1px solid var(--glass-border-dark);
     display: flex;
