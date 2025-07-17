@@ -950,8 +950,8 @@ body.light-theme .news-detail-meta-header { background: #fff; border: 1px solid 
 /* ================== Article Content (News & Events) ================== */
 .news-content-area, .event-content-area {
     padding: 2rem;
-    line-height: 1.8;
-    font-size: 1.1rem;
+    line-height: 1.6;
+    font-size: 0.9rem;
     text-align: justify;
 }
 .event-content-area { padding: 1rem; }
@@ -1043,7 +1043,7 @@ body.light-theme .tabs { border-bottom-color: var(--glass-border-light); }
     border: none;
     color: inherit;
     font-family: inherit;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: bold;
     border-bottom: 3px solid transparent;
     transition: all 0.3s ease;
@@ -1248,12 +1248,12 @@ body.light-theme .journal-card:hover { box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
     /* --- Article & Event Content --- */
     .news-content-area h1, .event-content-area h1,
     .news-detail-page .news-content-area h1, #generic-modal .event-content-area h1 {
-        font-size: 1.8rem;
+        font-size: 1.3rem;
         line-height: 1.4;
     }
     .news-content-area h2, .event-content-area h2,
     .news-detail-page .news-content-area h2, #generic-modal .event-content-area h2 {
-        font-size: 1.5rem;
+        font-size: 1rem;
     }
     .news-detail-page .content-box {
         padding: 1.5rem 1rem;
