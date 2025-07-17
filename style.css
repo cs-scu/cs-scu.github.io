@@ -1321,9 +1321,12 @@ body.light-theme .journal-card:hover { box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
     /* Positioning and style for the close button in the special card-style modal */
     #generic-modal:not(.wide-modal) .close-modal {
         top: -9rem;
-        right: 3rem;
+        right: -6rem;
         background: rgba(0,0,0,0.5);
         color: #fff;
+    }
+    #generic-modal-content{
+        position: absolute;
     }
 
 }
