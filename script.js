@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Data stores
     let allNews = [];
     let membersMap = new Map();
-
+    let allEvents = [];
     // News page state
     let loadedNewsCount = 0;
     const NEWS_PER_PAGE = 10;
@@ -91,9 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 4. بارگذاری داده‌های اولیه ---
     const loadInitialData = async () => {
         try {
-            const [membersResponse, newsResponse] = await Promise.all([
+            const [membersResponse, newsResponse, eventsResponse] = await Promise.all([
                 fetch('members.json'),
-                fetch('news.json')
+                fetch('news.json'),
+                fetch('events.json')
             ]);
 
             if (!membersResponse.ok) throw new Error('فایل اعضا یافت نشد.');
@@ -102,6 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!newsResponse.ok) throw new Error('فایل اخبار یافت نشد.');
             allNews = await newsResponse.json();
+
+            if (!eventsResponse.ok) throw new Error('فایل رویدادها یافت نشد.');
+            allEvents = await eventsResponse.json();
 
         } catch (error) {
             console.error("Failed to load initial data:", error);
@@ -370,6 +374,100 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500);
     };
 
+    const renderEventsPage = () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); 
+
+        const upcomingEvents = allEvents.filter(event => new Date(event.endDate) >= today)
+                                        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+                                        
+        const pastEvents = allEvents.filter(event => new Date(event.endDate) < today)
+                                    .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
+        
+        const upcomingGrid = document.querySelector('#upcoming .events-grid');
+        const pastGrid = document.querySelector('#past .events-grid');
+        const template = document.getElementById('event-card-template');
+
+        if (!upcomingGrid || !pastGrid || !template) return;
+        
+        const populateGrid = (grid, events) => {
+            grid.innerHTML = '';
+            if (events.length === 0) {
+                grid.innerHTML = '<p class="no-events-message">در حال حاضر رویدادی در این دسته وجود ندارد.</p>';
+                return;
+            }
+            events.forEach(event => {
+                const card = template.content.cloneNode(true);
+                
+                card.querySelector('.event-card-image-link').href = event.detailPage;
+                card.querySelector('.event-card-image').src = event.image;
+                card.querySelector('.event-card-image').alt = event.title;
+
+                const tagsContainer = card.querySelector('.event-card-tags');
+                tagsContainer.innerHTML = '';
+                event.tags.forEach(([text, color]) => {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'news-tag';
+                    tagEl.textContent = text;
+                    tagEl.style.backgroundColor = color;
+                    tagsContainer.appendChild(tagEl);
+                });
+
+                card.querySelector('.event-card-title-link').href = event.detailPage;
+                card.querySelector('.event-card-title').textContent = event.title;
+                card.querySelector('.event-card-summary').textContent = event.summary;
+                
+                const metaContainer = card.querySelector('.event-meta');
+                metaContainer.innerHTML = `
+                    <span class="event-meta-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        ${event.displayDate}
+                    </span>
+                    <span class="event-meta-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        ${event.location}
+                    </span>
+                `;
+
+                const actionsContainer = card.querySelector('.event-actions');
+                actionsContainer.innerHTML = '';
+                let button;
+                if (event.registrationLink) {
+                    button = document.createElement('a');
+                    button.href = event.registrationLink;
+                    button.className = 'btn btn-primary';
+                    if (new Date(event.endDate) < today) {
+                        button.textContent = 'پایان یافته';
+                        button.classList.add('disabled');
+                    } else {
+                        button.textContent = 'ثبت‌نام';
+                    }
+                } else {
+                    button = document.createElement('a');
+                    button.href = event.detailPage;
+                    button.className = 'btn btn-secondary';
+                    button.textContent = 'اطلاعات بیشتر';
+                }
+                actionsContainer.appendChild(button);
+                
+                grid.appendChild(card);
+            });
+        };
+
+        populateGrid(upcomingGrid, upcomingEvents);
+        populateGrid(pastGrid, pastEvents);
+
+        document.querySelectorAll('.tab-link').forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.tab;
+                document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                button.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    };
+
     // --- 8. منطق مسیریابی SPA (مبتنی بر هش) ---
     const getCurrentPath = () => location.hash.substring(1) || '/';
 
@@ -377,10 +475,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('a[data-page]').forEach(link => {
             link.removeAttribute('aria-current');
             const linkPath = link.getAttribute('href').substring(1) || '/';
-             if (path === linkPath) {
+             if (path === linkPath || (path.startsWith(linkPath) && linkPath !== '/')) {
                 link.setAttribute('aria-current', 'page');
-            } else if (path.startsWith('/news') && link.getAttribute('data-page') === 'news') {
-                 link.setAttribute('aria-current', 'page');
             }
         });
         if (mobileDropdownMenu.classList.contains('is-open')) {
@@ -404,14 +500,11 @@ document.addEventListener('DOMContentLoaded', () => {
         updateActiveLink(path);
         window.scrollTo(0, 0);
 
-        if (pageCache[path] && !path.startsWith('/')) {
-            mainContent.innerHTML = pageCache[path];
-            if (path === '/contact') initializeContactForm();
-            if (path === '/members') { // re-add member card click listeners if loading from cache
-                 document.querySelectorAll('.member-card').forEach(card => {
-                    // This is more for future proofing, current implementation doesn't need it.
-                 });
-            }
+        const pageKey = path.split('/').slice(0, 2).join('/');
+        if (pageCache[pageKey] && !path.startsWith('/news/')) {
+            mainContent.innerHTML = pageCache[pageKey];
+            if (pageKey === '/contact') initializeContactForm();
+            if (pageKey === '/events') renderEventsPage();
             return;
         }
 
@@ -422,18 +515,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!newsItem) throw new Error('محتوای خبر مورد نظر یافت نشد.');
 
                 const slug = path.substring(6);
-                const articlePath = `/news/${slug}.html`;
+                const articlePath = `news/${slug}.html`;
                 
                 const response = await fetch(articlePath);
                 if (!response.ok) throw new Error('فایل خبر یافت نشد.');
                 const articleHTML = await response.text();
                 const author = membersMap.get(newsItem.authorId);
                 
-                const authorProfileHTML = `
-                    <div class="article-author-profile">
-                        <span class="author-label">نویسنده:</span>
-                        ${createAuthorHTML(author)}
-                    </div>`;
+                const authorProfileHTML = author ? `
+                    <div class="news-detail-author clickable-author" data-author-id="${author.id}">
+                        <img src="${author.imageUrl || DEFAULT_AVATAR_URL}" alt="${author.name}">
+                        <div>
+                            <strong>${author.name}</strong>
+                            <span>${author.role}</span>
+                        </div>
+                    </div>
+                ` : '';
 
                 pageHTML = `
                     <section class="page-container news-detail-page">
@@ -442,8 +539,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                                 <span>بازگشت به اخبار</span>
                             </a>
-                            ${articleHTML}
-                            <hr class="article-divider">
+                            <div class="content-box">
+                                ${articleHTML}
+                            </div>
+                            <br>
                             ${authorProfileHTML}
                         </div>
                     </section>
@@ -466,14 +565,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadMoreNews();
 
             } else if (path === '/members') {
-                const response = await fetch('members.html'); // Assuming you have a members.html for structure
-                if (!response.ok) { // Fallback to generating from scratch
+                let membersGridHTML = '';
+                const template = document.getElementById('member-card-template');
+                if (template) {
                      const membersGrid = document.createElement('div');
-                    membersGrid.className = 'members-grid';
-                    const template = document.getElementById('member-card-template');
-                    if (!template) throw new Error('قالب کارت اعضا یافت نشد.');
-
-                    membersMap.forEach(member => {
+                     membersGrid.className = 'members-grid';
+                     membersMap.forEach(member => {
                          const cardClone = template.content.cloneNode(true);
                         cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
                         cardClone.querySelector('.member-photo').alt = member.name;
@@ -500,7 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             };
 
                             for (const key in socialLinks) {
-                                if (member.social[key]) {
+                                if (member.social[key] && socialLinks[key]) {
                                     socialLinks[key].href = member.social[key];
                                     socialLinks[key].style.display = 'inline-block';
                                 }
@@ -508,14 +605,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         membersGrid.appendChild(cardClone);
                     });
-                     pageHTML = `<section class="page-container"><div class="container"><h1>اعضای انجمن</h1>${membersGrid.outerHTML}</div></section>`;
-                } else {
-                     pageHTML = await response.text();
+                    membersGridHTML = membersGrid.outerHTML;
                 }
-
+                pageHTML = `<section class="members-container"><div class="container"><h1>اعضای انجمن</h1>${membersGridHTML}</div></section>`;
                 pageCache[path] = pageHTML;
                 mainContent.innerHTML = pageHTML;
-
+            } else if (path === '/events') {
+                const response = await fetch('events.html');
+                if (!response.ok) throw new Error(`محتوای صفحه رویدادها یافت نشد.`);
+                pageHTML = await response.text();
+                pageCache[path] = pageHTML;
+                mainContent.innerHTML = pageHTML;
+                renderEventsPage();
             } else if (path === '/about' || path === '/contact') {
                 const response = await fetch(path.substring(1) + '.html');
                 if (!response.ok) throw new Error(`محتوای صفحه یافت نشد.`);
@@ -530,6 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (error) {
+            console.error(error);
             mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>خطا: ${error.message}</p></div>`;
         }
     };
@@ -537,13 +639,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 9. راه‌اندازی اولیه و شنوندگان رویداد ---
     const initializeApp = async () => {
         await loadInitialData();
-        renderPage(getCurrentPath());
-        window.addEventListener('hashchange', () => renderPage(getCurrentPath()));
         
-        // Initial form setup if starting on contact page
-        if (getCurrentPath() === '/contact') {
-            initializeContactForm();
-        }
+        // Setup routes and initial render
+        window.addEventListener('hashchange', () => renderPage(getCurrentPath()));
+        renderPage(getCurrentPath());
+        
     };
 
     initializeApp();

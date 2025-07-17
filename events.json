@@ -1,0 +1,66 @@
+[
+  {
+    "id": 1,
+    "title": "کارگاه جامع React.js",
+    "startDate": "2025-08-10",
+    "endDate": "2025-08-15",
+    "displayDate": "۲۰ الی ۲۵ مرداد ۱۴۰۴",
+    "summary": "یک دوره کامل برای یادگیری کتابخانه محبوب React.js از سطح مقدماتی تا پیشرفته و ساخت یک پروژه واقعی.",
+    "image": "https://picsum.photos/seed/react/400/200",
+    "tags": [
+      ["کارگاه", "#3b82f6"],
+      ["React", "#61DAFB"]
+    ],
+    "location": "آنلاین",
+    "registrationLink": "#",
+    "detailPage": "#"
+  },
+  {
+    "id": 2,
+    "title": "مسابقه بزرگ برنامه‌نویسی (SCU ICPC)",
+    "startDate": "2025-09-05",
+    "endDate": "2025-09-05",
+    "displayDate": "۱۴ شهریور ۱۴۰۴",
+    "summary": "بزرگترین رقابت برنامه‌نویسی دانشگاهی برای محک زدن مهارت‌های حل مسئله و الگوریتم. با جوایز ارزنده.",
+    "image": "https://picsum.photos/seed/icpc/400/200",
+    "tags": [
+      ["مسابقه", "#10b981"],
+      ["الگوریتم", "#f97316"]
+    ],
+    "location": "دانشکده علوم ریاضی و کامپیوتر",
+    "registrationLink": null,
+    "detailPage": "#"
+  },
+  {
+    "id": 3,
+    "title": "وبینار آشنایی با هوش مصنوعی مولد",
+    "startDate": "2025-07-25",
+    "endDate": "2025-07-25",
+    "displayDate": "۳ مرداد ۱۴۰۴",
+    "summary": "در این وبینار به بررسی جدیدترین مدل‌های هوش مصنوعی مولد مانند GPT و DALL-E و کاربردهای آن‌ها می‌پردازیم.",
+    "image": "https://picsum.photos/seed/genai/400/200",
+    "tags": [
+      ["وبینار", "#14b8a6"],
+      ["AI", "#d946ef"]
+    ],
+    "location": "آنلاین",
+    "registrationLink": null,
+    "detailPage": "#"
+  },
+  {
+    "id": 4,
+    "title": "دوره آموزشی Linux Essentials",
+    "startDate": "2025-07-01",
+    "endDate": "2025-07-15",
+    "displayDate": "۱۰ الی ۲۴ تیر ۱۴۰۴",
+    "summary": "آشنایی با اصول سیستم‌عامل لینوکس، دستورات خط فرمان و مدیریت پایه سیستم برای توسعه‌دهندگان.",
+    "image": "https://picsum.photos/seed/linux/400/200",
+    "tags": [
+      ["دوره آموزشی", "#10b981"],
+      ["Linux", "#facc15"]
+    ],
+    "location": "آنلاین",
+    "registrationLink": "#",
+    "detailPage": "#"
+  }
+]
