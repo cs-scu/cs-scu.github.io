@@ -491,8 +491,7 @@ body.modal-is-open {
     justify-content: center;
 }
 #generic-modal:not(.wide-modal) .close-modal {
-    top: 1rem;
-    right: 1rem;
+    right: 4.5rem;
     background: rgba(0,0,0,0.5);
     color: #fff;
 }
@@ -1288,4 +1287,8 @@ body.light-theme .journal-card:hover { box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
     }
     .journal-card-summary { max-height: 100px; opacity: 1; }
     .journal-card-download { transform: scale(1); }
+    
+    .close-modal{
+        top: 12.5rem;
+    }
 }
