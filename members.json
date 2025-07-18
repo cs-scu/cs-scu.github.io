@@ -6,116 +6,116 @@
     "role": "دبیر انجمن",
     "imageUrl": "",
     "description": "",
-    "tags": ["علوم کامپیوتر", "", ""],
+    "tags": ["علوم کامپیوتر", "1402"],
     "social": {
-      "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/",
-      "github": "https://github.com/"
+      "linkedin": null,
+      "telegram": "https://t.me/pejmansadrin",
+      "github": "https://github.com/pejmansadrin"
     }
   },
   {
     "id": 2,
     "name": "هومن سلحشوری",
-    "role": "عضو هیئت مدیره",
+    "role": "نائب دبیر",
     "imageUrl": "",
     "description": "",
-    "tags": ["علوم کامپیوتر", "امنیت", "DevOps"],
+    "tags": ["علوم کامپیوتر", "1402"],
     "social": {
-      "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/",
+      "linkedin": null,
+      "telegram": "https://t.me/homan_slh",
       "github": null
     }
   },
     {
     "id": 3,
     "name": "محمد مهدی اشرف مدرس",
-    "role": "عضو هیئت مدیره",
+    "role": "شورای انجمن",
     "imageUrl": "",
     "description": "",
-    "tags": ["علوم کامپیوتر", "GameDev"],
+    "tags": ["علوم کامپیوتر", "1402"],
     "social": {
-      "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/",
-      "github": "https://github.com/"
+      "linkedin": null,
+      "telegram": "https://t.me/Meehhtii",
+      "github": "https://github.com/Mehhti"
     }
   },
   {
     "id": 4,
     "name": "آریا عزیزیه",
-    "role": "عضو فعال",
+    "role": "شورای انجمن",
     "imageUrl": "",
     "description": "",
-    "tags": ["علوم کامپیوتر", "Data Science"],
+    "tags": ["علوم کامپیوتر", "1402"],
     "social": {
-      "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/",
-      "github": null
+      "linkedin": null,
+      "telegram": "https://t.me/aryamk11",
+      "github": "https://github.com/Aryamk11"
     }
   },
     {
     "id": 5,
     "name": "رضا فولادی وندا",
-    "role": "عضو فعال",
+    "role": "شورای انجمن",
     "imageUrl": "",
     "description": "",
-    "tags": ["علوم کامپیوتر", "Android"],
+    "tags": ["علوم کامپیوتر", "1402"],
     "social": {
-      "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/",
-      "github": "https://github.com/"
+      "linkedin": null,
+      "telegram": "https://t.me/Radoon83",
+      "github": null
     }
   }
 ,
   {
     "id": 6,
     "name": "فرزاد فرزانه",
-    "role": "",
+    "role": "عضو فعال",
     "imageUrl": "",
     "description": "",
-    "tags": ["ریاضیات و کاربرد ها"],
+    "tags": ["ریاضیات و کاربرد ها","1402"],
     "social": {
-      "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/",
-      "github": null
+      "linkedin": null,
+      "telegram": "https://t.me/Spectralman",
+      "github": "https://github.com/Farzad2486"
     }
   },
       {
     "id": 7,
     "name": "سید محمد مهدی موسوی اصل",
-    "role": "",
+    "role": "عضو فعال",
     "imageUrl": "",
     "description": "",
-    "tags": ["علوم کامپیوتر"],
+    "tags": ["علوم کامپیوتر","1401"],
     "social": {
-      "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/",
-      "github": "https://github.com/"
+      "linkedin": null,
+      "telegram": "https://t.me/Mtkopiy",
+      "github": null
     }
   },
         {
     "id": 8,
     "name":"هیوا عباسیان",
-    "role": "",
+    "role": "عضو فعال",
     "imageUrl": "",
     "description": "",
-    "tags": ["علوم کامپیوتر"],
+    "tags": ["علوم کامپیوتر","1401"],
     "social": {
-      "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/",
-      "github": "https://github.com/"
+      "linkedin": null,
+      "telegram": "https://t.me/Hiuabs",
+      "github": null
     }
   },
       {
     "id": 9,
     "name": "امیر محمد بهین",
-    "role": "",
+    "role": "عضو فعال",
     "imageUrl": "",
     "description": "",
-    "tags": ["مهندسی کامپیوتر"],
+    "tags": ["مهندسی کامپیوتر","1403"],
     "social": {
-      "linkedin": "https://linkedin.com/",
-      "telegram": "https://t.me/",
-      "github": "https://github.com/"
+      "linkedin": null,
+      "telegram": "https://t.me/Amirmdbn",
+      "github": "https://github.com/AmirBehin"
     }
   }
 ]

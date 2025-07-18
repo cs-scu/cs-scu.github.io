@@ -372,7 +372,6 @@ body.light-theme .news-card-content a { color: var(--primary-color-light-theme);
 .main-footer {
     text-align: center;
     padding: 2rem 0;
-    margin-top: 2rem;
     transition: border-color 0.4s;
 }
 body.dark-theme .main-footer { border-top: 1px solid var(--glass-border-dark); background-color: rgba(0,0,0,0.1); }
