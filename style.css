@@ -722,6 +722,7 @@ body.light-theme #contact-form { border-top-color: var(--glass-border-light); }
     border-radius: 15px;
     text-align: center;
     transition: all 0.3s ease;
+    width: 16rem;
 }
 body.dark-theme .member-card {
     background: var(--glass-bg-dark);
