@@ -750,3 +750,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initializeApp();
 });
+
+// این کد بعد از بارگذاری کامل تمام منابع صفحه (عکس‌ها، اسکریپت‌ها و...) اجرا می‌شود
+window.addEventListener('load', () => {
+  // یک تگ link برای بارگذاری استایل‌شیت فونت ایجاد می‌کنیم
+  const fontLink = document.createElement('link');
+  fontLink.href = 'https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap';
+  fontLink.rel = 'stylesheet';
+
+  // زمانی که فایل CSS فونت با موفقیت دانلود شد، این تابع اجرا می‌شود
+  fontLink.onload = () => {
+    // کلاس fonts-loaded به تگ <html> اضافه می‌شود تا فونت جدید اعمال شود
+    document.documentElement.classList.add('fonts-loaded');
+    console.log('Custom font applied.');
+  };
+
+  // تگ link را به <head> سند اضافه می‌کنیم تا دانلود شروع شود
+  document.head.appendChild(fontLink);
+});

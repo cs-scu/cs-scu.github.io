@@ -18,8 +18,12 @@
     box-sizing: border-box;
 }
 body {
-    font-family: 'Vazirmatn', sans-serif;
+    /* مرحله ۱: ابتدا فونت سیستمی (Arial یا هر فونت sans-serif دیگر) نمایش داده می‌شود */
+    font-family: Arial, sans-serif;
     transition: background-color 0.4s, color 0.4s;
+}
+.fonts-loaded body {
+    font-family: 'Vazirmatn', sans-serif;
 }
 body.dark-theme {
     background-color: var(--background-color-dark);
