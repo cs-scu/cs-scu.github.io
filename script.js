@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const initialContent = mainContent.innerHTML;
     const pageCache = { '/': initialContent };
     let particlesInstance = null;
-    
+
     // Data stores
     let allNews = [];
     let membersMap = new Map();
@@ -19,11 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const NEWS_PER_PAGE = 10;
     let isLoadingNews = false;
     let newsScrollHandler = null;
-    
+
     const DEFAULT_AVATAR_URL = 'https://icons.veryicon.com/png/o/miscellaneous/rookie-official-icon-gallery/225-default-avatar.png';
 
     const currentYearSpan = document.getElementById('current-year');
-    if(currentYearSpan) {
+    if (currentYearSpan) {
         const now = new Date();
         const persianYear = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric' }).format(now);
         currentYearSpan.textContent = persianYear;
@@ -52,10 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const setThemeState = (state) => {
         themeToggle.setAttribute('data-theme-state', state);
         themeToggle.setAttribute('title', `تغییر تم (حالت فعلی: ${THEME_TITLES[state]})`);
-        
+
         const themeClass = (state === 'system') ? getSystemThemeClass() : `${state}-theme`;
         applyVisualTheme(themeClass);
-        
+
         localStorage.setItem('themeState', state);
     };
 
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const initialThemeState = localStorage.getItem('themeState') || 'system';
         setThemeState(initialThemeState);
     });
-    
+
     // --- 4. بارگذاری داده‌های اولیه ---
     const loadInitialData = async () => {
         try {
@@ -139,12 +139,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const closeRegisterBtn = registerModal.querySelector('.close-modal');
         const openModal = () => { body.classList.add('modal-is-open'); registerModal.classList.add('is-open'); };
         const closeModal = () => { body.classList.remove('modal-is-open'); registerModal.classList.remove('is-open'); };
-        
+
         openRegisterBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
         closeRegisterBtn.addEventListener('click', closeModal);
         registerModal.addEventListener('click', (e) => { if (e.target === registerModal) closeModal(); });
     }
-    
+
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
     const closeGenericModalBtn = genericModal.querySelector('.close-modal');
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cardClone.querySelector('.member-name').textContent = member.name;
         cardClone.querySelector('.role').textContent = member.role || 'عضو انجمن';
         cardClone.querySelector('.description').textContent = member.description;
-        
+
         const tagsContainer = cardClone.querySelector('.card-tags');
         tagsContainer.innerHTML = '';
         if (member.tags && Array.isArray(member.tags)) {
@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tagsContainer.appendChild(tagElement);
             });
         }
-        
+
         const socials = cardClone.querySelector('.card-socials');
         if (member.social) {
             const socialLinks = {
@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     hasSocial = true;
                 }
             }
-             if(!hasSocial) socials.style.display = 'none';
+            if (!hasSocial) socials.style.display = 'none';
         } else {
             socials.style.display = 'none';
         }
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
         genericModal.classList.remove('wide-modal');
         genericModalContent.innerHTML = '';
         genericModalContent.appendChild(cardClone);
-        
+
         body.classList.add('modal-is-open');
         genericModal.classList.add('is-open');
     };
@@ -243,15 +243,15 @@ document.addEventListener('DOMContentLoaded', () => {
             genericModalContent.innerHTML = `<p>خطا در بارگذاری محتوا.</p>`;
         }
     };
-    
+
     const closeGenericModal = () => {
         body.classList.remove('modal-is-open');
         genericModal.classList.remove('is-open');
     };
-    
+
     closeGenericModalBtn.addEventListener('click', closeGenericModal);
     genericModal.addEventListener('click', (e) => { if (e.target === genericModal) closeGenericModal(); });
-    
+
     mainContent.addEventListener('click', (e) => {
         const authorTrigger = e.target.closest('.clickable-author');
         if (authorTrigger && authorTrigger.dataset.authorId) {
@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (statusMessage) { statusMessage.style.display = 'none'; statusMessage.className = 'form-status'; }
             submitButton.disabled = true;
             submitButton.textContent = 'در حال ارسال...';
-            
+
             fetch(formspreeEndpoint, {
                 method: 'POST',
                 body: new FormData(registrationForm),
@@ -318,11 +318,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusBox = contactForm.querySelector('.form-status');
             const submitBtn = contactForm.querySelector('button[type="submit"]');
             const formspreeEndpoint = 'https://formspree.io/f/xjkovbqp';
-            
+
             if (statusBox) { statusBox.style.display = 'none'; statusBox.className = 'form-status'; }
             submitBtn.disabled = true;
             submitBtn.textContent = 'در حال ارسال...';
-            
+
             fetch(formspreeEndpoint, {
                 method: 'POST',
                 body: new FormData(contactForm),
@@ -360,12 +360,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
     };
-    
+
     const loadLatestNews = () => {
         const newsGrid = document.querySelector('.news-grid');
         if (!newsGrid) return;
-        newsGrid.innerHTML = ''; 
-        
+        newsGrid.innerHTML = '';
+
         allNews.slice(0, 3).forEach(item => {
             const newsCardHTML = `
                 <article class="news-card">
@@ -385,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
             newsGrid.insertAdjacentHTML('beforeend', newsCardHTML);
         });
     };
-    
+
     const renderNewsItems = (items) => {
         const newsList = document.querySelector('.news-list');
         const template = document.getElementById('news-item-template');
@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
         items.forEach(item => {
             const cardClone = template.content.cloneNode(true);
             const author = membersMap.get(item.authorId);
-            
+
             cardClone.querySelector('.news-item-image').src = item.image;
             cardClone.querySelector('.news-item-image').alt = item.title;
             cardClone.querySelector('.news-item-image-link').href = item.link;
@@ -430,36 +430,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (loader) loader.style.display = 'block';
 
         const newsToLoad = allNews.slice(loadedNewsCount, loadedNewsCount + NEWS_PER_PAGE);
-        
+
         setTimeout(() => {
             renderNewsItems(newsToLoad);
             loadedNewsCount += newsToLoad.length;
             isLoadingNews = false;
             if (loader) loader.style.display = 'none';
-            
+
             if (loadedNewsCount >= allNews.length) {
-                 if (newsScrollHandler) window.removeEventListener('scroll', newsScrollHandler);
-                 if(loader) loader.textContent = "پایان لیست اخبار";
+                if (newsScrollHandler) window.removeEventListener('scroll', newsScrollHandler);
+                if (loader) loader.textContent = "پایان لیست اخبار";
             }
         }, 500);
     };
 
     const renderEventsPage = () => {
         const today = new Date();
-        today.setHours(0, 0, 0, 0); 
+        today.setHours(0, 0, 0, 0);
 
         const upcomingEvents = allEvents.filter(event => new Date(event.endDate) >= today)
-                                        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-                                        
+            .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
         const pastEvents = allEvents.filter(event => new Date(event.endDate) < today)
-                                    .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
-        
+            .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
+
         const upcomingGrid = document.querySelector('#upcoming .events-grid');
         const pastGrid = document.querySelector('#past .events-grid');
         const template = document.getElementById('event-card-template');
 
         if (!upcomingGrid || !pastGrid || !template) return;
-        
+
         const populateGrid = (grid, events) => {
             grid.innerHTML = '';
             if (events.length === 0) {
@@ -468,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             events.forEach(event => {
                 const card = template.content.cloneNode(true);
-                
+
                 card.querySelector('.event-card-image-link').href = event.detailPage;
                 card.querySelector('.event-card-image').src = event.image;
                 card.querySelector('.event-card-image').alt = event.title;
@@ -486,7 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.querySelector('.event-card-title-link').href = event.detailPage;
                 card.querySelector('.event-card-title').textContent = event.title;
                 card.querySelector('.event-card-summary').textContent = event.summary;
-                
+
                 const metaContainer = card.querySelector('.event-meta');
                 metaContainer.innerHTML = `
                     <span class="event-meta-item">
@@ -520,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     button.textContent = 'اطلاعات بیشتر';
                 }
                 actionsContainer.appendChild(button);
-                
+
                 grid.appendChild(card);
             });
         };
@@ -542,10 +542,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderMembersPage = () => {
         const membersGrid = document.querySelector('.members-grid');
         const template = document.getElementById('member-card-template');
-    
+
         if (!membersGrid || !template) return;
         membersGrid.innerHTML = '';
-    
+
         membersMap.forEach(member => {
             const cardClone = template.content.cloneNode(true);
             cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
@@ -553,7 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cardClone.querySelector('.member-name').textContent = member.name;
             cardClone.querySelector('.role').textContent = member.role || 'عضو انجمن';
             cardClone.querySelector('.description').textContent = member.description;
-    
+
             const tagsContainer = cardClone.querySelector('.card-tags');
             tagsContainer.innerHTML = '';
             if (member.tags && Array.isArray(member.tags)) {
@@ -564,7 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tagsContainer.appendChild(tagElement);
                 });
             }
-            
+
             const socials = cardClone.querySelector('.card-socials');
             if (member.social) {
                 const socialLinks = {
@@ -580,11 +580,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         hasSocial = true;
                     }
                 }
-                if(!hasSocial) socials.style.display = 'none';
+                if (!hasSocial) socials.style.display = 'none';
             } else {
                 socials.style.display = 'none';
             }
-            
+
             membersGrid.appendChild(cardClone);
         });
     };
@@ -611,6 +611,12 @@ document.addEventListener('DOMContentLoaded', () => {
             journalGrid.insertAdjacentHTML('beforeend', cardHTML);
         });
     };
+    
+    // --- تابع جدید برای آپدیت متا تگ‌ها ---
+    const updateMetaTags = (title, description) => {
+        document.title = title;
+        document.querySelector('meta[name="description"]').setAttribute('content', description);
+    };
 
     // --- 8. منطق مسیریابی SPA (مبتنی بر هش) ---
     const getCurrentPath = () => location.hash.substring(1) || '/';
@@ -620,17 +626,17 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('a[data-page]').forEach(link => {
             const linkBase = link.getAttribute('data-page');
             if (linkBase === currentBase) {
-                 link.setAttribute('aria-current', 'page');
+                link.setAttribute('aria-current', 'page');
             } else {
                 link.removeAttribute('aria-current');
             }
         });
-        
+
         if (mobileDropdownMenu.classList.contains('is-open')) {
             mobileDropdownMenu.classList.remove('is-open');
         }
     };
-    
+
     const cleanupPageSpecifics = (newPath) => {
         if (newsScrollHandler) {
             window.removeEventListener('scroll', newsScrollHandler);
@@ -647,12 +653,57 @@ document.addEventListener('DOMContentLoaded', () => {
         updateActiveLink(path);
         window.scrollTo(0, 0);
 
+        // --- مدیریت متاتگ‌ها ---
+        let pageTitle = 'انجمن علمی علوم کامپیوتر | دانشگاه شهید چمران اهواز';
+        let pageDescription = 'وب‌سایت رسمی انجمن علمی دانشجویی علوم کامپیوتر دانشگاه شهید چمران اهواز. آخرین اخبار، رویدادها، نشریات و اطلاعات انجمن را اینجا دنبال کنید.';
+
+        const pageKeyForMeta = path.split('/')[1] || 'home';
+        switch (pageKeyForMeta) {
+            case 'home':
+                pageTitle = 'انجمن علمی علوم کامپیوتر | صفحه اصلی';
+                pageDescription = 'به وب‌سایت رسمی انجمن علمی دانشجویی علوم کامپیوتر دانشگاه شهید چمران اهواز خوش آمدید. از صفر تا یک، همراه با تکنولوژی.';
+                break;
+            case 'about':
+                pageTitle = 'درباره ما | انجمن علمی علوم کامپیوتر';
+                pageDescription = 'آشنایی با انجمن علمی دانشجویی علوم کامپیوتر دانشگاه شهید چمران اهواز، اهداف و فعالیت‌های ما.';
+                break;
+            case 'members':
+                pageTitle = 'اعضای انجمن | انجمن علمی علوم کامپیوتر';
+                pageDescription = 'با اعضای اصلی و فعال انجمن علمی علوم کامپیوتر دانشگاه شهید چمران اهواز آشنا شوید.';
+                break;
+            case 'news':
+                pageTitle = 'اخبار و اطلاعیه‌ها | انجمن علمی علوم کامپیوتر';
+                pageDescription = 'آرشیو آخرین اخبار، اطلاعیه‌ها و گزارش رویدادهای مربوط به انجمن علمی علوم کامپیوتر.';
+                break;
+            case 'events':
+                pageTitle = 'رویدادها | انجمن علمی علوم کامپیوتر';
+                pageDescription = 'از آخرین رویدادها، کارگاه‌ها، و مسابقات انجمن علمی مطلع شوید و در آن‌ها شرکت کنید.';
+                break;
+            case 'journal':
+                pageTitle = 'نشریه علمی بایت | انجمن علمی علوم کامپیوتر';
+                pageDescription = 'نشریه علمی بایت، فراتر از صفر و یک. محلی برای انتشار مقالات و دستاوردهای علمی دانشجویان.';
+                break;
+            case 'contact':
+                pageTitle = 'تماس با ما | انجمن علمی علوم کامپیوتر';
+                pageDescription = 'راه‌های ارتباطی با انجمن علمی علوم کامپیوتر. پیام‌ها، پیشنهادات و انتقادات خود را با ما در میان بگذارید.';
+                break;
+        }
+        updateMetaTags(pageTitle, pageDescription);
+
+        // --- [اصلاح شده] منطق رندر صفحه جزئیات اخبار ---
         if (path.startsWith('/news/')) {
             const newsItem = allNews.find(n => n.link === `#${path}`);
+
             if (!newsItem) {
                 mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>محتوای خبر مورد نظر یافت نشد.</p><a href="#/news" class="btn btn-secondary" style="margin-top: 1rem;">بازگشت به آرشیو</a></div>`;
-                return;
+                return; // پایان اجرا چون محتوا یافت نشد
             }
+            
+            // آپدیت متا برای صفحه جزئیات خبر
+            const newsTitle = `${newsItem.title} | اخبار انجمن`;
+            const newsDescription = newsItem.summary;
+            updateMetaTags(newsTitle, newsDescription);
+            
             const slug = path.substring(6);
             const articlePath = `news/${slug}.html`;
             try {
@@ -660,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!response.ok) throw new Error('فایل محتوای خبر یافت نشد.');
                 const articleHTML = await response.text();
                 const author = membersMap.get(newsItem.authorId);
-                
+
                 const authorProfileHTML = author ? `
                     <div class="news-detail-author clickable-author" data-author-id="${author.id}">
                         <img src="${author.imageUrl || DEFAULT_AVATAR_URL}" alt="${author.name}">
@@ -670,7 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 ` : '';
-        
+
                 mainContent.innerHTML = `
                     <section class="page-container news-detail-page">
                         <div class="container">
@@ -696,9 +747,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error(error);
                 mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>خطا در بارگذاری محتوای خبر: ${error.message}</p><a href="#/news" class="btn btn-secondary" style="margin-top: 1rem;">بازگشت به آرشیو</a></div>`;
             }
-            return;
+            return; // پایان اجرا پس از رندر صفحه خبر
         }
 
+        // --- منطق رندر صفحات دیگر ---
         let pageKey = path || '/';
         if (pageKey === '/') {
             mainContent.innerHTML = initialContent;
@@ -725,6 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // --- اجرای توابع مخصوص هر صفحه ---
         if (pageKey === '/') loadLatestNews();
         if (pageKey === '/contact') initializeContactForm();
         if (pageKey === '/events') renderEventsPage();
@@ -740,7 +793,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.addEventListener('scroll', newsScrollHandler);
         }
     };
-    
+
     // --- 9. راه‌اندازی اولیه و شنوندگان رویداد ---
     const initializeApp = async () => {
         await loadInitialData();
@@ -751,20 +804,21 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
 });
 
+
 // این کد بعد از بارگذاری کامل تمام منابع صفحه (عکس‌ها، اسکریپت‌ها و...) اجرا می‌شود
 window.addEventListener('load', () => {
-  // یک تگ link برای بارگذاری استایل‌شیت فونت ایجاد می‌کنیم
-  const fontLink = document.createElement('link');
-  fontLink.href = 'https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap';
-  fontLink.rel = 'stylesheet';
+    // یک تگ link برای بارگذاری استایل‌شیت فونت ایجاد می‌کنیم
+    const fontLink = document.createElement('link');
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap';
+    fontLink.rel = 'stylesheet';
 
-  // زمانی که فایل CSS فونت با موفقیت دانلود شد، این تابع اجرا می‌شود
-  fontLink.onload = () => {
-    // کلاس fonts-loaded به تگ <html> اضافه می‌شود تا فونت جدید اعمال شود
-    document.documentElement.classList.add('fonts-loaded');
-    console.log('Custom font applied.');
-  };
+    // زمانی که فایل CSS فونت با موفقیت دانلود شد، این تابع اجرا می‌شود
+    fontLink.onload = () => {
+        // کلاس fonts-loaded به تگ <html> اضافه می‌شود تا فونت جدید اعمال شود
+        document.documentElement.classList.add('fonts-loaded');
+        console.log('Custom font applied.');
+    };
 
-  // تگ link را به <head> سند اضافه می‌کنیم تا دانلود شروع شود
-  document.head.appendChild(fontLink);
+    // تگ link را به <head> سند اضافه می‌کنیم تا دانلود شروع شود
+    document.head.appendChild(fontLink);
 });
