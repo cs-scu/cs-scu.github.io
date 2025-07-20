@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isLoadingNews = false;
     let newsScrollHandler = null;
 
-    const DEFAULT_AVATAR_URL = 'https://icons.veryicon.com/png/o/miscellaneous/rookie-official-icon-gallery/225-default-avatar.png';
+    // const DEFAULT_AVATAR_URL = 'https://icons.veryicon.com/png/o/miscellaneous/rookie-official-icon-gallery/225-default-avatar.png';
 
     const currentYearSpan = document.getElementById('current-year');
     if (currentYearSpan) {
@@ -158,10 +158,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const cardClone = template.content.cloneNode(true);
         cardClone.querySelector('.member-card').classList.add('in-modal');
-        cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
+        cardClone.querySelector('.member-photo').src = member.imageUrl; // || DEFAULT_AVATAR_URL
         cardClone.querySelector('.member-photo').alt = member.name;
         cardClone.querySelector('.member-name').textContent = member.name;
-        cardClone.querySelector('.role').textContent = member.role || 'عضو انجمن';
+        cardClone.querySelector('.role').textContent = member.role; // || 'عضو انجمن'
         cardClone.querySelector('.description').textContent = member.description;
 
         const tagsContainer = cardClone.querySelector('.card-tags');
