@@ -355,8 +355,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!author) return '';
         return `
             <div class="news-item-author clickable-author" data-author-id="${author.id}">
-                <img src="${author.imageUrl || DEFAULT_AVATAR_URL}" alt="${author.name}" class="author-photo">
-                <span class="author-name">${author.name}</span>
+                <img src="${author.imageUrl}" alt="${author.name}" class="author-photo">
+
             </div>
         `;
     };
@@ -535,8 +535,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                 button.classList.add('active');
                 document.getElementById(tabId).classList.add('active');
+                moveHighlighter(button);
+
             });
         });
+
+        // *** بخش جدید: هایلایتر را در جایگاه اولیه قرار بده ***
+        const initiallyActiveTab = document.querySelector('.tab-link.active');
+        if (initiallyActiveTab) {
+            // یک تأخیر کوتاه می‌دهیم تا مرورگر فرصت رندر کردن اولیه را داشته باشد
+            setTimeout(() => {
+                moveHighlighter(initiallyActiveTab);
+            }, 100);
+        }
     };
 
     const renderMembersPage = () => {
@@ -822,3 +833,14 @@ window.addEventListener('load', () => {
     // تگ link را به <head> سند اضافه می‌کنیم تا دانلود شروع شود
     document.head.appendChild(fontLink);
 });
+// تابع جدید برای حرکت دادن هایلایتر
+const moveHighlighter = (activeTab) => {
+    const highlighter = document.querySelector('.tabs-container .highlighter');
+    if (!highlighter || !activeTab) return;
+
+    // عرض هایلایتر را برابر با عرض تب فعال قرار می‌دهیم
+    highlighter.style.width = `${activeTab.offsetWidth}px`;
+    
+    // هایلایتر را در راستای محور X به زیر تب فعال منتقل می‌کنیم
+    highlighter.style.transform = `translateX(${activeTab.offsetLeft}px)`;
+};

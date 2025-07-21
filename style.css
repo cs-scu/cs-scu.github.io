@@ -897,6 +897,7 @@ body.light-theme .news-item-title { color: var(--primary-color-light-theme); }
     padding: 0.3rem;
     border-radius: 50px;
     transition: background-color 0.2s ease;
+    width: fit-content;
 }
 body.light-theme .news-item-author:hover { background-color: rgba(0, 0, 0, 0.05); }
 body.dark-theme .news-item-author:hover { background-color: rgba(255, 255, 255, 0.1); }
@@ -1084,6 +1085,7 @@ body.dark-theme .tab-link.active { color: var(--primary-color); border-bottom-co
 body.light-theme .tab-link.active { color: var(--primary-color-light-theme); border-bottom-color: var(--primary-color-light-theme); }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
+
 
 .events-grid {
     display: grid;
@@ -1357,3 +1359,40 @@ body.light-theme .card-socials .social-linkdin{
 
 body.dark-theme .contact-info .info-item svg:hover { color: var(--primary-color); }
 body.light-theme .contact-info .info-item svg:hover { color: var(--primary-color-light-theme); }
+
+/* محفظه تب‌ها */
+.tabs-container {
+    position: relative; /* این برای موقعیت‌دهی خط هایلایت ضروری است */
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+body.dark-theme .tabs-container{
+    border-bottom: 1px solid var(--background-color-light);
+}
+body.light-theme .tabs-container{
+    border-bottom: 1px solid var(--background-color-dark);
+}
+
+/* استایل دکمه‌های تب */
+.tab-link {
+  /* استایل‌های فعلی شما */
+  border: none;
+  background: none;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+/* مهم‌ترین بخش: استایل خط هایلایت */
+.highlighter {
+  position: absolute; /* موقعیت‌دهی نسبت به tabs-container */
+  bottom: 0;
+  left: 0; /* در ابتدا از گوشه سمت چپ شروع می‌شود */
+  border-radius: 4px;
+  height: 4px; /* ضخامت خط */
+  /* جادوی انیمیشن اینجاست */
+  transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+body.dark-theme .highlighter{background-color: var(--primary-color); /* رنگ خط هایلایت */}
+body.light-theme .highlighter{background-color: var(--primary-color-light-theme); /* رنگ خط هایلایت */}
