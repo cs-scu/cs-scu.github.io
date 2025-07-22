@@ -69,7 +69,7 @@ const showEventModal = async (path) => {
     if (!genericModal || !genericModalContent) return;
 
     const slug = path.substring(8); // removes `/events/`
-    const eventHtmlPath = `../events/${slug}.html`; // مسیر جدید فایل رویداد
+    const eventHtmlPath = `events/${slug}.html`; // مسیر جدید فایل رویداد
 
     try {
         const response = await fetch(eventHtmlPath);
