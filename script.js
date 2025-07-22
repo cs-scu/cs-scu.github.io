@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const statusMessage = registrationForm.querySelector('.form-status');
             const submitButton = registrationForm.querySelector('button[type="submit"]');
-            const formspreeEndpoint = 'https://formspree.io/f/xblkjrva';
+            const formspreeEndpoint = 'https://formspree.io/f/xeozaqap';
 
             if (statusMessage) { statusMessage.style.display = 'none'; statusMessage.className = 'form-status'; }
             submitButton.disabled = true;
@@ -317,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const statusBox = contactForm.querySelector('.form-status');
             const submitBtn = contactForm.querySelector('button[type="submit"]');
-            const formspreeEndpoint = 'https://formspree.io/f/xjkovbqp';
+            const formspreeEndpoint = 'https://formspree.io/f/xgvzaead';
 
             if (statusBox) { statusBox.style.display = 'none'; statusBox.className = 'form-status'; }
             submitBtn.disabled = true;
