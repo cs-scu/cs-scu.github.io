@@ -4,10 +4,10 @@ import { state, dom } from './state.js';
 export const loadInitialData = async () => {
     try {
         const [membersResponse, newsResponse, eventsResponse, journalResponse] = await Promise.all([
-            fetch('members.json'),
-            fetch('news.json'),
-            fetch('events.json'),
-            fetch('journal.json')
+            fetch('data/members.json'),
+            fetch('data/news.json'),
+            fetch('data/events.json'),
+            fetch('data/journal.json')
         ]);
 
         if (!membersResponse.ok) throw new Error('فایل اعضا یافت نشد.');

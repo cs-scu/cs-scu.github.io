@@ -1,7 +1,7 @@
 // js/modules/components.js
 import { state, dom } from './state.js';
 
-const DEFAULT_AVATAR_URL = 'defualt-avatar.png'; // همانطور که قبلا اشاره شد، این نام فایل و مقدار آن باید اصلاح شود
+const DEFAULT_AVATAR_URL = 'assets/img/defualt-avatar.png'; // مسیر صحیح آواتار پیش‌فرض
 
 // --- Private Helper Functions ---
 const createAuthorHTML = (author) => {

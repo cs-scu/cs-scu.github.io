@@ -3,7 +3,7 @@ import { state, dom } from './state.js';
 import { initializeContactForm } from './ui.js';
 import * as components from './components.js';
 
-const DEFAULT_AVATAR_URL = 'defualt-avatar.png'; // این نام فایل باید اصلاح شود
+const DEFAULT_AVATAR_URL = 'assets/img/defualt-avatar.png'; // مسیر نسبی صحیح
 
 // --- Private Functions ---
 const updateMetaTags = (title, description) => {
@@ -70,7 +70,7 @@ const renderPage = async (path) => {
         updateMetaTags(`${newsItem.title} | اخبار انجمن`, newsItem.summary);
         
         try {
-            const response = await fetch(`news/${path.substring(6)}.html`);
+            const response = await fetch(`news/${path.substring(6)}.html`); // مسیر نسبی صحیح
             if (!response.ok) throw new Error('فایل محتوای خبر یافت نشد.');
             const articleHTML = await response.text();
             const author = state.membersMap.get(newsItem.authorId);
@@ -79,7 +79,7 @@ const renderPage = async (path) => {
             dom.mainContent.innerHTML = `
                 <section class="page-container news-detail-page">
                     <div class="container">
-                        <a href="#/news" class="btn-back">...<span>بازگشت به اخبار</span></a>
+                        <a href="#/news" class="btn-back"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg><span>بازگشت به اخبار</span></a>
                         <div class="news-detail-meta-header">
                         ${author ? `
                             <div class="news-detail-author clickable-author" data-author-id="${author.id}">
@@ -112,7 +112,7 @@ const renderPage = async (path) => {
             dom.mainContent.innerHTML = state.pageCache[path];
         } else {
             try {
-                const response = await fetch(`${pageKey}.html`);
+                const response = await fetch(`${pageKey}.html`); // مسیر نسبی صحیح
                 if (!response.ok) throw new Error(`صفحه ${pageKey}.html یافت نشد.`);
                 const pageHTML = await response.text();
                 state.pageCache[path] = pageHTML;

@@ -1,7 +1,7 @@
 // js/modules/ui.js
 import { state, dom } from './state.js';
 
-const DEFAULT_AVATAR_URL = 'defualt-avatar.png'; // این نام فایل باید اصلاح شود
+const DEFAULT_AVATAR_URL = 'assets/img/defualt-avatar.png'; // مسیر جدید آواتار پیش‌فرض
 
 // --- Private Modal Handlers ---
 const showMemberModal = (memberId) => {
@@ -69,7 +69,7 @@ const showEventModal = async (path) => {
     if (!genericModal || !genericModalContent) return;
 
     const slug = path.substring(8); // removes `/events/`
-    const eventHtmlPath = `events/${slug}.html`;
+    const eventHtmlPath = `/src/events/${slug}.html`; // مسیر جدید فایل رویداد
 
     try {
         const response = await fetch(eventHtmlPath);
