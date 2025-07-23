@@ -1,16 +1,16 @@
 [
   {
-    "id": 1,
+    "id": 0,
     "title": "وب‌سایت انجمن علمی علوم کامپیوتر رسماً آغاز به کار کرد!",
     "authorId": 1,
     "date": "۲۷ تیر ۱۴۰۴",
     "readingTime": "۱ دقیقه مطالعه",
-    "image": "assets/img/1-website-launch.webp",
+    "image": "assets/img/0-website-launch.webp",
     "summary": "وب‌سایت رسمی انجمن علمی به عنوان خانه‌ی جدید ما برای اطلاع‌رسانی، اشتراک دانش و تقویت ارتباطات میان اعضای جامعه‌ی علوم کامپیوتر آغاز به کار کرد.",
     "tags": [
       ["اطلاعیه", "#3b82f6"],
       ["انجمن", "#22c55e"]
     ],
-    "link": "#/news/1-website-launch"
+    "link": "#/news/0-website-launch"
   }
 ]
