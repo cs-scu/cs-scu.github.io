@@ -1396,3 +1396,92 @@ body.light-theme .tabs-container{
 
 body.dark-theme .highlighter{background-color: var(--primary-color); /* رنگ خط هایلایت */}
 body.light-theme .highlighter{background-color: var(--primary-color-light-theme); /* رنگ خط هایلایت */}
+
+/* ================== Custom Table Styles ================== */
+.custom-table-wrapper {
+    border-radius: 15px;
+    padding: 1rem;
+    overflow-x: auto; /* برای اسکرول افقی جدول در موبایل */
+    margin: 2rem 0;
+}
+
+body.dark-theme .custom-table-wrapper {
+    background: var(--glass-bg-dark);
+    border: 1px solid var(--glass-border-dark);
+}
+
+body.light-theme .custom-table-wrapper {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #e0e0e0;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: right;
+    font-size: 0.95rem;
+}
+
+.custom-table th,
+.custom-table td {
+    padding: 1rem 1.2rem;
+    line-height: 1.6;
+}
+
+/* Table Header */
+.custom-table thead th {
+    font-weight: bold;
+    font-size: 1.05rem;
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
+}
+
+body.dark-theme .custom-table thead th {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+body.light-theme .custom-table thead th {
+    color: var(--primary-color-light-theme);
+    border-bottom-color: var(--primary-color-light-theme);
+}
+
+/* Table Body */
+.custom-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.custom-table tbody td {
+    border-bottom: 1px solid;
+}
+
+/* حذف خط زیرین برای آخرین ردیف */
+.custom-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+body.dark-theme .custom-table tbody td {
+    border-bottom-color: var(--glass-border-dark);
+}
+
+body.light-theme .custom-table tbody td {
+    border-bottom-color: var(--glass-border-light);
+}
+
+/* Hover Effect on Rows */
+body.dark-theme .custom-table tbody tr:hover {
+    background-color: rgba(232, 195, 142, 0.08); /* رنگ هاور ملایم */
+}
+
+body.light-theme .custom-table tbody tr:hover {
+    background-color: rgba(26, 92, 93, 0.05); /* رنگ هاور ملایم */
+}
+
+/* Responsive adjustments */
+@media (max-width: 700px) {
+    .custom-table th,
+    .custom-table td {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+}
