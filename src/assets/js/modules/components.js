@@ -268,3 +268,44 @@ export const renderJournalPage = () => {
         journalGrid.insertAdjacentHTML('beforeend', cardHTML);
     });
 };
+
+export const renderChartPage = () => {
+    const container = dom.mainContent.querySelector('.semesters-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const coursesBySemester = state.allCourses.reduce((acc, course) => {
+        (acc[course.semester] = acc[course.semester] || []).push(course);
+        return acc;
+    }, {});
+
+    const courseMap = new Map(state.allCourses.map(c => [c.id, c.name]));
+    const prerequisitesMap = state.coursePrerequisites.reduce((acc, edge) => {
+        if (!acc[edge.to]) acc[edge.to] = [];
+        acc[edge.to].push(courseMap.get(edge.from));
+        return acc;
+    }, {});
+
+    Object.keys(coursesBySemester).sort((a,b) => a-b).forEach(semester => {
+        const semesterDiv = document.createElement('div');
+        semesterDiv.className = 'semester-column';
+        const semesterTitle = document.createElement('h2');
+        semesterTitle.textContent = `ترم ${semester}`;
+        semesterDiv.appendChild(semesterTitle);
+
+        coursesBySemester[semester].forEach(course => {
+            const courseDiv = document.createElement('div');
+            courseDiv.className = 'course-card-chart';
+            const prerequisites = prerequisitesMap[course.id];
+            if (prerequisites) {
+                courseDiv.title = `پیش‌نیاز: ${prerequisites.join(', ')}`;
+            }
+            courseDiv.innerHTML = `
+                <div class="course-name">${course.name}</div>
+                <div class="course-units">${course.units} واحد</div>
+            `;
+            semesterDiv.appendChild(courseDiv);
+        });
+        container.appendChild(semesterDiv);
+    });
+};
