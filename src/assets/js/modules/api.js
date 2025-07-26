@@ -3,11 +3,12 @@ import { state, dom } from './state.js';
 
 export const loadInitialData = async () => {
     try {
-        const [membersResponse, newsResponse, eventsResponse, journalResponse] = await Promise.all([
+        const [membersResponse, newsResponse, eventsResponse, journalResponse, coursesResponse] = await Promise.all([
             fetch('data/members.json'),
             fetch('data/news.json'),
             fetch('data/events.json'),
-            fetch('data/journal.json')
+            fetch('data/journal.json'),
+            fetch('data/courses.json')
         ]);
 
         if (!membersResponse.ok) throw new Error('فایل اعضا یافت نشد.');
@@ -22,6 +23,11 @@ export const loadInitialData = async () => {
 
         if (!journalResponse.ok) throw new Error('فایل نشریه یافت نشد.');
         state.allJournalIssues = await journalResponse.json();
+        
+        if (!coursesResponse.ok) throw new Error('فایل چارت درسی یافت نشد.');
+        const coursesData = await coursesResponse.json();
+        state.allCourses = coursesData.courses;
+        state.coursePrerequisites = coursesData.edges;
 
     } catch (error) {
         console.error("Failed to load initial data:", error);
