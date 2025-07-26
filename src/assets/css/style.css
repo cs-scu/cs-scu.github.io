@@ -1623,3 +1623,31 @@ body.light-theme .custom-table tbody tr:hover {
         font-size: 0.9rem;
     }
 }
+
+
+/* ================== Student Notes Box ================== */
+.student-notes-box {
+    margin-top: 3rem;
+    padding: 1.5rem 2rem;
+    border-radius: 15px;
+    text-align: right;
+    line-height: 1.8;
+}
+body.dark-theme .student-notes-box {
+    background: var(--glass-bg-dark);
+    border: 1px solid var(--glass-border-dark);
+}
+body.light-theme .student-notes-box {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #e0e0e0;
+}
+.student-notes-box h3 {
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+body.dark-theme .student-notes-box h3 {
+    color: var(--primary-color);
+}
+body.light-theme .student-notes-box h3 {
+    color: var(--primary-color-light-theme);
+}
