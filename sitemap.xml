@@ -40,5 +40,11 @@
         <lastmod>2025-07-19</lastmod>
         <priority>0.5</priority>
     </url>
+    <url>
+        <loc>https://cs-scu.ir/src/chart.html</loc>
+        <lastmod>2025-07-22</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.6</priority>
+    </url>
 
 </urlset>

@@ -51,7 +51,8 @@ const renderPage = async (path) => {
         'news': { title: 'اخبار و اطلاعیه‌ها | انجمن علمی علوم کامپیوتر', description: 'آرشیو آخرین اخبار، اطلاعیه‌ها و گزارش رویدادهای مربوط به انجمن علمی علوم کامپیوتر.' },
         'events': { title: 'رویدادها | انجمن علمی علوم کامپیوتر', description: 'از آخرین رویدادها، کارگاه‌ها، و مسابقات انجمن علمی مطلع شوید و در آن‌ها شرکت کنید.' },
         'journal': { title: 'نشریه علمی بایت | انجمن علمی علوم کامپیوتر', description: 'نشریه علمی بایت، فراتر از صفر و یک. محلی برای انتشار مقالات و دستاوردهای علمی دانشجویان.' },
-        'contact': { title: 'تماس با ما | انجمن علمی علوم کامپیوتر', description: 'راه‌های ارتباطی با انجمن علمی علوم کامپیوتر.' }
+        'contact': { title: 'تماس با ما | انجمن علمی علوم کامپیوتر', description: 'راه‌های ارتباطی با انجمن علمی علوم کامپیوتر.' },
+        'chart': { title: 'چارت درسی | انجمن علمی علوم کامپیوتر', description: 'چارت درسی و پیش‌نیازهای رشته علوم کامپیوتر.' }
     };
     if (metaMap[pageKeyForMeta]) {
         pageTitle = metaMap[pageKeyForMeta].title;
@@ -129,6 +130,7 @@ const renderPage = async (path) => {
             '/events': components.renderEventsPage,
             '/members': components.renderMembersPage,
             '/journal': components.renderJournalPage,
+            '/chart': components.renderChartPage,
             '/news': () => {
                 state.loadedNewsCount = 0;
                 components.loadMoreNews();

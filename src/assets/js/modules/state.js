@@ -5,6 +5,8 @@ export const state = {
     membersMap: new Map(),
     allEvents: [],
     allJournalIssues: [],
+    allCourses: [],
+    coursePrerequisites: [],
     
     // Page cache
     pageCache: {},
