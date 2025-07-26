@@ -275,7 +275,7 @@ export const renderChartPage = () => {
     container.innerHTML = '';
 
     const coursesBySemester = state.allCourses
-    .filter(course => course.semester < 9)
+    .filter(course => course.semester !== 9)
     .reduce((acc, course) => {
         (acc[course.semester] = acc[course.semester] || []).push(course);
         return acc;
