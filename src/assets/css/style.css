@@ -1303,17 +1303,25 @@ body.light-theme .course-card-chart.is-expandable .course-main-info:hover {
 }
 
 .prerequisites-container {
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, padding 0.4s ease-in-out;
-    padding: 0 0.8rem;
+    display: grid;
+    grid-template-rows: 0fr; /* ردیف گرید در ابتدا ارتفاع صفر دارد */
+    transition: grid-template-rows 0.4s ease-out; /* انیمیشن فقط روی ارتفاع اعمال می‌شود */
 }
 
 .course-card-chart.is-expanded .prerequisites-container {
-    max-height: 500px; /* A large enough value */
+    grid-template-rows: 1fr; /* ارتفاع به اندازه محتوای داخلی باز می‌شود */
+}
+
+.prerequisites-content-wrapper {
+    overflow: hidden; /* این بخش برای عملکرد صحیح انیمیشن ضروری است */
+    padding: 0 0.8rem; /* پدینگ عمودی حذف شد */
+    opacity: 0;
+    transition: padding 0.4s ease-out, opacity 0.3s ease-out;
+}
+
+.course-card-chart.is-expanded .prerequisites-content-wrapper {
+    padding: 0.5rem 0.8rem 0.8rem 0.8rem; /* پدینگ فقط در حالت باز شده اضافه می‌شود */
     opacity: 1;
-    padding: 0.5rem 0.8rem 0.8rem 0.8rem;
 }
 
 .prerequisite-title {

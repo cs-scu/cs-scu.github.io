@@ -307,12 +307,14 @@ export const renderChartPage = () => {
                 courseCard.classList.add('is-expandable');
                 prerequisitesHTML = `
                     <div class="prerequisites-container">
-                        <div class="prerequisite-title">پیش‌نیازها:</div>
-                        ${prerequisites.map(pName => `
-                            <div class="course-card-chart is-prereq">
-                                <div class="course-name">${pName}</div>
-                            </div>
-                        `).join('')}
+                        <div class="prerequisites-content-wrapper">
+                            <div class="prerequisite-title">پیش‌نیازها:</div>
+                            ${prerequisites.map(pName => `
+                                <div class="course-card-chart is-prereq">
+                                    <div class="course-name">${pName}</div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                 `;
             }
