@@ -17,7 +17,7 @@
     "id": 2,
     "name": "هومن سلحشوری",
     "role": "نائب دبیر",
-    "imageUrl": "defualt-avatar.png",
+    "imageUrl": null,
     "description": "",
     "tags": ["علوم کامپیوتر", "1402"],
     "social": {
@@ -30,7 +30,7 @@
     "id": 3,
     "name": "محمد مهدی اشرف مدرس",
     "role": "شورای انجمن",
-    "imageUrl": "defualt-avatar.png",
+    "imageUrl": null,
     "description": "",
     "tags": ["علوم کامپیوتر", "1402"],
     "social": {
@@ -43,7 +43,7 @@
     "id": 4,
     "name": "آریا عزیزیه",
     "role": "شورای انجمن",
-    "imageUrl": "defualt-avatar.png",
+    "imageUrl": null,
     "description": "",
     "tags": ["علوم کامپیوتر", "1402"],
     "social": {
@@ -56,7 +56,7 @@
     "id": 5,
     "name": "رضا فولادی وندا",
     "role": "شورای انجمن",
-    "imageUrl": "defualt-avatar.png",
+    "imageUrl": null,
     "description": "",
     "tags": ["علوم کامپیوتر", "1402"],
     "social": {
@@ -70,7 +70,7 @@
     "id": 6,
     "name": "فرزاد فرزانه",
     "role": "عضو فعال",
-    "imageUrl": "defualt-avatar.png",
+    "imageUrl": null,
     "description": "",
     "tags": ["ریاضیات و کاربرد ها","1402"],
     "social": {
@@ -83,7 +83,7 @@
     "id": 7,
     "name": "سید محمد مهدی موسوی اصل",
     "role": "عضو فعال",
-    "imageUrl": "defualt-avatar.png",
+    "imageUrl": null,
     "description": "",
     "tags": ["علوم کامپیوتر","1400"],
     "social": {
@@ -96,7 +96,7 @@
     "id": 8,
     "name":"هیوا عباسیان",
     "role": "عضو فعال",
-    "imageUrl": "defualt-avatar.png",
+    "imageUrl": null,
     "description": "",
     "tags": ["علوم کامپیوتر","1401"],
     "social": {
@@ -109,7 +109,7 @@
     "id": 9,
     "name": "امیر محمد بهین",
     "role": "عضو فعال",
-    "imageUrl": "defualt-avatar.png",
+    "imageUrl": null,
     "description": "",
     "tags": ["مهندسی کامپیوتر","1403"],
     "social": {
