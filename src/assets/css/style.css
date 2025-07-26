@@ -634,10 +634,10 @@ body.dark-theme .form-status.error { background-color: rgba(220, 53, 69, 0.15); 
 body.light-theme .form-status.error { background-color: rgba(220, 53, 69, 0.15); color: #dc3545; }
 
 /* ================== Inner Pages (Generic Styles) ================== */
-.page-container, .members-container, .news-page-container, .events-page, .journal-page, .news-detail-page {
+.page-container, .members-container, .news-page-container, .events-page, .journal-page, .news-detail-page, .chart-page-container {
     padding: 2rem 0;
 }
-.page-container h1, .members-container h1, .news-page-container h1, .events-page h1, .journal-page h1, .news-detail-page h1 {
+.page-container h1, .members-container h1, .news-page-container h1, .events-page h1, .journal-page h1, .news-detail-page h1, .chart-page-container h1 {
     text-align: center;
     margin-bottom: 2.5rem;
 }
@@ -646,14 +646,16 @@ body.dark-theme .members-container h1,
 body.dark-theme .news-page-container h1,
 body.dark-theme .events-page h1,
 body.dark-theme .journal-page h1,
-body.dark-theme .news-detail-page h1 { color: var(--primary-color); }
+body.dark-theme .news-detail-page h1,
+body.dark-theme .chart-page-container h1 { color: var(--primary-color); }
 
 body.light-theme .page-container h1, 
 body.light-theme .members-container h1,
 body.light-theme .news-page-container h1,
 body.light-theme .events-page h1,
 body.light-theme .journal-page h1,
-body.light-theme .news-detail-page h1 { color: var(--primary-color-light-theme); }
+body.light-theme .news-detail-page h1,
+body.light-theme .chart-page-container h1 { color: var(--primary-color-light-theme); }
 
 .content-box {
     padding: 2rem;
@@ -1051,7 +1053,7 @@ body.dark-theme .news-content-area pre, body.dark-theme .event-content-area pre 
 body.light-theme .news-content-area pre, body.light-theme .event-content-area pre { background-color: #f0f0f0; color: #333; }
 
 /* ================== Events Page ================== */
-.events-page .page-description, .journal-page .page-description {
+.events-page .page-description, .journal-page .page-description, .chart-page-container .page-description {
     text-align: center;
     max-width: 700px;
     margin: -1.5rem auto 2.5rem auto;
@@ -1210,6 +1212,70 @@ body.light-theme .journal-card:hover { box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 .journal-card:hover .journal-card-download { transform: scale(1); }
+/* ================== Chart Page ================== */
+.semesters-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+.semester-column {
+    flex: 1;
+    min-width: 280px;
+    padding: 1rem;
+    border-radius: 15px;
+}
+body.dark-theme .semester-column {
+    background: var(--glass-bg-dark);
+    border: 1px solid var(--glass-border-dark);
+}
+body.light-theme .semester-column {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #e0e0e0;
+}
+.semester-column h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+}
+body.dark-theme .semester-column h2 {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+}
+body.light-theme .semester-column h2 {
+    color: var(--primary-color-light-theme);
+    border-bottom: 2px solid var(--primary-color-light-theme);
+}
+.course-card-chart {
+    padding: 0.8rem;
+    margin-bottom: 0.8rem;
+    border-radius: 8px;
+    cursor: help;
+    transition: all 0.2s ease;
+}
+body.dark-theme .course-card-chart {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+body.light-theme .course-card-chart {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+body.dark-theme .course-card-chart:hover {
+    background-color: rgba(232, 195, 142, 0.2);
+    transform: scale(1.03);
+}
+body.light-theme .course-card-chart:hover {
+    background-color: rgba(26, 92, 93, 0.15);
+    transform: scale(1.03);
+}
+.course-card-chart .course-name {
+    font-weight: bold;
+}
+.course-card-chart .course-units {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-top: 0.25rem;
+}
+
 
 /* #form-content-wrapper{
     padding-top: 3rem;
