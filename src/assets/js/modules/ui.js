@@ -167,9 +167,10 @@ export const initializeGlobalUI = () => {
         genericModal.addEventListener('click', (e) => { if (e.target === genericModal) closeGenericModal(); });
     }
 
-    // --- Main Content Event Delegation for Modals ---
+    // --- Main Content Event Delegation ---
     if (dom.mainContent) {
         dom.mainContent.addEventListener('click', (e) => {
+            // -- Author Modal --
             const authorTrigger = e.target.closest('.clickable-author');
             if (authorTrigger && authorTrigger.dataset.authorId) {
                 e.preventDefault();
@@ -177,6 +178,7 @@ export const initializeGlobalUI = () => {
                 return;
             }
 
+            // -- Event Modal --
             const eventCard = e.target.closest('.event-card');
             if (eventCard) {
                 if (!e.target.closest('a.btn-primary')) { // Don't trigger modal if registration button is clicked
@@ -187,6 +189,14 @@ export const initializeGlobalUI = () => {
                         showEventModal(path);
                     }
                 }
+            }
+            
+            // -- Course Card Accordion --
+            const courseHeader = e.target.closest('.course-card-chart.is-expandable .course-main-info');
+            if (courseHeader) {
+                e.preventDefault();
+                const courseCard = courseHeader.closest('.course-card-chart');
+                courseCard.classList.toggle('is-expanded');
             }
         });
     }

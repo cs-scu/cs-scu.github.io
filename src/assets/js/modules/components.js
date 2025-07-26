@@ -282,7 +282,10 @@ export const renderChartPage = () => {
     const courseMap = new Map(state.allCourses.map(c => [c.id, c.name]));
     const prerequisitesMap = state.coursePrerequisites.reduce((acc, edge) => {
         if (!acc[edge.to]) acc[edge.to] = [];
-        acc[edge.to].push(courseMap.get(edge.from));
+        const prerequisiteName = courseMap.get(edge.from);
+        if (prerequisiteName) {
+            acc[edge.to].push(prerequisiteName);
+        }
         return acc;
     }, {});
 
@@ -294,17 +297,37 @@ export const renderChartPage = () => {
         semesterDiv.appendChild(semesterTitle);
 
         coursesBySemester[semester].forEach(course => {
-            const courseDiv = document.createElement('div');
-            courseDiv.className = 'course-card-chart';
+            const courseCard = document.createElement('div');
+            courseCard.className = 'course-card-chart';
+            
             const prerequisites = prerequisitesMap[course.id];
-            if (prerequisites) {
-                courseDiv.title = `پیش‌نیاز: ${prerequisites.join(', ')}`;
+            
+            let prerequisitesHTML = '';
+            if (prerequisites && prerequisites.length > 0) {
+                courseCard.classList.add('is-expandable');
+                prerequisitesHTML = `
+                    <div class="prerequisites-container">
+                        <div class="prerequisite-title">پیش‌نیازها:</div>
+                        ${prerequisites.map(pName => `
+                            <div class="course-card-chart is-prereq">
+                                <div class="course-name">${pName}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
             }
-            courseDiv.innerHTML = `
-                <div class="course-name">${course.name}</div>
-                <div class="course-units">${course.units} واحد</div>
+
+            courseCard.innerHTML = `
+                <div class="course-main-info">
+                    <div class="course-details">
+                        <div class="course-name">${course.name}</div>
+                        <div class="course-units">${course.units} واحد</div>
+                    </div>
+                    ${(prerequisites && prerequisites.length > 0) ? '<div class="expand-icon"></div>' : ''}
+                </div>
+                ${prerequisitesHTML}
             `;
-            semesterDiv.appendChild(courseDiv);
+            semesterDiv.appendChild(courseCard);
         });
         container.appendChild(semesterDiv);
     });
