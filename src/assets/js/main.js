@@ -8,6 +8,7 @@ import { initializeRouter } from './modules/router.js';
 document.addEventListener('DOMContentLoaded', () => {
 
     const preloader = document.getElementById('preloader'); // دریافت عنصر پیش‌بارگذار
+    document.body.classList.add('preloader-active');
 
     const initializeParticles = () => {
         if (typeof tsParticles === 'undefined') return;
@@ -57,9 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeGlobalUI();
         await loadInitialData();
         initializeRouter();
-        
+
         if (preloader) {
             preloader.classList.add('hidden');
+            // با کمی تاخیر کلاس را حذف می‌کنیم تا انیمیشن محو شدن تمام شود
+            setTimeout(() => {
+                document.body.classList.remove('preloader-active');
+            }, 700); // این زمان باید با زمان transition در CSS برابر باشد
         }
     };
 
