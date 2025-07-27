@@ -1693,8 +1693,8 @@ body.light-theme #preloader {
 .dot-spinner {
     --uib-size: 2.8rem;
     --uib-speed: .9s;
-    --uib-color-dark: var(--primary-color);
-    --uib-color-light: var(--primary-color-light-theme);
+    --uib-color-dark: var(--primary-color-light-theme);
+    --uib-color-light: var(--primary-color);
     position: relative;
     display: flex;
     align-items: center;
