@@ -56,7 +56,17 @@ document.addEventListener('DOMContentLoaded', () => {
         setInitialState();
         initializeParticles();
         initializeGlobalUI();
-        await loadInitialData();
+
+        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        const testDelay = delay(3000); // 3000 میلی‌ثانیه = 3 ثانیه
+
+
+        await Promise.all([
+            loadInitialData(),
+            testDelay
+        ]);
+        // await loadInitialData();
+
         initializeRouter();
 
         if (preloader) {
