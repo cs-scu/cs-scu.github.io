@@ -7,6 +7,8 @@ import { initializeRouter } from './modules/router.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    const preloader = document.getElementById('preloader'); // دریافت عنصر پیش‌بارگذار
+
     const initializeParticles = () => {
         if (typeof tsParticles === 'undefined') return;
         tsParticles.load("particles-js", {
@@ -55,6 +57,10 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeGlobalUI();
         await loadInitialData();
         initializeRouter();
+        
+        if (preloader) {
+            preloader.classList.add('hidden');
+        }
     };
 
     initializeApp();
