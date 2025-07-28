@@ -79,7 +79,7 @@
       "github": "https://github.com/Farzad2486"
     }
   },
-      {
+    {
     "id": 7,
     "name": "سید محمد مهدی موسوی اصل",
     "role": "عضو فعال",
@@ -91,9 +91,22 @@
       "telegram": "https://t.me/Mtkopiy",
       "github": null
     }
+  },    
+  {
+    "id": 8,
+    "name": "ایمان حسین زاده",
+    "role": "عضو فعال",
+    "imageUrl": null,
+    "description": "",
+    "tags": ["علوم کامپیوتر","1400"],
+    "social": {
+      "linkedin": null,
+      "telegram": "https://t.me/imhosseinzadeh",
+      "github": "https://github.com/imhosseinzadeh"
+    }
   },
         {
-    "id": 8,
+    "id": 9,
     "name":"هیوا عباسیان",
     "role": "عضو فعال",
     "imageUrl": null,
@@ -106,7 +119,7 @@
     }
   },
       {
-    "id": 9,
+    "id": 10,
     "name": "امیر محمد بهین",
     "role": "عضو فعال",
     "imageUrl": null,
