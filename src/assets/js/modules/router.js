@@ -142,7 +142,11 @@ const renderPage = async (path) => {
             }
         };
         if (pageRenderers[path]) {
-            pageRenderers[path]();
+            // با این کار، اجرای تابع رندر را به انتهای صف کارهای مرورگر منتقل می‌کنیم
+            // و به مرورگر فرصت می‌دهیم تا ساختار HTML را کامل کند.
+            setTimeout(() => {
+                pageRenderers[path]();
+            }, 0);
         }
     }
 };

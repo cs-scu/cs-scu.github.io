@@ -1,38 +1,48 @@
-// js/modules/api.js
+// src/assets/js/modules/api.js (نسخه نهایی و کامل)
 import { state, dom } from './state.js';
+import { supabase } from './supabaseClient.js';
 
 export const loadInitialData = async () => {
     try {
-        const [membersResponse, newsResponse, eventsResponse, journalResponse, coursesResponse] = await Promise.all([
-            fetch('data/members.json'),
-            fetch('data/news.json'),
-            fetch('data/events.json'),
-            fetch('data/journal.json'),
-            fetch('data/courses.json')
+        // از Promise.all برای خواندن همزمان تمام داده‌ها استفاده می‌کنیم
+        const [
+            { data: members, error: membersError },
+            { data: news, error: newsError },
+            { data: journal, error: journalError },
+            { data: events, error: eventsError },
+            { data: courses, error: coursesError },
+            { data: prerequisites, error: prereqError }
+        ] = await Promise.all([
+            supabase.from('members').select('*'),
+            supabase.from('news').select('*'),
+            supabase.from('journal').select('*'),
+            supabase.from('events').select('*'),
+            supabase.from('courses').select('*'),
+            supabase.from('course_prerequisites').select('*')
         ]);
 
-        if (!membersResponse.ok) throw new Error('فایل اعضا یافت نشد.');
-        const members = await membersResponse.json();
+        // چک کردن خطاها
+        if (membersError) throw membersError;
+        if (newsError) throw newsError;
+        if (journalError) throw journalError;
+        if (eventsError) throw eventsError;
+        if (coursesError) throw coursesError;
+        if (prereqError) throw prereqError;
+
+        // ذخیره کردن تمام داده‌ها در state برنامه
         members.forEach(member => state.membersMap.set(member.id, member));
+        state.allNews = news;
+        state.allJournalIssues = journal;
+        state.allEvents = events;
+        state.allCourses = courses;
+        state.coursePrerequisites = prerequisites;
 
-        if (!newsResponse.ok) throw new Error('فایل اخبار یافت نشد.');
-        state.allNews = await newsResponse.json();
-
-        if (!eventsResponse.ok) throw new Error('فایل رویدادها یافت نشد.');
-        state.allEvents = await eventsResponse.json();
-
-        if (!journalResponse.ok) throw new Error('فایل نشریه یافت نشد.');
-        state.allJournalIssues = await journalResponse.json();
-        
-        if (!coursesResponse.ok) throw new Error('فایل چارت درسی یافت نشد.');
-        const coursesData = await coursesResponse.json();
-        state.allCourses = coursesData.courses;
-        state.coursePrerequisites = coursesData.edges;
+        console.log("تمام اطلاعات سایت با موفقیت از Supabase خوانده شد!");
 
     } catch (error) {
-        console.error("Failed to load initial data:", error);
+        console.error("خطا در بارگذاری اطلاعات از Supabase:", error.message);
         if (dom.mainContent) {
-            dom.mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>خطا در بارگذاری اطلاعات اولیه. لطفا صفحه را رفرش کنید.</p></div>`;
+            dom.mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>خطا در اتصال به سرور. لطفا صفحه را مجددا بارگذاری کنید.</p></div>`;
         }
     }
 };
