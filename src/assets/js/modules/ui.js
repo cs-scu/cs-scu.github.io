@@ -1,5 +1,6 @@
 // js/modules/ui.js
 import { state, dom } from './state.js';
+import { supabase } from './supabaseClient.js';
 
 const DEFAULT_AVATAR_URL = 'assets/img/defualt-avatar.png'; // مسیر جدید آواتار پیش‌فرض
 
@@ -105,45 +106,51 @@ const showEventModal = async (path) => {
 };
 
 // --- Exported Initializers ---
+// src/assets/js/modules/ui.js (نسخه نهایی تابع)
 export const initializeContactForm = () => {
     const contactForm = dom.mainContent.querySelector('#contact-form');
     if (!contactForm || contactForm.dataset.listenerAttached) return;
 
-    contactForm.addEventListener('submit', (e) => {
+    contactForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const statusBox = contactForm.querySelector('.form-status');
         const submitBtn = contactForm.querySelector('button[type="submit"]');
-        const formspreeEndpoint = 'https://formspree.io/f/xgvzaead';
+        
+        const formData = new FormData(contactForm);
+        const formObject = Object.fromEntries(formData.entries());
 
         if (statusBox) { statusBox.style.display = 'none'; statusBox.className = 'form-status'; }
         submitBtn.disabled = true;
         submitBtn.textContent = 'در حال ارسال...';
 
-        fetch(formspreeEndpoint, { method: 'POST', body: new FormData(contactForm), headers: { 'Accept': 'application/json' } })
-            .then(response => {
-                if (response.ok) {
-                    if (statusBox) {
-                        statusBox.textContent = 'پیام شما با موفقیت ارسال شد. ✅';
-                        statusBox.className = 'form-status success';
-                        statusBox.style.display = 'block';
-                    }
-                    contactForm.reset();
-                } else { throw new Error('Server error'); }
-            })
-            .catch(() => {
-                if (statusBox) {
-                    statusBox.textContent = 'خطای شبکه. لطفاً اتصال خود را بررسی کنید.';
-                    statusBox.className = 'form-status error';
-                    statusBox.style.display = 'block';
-                }
-            })
-            .finally(() => {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'ارسال پیام';
-            });
+        try {
+            // حالا formObject کلیدهای انگلیسی دارد و مستقیماً قابل ارسال است
+            const { error } = await supabase.from('contacts').insert(formObject);
+
+            if (error) throw error;
+
+            if (statusBox) {
+                statusBox.textContent = 'پیام شما با موفقیت ارسال شد. ✅';
+                statusBox.className = 'form-status success';
+                statusBox.style.display = 'block';
+            }
+            contactForm.reset();
+
+        } catch (error) {
+            console.error('Error submitting contact form:', error);
+            if (statusBox) {
+                statusBox.textContent = 'خطایی رخ داد. لطفاً دوباره تلاش کنید.';
+                statusBox.className = 'form-status error';
+                statusBox.style.display = 'block';
+            }
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'ارسال پیام';
+        }
     });
     contactForm.dataset.listenerAttached = 'true';
 };
+
 
 export const initializeGlobalUI = () => {
     // --- Mobile Menu ---
@@ -213,38 +220,44 @@ export const initializeGlobalUI = () => {
         closeRegisterBtn.addEventListener('click', closeModal);
         registerModal.addEventListener('click', (e) => { if (e.target === registerModal) closeModal(); });
 
+        // --- Registration Form Submission ---
         const registrationForm = document.getElementById('registration-form');
         if (registrationForm) {
-            registrationForm.addEventListener('submit', function (e) {
+            registrationForm.addEventListener('submit', async function (e) { // تابع را async می‌کنیم
                 e.preventDefault();
-                // ... (منطق ارسال فرم ثبت‌نام) ...
                 const statusMessage = registrationForm.querySelector('.form-status');
                 const submitButton = registrationForm.querySelector('button[type="submit"]');
-                const formspreeEndpoint = 'https://formspree.io/f/xeozaqap';
-    
+                
+                const formData = new FormData(registrationForm);
+                const formObject = Object.fromEntries(formData.entries());
+
                 if (statusMessage) { statusMessage.style.display = 'none'; statusMessage.className = 'form-status'; }
                 submitButton.disabled = true;
                 submitButton.textContent = 'در حال ارسال...';
-    
-                fetch(formspreeEndpoint, { method: 'POST', body: new FormData(registrationForm), headers: { 'Accept': 'application/json' } })
-                    .then(response => {
-                        if (response.ok) {
-                            document.getElementById('form-content-wrapper').style.display = 'none';
-                            document.getElementById('success-message').style.display = 'block';
-                        } else { throw new Error('Server error'); }
-                    })
-                    .catch(() => {
-                        if (statusMessage) {
-                            statusMessage.textContent = 'خطایی رخ داد. لطفاً دوباره تلاش کنید.';
-                            statusMessage.className = 'form-status error';
-                            statusMessage.style.display = 'block';
-                        }
-                    })
-                    .finally(() => {
-                        submitButton.disabled = false;
-                        submitButton.textContent = 'ارسال درخواست';
-                    });
+
+                try {
+                    // --- جدید: ارسال داده به جدول join_requests در Supabase ---
+                    const { error } = await supabase.from('join_requests').insert(formObject);
+
+                    if (error) throw error;
+
+                    // نمایش پیام موفقیت
+                    document.getElementById('form-content-wrapper').style.display = 'none';
+                    document.getElementById('success-message').style.display = 'block';
+
+                } catch (error) {
+                    console.error('Error submitting registration form:', error);
+                    if (statusMessage) {
+                        statusMessage.textContent = 'خطایی رخ داد. لطفاً دوباره تلاش کنید.';
+                        statusMessage.className = 'form-status error';
+                        statusMessage.style.display = 'block';
+                    }
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'ارسال درخواست';
+                }
             });
         }
+
     }
 };
