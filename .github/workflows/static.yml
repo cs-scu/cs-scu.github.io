@@ -1,42 +1,55 @@
-# نام گردش کار که در تب Actions گیت‌هاب نمایش داده می‌شود
-name: Deploy static content from /src to Pages
+# نام گردش کار
+name: Build and Deploy to Pages
 
-# چه زمانی این گردش کار اجرا شود؟
 on:
   push:
-    branches: ["main"] # هر بار که کدی به برنچ main پوش شود
-  workflow_dispatch: # به شما اجازه می‌دهد تا به صورت دستی آن را اجرا کنید
+    branches: ["main"]
+  workflow_dispatch:
 
-# سطح دسترسی‌های مورد نیاز برای این گردش کار
 permissions:
-  contents: read   # اجازه خواندن محتوای ریپازیتوری را می‌دهد
-  pages: write    # اجازه نوشتن و دیپلوی در GitHub Pages را می‌دهد
-  id-token: write # اجازه احراز هویت برای دیپلوی را می‌دهد
+  contents: read
+  pages: write
+  id-token: write
 
-# جلوگیری از اجرای همزمان چند دیپلوی
 concurrency:
   group: "pages"
-  cancel-in-progress: false # اگر دیپلوی در حال اجرا باشد، منتظر بمان تا تمام شود
+  cancel-in-progress: false
 
-# کارها (Jobs)یی که باید انجام شوند
 jobs:
-  deploy: # نام این کار "deploy" است
+  build-and-deploy: # نام کار را تغییر می‌دهیم تا گویاتر باشد
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }} # URL نهایی را در خروجی نمایش می‌دهد
-    runs-on: ubuntu-latest # روی یک ماشین مجازی با سیستم‌عامل اوبونتو اجرا می‌شود
-    steps: # مراحل انجام کار
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
       - name: Checkout
-        uses: actions/checkout@v4 # کد شما را از ریپازیتوری دانلود می‌کند
+        uses: actions/checkout@v4
+
+      # --- مراحل جدید برای بیلد کردن پروژه ---
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # استفاده از نسخه پایدار نود
+
+      - name: Install dependencies
+        run: npm install # نصب Vite و سایر ابزارها
+
+      - name: Build with Vite
+        run: npm run build # اجرای بیلد
+        env: # اینجا سکرت‌ها را به فرآیند بیلد تزریق می‌کنیم
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_KEY: ${{ secrets.VITE_SUPABASE_KEY }}
+      # --- پایان مراحل جدید ---
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5 # گیت‌هاب پیجز را برای دیپلوی آماده می‌کند
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3 # محتوای سایت را به عنوان یک "آرتیفکت" آپلود می‌کند
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: './src' # مشخص می‌کند که محتوای پوشه src باید آپلود شود
+          # به جای پوشه src، پوشه خروجی بیلد یعنی dist را آپلود می‌کنیم
+          path: './dist'
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4 # آرتیفکت آپلود شده را روی گیت‌هاب پیجز دیپلوی می‌کند
+        uses: actions/deploy-pages@v4
