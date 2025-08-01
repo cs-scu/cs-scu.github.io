@@ -1,23 +1,30 @@
 {
   "name": "cs-scu.github.io",
   "version": "1.0.0",
-  "description": "",
+  "description": "Official website for the SCU Computer Science Association",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cs-scu/cs-scu.github.io.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "cs",
+    "scu",
+    "computer-science",
+    "shahid-chamran-university"
+  ],
+  "author": "CS-SCU",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/cs-scu/cs-scu.github.io/issues"
   },
-  "homepage": "https://github.com/cs-scu/cs-scu.github.io#readme",
+  "homepage": "https://cs-scu.ir",
   "devDependencies": {
-    "vite": "^7.0.6"
+    "vite": "^5.3.1"
   }
 }
