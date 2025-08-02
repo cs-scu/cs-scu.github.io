@@ -1,14 +1,13 @@
-// src/assets/js/modules/components.js (نسخه نهایی با بارگذاری بی‌نهایت)
+// src/assets/js/modules/components.js
 
 import { state, dom } from './state.js';
-import { supabaseClient } from './api.js'; // کلاینت را وارد می‌کنیم
+import { supabaseClient, getBaseUrl } from './api.js';
 
-const DEFAULT_AVATAR_URL = 'assets/img/defualt-avatar.png';
+const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
 // --- توابع کمکی خصوصی ---
 const createAuthorHTML = (authorId) => {
     if (!authorId) return '';
-    // برای جلوگیری از خطا، اطلاعات نویسنده را از state می‌خوانیم
     const authorInfo = state.membersMap.get(authorId);
     if (!authorInfo) return '';
     return `
@@ -25,13 +24,12 @@ export const loadLatestNews = () => {
     if (!newsGrid) return;
     newsGrid.innerHTML = '';
 
-    // یک واکشی سریع برای ۳ خبر آخر در صفحه اصلی انجام می‌دهیم
     (async () => {
         const { data: latestNews, error } = await supabaseClient
             .from('news')
             .select('*')
-            .order('id', { ascending: false }) // جدیدترین‌ها
-            .range(0, 2); // ۳ خبر آخر
+            .order('id', { ascending: false })
+            .range(0, 2);
 
         if (error || !latestNews) {
             console.error("Could not load latest news", error);
@@ -98,7 +96,6 @@ const renderNewsItems = (items) => {
     });
 };
 
-// --- تابع بازنویسی شده برای بارگذاری بی‌نهایت ---
 export const loadMoreNews = async () => {
     if (state.isLoadingNews) return;
 
@@ -109,15 +106,13 @@ export const loadMoreNews = async () => {
         loader.style.display = 'block';
     }
 
-
     const from = state.loadedNewsCount;
     const to = from + state.NEWS_PER_PAGE - 1;
 
-    // واکشی دسته بعدی از Supabase
     const { data: newsToLoad, error } = await supabaseClient
         .from('news')
         .select('*')
-        .order('id', { ascending: false }) // مرتب‌سازی بر اساس جدیدترین
+        .order('id', { ascending: false })
         .range(from, to);
 
     if (error) {
@@ -135,11 +130,10 @@ export const loadMoreNews = async () => {
     state.isLoadingNews = false;
     if (loader) loader.style.display = 'none';
 
-    // اگر خبری برای بارگذاری وجود نداشت، به کاربر اطلاع بده
     if (!newsToLoad || newsToLoad.length < state.NEWS_PER_PAGE) {
         if (state.newsScrollHandler) {
             window.removeEventListener('scroll', state.newsScrollHandler);
-            state.newsScrollHandler = null; // جلوگیری از درخواست‌های اضافی
+            state.newsScrollHandler = null;
         }
         if (loader) {
             loader.textContent = "پایان لیست اخبار";
@@ -148,7 +142,6 @@ export const loadMoreNews = async () => {
     }
 };
 
-// --- بقیه توابع (بدون تغییر از نسخه اصلی شما) ---
 export const renderMembersPage = () => {
     const membersGrid = dom.mainContent.querySelector('.members-grid');
     const template = document.getElementById('member-card-template');

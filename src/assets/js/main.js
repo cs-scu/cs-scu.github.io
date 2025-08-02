@@ -1,13 +1,13 @@
 // js/main.js
 import { state, dom } from './modules/state.js';
-import { loadInitialData } from './modules/api.js';
+import { loadMembers } from './modules/api.js';
 import { initializeTheme } from './modules/theme.js';
 import { initializeGlobalUI } from './modules/ui.js';
 import { initializeRouter } from './modules/router.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    const preloader = document.getElementById('preloader'); // دریافت عنصر پیش‌بارگذار
+    const preloader = document.getElementById('preloader');
     document.body.classList.add('preloader-active');
 
     const initializeParticles = () => {
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
             interactivity: { events: { onhover: { enable: true, mode: "bubble" } }, modes: { bubble: { distance: 200, duration: 2, opacity: 1, size: 3 } } },
         }).then(container => {
             state.particlesInstance = container;
-            initializeTheme(); // Initialize theme after particles are loaded to set initial color
+            initializeTheme();
         });
     };
 
@@ -56,15 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
         setInitialState();
         initializeParticles();
         initializeGlobalUI();
-        await loadInitialData();
+        await loadMembers(); // Load only essential data initially
         initializeRouter();
 
         if (preloader) {
             preloader.classList.add('hidden');
-            // با کمی تاخیر کلاس را حذف می‌کنیم تا انیمیشن محو شدن تمام شود
             setTimeout(() => {
                 document.body.classList.remove('preloader-active');
-            }, 700); // این زمان باید با زمان transition در CSS برابر باشد
+            }, 200);
         }
     };
 

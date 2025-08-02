@@ -1,12 +1,11 @@
 // src/assets/js/modules/router.js (نسخه نهایی با مدیریت مودال)
 
 import { state, dom } from './state.js';
-import { initializeContactForm, showEventModal } from './ui.js'; // showEventModal را وارد می‌کنیم
+import { initializeContactForm, showEventModal } from './ui.js';
 import * as components from './components.js';
-import { supabaseClient } from './api.js';
+import { supabaseClient, loadEvents, loadJournal, loadChartData, getBaseUrl } from './api.js';
 
-// ... (توابع کمکی مثل updateMetaTags و ... بدون تغییر باقی می‌مانند)
-const DEFAULT_AVATAR_URL = 'assets/img/defualt-avatar.png';
+const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
 const updateMetaTags = (title, description) => {
     document.title = title;
@@ -43,14 +42,10 @@ const cleanupPageSpecifics = (newPath) => {
 
 
 const renderPage = async (path) => {
-    // مسیر را از # پاک می‌کنیم
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
-
     cleanupPageSpecifics(cleanPath);
     updateActiveLink(cleanPath);
     
-    // --- مدیریت مسیرهای داینامیک ---
-
     // 1. اگر مسیر مربوط به جزئیات خبر بود
     if (cleanPath.startsWith('/news/')) {
         window.scrollTo(0, 0);
@@ -62,7 +57,6 @@ const renderPage = async (path) => {
             return;
         }
         
-        // ... (بقیه کد رندر صفحه خبر بدون تغییر)
         updateMetaTags(`${newsItem.title} | اخبار انجمن`, newsItem.summary);
         const author = state.membersMap.get(newsItem.authorId);
         const articleHTML = newsItem.content;
@@ -83,24 +77,23 @@ const renderPage = async (path) => {
 
     // 2. اگر مسیر مربوط به جزئیات رویداد بود
     if (cleanPath.startsWith('/events/')) {
-        // صفحه اصلی رویدادها را رندر کن
+        await loadEvents();
         if (!state.pageCache['/events']) {
             const response = await fetch('events.html');
             state.pageCache['/events'] = await response.text();
         }
         dom.mainContent.innerHTML = state.pageCache['/events'];
         components.renderEventsPage();
-        
-        // و سپس مودال را باز کن
         showEventModal(cleanPath);
         return;
     }
 
     // --- مدیریت صفحات استاتیک ---
     window.scrollTo(0, 0);
-    const pageKey = cleanPath === '/' ? 'home' : cleanPath.substring(1);
+    const pageKey = cleanPath === '/' || cleanPath === '' ? 'home' : cleanPath.substring(1);
+    const pageFile = pageKey === 'home' ? 'index.html' : `${pageKey}.html`;
     
-    if (pageKey === 'home' || cleanPath === '/') {
+    if (pageKey === 'home') {
         dom.mainContent.innerHTML = state.pageCache['/'] || ' ';
         components.loadLatestNews();
     } else {
@@ -122,10 +115,10 @@ const renderPage = async (path) => {
     
     const pageRenderers = {
         '/contact': initializeContactForm,
-        '/events': components.renderEventsPage,
+        '/events': async () => { await loadEvents(); components.renderEventsPage(); },
         '/members': components.renderMembersPage,
-        '/journal': components.renderJournalPage,
-        '/chart': components.renderChartPage,
+        '/journal': async () => { await loadJournal(); components.renderJournalPage(); },
+        '/chart': async () => { await loadChartData(); components.renderChartPage(); },
         '/news': () => {
             state.loadedNewsCount = 0;
             components.loadMoreNews();
@@ -137,7 +130,7 @@ const renderPage = async (path) => {
         }
     };
     if (pageRenderers[cleanPath]) {
-        pageRenderers[cleanPath]();
+        await pageRenderers[cleanPath]();
     }
 };
 

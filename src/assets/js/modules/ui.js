@@ -1,9 +1,9 @@
 // src/assets/js/modules/ui.js (نسخه نهایی با هر دو فرم داینامیک)
 
 import { state, dom } from './state.js';
-import { supabaseClient } from './api.js';
+import { supabaseClient, getBaseUrl } from './api.js';
 
-const DEFAULT_AVATAR_URL = 'assets/img/defualt-avatar.png';
+const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
 // --- تابع برای فرم تماس با ما (بدون تغییر) ---
 export const initializeContactForm = () => {
@@ -139,7 +139,6 @@ const showMemberModal = (memberId) => {
     genericModal.classList.add('is-open');
 };
 
-// --- تابع بازنویسی شده برای فرم ثبت‌نام ---
 const initializeRegistrationForm = () => {
     const registrationForm = document.getElementById('registration-form');
     if (!registrationForm || registrationForm.dataset.listenerAttached) return;
@@ -156,7 +155,6 @@ const initializeRegistrationForm = () => {
         submitButton.disabled = true;
         submitButton.textContent = 'در حال ارسال...';
 
-        // ارسال داده‌ها به جدول join_requests
         const { error } = await supabaseClient
             .from('join_requests')
             .insert({
@@ -188,7 +186,6 @@ const initializeRegistrationForm = () => {
 };
 
 export const initializeGlobalUI = () => {
-    // ... (بخش منوی موبایل و مودال عمومی بدون تغییر)
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const mobileDropdownMenu = document.getElementById('mobile-dropdown-menu');
     if (mobileMenuToggle && mobileDropdownMenu) {
@@ -238,7 +235,6 @@ export const initializeGlobalUI = () => {
         });
     }
 
-    // --- مدیریت مودال ثبت‌نام (با فراخوانی تابع جدید) ---
     const registerModal = document.getElementById('register-modal');
     const openRegisterBtn = document.getElementById('open-register-btn');
     if (registerModal && openRegisterBtn) {
@@ -250,7 +246,6 @@ export const initializeGlobalUI = () => {
         closeRegisterBtn.addEventListener('click', closeModal);
         registerModal.addEventListener('click', (e) => { if (e.target === registerModal) closeModal(); });
 
-        // فراخوانی تابع جدید برای مدیریت فرم
         initializeRegistrationForm();
     }
 };
