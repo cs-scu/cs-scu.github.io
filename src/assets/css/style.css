@@ -22,7 +22,7 @@ body {
     font-family: Arial, sans-serif;
     transition: background-color 0.4s, color 0.4s;
 }
-.fonts-loaded body {
+html.fonts-loaded body {
     font-family: 'Vazirmatn', sans-serif;
 }
 body.dark-theme {

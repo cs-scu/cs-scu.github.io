@@ -21,12 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
             tsParticles.load("particles-js", {
                 background: { color: { value: 'transparent' } },
                 particles: {
-                    number: { value: 100, density: { enable: true, value_area: 900 } },
+                    number: { value: 80, density: { enable: true, value_area: 850 } },
                     color: { value: particleColor },
                     shape: { type: "circle" },
                     opacity: { value: { min: 0.1, max: 0.5 }, animation: { enable: true, speed: 1.5, minimumValue: 0.1, sync: false } },
-                    size: { value: { min: 1, max: 2.5 } },
-                    move: { enable: true, speed: 0.4, direction: "none", random: true, straight: false, out_mode: "out" },
+                    size: { value: { min: 1, max: 2 } },
+                    move: { enable: true, speed: 0.5, direction: "none", random: true, straight: false, out_mode: "out" },
                     shadow: { enable: shadowEnabled, color: "#e8c38e", blur: 7 }
                 },
                 interactivity: { events: { onhover: { enable: true, mode: "bubble" } }, modes: { bubble: { distance: 200, duration: 2, opacity: 1, size: 3 } } },
@@ -37,17 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     particlesElement.style.opacity = '1';
                 }
             });
-        }, 2000); 
-    };
-
-    const initializeFonts = () => {
-        const fontLink = document.createElement('link');
-        fontLink.href = 'https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap';
-        fontLink.rel = 'stylesheet';
-        fontLink.onload = () => {
-            document.documentElement.classList.add('fonts-loaded');
-        };
-        document.head.appendChild(fontLink);
+        }, 1800); 
     };
 
     const setInitialState = () => {
@@ -79,5 +69,4 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     initializeApp();
-    window.addEventListener('load', initializeFonts);
 });
