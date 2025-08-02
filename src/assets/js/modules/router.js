@@ -1,21 +1,29 @@
-// js/modules/router.js
+// src/assets/js/modules/router.js (نسخه نهایی با مدیریت مودال)
+
 import { state, dom } from './state.js';
-import { initializeContactForm } from './ui.js';
+import { initializeContactForm, showEventModal } from './ui.js'; // showEventModal را وارد می‌کنیم
 import * as components from './components.js';
+import { supabaseClient } from './api.js';
 
-const DEFAULT_AVATAR_URL = 'assets/img/defualt-avatar.png'; // مسیر نسبی صحیح
+// ... (توابع کمکی مثل updateMetaTags و ... بدون تغییر باقی می‌مانند)
+const DEFAULT_AVATAR_URL = 'assets/img/defualt-avatar.png';
 
-// --- Private Functions ---
 const updateMetaTags = (title, description) => {
     document.title = title;
-    document.querySelector('meta[name="description"]').setAttribute('content', description);
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', description);
 };
 
 const updateActiveLink = (path) => {
     const mobileDropdownMenu = document.getElementById('mobile-dropdown-menu');
     const currentBase = path.split('/')[1] || 'home';
     document.querySelectorAll('a[data-page]').forEach(link => {
-        link.getAttribute('data-page') === currentBase ? link.setAttribute('aria-current', 'page') : link.removeAttribute('aria-current');
+        const linkPage = link.getAttribute('data-page');
+        if (linkPage === currentBase) {
+            link.setAttribute('aria-current', 'page');
+        } else {
+            link.removeAttribute('aria-current');
+        }
     });
     if (mobileDropdownMenu && mobileDropdownMenu.classList.contains('is-open')) {
         mobileDropdownMenu.classList.remove('is-open');
@@ -33,124 +41,112 @@ const cleanupPageSpecifics = (newPath) => {
     }
 };
 
+
 const renderPage = async (path) => {
-    if (!dom.mainContent) return;
+    // مسیر را از # پاک می‌کنیم
+    const cleanPath = path.startsWith('#') ? path.substring(1) : path;
 
-    cleanupPageSpecifics(path);
-    updateActiveLink(path);
-    window.scrollTo(0, 0);
+    cleanupPageSpecifics(cleanPath);
+    updateActiveLink(cleanPath);
+    
+    // --- مدیریت مسیرهای داینامیک ---
 
-    // Meta Tags Management
-    let pageTitle = 'انجمن علمی علوم کامپیوتر | دانشگاه شهید چمران اهواز';
-    let pageDescription = 'وب‌سایت رسمی انجمن علمی دانشجویی علوم کامپیوتر دانشگاه شهید چمران اهواز.';
-    const pageKeyForMeta = path.split('/')[1] || 'home';
-    const metaMap = {
-        'home': { title: 'انجمن علمی علوم کامپیوتر | صفحه اصلی', description: 'به وب‌سایت رسمی انجمن علمی دانشجویی علوم کامپیوتر دانشگاه شهید چمران اهواز خوش آمدید.' },
-        'about': { title: 'درباره ما | انجمن علمی علوم کامپیوتر', description: 'آشنایی با انجمن علمی دانشجویی علوم کامپیوتر دانشگاه شهید چمران اهواز، اهداف و فعالیت‌های ما.' },
-        'members': { title: 'اعضای انجمن | انجمن علمی علوم کامپیوتر', description: 'با اعضای اصلی و فعال انجمن علمی علوم کامپیوتر دانشگاه شهید چمران اهواز آشنا شوید.' },
-        'news': { title: 'اخبار و اطلاعیه‌ها | انجمن علمی علوم کامپیوتر', description: 'آرشیو آخرین اخبار، اطلاعیه‌ها و گزارش رویدادهای مربوط به انجمن علمی علوم کامپیوتر.' },
-        'events': { title: 'رویدادها | انجمن علمی علوم کامپیوتر', description: 'از آخرین رویدادها، کارگاه‌ها، و مسابقات انجمن علمی مطلع شوید و در آن‌ها شرکت کنید.' },
-        'journal': { title: 'نشریه علمی بایت | انجمن علمی علوم کامپیوتر', description: 'نشریه علمی بایت، فراتر از صفر و یک. محلی برای انتشار مقالات و دستاوردهای علمی دانشجویان.' },
-        'contact': { title: 'تماس با ما | انجمن علمی علوم کامپیوتر', description: 'راه‌های ارتباطی با انجمن علمی علوم کامپیوتر.' },
-        'chart': { title: 'چارت درسی | انجمن علمی علوم کامپیوتر', description: 'چارت درسی و پیش‌نیازهای رشته علوم کامپیوتر.' }
-    };
-    if (metaMap[pageKeyForMeta]) {
-        pageTitle = metaMap[pageKeyForMeta].title;
-        pageDescription = metaMap[pageKeyForMeta].description;
-    }
-    updateMetaTags(pageTitle, pageDescription);
+    // 1. اگر مسیر مربوط به جزئیات خبر بود
+    if (cleanPath.startsWith('/news/')) {
+        window.scrollTo(0, 0);
+        const newsLink = `#${cleanPath}`;
+        const { data: newsItem, error } = await supabaseClient.from('news').select(`*`).eq('link', newsLink).single();
 
-    // --- News Detail Page Logic ---
-    if (path.startsWith('/news/')) {
-        const newsItem = state.allNews.find(n => n.link === `#${path}`);
-        if (!newsItem) {
+        if (error || !newsItem) {
             dom.mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>محتوای خبر مورد نظر یافت نشد.</p><a href="#/news" class="btn btn-secondary" style="margin-top: 1rem;">بازگشت به آرشیو</a></div>`;
             return;
         }
         
+        // ... (بقیه کد رندر صفحه خبر بدون تغییر)
         updateMetaTags(`${newsItem.title} | اخبار انجمن`, newsItem.summary);
-        
-        try {
-            const response = await fetch(`news/${path.substring(6)}.html`); // مسیر نسبی صحیح
-            if (!response.ok) throw new Error('فایل محتوای خبر یافت نشد.');
-            const articleHTML = await response.text();
-            const author = state.membersMap.get(newsItem.authorId);
-            const authorProfileHTML = author ? `...` : ''; // ... (منطق رندر پروفایل نویسنده)
-            
-            dom.mainContent.innerHTML = `
-                <section class="page-container news-detail-page">
-                    <div class="container">
-                        <a href="#/news" class="btn-back"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg><span>بازگشت به اخبار</span></a>
-                        <div class="news-detail-meta-header">
-                        ${author ? `
-                            <div class="news-detail-author clickable-author" data-author-id="${author.id}">
-                                <img src="${author.imageUrl || DEFAULT_AVATAR_URL}" alt="${author.name}">
-                                <div><strong>${author.name}</strong><span>${author.role || 'عضو انجمن'}</span></div>
-                            </div>` : ''}
-                            <div class="news-item-meta">
-                                <span>${newsItem.date}</span><span class="separator">&bull;</span><span>${newsItem.readingTime}</span>
-                            </div>
-                        </div>
-                        <div class="content-box">${articleHTML}</div>
+        const author = state.membersMap.get(newsItem.authorId);
+        const articleHTML = newsItem.content;
+        dom.mainContent.innerHTML = `
+            <section class="page-container news-detail-page">
+                <div class="container">
+                    <a href="#/news" class="btn-back"><span>بازگشت به اخبار</span></a>
+                    <div class="news-detail-meta-header">
+                        ${author ? `<div class="news-detail-author clickable-author" data-author-id="${author.id}"><img src="${author.imageUrl || DEFAULT_AVATAR_URL}" alt="${author.name}"><div><strong>${author.name}</strong><span>${author.role || 'عضو انجمن'}</span></div></div>` : ''}
+                        <div class="news-item-meta"><span>${newsItem.date}</span><span class="separator">&bull;</span><span>${newsItem.readingTime}</span></div>
                     </div>
-                </section>
-            `;
-        } catch (error) {
-            console.error(error);
-            dom.mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>خطا در بارگذاری محتوای خبر.</p></div>`;
-        }
+                    <div class="content-box">${articleHTML}</div>
+                </div>
+            </section>
+        `;
         return;
     }
 
-    // --- Other Pages Logic ---
-    if (path === '/') {
-        if (!state.pageCache['/']) state.pageCache['/'] = dom.mainContent.innerHTML;
-        dom.mainContent.innerHTML = state.pageCache['/'];
+    // 2. اگر مسیر مربوط به جزئیات رویداد بود
+    if (cleanPath.startsWith('/events/')) {
+        // صفحه اصلی رویدادها را رندر کن
+        if (!state.pageCache['/events']) {
+            const response = await fetch('events.html');
+            state.pageCache['/events'] = await response.text();
+        }
+        dom.mainContent.innerHTML = state.pageCache['/events'];
+        components.renderEventsPage();
+        
+        // و سپس مودال را باز کن
+        showEventModal(cleanPath);
+        return;
+    }
+
+    // --- مدیریت صفحات استاتیک ---
+    window.scrollTo(0, 0);
+    const pageKey = cleanPath === '/' ? 'home' : cleanPath.substring(1);
+    
+    if (pageKey === 'home' || cleanPath === '/') {
+        dom.mainContent.innerHTML = state.pageCache['/'] || ' ';
         components.loadLatestNews();
     } else {
-        const pageKey = path.substring(1);
-        if (state.pageCache[path]) {
-            dom.mainContent.innerHTML = state.pageCache[path];
+        if (state.pageCache[cleanPath]) {
+            dom.mainContent.innerHTML = state.pageCache[cleanPath];
         } else {
             try {
-                const response = await fetch(`${pageKey}.html`); // مسیر نسبی صحیح
-                if (!response.ok) throw new Error(`صفحه ${pageKey}.html یافت نشد.`);
+                const response = await fetch(`${pageKey}.html`);
+                if (!response.ok) throw new Error(`Page not found: ${pageKey}.html`);
                 const pageHTML = await response.text();
-                state.pageCache[path] = pageHTML;
+                state.pageCache[cleanPath] = pageHTML;
                 dom.mainContent.innerHTML = pageHTML;
             } catch (error) {
-                console.error(error);
                 location.hash = '#/';
                 return;
             }
         }
-        // --- Page-specific function calls ---
-        const pageRenderers = {
-            '/contact': initializeContactForm,
-            '/events': components.renderEventsPage,
-            '/members': components.renderMembersPage,
-            '/journal': components.renderJournalPage,
-            '/chart': components.renderChartPage,
-            '/news': () => {
-                state.loadedNewsCount = 0;
+    }
+    
+    const pageRenderers = {
+        '/contact': initializeContactForm,
+        '/events': components.renderEventsPage,
+        '/members': components.renderMembersPage,
+        '/journal': components.renderJournalPage,
+        '/chart': components.renderChartPage,
+        '/news': () => {
+            state.loadedNewsCount = 0;
+            components.loadMoreNews();
+            state.newsScrollHandler = () => {
+                if (state.isLoadingNews || window.innerHeight + window.scrollY < document.documentElement.scrollHeight - 200) return;
                 components.loadMoreNews();
-                state.newsScrollHandler = () => {
-                    if (state.isLoadingNews || window.innerHeight + window.scrollY < document.documentElement.scrollHeight - 200) return;
-                    components.loadMoreNews();
-                };
-                window.addEventListener('scroll', state.newsScrollHandler);
-            }
-        };
-        if (pageRenderers[path]) {
-            pageRenderers[path]();
+            };
+            window.addEventListener('scroll', state.newsScrollHandler);
         }
+    };
+    if (pageRenderers[cleanPath]) {
+        pageRenderers[cleanPath]();
     }
 };
 
-const getCurrentPath = () => location.hash.substring(1) || '/';
+const handleNavigation = () => {
+    const path = location.hash || '#/';
+    renderPage(path);
+};
 
-// --- Exported Initializer ---
 export const initializeRouter = () => {
-    window.addEventListener('hashchange', () => renderPage(getCurrentPath()));
-    renderPage(getCurrentPath()); // Initial render
+    window.addEventListener('popstate', handleNavigation);
+    handleNavigation(); // رندر اولیه
 };

@@ -1,42 +1,68 @@
-// js/modules/components.js
+// src/assets/js/modules/components.js (نسخه نهایی با بارگذاری بی‌نهایت)
+
 import { state, dom } from './state.js';
+import { supabaseClient } from './api.js'; // کلاینت را وارد می‌کنیم
 
-const DEFAULT_AVATAR_URL = 'assets/img/defualt-avatar.png'; // مسیر صحیح آواتار پیش‌فرض
+const DEFAULT_AVATAR_URL = 'assets/img/defualt-avatar.png';
 
-// --- Private Helper Functions ---
-const createAuthorHTML = (author) => {
-    if (!author) return '';
+// --- توابع کمکی خصوصی ---
+const createAuthorHTML = (authorId) => {
+    if (!authorId) return '';
+    // برای جلوگیری از خطا، اطلاعات نویسنده را از state می‌خوانیم
+    const authorInfo = state.membersMap.get(authorId);
+    if (!authorInfo) return '';
     return `
-        <div class="news-item-author clickable-author" data-author-id="${author.id}">
-            <img src="${author.imageUrl || DEFAULT_AVATAR_URL}" alt="${author.name}" class="author-photo">
+        <div class="news-item-author clickable-author" data-author-id="${authorInfo.id}">
+            <img src="${authorInfo.imageUrl || DEFAULT_AVATAR_URL}" alt="${authorInfo.name}" class="author-photo">
+            <span class="author-name">${authorInfo.name}</span>
         </div>
     `;
 };
 
-// --- Exported Renderer Functions ---
+// --- توابع رندرکننده عمومی ---
 export const loadLatestNews = () => {
     const newsGrid = document.querySelector('.news-grid');
     if (!newsGrid) return;
     newsGrid.innerHTML = '';
 
-    state.allNews.slice(0, 3).forEach(item => {
-        const newsCardHTML = `
-            <article class="news-card">
-                <a href="${item.link}" class="news-card-image-link">
-                    <img src="${item.image}" alt="${item.title}">
-                </a>
-                <div class="news-card-content">
-                    <a href="${item.link}"><h3>${item.title}</h3></a>
-                    <p>${item.summary}</p>
-                    <div class="news-card-footer">
-                        ${createAuthorHTML(state.membersMap.get(item.authorId))}
-                        <span class="news-meta">${item.date}</span>
+    // یک واکشی سریع برای ۳ خبر آخر در صفحه اصلی انجام می‌دهیم
+    (async () => {
+        const { data: latestNews, error } = await supabaseClient
+            .from('news')
+            .select('*')
+            .order('id', { ascending: false }) // جدیدترین‌ها
+            .range(0, 2); // ۳ خبر آخر
+
+        if (error || !latestNews) {
+            console.error("Could not load latest news", error);
+            return;
+        }
+
+        latestNews.forEach(item => {
+            const author = state.membersMap.get(item.authorId);
+            const authorName = author ? author.name : 'نویسنده';
+            const authorImage = author ? (author.imageUrl || DEFAULT_AVATAR_URL) : DEFAULT_AVATAR_URL;
+
+            const newsCardHTML = `
+                <article class="news-card">
+                    <a href="${item.link}" class="news-card-image-link">
+                        <img src="${item.image}" alt="${item.title}">
+                    </a>
+                    <div class="news-card-content">
+                        <a href="${item.link}"><h3>${item.title}</h3></a>
+                        <p>${item.summary}</p>
+                        <div class="news-card-footer">
+                             <div class="news-item-author clickable-author" data-author-id="${item.authorId}">
+                                <img src="${authorImage}" alt="${authorName}" class="author-photo">
+                             </div>
+                            <span class="news-meta">${item.date}</span>
+                        </div>
                     </div>
-                </div>
-            </article>
-        `;
-        newsGrid.insertAdjacentHTML('beforeend', newsCardHTML);
-    });
+                </article>
+            `;
+            newsGrid.insertAdjacentHTML('beforeend', newsCardHTML);
+        });
+    })();
 };
 
 const renderNewsItems = (items) => {
@@ -55,10 +81,10 @@ const renderNewsItems = (items) => {
         cardClone.querySelector('.news-item-title-link').href = item.link;
         cardClone.querySelector('.news-item-summary').textContent = item.summary;
         cardClone.querySelector('.news-item-date').textContent = item.date;
-        cardClone.querySelector('.news-item-author').innerHTML = createAuthorHTML(author);
+        cardClone.querySelector('.news-item-author').innerHTML = createAuthorHTML(item.authorId);
 
         const tagsContainer = cardClone.querySelector('.news-item-tags');
-        if (tagsContainer) {
+        if (tagsContainer && item.tags && Array.isArray(item.tags)) {
             tagsContainer.innerHTML = '';
             item.tags.forEach(([text, color]) => {
                 const tagEl = document.createElement('span');
@@ -72,28 +98,57 @@ const renderNewsItems = (items) => {
     });
 };
 
-export const loadMoreNews = () => {
-    if (state.isLoadingNews || (state.loadedNewsCount > 0 && state.loadedNewsCount >= state.allNews.length)) return;
+// --- تابع بازنویسی شده برای بارگذاری بی‌نهایت ---
+export const loadMoreNews = async () => {
+    if (state.isLoadingNews) return;
 
     state.isLoadingNews = true;
     const loader = dom.mainContent.querySelector('#news-loader');
-    if (loader) loader.style.display = 'block';
+    if (loader) {
+        loader.textContent = "در حال بارگذاری...";
+        loader.style.display = 'block';
+    }
 
-    const newsToLoad = state.allNews.slice(state.loadedNewsCount, state.loadedNewsCount + state.NEWS_PER_PAGE);
 
-    setTimeout(() => {
-        renderNewsItems(newsToLoad);
-        state.loadedNewsCount += newsToLoad.length;
+    const from = state.loadedNewsCount;
+    const to = from + state.NEWS_PER_PAGE - 1;
+
+    // واکشی دسته بعدی از Supabase
+    const { data: newsToLoad, error } = await supabaseClient
+        .from('news')
+        .select('*')
+        .order('id', { ascending: false }) // مرتب‌سازی بر اساس جدیدترین
+        .range(from, to);
+
+    if (error) {
+        console.error("Error fetching more news:", error);
         state.isLoadingNews = false;
         if (loader) loader.style.display = 'none';
+        return;
+    }
 
-        if (state.loadedNewsCount >= state.allNews.length) {
-            if (state.newsScrollHandler) window.removeEventListener('scroll', state.newsScrollHandler);
-            if (loader) loader.textContent = "پایان لیست اخبار";
+    if (newsToLoad && newsToLoad.length > 0) {
+        renderNewsItems(newsToLoad);
+        state.loadedNewsCount += newsToLoad.length;
+    }
+
+    state.isLoadingNews = false;
+    if (loader) loader.style.display = 'none';
+
+    // اگر خبری برای بارگذاری وجود نداشت، به کاربر اطلاع بده
+    if (!newsToLoad || newsToLoad.length < state.NEWS_PER_PAGE) {
+        if (state.newsScrollHandler) {
+            window.removeEventListener('scroll', state.newsScrollHandler);
+            state.newsScrollHandler = null; // جلوگیری از درخواست‌های اضافی
         }
-    }, 500);
+        if (loader) {
+            loader.textContent = "پایان لیست اخبار";
+            loader.style.display = 'block';
+        }
+    }
 };
 
+// --- بقیه توابع (بدون تغییر از نسخه اصلی شما) ---
 export const renderMembersPage = () => {
     const membersGrid = dom.mainContent.querySelector('.members-grid');
     const template = document.getElementById('member-card-template');
@@ -102,7 +157,6 @@ export const renderMembersPage = () => {
 
     state.membersMap.forEach(member => {
         const cardClone = template.content.cloneNode(true);
-        // ... (منطق کامل رندر کارت اعضا اینجا قرار می‌گیرد) ...
         cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
         cardClone.querySelector('.member-photo').alt = member.name;
         cardClone.querySelector('.member-name').textContent = member.name;
@@ -143,7 +197,6 @@ export const renderMembersPage = () => {
 };
 
 export const renderEventsPage = () => {
-    // ... (منطق کامل رندر صفحه رویدادها اینجا قرار می‌گیرد) ...
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -171,7 +224,6 @@ export const renderEventsPage = () => {
         }
         events.forEach(event => {
             const card = template.content.cloneNode(true);
-            // ... (بقیه منطق پر کردن کارت رویداد)
             card.querySelector('.event-card-image-link').href = event.detailPage;
             card.querySelector('.event-card-image').src = event.image;
             card.querySelector('.event-card-image').alt = event.title;
@@ -336,5 +388,3 @@ export const renderChartPage = () => {
         container.appendChild(semesterDiv);
     });
 };
-
-//eeeee
