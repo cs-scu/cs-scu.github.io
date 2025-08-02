@@ -287,7 +287,9 @@ export const renderEventsPage = () => {
     });
     const initiallyActiveTab = dom.mainContent.querySelector('.tab-link.active');
     if (initiallyActiveTab) {
-        setTimeout(() => moveHighlighter(initiallyActiveTab), 100);
+        requestAnimationFrame(() => {
+            moveHighlighter(initiallyActiveTab);
+        });
     }
 };
 
