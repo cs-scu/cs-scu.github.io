@@ -12,22 +12,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const initializeParticles = () => {
         if (typeof tsParticles === 'undefined') return;
-        tsParticles.load("particles-js", {
-            background: { color: { value: 'transparent' } },
-            particles: {
-                number: { value: 150, density: { enable: true, value_area: 800 } },
-                color: { value: "#e8c38e" },
-                shape: { type: "circle" },
-                opacity: { value: { min: 0.1, max: 0.5 }, animation: { enable: true, speed: 1.5, minimumValue: 0.1, sync: false } },
-                size: { value: { min: 1, max: 2.5 } },
-                move: { enable: true, speed: 0.3, direction: "none", random: true, straight: false, out_mode: "out" },
-                shadow: { enable: true, color: "#e8c38e", blur: 10 }
-            },
-            interactivity: { events: { onhover: { enable: true, mode: "bubble" } }, modes: { bubble: { distance: 200, duration: 2, opacity: 1, size: 3 } } },
-        }).then(container => {
-            state.particlesInstance = container;
-            initializeTheme();
-        });
+
+        setTimeout(() => {
+            const isDark = document.body.classList.contains('dark-theme');
+            const particleColor = isDark ? '#e8c38e' : '#555555';
+            const shadowEnabled = isDark;
+
+            tsParticles.load("particles-js", {
+                background: { color: { value: 'transparent' } },
+                particles: {
+                    number: { value: 100, density: { enable: true, value_area: 900 } },
+                    color: { value: particleColor },
+                    shape: { type: "circle" },
+                    opacity: { value: { min: 0.1, max: 0.5 }, animation: { enable: true, speed: 1.5, minimumValue: 0.1, sync: false } },
+                    size: { value: { min: 1, max: 2.5 } },
+                    move: { enable: true, speed: 0.4, direction: "none", random: true, straight: false, out_mode: "out" },
+                    shadow: { enable: shadowEnabled, color: "#e8c38e", blur: 7 }
+                },
+                interactivity: { events: { onhover: { enable: true, mode: "bubble" } }, modes: { bubble: { distance: 200, duration: 2, opacity: 1, size: 3 } } },
+            }).then(container => {
+                state.particlesInstance = container;
+                const particlesElement = document.getElementById('particles-js');
+                if (particlesElement) {
+                    particlesElement.style.opacity = '1';
+                }
+            });
+        }, 3000); 
     };
 
     const initializeFonts = () => {
@@ -54,16 +64,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const initializeApp = async () => {
         setInitialState();
+        initializeTheme();
         initializeParticles();
         initializeGlobalUI();
-        await loadMembers(); // Load only essential data initially
+        await loadMembers(); 
         initializeRouter();
 
         if (preloader) {
             preloader.classList.add('hidden');
             setTimeout(() => {
                 document.body.classList.remove('preloader-active');
-            }, 200);
+            }, 200); 
         }
     };
 
