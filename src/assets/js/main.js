@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     particlesElement.style.opacity = '1';
                 }
             });
-        }, 3000); 
+        }, 2000); 
     };
 
     const initializeFonts = () => {
