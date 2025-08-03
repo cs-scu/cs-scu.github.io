@@ -51,9 +51,10 @@ export const signOut = async () => {
 export const getProfile = async () => {
     if (!state.user) return null;
     try {
+        // تغییر: ستون avatar_url را نیز انتخاب می‌کنیم
         const { data, error, status } = await supabaseClient
             .from('profiles')
-            .select(`first_name, last_name, role, telegram_id, telegram_username`)
+            .select(`first_name, last_name, role, telegram_id, telegram_username, avatar_url`)
             .eq('id', state.user.id)
             .single();
             
@@ -104,10 +105,8 @@ export const checkUserExists = async (email) => {
     return data;
 };
 
-// این تابع منطق کامل اتصال تلگرام را مدیریت می‌کند
 export const connectTelegramAccount = async (telegramData) => {
     try {
-        // ۱. فراخوانی تابع بک‌اند برای تأیید هش
         const { data: verificationResult, error: verificationError } = await supabaseClient.functions.invoke('verify-telegram-auth', {
             body: telegramData,
         });
@@ -117,18 +116,18 @@ export const connectTelegramAccount = async (telegramData) => {
             throw new Error(verificationResult.error || 'خطا در تأیید اطلاعات تلگرام.');
         }
 
-        // ۲. دریافت اطلاعات کاربر از نتیجه
-        const { id, username } = verificationResult.telegramUser;
+        // تغییر: photo_url را از نتیجه دریافت می‌کنیم
+        const { id, username, photo_url } = verificationResult.telegramUser;
 
-        // ۳. ذخیره اطلاعات در پروفایل کاربر فعلی
+        // تغییر: photo_url را به عنوان avatar_url ذخیره می‌کنیم
         const { error: updateError } = await updateProfile({
             telegram_id: id,
             telegram_username: username,
+            avatar_url: photo_url 
         });
 
         if (updateError) throw updateError;
         
-        // ۴. برگرداندن نتیجه موفقیت‌آمیز
         return { success: true, error: null };
 
     } catch (error) {

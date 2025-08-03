@@ -1777,3 +1777,16 @@ body.light-theme .user-menu-item:hover #logout-btn:hover {
     color: var(--primary-color-light-theme);
     background-color: transparent; /* Override parent hover */
 }
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-left: 12px; /* برای ایجاد فاصله با نام کاربر */
+    border: 2px solid var(--glass-border-dark);
+}
+
+body.light-theme .user-avatar {
+    border-color: var(--glass-border-light);
+}
