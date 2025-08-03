@@ -1,6 +1,6 @@
 // src/assets/js/modules/ui.js
 import { state, dom } from './state.js';
-import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, updateUserPassword, updateProfile, getProfile, verifyTelegramAuth } from './api.js';
+import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, updateUserPassword, updateProfile, getProfile, connectTelegramAccount } from './api.js';
 
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
@@ -22,13 +22,25 @@ export const showProfileModal = () => {
     const genericModalContent = document.getElementById('generic-modal-content');
     if (!genericModal || !genericModalContent) return;
 
-    const telegramConnectHTML = `
-        <hr style="margin: 2rem 0;">
-        <h4>اتصال حساب تلگرام</h4>
-        <p>حساب تلگرام خود را برای تکمیل پروفایل و ورود آسان‌تر متصل کنید.</p>
-        <div id="telegram-login-widget-container" style="margin-top: 1.5rem;">
-        </div>
-    `;
+    // --- شروع تغییرات ---
+    let telegramConnectHTML = '';
+
+    // بررسی می‌کنیم آیا کاربر قبلاً متصل شده است یا نه
+    if (profile?.telegram_id) {
+        telegramConnectHTML = `
+            <div class="telegram-connected-info" style="text-align: center; padding: 1rem; margin-top: 1.5rem; border-radius: 8px; background-color: rgba(0, 255, 100, 0.1); color: #96ff6f;">
+                <p style="margin:0;">✅ حساب تلگرام شما با نام کاربری <strong>@${profile.telegram_username}</strong> متصل است.</p>
+            </div>
+        `;
+    } else {
+        // اگر متصل نشده بود، دکمه را نمایش می‌دهیم
+        telegramConnectHTML = `
+            <h4>اتصال حساب تلگرام</h4>
+            <p>حساب تلگرام خود را برای تکمیل پروفایل و ورود آسان‌تر متصل کنید.</p>
+            <div id="telegram-login-widget-container" style="margin-top: 1.5rem;"></div>
+        `;
+    }
+    // --- پایان تغییرات ---
 
     const modalHtml = `
         <div class="content-box" style="padding-top: 4rem;">
@@ -47,6 +59,7 @@ export const showProfileModal = () => {
                 <br>
                 <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
             </form>
+            <hr style="margin: 2rem 0;">
             ${telegramConnectHTML}
         </div>
     `;
@@ -56,23 +69,25 @@ export const showProfileModal = () => {
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
 
-    const script = document.createElement('script');
-    script.src = 'https://telegram.org/js/telegram-widget.js?22';
-    script.async = true;
-    script.setAttribute('data-telegram-login', 'scu_cs_bot'); // !!! نام کاربری ربات خود را اینجا قرار دهید
-    script.setAttribute('data-size', 'large');
-    script.setAttribute('data-radius', '10');
-    
-    // **اصلاح نهایی:** آدرس را به صورت ثابت و با www قرار می‌دهیم
-    script.setAttribute('data-auth-url', 'https://www.cs-scu.ir/#/telegram-auth'); 
-    
-    script.setAttribute('data-request-access', 'write');
+    // --- شروع تغییرات ---
+    // ویجت تلگرام را فقط در صورتی که نیاز باشد، رندر می‌کنیم
+    if (!profile?.telegram_id) {
+        const script = document.createElement('script');
+        script.src = 'https://telegram.org/js/telegram-widget.js?22';
+        script.async = true;
+        script.setAttribute('data-telegram-login', 'scu_cs_bot');
+        script.setAttribute('data-size', 'large');
+        script.setAttribute('data-radius', '10');
+        script.setAttribute('data-auth-url', 'https://www.cs-scu.ir/#/telegram-auth'); 
+        script.setAttribute('data-request-access', 'write');
 
-    const container = document.getElementById('telegram-login-widget-container');
-    if (container.firstChild) {
-        container.removeChild(container.firstChild);
+        const container = document.getElementById('telegram-login-widget-container');
+        if (container.firstChild) {
+            container.removeChild(container.firstChild);
+        }
+        container.appendChild(script);
     }
-    container.appendChild(script);
+    // --- پایان تغییرات ---
 
     const profileForm = genericModalContent.querySelector('#profile-form');
     const statusBox = profileForm.querySelector('.form-status');
@@ -99,6 +114,8 @@ export const showProfileModal = () => {
     });
 };
 
+// --- شروع تغییرات ---
+// این تابع بسیار ساده‌تر می‌شود
 export const handleTelegramAuth = async () => {
     const hash = window.location.hash;
     const queryString = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
@@ -114,17 +131,18 @@ export const handleTelegramAuth = async () => {
     mainContent.innerHTML = `
         <div class="container" style="text-align:center; padding: 5rem 0;">
             <h2>در حال اتصال حساب تلگرام...</h2>
-            <p>لطفاً منتظر بمانید، در حال تأیید اطلاعات شما هستیم.</p>
+            <p>لطفاً منتظر بمانید، در حال تأیید و ذخیره اطلاعات شما هستیم.</p>
         </div>
     `;
 
-    const { data, error } = await verifyTelegramAuth(authData);
+    // فراخوانی تابع اصلی از api.js
+    const { success, error } = await connectTelegramAccount(authData);
 
-    if (error || !data.success) {
+    if (!success) {
         mainContent.innerHTML = `
             <div class="container" style="text-align:center; padding: 5rem 0;">
                 <h2>خطا در اتصال</h2>
-                <p>${data?.error || 'یک خطای ناشناخته رخ داد. لطفاً دوباره تلاش کنید.'}</p>
+                <p>${error || 'یک خطای ناشناخته رخ داد. لطفاً دوباره تلاش کنید.'}</p>
                 <a href="#/" class="btn btn-secondary" style="margin-top: 1rem;">بازگشت به صفحه اصلی</a>
             </div>
         `;
@@ -136,6 +154,7 @@ export const handleTelegramAuth = async () => {
                 <p>در حال بازگشت به صفحه اصلی...</p>
             </div>
         `;
+        // به‌روزرسانی UI با اطلاعات جدید
         const updatedProfile = await getProfile();
         updateUserUI(state.user, updatedProfile);
         setTimeout(() => {
@@ -143,6 +162,7 @@ export const handleTelegramAuth = async () => {
         }, 2500);
     }
 };
+// --- پایان تغییرات ---
 
 export const initializeAuthForm = () => {
     const form = dom.mainContent.querySelector('#auth-form');
