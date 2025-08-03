@@ -59,7 +59,7 @@ export const showProfileModal = () => {
     const script = document.createElement('script');
     script.src = 'https://telegram.org/js/telegram-widget.js?22';
     script.async = true;
-    script.setAttribute('data-telegram-login', 'YOUR_BOT_USERNAME_HERE'); // !!! نام کاربری ربات خود را اینجا قرار دهید
+    script.setAttribute('data-telegram-login', 'scu_cs_bot'); // !!! نام کاربری ربات خود را اینجا قرار دهید
     script.setAttribute('data-size', 'large');
     script.setAttribute('data-radius', '10');
     
