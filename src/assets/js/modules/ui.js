@@ -63,11 +63,8 @@ export const showProfileModal = () => {
     script.setAttribute('data-size', 'large');
     script.setAttribute('data-radius', '10');
     
-    const authUrl = `${window.location.origin}${window.location.pathname}#/telegram-auth`;
-    script.setAttribute('data-auth-url', authUrl); 
-    
-    console.log("آدرس ارسال شده به تلگرام:", authUrl);
-    console.log("دامنه‌ای که باید در BotFather ثبت شود:", window.location.hostname);
+    // **اصلاح نهایی:** آدرس را به صورت ثابت و با www قرار می‌دهیم
+    script.setAttribute('data-auth-url', 'https://www.cs-scu.ir/#/telegram-auth'); 
     
     script.setAttribute('data-request-access', 'write');
 
@@ -103,14 +100,10 @@ export const showProfileModal = () => {
 };
 
 export const handleTelegramAuth = async () => {
-    // --- تغییر کلیدی برای دیباگ ---
-    // اطلاعات را از location.hash می‌خوانیم، نه location.search
     const hash = window.location.hash;
     const queryString = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
     const urlParams = new URLSearchParams(queryString);
     const authData = Object.fromEntries(urlParams.entries());
-    // -------------------------
-
     const mainContent = dom.mainContent;
 
     if (!authData.hash) {
@@ -146,7 +139,6 @@ export const handleTelegramAuth = async () => {
         const updatedProfile = await getProfile();
         updateUserUI(state.user, updatedProfile);
         setTimeout(() => {
-            // بازگشت به صفحه اصلی با استفاده از روش استاندارد SPA
             location.hash = '#/';
         }, 2500);
     }
