@@ -31,10 +31,11 @@ export const showProfileModal = () => {
             </div>
         `;
     } else {
+        // تغییر: بخش اتصال تلگرام در مرکز قرار می‌گیرد
         telegramConnectHTML = `
             <h4>اتصال حساب تلگرام</h4>
             <p>حساب تلگرام خود را برای تکمیل پروفایل و ورود آسان‌تر متصل کنید.</p>
-            <div id="telegram-login-widget-container" style="margin-top: 1.5rem;"></div>
+            <div id="telegram-login-widget-container" style="margin-top: 1.5rem; display: flex; justify-content: center;"></div>
         `;
     }
 
@@ -43,13 +44,16 @@ export const showProfileModal = () => {
             <h2>پروفایل کاربری</h2>
             <p>اطلاعات خود را تکمیل یا ویرایش کنید.</p>
             <form id="profile-form">
-                <div class="form-group">
-                    <label for="first-name">نام</label>
-                    <input type="text" id="first-name" name="first-name" value="${profile?.first_name || ''}" required>
-                </div>
-                <div class="form-group">
-                    <label for="last-name">نام خانوادگی</label>
-                    <input type="text" id="last-name" name="last-name" value="${profile?.last_name || ''}" required>
+                <!-- تغییر: نام و نام خانوادگی در یک ردیف قرار می‌گیرند -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first-name">نام</label>
+                        <input type="text" id="first-name" name="first-name" value="${profile?.first_name || ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="last-name">نام خانوادگی</label>
+                        <input type="text" id="last-name" name="last-name" value="${profile?.last_name || ''}" required>
+                    </div>
                 </div>
                 <div class="form-status"></div>
                 <br>
@@ -76,10 +80,12 @@ export const showProfileModal = () => {
         script.setAttribute('data-request-access', 'write');
 
         const container = document.getElementById('telegram-login-widget-container');
-        if (container.firstChild) {
-            container.removeChild(container.firstChild);
+        if (container) {
+            if (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+            container.appendChild(script);
         }
-        container.appendChild(script);
     }
 
     const profileForm = genericModalContent.querySelector('#profile-form');
@@ -147,12 +153,9 @@ export const handleTelegramAuth = async () => {
         const updatedProfile = await getProfile();
         updateUserUI(state.user, updatedProfile);
         
-        // --- شروع تغییرات ---
-        // کاربر را به مسیر ویژه‌ای هدایت می‌کنیم تا مودال پروفایل باز شود
         setTimeout(() => {
             location.hash = '#/profile-updated';
         }, 1500);
-        // --- پایان تغییرات ---
     }
 };
 
@@ -265,6 +268,8 @@ export const updateUserUI = (user, profile) => {
     const userInfo = document.getElementById('user-info');
     const welcomeMsg = document.getElementById('user-welcome-message');
     const adminLink = document.getElementById('admin-panel-link');
+    // تغییر: المان تصویر کاربر را دریافت می‌کنیم
+    const userAvatar = document.getElementById('user-avatar');
 
     if (user) {
         if (authLink) authLink.style.display = 'none';
@@ -273,6 +278,12 @@ export const updateUserUI = (user, profile) => {
         if (welcomeMsg) {
             const displayName = (profile?.first_name && profile?.last_name) ? `${profile.first_name} ${profile.last_name}` : user.email.split('@')[0];
             welcomeMsg.textContent = `سلام، ${displayName}`;
+        }
+        
+        // تغییر: تصویر کاربر را تنظیم می‌کنیم
+        if (userAvatar) {
+            userAvatar.src = profile?.avatar_url || DEFAULT_AVATAR_URL;
+            userAvatar.style.display = 'block';
         }
         
         if (adminLink) {
@@ -286,6 +297,10 @@ export const updateUserUI = (user, profile) => {
         if (authLink) authLink.style.display = 'flex';
         if (userInfo) userInfo.style.display = 'none';
         if (adminLink) adminLink.style.display = 'none';
+        // تغییر: تصویر کاربر را مخفی می‌کنیم
+        if (userAvatar) {
+            userAvatar.style.display = 'none';
+        }
     }
 };
 
