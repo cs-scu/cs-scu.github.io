@@ -67,6 +67,11 @@ export const showProfileModal = () => {
     const authUrl = `${window.location.origin}${window.location.pathname}#/telegram-auth`;
     script.setAttribute('data-auth-url', authUrl); 
     
+    // --- خط جدید برای دیباگ ---
+    console.log("آدرس ارسال شده به تلگرام:", authUrl);
+    console.log("دامنه‌ای که باید در BotFather ثبت شود:", window.location.hostname);
+    // -------------------------
+    
     script.setAttribute('data-request-access', 'write');
 
     const container = document.getElementById('telegram-login-widget-container');
