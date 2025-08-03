@@ -51,7 +51,6 @@ export const signOut = async () => {
 export const getProfile = async () => {
     if (!state.user) return null;
     try {
-        // تغییر: ستون avatar_url را نیز انتخاب می‌کنیم
         const { data, error, status } = await supabaseClient
             .from('profiles')
             .select(`first_name, last_name, role, telegram_id, telegram_username, avatar_url`)
@@ -79,7 +78,8 @@ export const updateProfile = async (profileData) => {
         const { error } = await supabaseClient.from('profiles').upsert(updates);
         if (error) throw error;
         
-        Object.assign(state.profile, profileData);
+        // Fetch the latest profile to ensure state is in sync
+        await getProfile();
         
         return { error: null };
     } catch (error) {
@@ -107,26 +107,19 @@ export const checkUserExists = async (email) => {
 
 export const connectTelegramAccount = async (telegramData) => {
     try {
-        const { data: verificationResult, error: verificationError } = await supabaseClient.functions.invoke('verify-telegram-auth', {
+        // The logic is now handled by the Edge Function. 
+        // The client just needs to call the function.
+        const { data: result, error } = await supabaseClient.functions.invoke('verify-telegram-auth', {
             body: telegramData,
         });
 
-        if (verificationError) throw verificationError;
-        if (!verificationResult.success) {
-            throw new Error(verificationResult.error || 'خطا در تأیید اطلاعات تلگرام.');
+        if (error) throw error;
+        if (!result.success) {
+            throw new Error(result.error || 'خطا در پردازش اطلاعات تلگرام.');
         }
-
-        // تغییر: photo_url را از نتیجه دریافت می‌کنیم
-        const { id, username, photo_url } = verificationResult.telegramUser;
-
-        // تغییر: photo_url را به عنوان avatar_url ذخیره می‌کنیم
-        const { error: updateError } = await updateProfile({
-            telegram_id: id,
-            telegram_username: username,
-            avatar_url: photo_url 
-        });
-
-        if (updateError) throw updateError;
+        
+        // After the function successfully runs, refetch the profile to get the latest data
+        await getProfile();
         
         return { success: true, error: null };
 

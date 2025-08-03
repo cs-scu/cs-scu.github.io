@@ -1393,7 +1393,8 @@ body.light-theme .course-card-chart.is-prereq {
     .modal-overlay.is-open .modal-content {
         transform: translateY(0); /* Slide in */
     }
-    /* Special modal for member cards, full screen */
+    
+    /* FIX: Styles for full-screen member card modal on mobile */
     #generic-modal:not(.wide-modal) .modal-content {
         height: 100%;
         max-height: 100%;
@@ -1402,7 +1403,15 @@ body.light-theme .course-card-chart.is-prereq {
         align-items: center;
         justify-content: center;
         transform: translateY(0);
+        position: relative; /* Needed for absolute positioning of close button */
     }
+    body.dark-theme #generic-modal:not(.wide-modal) .modal-content {
+        background-color: var(--background-color-dark);
+    }
+    body.light-theme #generic-modal:not(.wide-modal) .modal-content {
+        background-color: var(--background-color-light);
+    }
+    
     /* Add padding for modals with content to not be under the close button */
     #generic-modal.wide-modal .modal-content,
     #register-modal .modal-content {
@@ -1462,17 +1471,20 @@ body.light-theme .course-card-chart.is-prereq {
     }
     .journal-card-summary { max-height: 100px; opacity: 1; }
     .journal-card-download { transform: scale(1); }
-    #generic-modal:not(.wide-modal) .close-modal{position: inherit;}
-    /* Positioning and style for the close button in the special card-style modal */
+
+    /* FIX: Correct positioning for close button on member modal */
     #generic-modal:not(.wide-modal) .close-modal {
-        top: -9rem;
-        right: -6rem;
-        background: rgba(0,0,0,0.5);
-        color: #fff;
-    }
-    #generic-modal-content{
         position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: rgba(128, 128, 128, 0.3);
+        color: inherit;
     }
+
+    /* REMOVED: Faulty rule for generic-modal-content */
+    /* #generic-modal-content{
+        position: absolute;
+    } */
 
 }
 
