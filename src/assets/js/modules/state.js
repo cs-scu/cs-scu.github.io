@@ -1,5 +1,10 @@
 // js/modules/state.js
 export const state = {
+    // Auth state
+    user: null,
+    session: null,
+    profile: null, // برای نگهداری اطلاعات پروفایل کاربر
+
     // Data stores
     allNews: [],
     membersMap: new Map(),
@@ -7,13 +12,13 @@ export const state = {
     allJournalIssues: [],
     allCourses: [],
     coursePrerequisites: [],
-    
+
     // Page cache
     pageCache: {},
-    
+
     // Instances
     particlesInstance: null,
-    
+
     // News page state
     loadedNewsCount: 0,
     NEWS_PER_PAGE: 10,
@@ -24,5 +29,4 @@ export const state = {
 export const dom = {
     body: document.body,
     mainContent: document.querySelector('main'),
-    // ... می‌توانید سایر عناصر DOM پرکاربرد را اینجا اضافه کنید
 };

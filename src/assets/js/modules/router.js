@@ -1,9 +1,8 @@
-// src/assets/js/modules/router.js (نسخه نهایی با مدیریت مودال)
-
+// src/assets/js/modules/router.js
 import { state, dom } from './state.js';
-import { initializeContactForm, showEventModal } from './ui.js';
+import { initializeAuthForm, initializeContactForm, showEventModal, handleTelegramAuth } from './ui.js';
 import * as components from './components.js';
-import { supabaseClient, loadEvents, loadJournal, loadChartData, getBaseUrl } from './api.js';
+import { supabaseClient, loadEvents, loadJournal, loadChartData } from './api.js';
 
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
@@ -40,13 +39,16 @@ const cleanupPageSpecifics = (newPath) => {
     }
 };
 
-
 const renderPage = async (path) => {
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
     cleanupPageSpecifics(cleanPath);
     updateActiveLink(cleanPath);
     
-    // 1. اگر مسیر مربوط به جزئیات خبر بود
+    if (cleanPath.startsWith('/telegram-auth')) {
+        await handleTelegramAuth();
+        return;
+    }
+
     if (cleanPath.startsWith('/news/')) {
         window.scrollTo(0, 0);
         const newsLink = `#${cleanPath}`;
@@ -75,7 +77,6 @@ const renderPage = async (path) => {
         return;
     }
 
-    // 2. اگر مسیر مربوط به جزئیات رویداد بود
     if (cleanPath.startsWith('/events/')) {
         await loadEvents();
         if (!state.pageCache['/events']) {
@@ -88,7 +89,6 @@ const renderPage = async (path) => {
         return;
     }
 
-    // --- مدیریت صفحات استاتیک ---
     window.scrollTo(0, 0);
     const pageKey = cleanPath === '/' || cleanPath === '' ? 'home' : cleanPath.substring(1);
     const pageFile = pageKey === 'home' ? 'index.html' : `${pageKey}.html`;
@@ -114,6 +114,12 @@ const renderPage = async (path) => {
     }
     
     const pageRenderers = {
+        '/login': initializeAuthForm,
+        '/admin': () => {
+            if (state.profile?.role !== 'admin') {
+                location.hash = '#/';
+            }
+        },
         '/contact': initializeContactForm,
         '/events': async () => { await loadEvents(); components.renderEventsPage(); },
         '/members': components.renderMembersPage,
@@ -141,5 +147,5 @@ const handleNavigation = () => {
 
 export const initializeRouter = () => {
     window.addEventListener('popstate', handleNavigation);
-    handleNavigation(); // رندر اولیه
+    handleNavigation();
 };

@@ -1,21 +1,132 @@
 // src/assets/js/modules/api.js
+import { state } from './state.js';
 
-import { state, dom } from './state.js';
-
-// --- Supabase Initialization ---
 const supabaseUrl = 'https://vgecvbadhoxijspowemu.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnZWN2YmFkaG94aWpzcG93ZW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0NDI5MjksImV4cCI6MjA2OTAxODkyOX0.4XW_7NUcidoa9nOGO5BrJvreITjg-vuUzsQbSH87eaU';
-
 export const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-// --- Base URL for assets from Supabase Storage ---
+// --- Auth & Profile Functions ---
+export const getSession = async () => {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) console.error("Error getting session:", error);
+    state.session = data.session;
+    state.user = data.session?.user ?? null;
+    return data.session;
+};
+
+export const sendSignupOtp = async (email) => {
+    return await supabaseClient.auth.signInWithOtp({ email });
+};
+
+export const sendPasswordResetOtp = async (email) => {
+    return await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: undefined,
+    });
+};
+
+export const verifyOtp = async (email, token) => {
+    return await supabaseClient.auth.verifyOtp({ email, token, type: 'email' });
+};
+
+export const signInWithPassword = async (email, password) => {
+    return await supabaseClient.auth.signInWithPassword({ email, password });
+};
+
+export const updateUserPassword = async (newPassword) => {
+    return await supabaseClient.auth.updateUser({ password: newPassword });
+};
+
+export const signOut = async () => {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) {
+        console.error("Error signing out:", error);
+    } else {
+        state.user = null;
+        state.session = null;
+        state.profile = null;
+        location.hash = '#/';
+    }
+};
+
+export const getProfile = async () => {
+    if (!state.user) return null;
+    try {
+        const { data, error, status } = await supabaseClient
+            .from('profiles')
+            .select(`first_name, last_name, role`)
+            .eq('id', state.user.id)
+            .single();
+        if (error && status !== 406) throw error;
+        
+        state.profile = data; // Set state
+        return data; // Return data directly
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+        return null;
+    }
+};
+
+export const updateProfile = async (profileData) => {
+    if (!state.user) return { error: 'User not logged in' };
+    try {
+        const updates = {
+            ...profileData,
+            id: state.user.id,
+            updated_at: new Date(),
+        };
+        const { error } = await supabaseClient.from('profiles').upsert(updates);
+        if (error) throw error;
+        
+        Object.assign(state.profile, profileData);
+        
+        return { error: null };
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        return { error };
+    }
+};
+
+export const onAuthStateChange = (callback) => {
+    supabaseClient.auth.onAuthStateChange((_event, session) => {
+        state.session = session;
+        state.user = session?.user ?? null;
+        callback(state.user);
+    });
+};
+
+export const checkUserExists = async (email) => {
+    const { data, error } = await supabaseClient.rpc('user_exists', { user_email: email });
+    if (error) {
+        console.error("Error checking user existence:", error);
+        return false;
+    }
+    return data;
+};
+
+/**
+ * اطلاعات احراز هویت تلگرام را برای تأیید به سرور ارسال می‌کند.
+ * @param {object} telegramData - داده‌های دریافت شده از URL تلگرام.
+ * @returns {Promise<{data: any, error: Error | null}>}
+ */
+export const verifyTelegramAuth = async (telegramData) => {
+    try {
+        const { data, error } = await supabaseClient.functions.invoke('verify-telegram-auth', {
+            body: telegramData,
+        });
+        if (error) throw error;
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error invoking verify-telegram-auth function:', error);
+        return { data: null, error };
+    }
+};
+
+// --- Other Data Fetching Functions ---
 export const getBaseUrl = () => {
     const supabaseProjectUrl = 'https://vgecvbadhoxijspowemu.supabase.co';
     const bucketName = 'assets';
     return `${supabaseProjectUrl}/storage/v1/object/public/${bucketName}/`;
 };
-
-// --- Optimized Data Fetching ---
 export const loadMembers = async () => {
     if (state.membersMap.size > 0) return;
     try {
@@ -26,7 +137,6 @@ export const loadMembers = async () => {
         console.error("Failed to load members:", error);
     }
 };
-
 export const loadEvents = async () => {
     if (state.allEvents.length > 0) return;
     try {
@@ -37,7 +147,6 @@ export const loadEvents = async () => {
         console.error("Failed to load events:", error);
     }
 };
-
 export const loadJournal = async () => {
     if (state.allJournalIssues.length > 0) return;
     try {
@@ -48,7 +157,6 @@ export const loadJournal = async () => {
         console.error("Failed to load journal issues:", error);
     }
 };
-
 export const loadChartData = async () => {
     if (state.allCourses.length > 0) return;
     try {

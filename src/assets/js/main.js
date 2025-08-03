@@ -1,8 +1,8 @@
 // js/main.js
 import { state, dom } from './modules/state.js';
-import { loadMembers } from './modules/api.js';
+import { loadMembers, getSession, onAuthStateChange, signOut, getProfile } from './modules/api.js';
 import { initializeTheme } from './modules/theme.js';
-import { initializeGlobalUI } from './modules/ui.js';
+import { initializeGlobalUI, updateUserUI } from './modules/ui.js';
 import { initializeRouter } from './modules/router.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -55,6 +55,21 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeTheme();
         initializeParticles();
         initializeGlobalUI();
+        
+        document.getElementById('logout-btn')?.addEventListener('click', signOut);
+
+        const handleAuthChange = async (user) => {
+            let profile = null;
+            if (user) {
+                profile = await getProfile();
+            }
+            updateUserUI(user, profile); 
+        };
+
+        await getSession();
+        await handleAuthChange(state.user); 
+        onAuthStateChange(handleAuthChange);
+
         await loadMembers(); 
         initializeRouter();
 
