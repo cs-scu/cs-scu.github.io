@@ -22,10 +22,8 @@ export const showProfileModal = () => {
     const genericModalContent = document.getElementById('generic-modal-content');
     if (!genericModal || !genericModalContent) return;
 
-    // --- شروع تغییرات ---
     let telegramConnectHTML = '';
 
-    // بررسی می‌کنیم آیا کاربر قبلاً متصل شده است یا نه
     if (profile?.telegram_id) {
         telegramConnectHTML = `
             <div class="telegram-connected-info" style="text-align: center; padding: 1rem; margin-top: 1.5rem; border-radius: 8px; background-color: rgba(0, 255, 100, 0.1); color: #96ff6f;">
@@ -33,14 +31,12 @@ export const showProfileModal = () => {
             </div>
         `;
     } else {
-        // اگر متصل نشده بود، دکمه را نمایش می‌دهیم
         telegramConnectHTML = `
             <h4>اتصال حساب تلگرام</h4>
             <p>حساب تلگرام خود را برای تکمیل پروفایل و ورود آسان‌تر متصل کنید.</p>
             <div id="telegram-login-widget-container" style="margin-top: 1.5rem;"></div>
         `;
     }
-    // --- پایان تغییرات ---
 
     const modalHtml = `
         <div class="content-box" style="padding-top: 4rem;">
@@ -69,8 +65,6 @@ export const showProfileModal = () => {
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
 
-    // --- شروع تغییرات ---
-    // ویجت تلگرام را فقط در صورتی که نیاز باشد، رندر می‌کنیم
     if (!profile?.telegram_id) {
         const script = document.createElement('script');
         script.src = 'https://telegram.org/js/telegram-widget.js?22';
@@ -87,7 +81,6 @@ export const showProfileModal = () => {
         }
         container.appendChild(script);
     }
-    // --- پایان تغییرات ---
 
     const profileForm = genericModalContent.querySelector('#profile-form');
     const statusBox = profileForm.querySelector('.form-status');
@@ -114,8 +107,6 @@ export const showProfileModal = () => {
     });
 };
 
-// --- شروع تغییرات ---
-// این تابع بسیار ساده‌تر می‌شود
 export const handleTelegramAuth = async () => {
     const hash = window.location.hash;
     const queryString = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
@@ -135,7 +126,6 @@ export const handleTelegramAuth = async () => {
         </div>
     `;
 
-    // فراخوانی تابع اصلی از api.js
     const { success, error } = await connectTelegramAccount(authData);
 
     if (!success) {
@@ -151,18 +141,20 @@ export const handleTelegramAuth = async () => {
             <div class="container" style="text-align:center; padding: 5rem 0;">
                 <h2>اتصال موفق!</h2>
                 <p>حساب تلگرام شما با موفقیت به پروفایل کاربری‌تان متصل شد.</p>
-                <p>در حال بازگشت به صفحه اصلی...</p>
+                <p>در حال بازگشت...</p>
             </div>
         `;
-        // به‌روزرسانی UI با اطلاعات جدید
         const updatedProfile = await getProfile();
         updateUserUI(state.user, updatedProfile);
+        
+        // --- شروع تغییرات ---
+        // کاربر را به مسیر ویژه‌ای هدایت می‌کنیم تا مودال پروفایل باز شود
         setTimeout(() => {
-            location.hash = '#/';
-        }, 2500);
+            location.hash = '#/profile-updated';
+        }, 1500);
+        // --- پایان تغییرات ---
     }
 };
-// --- پایان تغییرات ---
 
 export const initializeAuthForm = () => {
     const form = dom.mainContent.querySelector('#auth-form');

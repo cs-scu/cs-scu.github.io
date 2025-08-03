@@ -1,6 +1,6 @@
 // src/assets/js/modules/router.js
 import { state, dom } from './state.js';
-import { initializeAuthForm, initializeContactForm, showEventModal, handleTelegramAuth } from './ui.js';
+import { initializeAuthForm, initializeContactForm, showEventModal, handleTelegramAuth, showProfileModal } from './ui.js';
 import * as components from './components.js';
 import { supabaseClient, loadEvents, loadJournal, loadChartData } from './api.js';
 
@@ -41,6 +41,20 @@ const cleanupPageSpecifics = (newPath) => {
 
 const renderPage = async (path) => {
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
+    
+    // --- شروع تغییرات ---
+    // مسیر ویژه برای باز کردن مودال پروفایل پس از اتصال تلگرام
+    if (cleanPath === '/profile-updated') {
+        // ابتدا محتوای صفحه اصلی را رندر می‌کنیم
+        await renderPage('/');
+        // سپس مودال پروفایل را با اطلاعات به‌روز شده نمایش می‌دهیم
+        showProfileModal();
+        // آدرس مرورگر را به حالت عادی برمی‌گردانیم
+        history.replaceState(null, '', location.pathname + '#/');
+        return; // اجرای تابع در اینجا متوقف می‌شود
+    }
+    // --- پایان تغییرات ---
+
     cleanupPageSpecifics(cleanPath);
     updateActiveLink(cleanPath);
     
