@@ -59,18 +59,15 @@ export const showProfileModal = () => {
     const script = document.createElement('script');
     script.src = 'https://telegram.org/js/telegram-widget.js?22';
     script.async = true;
-    script.setAttribute('data-telegram-login', 'scu_cs_bot'); // !!! نام کاربری ربات خود را اینجا قرار دهید
+    script.setAttribute('data-telegram-login', 'YOUR_BOT_USERNAME_HERE'); // !!! نام کاربری ربات خود را اینجا قرار دهید
     script.setAttribute('data-size', 'large');
     script.setAttribute('data-radius', '10');
     
-    // **تغییر کلیدی:** آدرس بازگشت را به صورت داینامیک می‌سازیم
     const authUrl = `${window.location.origin}${window.location.pathname}#/telegram-auth`;
     script.setAttribute('data-auth-url', authUrl); 
     
-    // --- خط جدید برای دیباگ ---
     console.log("آدرس ارسال شده به تلگرام:", authUrl);
     console.log("دامنه‌ای که باید در BotFather ثبت شود:", window.location.hostname);
-    // -------------------------
     
     script.setAttribute('data-request-access', 'write');
 
@@ -106,8 +103,14 @@ export const showProfileModal = () => {
 };
 
 export const handleTelegramAuth = async () => {
-    const urlParams = new URLSearchParams(window.location.search);
+    // --- تغییر کلیدی برای دیباگ ---
+    // اطلاعات را از location.hash می‌خوانیم، نه location.search
+    const hash = window.location.hash;
+    const queryString = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
+    const urlParams = new URLSearchParams(queryString);
     const authData = Object.fromEntries(urlParams.entries());
+    // -------------------------
+
     const mainContent = dom.mainContent;
 
     if (!authData.hash) {
@@ -143,9 +146,8 @@ export const handleTelegramAuth = async () => {
         const updatedProfile = await getProfile();
         updateUserUI(state.user, updatedProfile);
         setTimeout(() => {
-            // آدرس را به ریشه سایت تغییر می‌دهیم تا پارامترهای تلگرام پاک شوند
-            history.pushState(null, '', window.location.pathname);
-            window.dispatchEvent(new PopStateEvent('popstate'));
+            // بازگشت به صفحه اصلی با استفاده از روش استاندارد SPA
+            location.hash = '#/';
         }, 2500);
     }
 };
