@@ -53,13 +53,14 @@ export const getProfile = async () => {
     try {
         const { data, error, status } = await supabaseClient
             .from('profiles')
-            .select(`first_name, last_name, role`)
+            .select(`first_name, last_name, role, telegram_id, telegram_username`)
             .eq('id', state.user.id)
             .single();
+            
         if (error && status !== 406) throw error;
         
-        state.profile = data; // Set state
-        return data; // Return data directly
+        state.profile = data;
+        return data;
     } catch (error) {
         console.error('Error fetching profile:', error);
         return null;
@@ -103,23 +104,39 @@ export const checkUserExists = async (email) => {
     return data;
 };
 
-/**
- * اطلاعات احراز هویت تلگرام را برای تأیید به سرور ارسال می‌کند.
- * @param {object} telegramData - داده‌های دریافت شده از URL تلگرام.
- * @returns {Promise<{data: any, error: Error | null}>}
- */
-export const verifyTelegramAuth = async (telegramData) => {
+// این تابع منطق کامل اتصال تلگرام را مدیریت می‌کند
+export const connectTelegramAccount = async (telegramData) => {
     try {
-        const { data, error } = await supabaseClient.functions.invoke('verify-telegram-auth', {
+        // ۱. فراخوانی تابع بک‌اند برای تأیید هش
+        const { data: verificationResult, error: verificationError } = await supabaseClient.functions.invoke('verify-telegram-auth', {
             body: telegramData,
         });
-        if (error) throw error;
-        return { data, error: null };
+
+        if (verificationError) throw verificationError;
+        if (!verificationResult.success) {
+            throw new Error(verificationResult.error || 'خطا در تأیید اطلاعات تلگرام.');
+        }
+
+        // ۲. دریافت اطلاعات کاربر از نتیجه
+        const { id, username } = verificationResult.telegramUser;
+
+        // ۳. ذخیره اطلاعات در پروفایل کاربر فعلی
+        const { error: updateError } = await updateProfile({
+            telegram_id: id,
+            telegram_username: username,
+        });
+
+        if (updateError) throw updateError;
+        
+        // ۴. برگرداندن نتیجه موفقیت‌آمیز
+        return { success: true, error: null };
+
     } catch (error) {
-        console.error('Error invoking verify-telegram-auth function:', error);
-        return { data: null, error };
+        console.error('Error during Telegram connection process:', error);
+        return { success: false, error: error.message };
     }
 };
+
 
 // --- Other Data Fetching Functions ---
 export const getBaseUrl = () => {
