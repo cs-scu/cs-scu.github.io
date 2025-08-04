@@ -248,10 +248,11 @@ export const initializeAuthForm = () => {
             hideStatus(statusBox);
             const { error } = await sendPasswordResetOtp(currentEmail);
             if (error) {
-                showStatus(statusBox, 'خطا در ارسال ایمیل بازنشانی.');
+                showStatus(statusBox, 'خطا در ارسال کد بازنشانی.');
             } else {
                 passwordStep.style.display = 'none';
-                showStatus(statusBox, 'ایمیل حاوی لینک بازنشانی رمز عبور برای شما ارسال شد.', 'success');
+                otpStep.style.display = 'block';
+                showStatus(statusBox, 'کد بازنشانی رمز به ایمیل شما ارسال شد.', 'success');
             }
         });
     }

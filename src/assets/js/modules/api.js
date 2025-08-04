@@ -18,12 +18,22 @@ export const sendSignupOtp = async (email) => {
     return await supabaseClient.auth.signInWithOtp({ email });
 };
 
+/**
+ * Sends a password reset OTP to the user's email.
+ * By not providing a `redirectTo` option, Supabase sends an OTP.
+ * @param {string} email The user's email.
+ * @returns {Promise<object>} The result from Supabase.
+ */
 export const sendPasswordResetOtp = async (email) => {
-    return await supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: undefined, // Let Supabase handle the redirect link
-    });
+    return await supabaseClient.auth.resetPasswordForEmail(email);
 };
 
+/**
+ * Verifies an OTP for both signup and password reset.
+ * @param {string} email The user's email.
+ * @param {string} token The 6-digit OTP.
+ * @returns {Promise<object>} The result from Supabase.
+ */
 export const verifyOtp = async (email, token) => {
     return await supabaseClient.auth.verifyOtp({ email, token, type: 'email' });
 };
