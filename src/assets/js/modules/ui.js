@@ -1,6 +1,6 @@
 // src/assets/js/modules/ui.js
 import { state, dom } from './state.js';
-import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, updateUserPassword, updateProfile, getProfile, connectTelegramAccount, verifyTurnstile } from './api.js';
+import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, signInWithGoogle, updateUserPassword, updateProfile, getProfile, connectTelegramAccount, verifyTurnstile } from './api.js';
 
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
@@ -183,6 +183,7 @@ export const initializeAuthForm = () => {
     const editEmailBtns = form.querySelectorAll('.edit-email-btn');
     const resendOtpBtn = form.querySelector('#resend-otp-btn');
     const otpTimerSpan = form.querySelector('#otp-timer');
+    const googleSignInBtn = form.querySelector('#google-signin-btn');
 
     const displayEmailPassword = form.querySelector('#display-email-password');
     const displayEmailOtp = form.querySelector('#display-email-otp');
@@ -195,6 +196,17 @@ export const initializeAuthForm = () => {
         turnstile.render('#turnstile-widget', {
             sitekey: '0x4AAAAAABoNEi1N70S2VODl',
             theme: document.body.classList.contains('dark-theme') ? 'dark' : 'light',
+        });
+    }
+
+    // --- Social Login Handler ---
+    if (googleSignInBtn) {
+        googleSignInBtn.addEventListener('click', async () => {
+            hideStatus(statusBox);
+            const { error } = await signInWithGoogle();
+            if (error) {
+                showStatus(statusBox, 'خطا در ورود با گوگل. لطفاً دوباره تلاش کنید.');
+            }
         });
     }
 
@@ -458,7 +470,7 @@ export const updateUserUI = (user, profile) => {
         }
         
         if (userAvatar) {
-            userAvatar.src = profile?.avatar_url || DEFAULT_AVATAR_URL;
+            userAvatar.src = profile?.avatar_url || user.user_metadata?.avatar_url || DEFAULT_AVATAR_URL;
             userAvatar.style.display = 'block';
         }
         

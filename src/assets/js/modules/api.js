@@ -30,6 +30,13 @@ export const signInWithPassword = async (email, password) => {
     return await supabaseClient.auth.signInWithPassword({ email, password });
 };
 
+export const signInWithGoogle = async () => {
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+    });
+    return { error };
+};
+
 export const updateUserPassword = async (newPassword) => {
     return await supabaseClient.auth.updateUser({ password: newPassword });
 };
