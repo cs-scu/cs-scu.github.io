@@ -6,6 +6,17 @@ import { supabaseClient, loadEvents, loadJournal, loadChartData } from './api.js
 
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
+// --- Helper Functions ---
+const debounce = (func, delay = 250) => {
+    let timeoutId;
+    return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+};
+
 const updateMetaTags = (title, description) => {
     document.title = title;
     const metaDesc = document.querySelector('meta[name="description"]');
@@ -23,9 +34,6 @@ const updateActiveLink = (path) => {
             link.removeAttribute('aria-current');
         }
     });
-    if (mobileDropdownMenu && mobileDropdownMenu.classList.contains('is-open')) {
-        mobileDropdownMenu.classList.remove('is-open');
-    }
 };
 
 const cleanupPageSpecifics = (newPath) => {
@@ -42,24 +50,22 @@ const cleanupPageSpecifics = (newPath) => {
 const renderPage = async (path) => {
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
     
-    // --- شروع تغییرات ---
-    // مسیر ویژه برای باز کردن مودال پروفایل پس از اتصال تلگرام
     if (cleanPath === '/profile-updated') {
-        // ابتدا محتوای صفحه اصلی را رندر می‌کنیم
         await renderPage('/');
-        // سپس مودال پروفایل را با اطلاعات به‌روز شده نمایش می‌دهیم
         showProfileModal();
-        // آدرس مرورگر را به حالت عادی برمی‌گردانیم
         history.replaceState(null, '', location.pathname + '#/');
-        return; // اجرای تابع در اینجا متوقف می‌شود
+        return;
     }
-    // --- پایان تغییرات ---
+
+    dom.mainContent.classList.add('is-loading');
+    await new Promise(resolve => setTimeout(resolve, 200)); 
 
     cleanupPageSpecifics(cleanPath);
     updateActiveLink(cleanPath);
     
     if (cleanPath.startsWith('/telegram-auth')) {
         await handleTelegramAuth();
+        dom.mainContent.classList.remove('is-loading');
         return;
     }
 
@@ -70,24 +76,24 @@ const renderPage = async (path) => {
 
         if (error || !newsItem) {
             dom.mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>محتوای خبر مورد نظر یافت نشد.</p><a href="#/news" class="btn btn-secondary" style="margin-top: 1rem;">بازگشت به آرشیو</a></div>`;
-            return;
-        }
-        
-        updateMetaTags(`${newsItem.title} | اخبار انجمن`, newsItem.summary);
-        const author = state.membersMap.get(newsItem.authorId);
-        const articleHTML = newsItem.content;
-        dom.mainContent.innerHTML = `
-            <section class="page-container news-detail-page">
-                <div class="container">
-                    <a href="#/news" class="btn-back"><span>بازگشت به اخبار</span></a>
-                    <div class="news-detail-meta-header">
-                        ${author ? `<div class="news-detail-author clickable-author" data-author-id="${author.id}"><img src="${author.imageUrl || DEFAULT_AVATAR_URL}" alt="${author.name}"><div><strong>${author.name}</strong><span>${author.role || 'عضو انجمن'}</span></div></div>` : ''}
-                        <div class="news-item-meta"><span>${newsItem.date}</span><span class="separator">&bull;</span><span>${newsItem.readingTime}</span></div>
+        } else {
+            updateMetaTags(`${newsItem.title} | اخبار انجمن`, newsItem.summary);
+            const author = state.membersMap.get(newsItem.authorId);
+            const articleHTML = newsItem.content;
+            dom.mainContent.innerHTML = `
+                <section class="page-container news-detail-page">
+                    <div class="container">
+                        <a href="#/news" class="btn-back"><span>بازگشت به اخبار</span></a>
+                        <div class="news-detail-meta-header">
+                            ${author ? `<div class="news-detail-author clickable-author" data-author-id="${author.id}"><img src="${author.imageUrl || DEFAULT_AVATAR_URL}" alt="${author.name}" loading="lazy"><div><strong>${author.name}</strong><span>${author.role || 'عضو انجمن'}</span></div></div>` : ''}
+                            <div class="news-item-meta"><span>${newsItem.date}</span><span class="separator">&bull;</span><span>${newsItem.readingTime}</span></div>
+                        </div>
+                        <div class="content-box">${articleHTML}</div>
                     </div>
-                    <div class="content-box">${articleHTML}</div>
-                </div>
-            </section>
-        `;
+                </section>
+            `;
+        }
+        dom.mainContent.classList.remove('is-loading');
         return;
     }
 
@@ -100,12 +106,12 @@ const renderPage = async (path) => {
         dom.mainContent.innerHTML = state.pageCache['/events'];
         components.renderEventsPage();
         showEventModal(cleanPath);
+        dom.mainContent.classList.remove('is-loading');
         return;
     }
 
     window.scrollTo(0, 0);
     const pageKey = cleanPath === '/' || cleanPath === '' ? 'home' : cleanPath.substring(1);
-    const pageFile = pageKey === 'home' ? 'index.html' : `${pageKey}.html`;
     
     if (pageKey === 'home') {
         dom.mainContent.innerHTML = state.pageCache['/'] || ' ';
@@ -122,7 +128,6 @@ const renderPage = async (path) => {
                 dom.mainContent.innerHTML = pageHTML;
             } catch (error) {
                 location.hash = '#/';
-                return;
             }
         }
     }
@@ -142,16 +147,18 @@ const renderPage = async (path) => {
         '/news': () => {
             state.loadedNewsCount = 0;
             components.loadMoreNews();
-            state.newsScrollHandler = () => {
+            state.newsScrollHandler = debounce(() => {
                 if (state.isLoadingNews || window.innerHeight + window.scrollY < document.documentElement.scrollHeight - 200) return;
                 components.loadMoreNews();
-            };
+            }, 100);
             window.addEventListener('scroll', state.newsScrollHandler);
         }
     };
     if (pageRenderers[cleanPath]) {
         await pageRenderers[cleanPath]();
     }
+    
+    dom.mainContent.classList.remove('is-loading');
 };
 
 const handleNavigation = () => {

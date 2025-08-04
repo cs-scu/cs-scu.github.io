@@ -217,6 +217,10 @@ body.light-theme #theme-toggle:hover svg { color: var(--primary-color-light-them
 /* ================== Main & Hero Section ================== */
 main {
     padding-top: 2rem;
+    transition: opacity 0.3s ease-in-out;
+}
+main.is-loading {
+    opacity: 0;
 }
 .hero {
     min-height: 50vh;
@@ -255,12 +259,11 @@ body.light-theme .hero h1 {
     text-decoration: none;
     font-weight: bold;
     transition: all 0.3s ease;
+    border: 2px solid transparent;
 }
 .btn.disabled, .btn:disabled {
     cursor: not-allowed;
     opacity: 0.6;
-    box-shadow: none;
-    transform: none;
     pointer-events: none;
 }
 .btn-primary {
@@ -268,23 +271,23 @@ body.light-theme .hero h1 {
     color: var(--background-color-dark);
 }
 .btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(232, 195, 142, 0.3);
+    filter: brightness(1.1);
 }
 body.light-theme .btn-primary {
     background-color: var(--primary-color-light-theme);
     color: #fff;
 }
 body.light-theme .btn-primary:hover {
-     box-shadow: 0 5px 15px rgba(26, 92, 93, 0.3);
+    filter: brightness(1.1);
 }
 .btn-secondary {
-    border: 2px solid var(--primary-color);
+    border-color: var(--primary-color);
     color: var(--primary-color);
 }
 .btn-secondary:hover {
     background-color: var(--primary-color);
     color: var(--background-color-dark);
+    filter: brightness(1.1);
 }
 body.light-theme .btn-secondary {
     border-color: var(--primary-color-light-theme);
@@ -293,6 +296,7 @@ body.light-theme .btn-secondary {
 body.light-theme .btn-secondary:hover {
     background-color: var(--primary-color-light-theme);
     color: #fff;
+    filter: brightness(1.1);
 }
 
 /* ================== Latest News Section ================== */
@@ -1229,6 +1233,7 @@ body.light-theme .journal-card:hover { box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
     min-width: 280px;
     padding: 1rem;
     border-radius: 15px;
+    transition: opacity 0.3s ease;
 }
 body.dark-theme .semester-column {
     background: var(--glass-bg-dark);
@@ -1351,9 +1356,6 @@ body.light-theme .course-card-chart.is-prereq {
 }
 
 
-/* #form-content-wrapper{
-    padding-top: 3rem;
-} */
 /* =================================================================== */
 /* ================== Responsive Styles (max-width: 700px) ================== */
 /* =================================================================== */
@@ -1395,7 +1397,6 @@ body.light-theme .course-card-chart.is-prereq {
         transform: translateY(0); /* Slide in */
     }
     
-    /* FIX: Styles for full-screen member card modal on mobile */
     #generic-modal:not(.wide-modal) .modal-content {
         height: 100%;
         max-height: 100%;
@@ -1413,7 +1414,6 @@ body.light-theme .course-card-chart.is-prereq {
         background-color: var(--background-color-light);
     }
     
-    /* Add padding for modals with content to not be under the close button */
     #generic-modal.wide-modal .modal-content,
     #register-modal .modal-content {
         padding: 4rem 1.5rem 1.5rem 1.5rem;
@@ -1464,7 +1464,6 @@ body.light-theme .course-card-chart.is-prereq {
     .dark-theme .journal-card {
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
-    /* Disable hover effects & make info always visible */
     .journal-card:hover,
     .dark-theme .journal-card:hover {
         transform: none;
@@ -1473,7 +1472,6 @@ body.light-theme .course-card-chart.is-prereq {
     .journal-card-summary { max-height: 100px; opacity: 1; }
     .journal-card-download { transform: scale(1); }
 
-    /* FIX: Correct positioning for close button on member modal */
     #generic-modal:not(.wide-modal) .close-modal {
         position: absolute;
         top: 1.5rem;
@@ -1481,12 +1479,6 @@ body.light-theme .course-card-chart.is-prereq {
         background: rgba(128, 128, 128, 0.3);
         color: inherit;
     }
-
-    /* REMOVED: Faulty rule for generic-modal-content */
-    /* #generic-modal-content{
-        position: absolute;
-    } */
-
 }
 
 body.dark-theme .card-socials .social-telegram{
@@ -1528,7 +1520,6 @@ body.light-theme .tabs-container{
 
 /* استایل دکمه‌های تب */
 .tab-link {
-  /* استایل‌های فعلی شما */
   border: none;
   background: none;
   padding: 10px 20px;
@@ -1537,23 +1528,22 @@ body.light-theme .tabs-container{
 
 /* مهم‌ترین بخش: استایل خط هایلایت */
 .highlighter {
-  position: absolute; /* موقعیت‌دهی نسبت به tabs-container */
+  position: absolute;
   bottom: 0;
-  left: 0; /* در ابتدا از گوشه سمت چپ شروع می‌شود */
+  left: 0;
   border-radius: 4px;
-  height: 4px; /* ضخامت خط */
-  /* جادوی انیمیشن اینجاست */
+  height: 4px;
   transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
 }
 
-body.dark-theme .highlighter{background-color: var(--primary-color); /* رنگ خط هایلایت */}
-body.light-theme .highlighter{background-color: var(--primary-color-light-theme); /* رنگ خط هایلایت */}
+body.dark-theme .highlighter{background-color: var(--primary-color); }
+body.light-theme .highlighter{background-color: var(--primary-color-light-theme); }
 
 /* ================== Custom Table Styles ================== */
 .custom-table-wrapper {
     border-radius: 15px;
     padding: 1rem;
-    overflow-x: auto; /* برای اسکرول افقی جدول در موبایل */
+    overflow-x: auto;
     margin: 2rem 0;
 }
 
@@ -1580,7 +1570,6 @@ body.light-theme .custom-table-wrapper {
     line-height: 1.6;
 }
 
-/* Table Header */
 .custom-table thead th {
     font-weight: bold;
     font-size: 1.05rem;
@@ -1598,7 +1587,6 @@ body.light-theme .custom-table thead th {
     border-bottom-color: var(--primary-color-light-theme);
 }
 
-/* Table Body */
 .custom-table tbody tr {
     transition: background-color 0.2s ease;
 }
@@ -1607,7 +1595,6 @@ body.light-theme .custom-table thead th {
     border-bottom: 1px solid;
 }
 
-/* حذف خط زیرین برای آخرین ردیف */
 .custom-table tbody tr:last-child td {
     border-bottom: none;
 }
@@ -1620,16 +1607,14 @@ body.light-theme .custom-table tbody td {
     border-bottom-color: var(--glass-border-light);
 }
 
-/* Hover Effect on Rows */
 body.dark-theme .custom-table tbody tr:hover {
-    background-color: rgba(232, 195, 142, 0.08); /* رنگ هاور ملایم */
+    background-color: rgba(232, 195, 142, 0.08);
 }
 
 body.light-theme .custom-table tbody tr:hover {
-    background-color: rgba(26, 92, 93, 0.05); /* رنگ هاور ملایم */
+    background-color: rgba(26, 92, 93, 0.05);
 }
 
-/* Responsive adjustments */
 @media (max-width: 700px) {
     .custom-table th,
     .custom-table td {
@@ -1665,6 +1650,12 @@ body.dark-theme .student-notes-box h3 {
 body.light-theme .student-notes-box h3 {
     color: var(--primary-color-light-theme);
 }
+.student-notes-box ol {
+    padding-right: 2rem;
+}
+.student-notes-box ol li {
+    margin-bottom: 0.5rem;
+}
 
 /* ================== Modern Preloader v2 ================== */
 body.preloader-active {
@@ -1681,14 +1672,9 @@ body.preloader-active {
     display: flex;
     align-items: center;
     justify-content: center;
-    
-    /* افکت بلور برای پس‌زمینه */
     backdrop-filter: blur(30px);
     -webkit-backdrop-filter: blur(30px);
-    
-    /* پس‌زمینه نیمه‌شفاف برای بهتر دیده شدن بلور */
     background-color: rgba(0, 0, 0, 0.4); 
-    
     transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
@@ -1697,13 +1683,12 @@ body.preloader-active {
     visibility: hidden;
 }
 
-/* اسپینر جدید با نقطه‌های خطی */
 .dot-spinner {
-    --uib-size: 60px; /* برای کنترل اندازه کلی */
+    --uib-size: 60px;
     --uib-speed: 1.2s;
-    --uib-color: #ffffff; /* یک رنگ آبی ثابت و مشخص */
+    --uib-color: #ffffff;
     display: flex;
-    gap: 15px; /* فاصله بین نقطه‌ها */
+    gap: 15px;
 }
 
 .dot-spinner__dot {
@@ -1714,7 +1699,6 @@ body.preloader-active {
     animation: wave var(--uib-speed) ease-in-out infinite;
 }
 
-/* ایجاد تاخیر در انیمیشن برای ساختن افکت موج */
 .dot-spinner__dot:nth-child(2) {
     animation-delay: -0.2s;
 }
@@ -1737,7 +1721,7 @@ body.preloader-active {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 1.2rem; /* Increased padding */
+    padding: 1rem 1.2rem;
     font-size: 0.9rem;
     border-bottom: 1px solid;
     cursor: pointer;
@@ -1750,12 +1734,11 @@ body.light-theme .user-menu-item {
     border-color: var(--glass-border-light);
 }
 
-/* Distinct hover effect for user menu */
 body.dark-theme .user-menu-item:hover {
-    background-color: rgba(232, 195, 142, 0.2); /* A different shade */
+    background-color: rgba(232, 195, 142, 0.2);
 }
 body.light-theme .user-menu-item:hover {
-    background-color: rgba(26, 92, 93, 0.1); /* A different shade */
+    background-color: rgba(26, 92, 93, 0.1);
 }
 
 #user-welcome-message {
@@ -1783,12 +1766,12 @@ body.light-theme .user-menu-item:hover {
 
 body.dark-theme .user-menu-item:hover #logout-btn:hover {
     color: var(--primary-color);
-    background-color: transparent; /* Override parent hover */
+    background-color: transparent;
 }
 
 body.light-theme .user-menu-item:hover #logout-btn:hover {
     color: var(--primary-color-light-theme);
-    background-color: transparent; /* Override parent hover */
+    background-color: transparent;
 }
 
 .user-avatar {
@@ -1796,7 +1779,7 @@ body.light-theme .user-menu-item:hover #logout-btn:hover {
     height: 32px;
     border-radius: 50%;
     object-fit: cover;
-    margin-left: 12px; /* برای ایجاد فاصله با نام کاربر */
+    margin-left: 12px;
     border: 2px solid var(--glass-border-dark);
 }
 
@@ -1805,6 +1788,52 @@ body.light-theme .user-avatar {
 }
 
 /* ================== Login Form Enhancements ================== */
+.password-group {
+    position: relative;
+}
+.password-toggle-btn {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: inherit;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.password-toggle-btn:hover {
+    opacity: 1;
+}
+#password-strength-indicator {
+    margin-top: 0.5rem;
+    height: 12px;
+    width: 100%;
+}
+.strength-bar {
+    height: 4px;
+    width: 0%;
+    border-radius: 2px;
+    background-color: #ddd;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+.strength-text {
+    display: block;
+    font-size: 0.8rem;
+    text-align: right;
+    margin-top: 4px;
+    height: 1em;
+    color: #888;
+}
+#password-strength-indicator.weak .strength-bar { width: 33%; background-color: #dc3545; }
+#password-strength-indicator.medium .strength-bar { width: 66%; background-color: #ffc107; }
+#password-strength-indicator.strong .strength-bar { width: 100%; background-color: #28a745; }
+#password-strength-indicator.weak .strength-text::after { content: "ضعیف"; color: #dc3545; }
+#password-strength-indicator.medium .strength-text::after { content: "متوسط"; color: #ffc107; }
+#password-strength-indicator.strong .strength-text::after { content: "قوی"; color: #28a745; }
+
 .email-display-box {
     display: flex;
     justify-content: space-between;
@@ -1855,18 +1884,10 @@ body.light-theme .btn-text {
     padding-top: 1rem;
     padding-bottom: 1rem;
     font-size: 1.1rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
 }
 .btn.btn-full:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-}
-body.dark-theme .btn.btn-primary.btn-full:hover {
-    box-shadow: 0 6px 20px rgba(232, 195, 142, 0.2);
-}
-body.light-theme .btn.btn-primary.btn-full:hover {
-    box-shadow: 0 6px 20px rgba(26, 92, 93, 0.2);
+    filter: brightness(1.1);
 }
 
 /* ================== OTP Input Styles ================== */
@@ -1952,4 +1973,54 @@ body.dark-theme #otp-timer {
 
 body.light-theme #otp-timer {
     color: var(--primary-color-light-theme);
+}
+
+/* ================== Skeleton Loading for News ================== */
+.news-list-item.is-skeleton {
+    background-color: rgba(128, 128, 128, 0.1);
+    border-color: transparent;
+    pointer-events: none;
+}
+
+.news-list-item.is-skeleton .news-item-image {
+    background-color: rgba(128, 128, 128, 0.2);
+    animation: skeleton-pulse 1.5s infinite ease-in-out;
+}
+
+.news-list-item.is-skeleton .news-item-title,
+.news-list-item.is-skeleton .news-item-summary,
+.news-list-item.is-skeleton .news-item-author,
+.news-list-item.is-skeleton .news-item-meta {
+    color: transparent !important;
+    background-color: rgba(128, 128, 128, 0.2);
+    border-radius: 4px;
+    animation: skeleton-pulse 1.5s infinite ease-in-out;
+}
+
+.news-list-item.is-skeleton .news-item-title {
+    height: 1.4rem;
+    width: 70%;
+    margin-bottom: 1rem;
+}
+
+.news-list-item.is-skeleton .news-item-summary {
+    height: 3rem;
+    width: 100%;
+}
+
+.news-list-item.is-skeleton .news-item-author {
+    height: 35px;
+    width: 120px;
+    border-radius: 50px;
+}
+
+.news-list-item.is-skeleton .news-item-meta {
+    height: 1rem;
+    width: 80px;
+}
+
+@keyframes skeleton-pulse {
+    0% { background-color: rgba(128, 128, 128, 0.2); }
+    50% { background-color: rgba(128, 128, 128, 0.3); }
+    100% { background-color: rgba(128, 128, 128, 0.2); }
 }

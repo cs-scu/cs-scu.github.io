@@ -198,6 +198,40 @@ export const initializeAuthForm = () => {
         });
     }
 
+    // --- Password Visibility Toggle ---
+    form.querySelectorAll('.password-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const passwordInput = btn.previousElementSibling;
+            const isOpen = passwordInput.type === 'password';
+            passwordInput.type = isOpen ? 'text' : 'password';
+            btn.querySelector('.icon-eye-open').style.display = isOpen ? 'none' : 'block';
+            btn.querySelector('.icon-eye-closed').style.display = isOpen ? 'block' : 'none';
+        });
+    });
+
+    // --- Password Strength Indicator ---
+    const newPasswordInput = form.querySelector('#new-password');
+    const strengthIndicator = form.querySelector('#password-strength-indicator');
+    if (newPasswordInput && strengthIndicator) {
+        const strengthBar = strengthIndicator.querySelector('.strength-bar');
+        const strengthText = strengthIndicator.querySelector('.strength-text');
+
+        newPasswordInput.addEventListener('input', () => {
+            const password = newPasswordInput.value;
+            let strength = 'none';
+            if (password.length > 0) {
+                strength = 'weak';
+                if (password.length >= 8) {
+                    strength = 'medium';
+                }
+                if (password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
+                    strength = 'strong';
+                }
+            }
+            strengthIndicator.className = `password-strength-indicator ${strength}`;
+        });
+    }
+
     const startOtpTimer = () => {
         clearInterval(otpTimerInterval);
         let duration = 60;
@@ -504,6 +538,12 @@ export const showEventModal = async (path) => {
     if (!genericModal || !genericModalContent) return;
 
     const detailHtml = event.content || '<p>محتوای جزئیات برای این رویداد یافت نشد.</p>';
+    
+    const costHTML = event.cost ? `
+        <span class="event-meta-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            ${event.cost}
+        </span>` : '';
 
     const modalHtml = `
         <div class="content-box">
@@ -518,6 +558,7 @@ export const showEventModal = async (path) => {
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                         ${event.location}
                     </span>
+                    ${costHTML}
                 </div>
                 <hr>
                 ${detailHtml}
@@ -535,8 +576,15 @@ export const initializeGlobalUI = () => {
     const mobileDropdownMenu = document.getElementById('mobile-dropdown-menu');
     if (mobileMenuToggle && mobileDropdownMenu) {
         mobileMenuToggle.addEventListener('click', (e) => { e.stopPropagation(); mobileDropdownMenu.classList.toggle('is-open'); });
+        
         document.addEventListener('click', (e) => {
             if (mobileDropdownMenu.classList.contains('is-open') && !mobileDropdownMenu.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+                mobileDropdownMenu.classList.remove('is-open');
+            }
+        });
+
+        mobileDropdownMenu.addEventListener('click', (e) => {
+            if (e.target.closest('a')) {
                 mobileDropdownMenu.classList.remove('is-open');
             }
         });
@@ -612,7 +660,10 @@ export const initializeContactForm = () => {
         submitBtn.textContent = 'ارسال پیام';
 
         if (error) {
-            showStatus(statusBox, 'خطایی در ارسال پیام رخ داد.');
+            const errorMessage = error.message.includes('network') 
+                ? 'ارسال پیام با مشکل مواجه شد. لطفاً اتصال اینترنت خود را بررسی کنید.'
+                : 'خطایی در سرور رخ داده است. لطفاً بعداً تلاش کنید.';
+            showStatus(statusBox, errorMessage, 'error');
         } else {
             showStatus(statusBox, 'پیام شما با موفقیت ارسال شد.', 'success');
             contactForm.reset();
@@ -620,94 +671,3 @@ export const initializeContactForm = () => {
     });
     contactForm.dataset.listenerAttached = 'true';
 };
-
-// export const showEventModal = async (path) => {
-//     const eventLink = `#${path}`;
-//     const event = state.allEvents.find(e => e.detailPage === eventLink);
-//     if (!event) return;
-
-//     const genericModal = document.getElementById('generic-modal');
-//     const genericModalContent = document.getElementById('generic-modal-content');
-//     if (!genericModal || !genericModalContent) return;
-
-//     const detailHtml = event.content || '<p>محتوای جزئیات برای این رویداد یافت نشد.</p>';
-
-//     const modalHtml = `
-//         <div class="content-box">
-//             <div class="event-content-area">
-//                 <h1>${event.title}</h1>
-//                 <div class="event-modal-meta">
-//                      <span class="event-meta-item">
-//                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-//                         ${event.displayDate}
-//                     </span>
-//                     <span class="event-meta-item">
-//                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-//                         ${event.location}
-//                     </span>
-//                 </div>
-//                 <hr>
-//                 ${detailHtml}
-//             </div>
-//         </div>
-//     `;
-//     genericModal.classList.add('wide-modal');
-//     genericModalContent.innerHTML = modalHtml;
-//     dom.body.classList.add('modal-is-open');
-//     genericModal.classList.add('is-open');
-// };
-
-// const showMemberModal = (memberId) => {
-//     const member = state.membersMap.get(parseInt(memberId, 10));
-//     if (!member) return;
-
-//     const template = document.getElementById('member-card-template');
-//     const genericModal = document.getElementById('generic-modal');
-//     const genericModalContent = document.getElementById('generic-modal-content');
-//     if (!template || !genericModal || !genericModalContent) return;
-
-//     const cardClone = template.content.cloneNode(true);
-//     cardClone.querySelector('.member-card').classList.add('in-modal');
-//     cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
-//     cardClone.querySelector('.member-photo').alt = member.name;
-//     cardClone.querySelector('.member-name').textContent = member.name;
-//     cardClone.querySelector('.role').textContent = member.role || 'عضو انجمن';
-//     cardClone.querySelector('.description').textContent = member.description;
-
-//     const tagsContainer = cardClone.querySelector('.card-tags');
-//     tagsContainer.innerHTML = '';
-//     if (member.tags && Array.isArray(member.tags)) {
-//         member.tags.forEach(tagText => {
-//             const tagElement = document.createElement('span');
-//             tagElement.className = 'tag';
-//             tagElement.textContent = tagText;
-//             tagsContainer.appendChild(tagElement);
-//         });
-//     }
-
-//     const socials = cardClone.querySelector('.card-socials');
-//     if (member.social) {
-//         const socialLinks = {
-//             linkedin: cardClone.querySelector('.social-linkedin'),
-//             telegram: cardClone.querySelector('.social-telegram'),
-//             github: cardClone.querySelector('.social-github')
-//         };
-//         let hasSocial = false;
-//         for (const key in socialLinks) {
-//             if (member.social[key] && socialLinks[key]) {
-//                 socialLinks[key].href = member.social[key];
-//                 socialLinks[key].style.display = 'inline-block';
-//                 hasSocial = true;
-//             }
-//         }
-//         if (!hasSocial) socials.style.display = 'none';
-//     } else {
-//         socials.style.display = 'none';
-//     }
-
-//     genericModal.classList.remove('wide-modal');
-//     genericModalContent.innerHTML = '';
-//     genericModalContent.appendChild(cardClone);
-//     dom.body.classList.add('modal-is-open');
-//     genericModal.classList.add('is-open');
-// };

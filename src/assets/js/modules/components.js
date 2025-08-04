@@ -12,11 +12,34 @@ const createAuthorHTML = (authorId) => {
     if (!authorInfo) return '';
     return `
         <div class="news-item-author clickable-author" data-author-id="${authorInfo.id}">
-            <img src="${authorInfo.imageUrl || DEFAULT_AVATAR_URL}" alt="${authorInfo.name}" class="author-photo">
+            <img src="${authorInfo.imageUrl || DEFAULT_AVATAR_URL}" alt="${authorInfo.name}" class="author-photo" loading="lazy">
             <span class="author-name">${authorInfo.name}</span>
         </div>
     `;
 };
+
+const renderSkeletons = (count, container) => {
+    let skeletonHTML = '';
+    for (let i = 0; i < count; i++) {
+        skeletonHTML += `
+            <article class="news-list-item is-skeleton">
+                <div class="news-item-image"></div>
+                <div class="news-item-content">
+                    <div class="news-item-header">
+                        <h3 class="news-item-title"></h3>
+                    </div>
+                    <p class="news-item-summary"></p>
+                    <div class="news-item-footer">
+                        <div class="news-item-author"></div>
+                        <div class="news-item-meta"></div>
+                    </div>
+                </div>
+            </article>
+        `;
+    }
+    container.innerHTML = skeletonHTML;
+};
+
 
 // --- توابع رندرکننده عمومی ---
 export const loadLatestNews = () => {
@@ -44,14 +67,14 @@ export const loadLatestNews = () => {
             const newsCardHTML = `
                 <article class="news-card">
                     <a href="${item.link}" class="news-card-image-link">
-                        <img src="${item.image}" alt="${item.title}">
+                        <img src="${item.image}" alt="${item.title}" loading="lazy">
                     </a>
                     <div class="news-card-content">
                         <a href="${item.link}"><h3>${item.title}</h3></a>
                         <p>${item.summary}</p>
                         <div class="news-card-footer">
                              <div class="news-item-author clickable-author" data-author-id="${item.authorId}">
-                                <img src="${authorImage}" alt="${authorName}" class="author-photo">
+                                <img src="${authorImage}" alt="${authorName}" class="author-photo" loading="lazy">
                              </div>
                             <span class="news-meta">${item.date}</span>
                         </div>
@@ -68,12 +91,18 @@ const renderNewsItems = (items) => {
     const template = document.getElementById('news-item-template');
     if (!newsList || !template) return;
 
+    // Remove skeletons before adding real content
+    newsList.querySelectorAll('.is-skeleton').forEach(el => el.remove());
+
     items.forEach(item => {
         const cardClone = template.content.cloneNode(true);
         const author = state.membersMap.get(item.authorId);
 
-        cardClone.querySelector('.news-item-image').src = item.image;
-        cardClone.querySelector('.news-item-image').alt = item.title;
+        const img = cardClone.querySelector('.news-item-image');
+        img.src = item.image;
+        img.alt = item.title;
+        img.loading = 'lazy';
+
         cardClone.querySelector('.news-item-image-link').href = item.link;
         cardClone.querySelector('.news-item-title').textContent = item.title;
         cardClone.querySelector('.news-item-title-link').href = item.link;
@@ -98,12 +127,18 @@ const renderNewsItems = (items) => {
 
 export const loadMoreNews = async () => {
     if (state.isLoadingNews) return;
-
     state.isLoadingNews = true;
+
     const loader = dom.mainContent.querySelector('#news-loader');
-    if (loader) {
-        loader.textContent = "در حال بارگذاری...";
-        loader.style.display = 'block';
+    const newsList = dom.mainContent.querySelector('.news-list');
+
+    if (state.loadedNewsCount === 0) {
+        renderSkeletons(5, newsList);
+    } else {
+        if (loader) {
+            loader.textContent = "در حال بارگذاری...";
+            loader.style.display = 'block';
+        }
     }
 
     const from = state.loadedNewsCount;
@@ -117,8 +152,8 @@ export const loadMoreNews = async () => {
 
     if (error) {
         console.error("Error fetching more news:", error);
+        if (loader) loader.textContent = "خطا در بارگذاری اخبار.";
         state.isLoadingNews = false;
-        if (loader) loader.style.display = 'none';
         return;
     }
 
@@ -126,9 +161,9 @@ export const loadMoreNews = async () => {
         renderNewsItems(newsToLoad);
         state.loadedNewsCount += newsToLoad.length;
     }
-
-    state.isLoadingNews = false;
+    
     if (loader) loader.style.display = 'none';
+    state.isLoadingNews = false;
 
     if (!newsToLoad || newsToLoad.length < state.NEWS_PER_PAGE) {
         if (state.newsScrollHandler) {
@@ -150,8 +185,11 @@ export const renderMembersPage = () => {
 
     state.membersMap.forEach(member => {
         const cardClone = template.content.cloneNode(true);
-        cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
-        cardClone.querySelector('.member-photo').alt = member.name;
+        const img = cardClone.querySelector('.member-photo');
+        img.src = member.imageUrl || DEFAULT_AVATAR_URL;
+        img.alt = member.name;
+        img.loading = 'lazy';
+
         cardClone.querySelector('.member-name').textContent = member.name;
         cardClone.querySelector('.role').textContent = member.role || 'عضو انجمن';
         cardClone.querySelector('.description').textContent = member.description;
@@ -218,8 +256,11 @@ export const renderEventsPage = () => {
         events.forEach(event => {
             const card = template.content.cloneNode(true);
             card.querySelector('.event-card-image-link').href = event.detailPage;
-            card.querySelector('.event-card-image').src = event.image;
-            card.querySelector('.event-card-image').alt = event.title;
+            
+            const img = card.querySelector('.event-card-image');
+            img.src = event.image;
+            img.alt = event.title;
+            img.loading = 'lazy';
     
             const tagsContainer = card.querySelector('.event-card-tags');
             tagsContainer.innerHTML = '';
@@ -250,21 +291,21 @@ export const renderEventsPage = () => {
             card.querySelector('.event-card-summary').textContent = event.summary;
     
             const metaContainer = card.querySelector('.event-meta');
-            // ADDITION: Add cost to the event card metadata
-            const costHTML = event.cost ? `
+            
+            const costHTML = (event.cost && event.cost.trim() !== "") ? `
                 <span class="event-meta-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                    ${event.cost}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    <span>${event.cost}</span>
                 </span>` : '';
 
             metaContainer.innerHTML = `
                 <span class="event-meta-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    ${event.displayDate}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>${event.displayDate}</span>
                 </span>
                 <span class="event-meta-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    ${event.location}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    <span>${event.location}</span>
                 </span>
                 ${costHTML}
             `;
@@ -323,7 +364,7 @@ export const renderJournalPage = () => {
     state.allJournalIssues.forEach(issue => {
         const cardHTML = `
             <a href="${issue.fileUrl}" target="_blank" class="journal-card">
-                <img src="${issue.coverUrl}" alt="${issue.title}" class="journal-card-cover">
+                <img src="${issue.coverUrl}" alt="${issue.title}" class="journal-card-cover" loading="lazy">
                 <div class="journal-card-overlay">
                     <h3 class="journal-card-title">${issue.title}</h3>
                     <p class="journal-card-date">${issue.date}</p>
