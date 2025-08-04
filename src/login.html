@@ -10,28 +10,50 @@
                         <label for="auth-email" class="visually-hidden">ایمیل</label>
                         <input type="email" id="auth-email" name="email" placeholder="ایمیل شما" required>
                     </div>
-                    <button type="submit" class="btn btn-primary" id="email-submit-btn">ادامه</button>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-full" id="email-submit-btn">ادامه</button>
+                    </div>
                 </div>
 
                 <!-- مرحله ۲ (برای کاربران موجود): ورود رمز عبور -->
                 <div id="password-step" style="display: none;">
+                    <div class="email-display-box">
+                        <span id="display-email-password"></span>
+                        <button type="button" class="btn-text edit-email-btn">ویرایش</button>
+                    </div>
                     <p>خوش آمدید! رمز عبور خود را وارد کنید.</p>
                      <div class="form-group">
                         <label for="auth-password" class="visually-hidden">رمز عبور</label>
                         <input type="password" id="auth-password" name="password" placeholder="رمز عبور">
                     </div>
-                     <button type="submit" class="btn btn-primary" id="password-submit-btn">ورود</button>
-                     <a href="#" id="forgot-password-link" style="display: block; text-align: center; margin-top: 1rem; font-size: 0.9rem;">رمز عبورم را فراموش کرده‌ام</a>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-full" id="password-submit-btn">ورود</button>
+                        <button type="button" class="btn btn-secondary btn-full" id="forgot-password-btn">رمز عبورم را فراموش کرده‌ام</button>
+                    </div>
                 </div>
 
                 <!-- مرحله ۲ (برای کاربران جدید): ورود کد تایید ایمیل -->
                 <div id="otp-step" style="display: none;">
+                    <div class="email-display-box">
+                        <span id="display-email-otp"></span>
+                        <button type="button" class="btn-text edit-email-btn">ویرایش</button>
+                    </div>
                     <p>کد ۶ رقمی ارسال شده به ایمیلتان را وارد کنید.</p>
                     <div class="form-group">
                         <label for="auth-otp" class="visually-hidden">کد تایید</label>
-                        <input type="text" id="auth-otp" name="otp" placeholder="کد تایید" pattern="\d{6}" inputmode="numeric">
+                        <!-- New OTP container -->
+                        <div id="otp-container" class="otp-container" dir="ltr">
+                            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary" id="otp-submit-btn">تایید کد</button>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-full" id="otp-submit-btn">تایید کد</button>
+                    </div>
                 </div>
 
                 <!-- مرحله ۳ (برای کاربران جدید): تعیین رمز عبور -->
@@ -41,7 +63,9 @@
                         <label for="new-password" class="visually-hidden">رمز عبور جدید</label>
                         <input type="password" id="new-password" name="new-password" placeholder="رمز عبور جدید (حداقل ۶ کاراکتر)">
                     </div>
-                    <button type="submit" class="btn btn-primary" id="set-password-submit-btn">ذخیره و ورود</button>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-full" id="set-password-submit-btn">ذخیره و ورود</button>
+                    </div>
                 </div>
 
                 <div class="form-status" style="margin-top: 1rem;"></div>

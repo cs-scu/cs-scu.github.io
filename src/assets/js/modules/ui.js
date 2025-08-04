@@ -1,10 +1,11 @@
 // src/assets/js/modules/ui.js
 import { state, dom } from './state.js';
-import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, updateUserPassword, updateProfile, getProfile, connectTelegramAccount } from './api.js';
+import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, updateUserPassword, updateProfile, getProfile } from './api.js';
 
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
+// Helper functions for status messages
 const showStatus = (statusBox, message, type = 'error') => {
     statusBox.textContent = message;
     statusBox.className = `form-status ${type}`;
@@ -15,6 +16,7 @@ const hideStatus = (statusBox) => {
     statusBox.style.display = 'none';
     statusBox.textContent = '';
 };
+
 
 export const showProfileModal = async () => { // Make function async
     const genericModal = document.getElementById('generic-modal');
@@ -175,8 +177,62 @@ export const initializeAuthForm = () => {
     const passwordStep = form.querySelector('#password-step');
     const otpStep = form.querySelector('#otp-step');
     const setPasswordStep = form.querySelector('#set-password-step');
+    
     const statusBox = form.querySelector('.form-status');
-    const forgotPasswordLink = form.querySelector('#forgot-password-link');
+    const forgotPasswordBtn = form.querySelector('#forgot-password-btn');
+    const editEmailBtns = form.querySelectorAll('.edit-email-btn');
+
+    const displayEmailPassword = form.querySelector('#display-email-password');
+    const displayEmailOtp = form.querySelector('#display-email-otp');
+
+    const otpContainer = form.querySelector('#otp-container');
+    const otpInputs = otpContainer ? Array.from(otpContainer.children) : [];
+
+    const showStep = (step) => {
+        emailStep.style.display = 'none';
+        passwordStep.style.display = 'none';
+        otpStep.style.display = 'none';
+        setPasswordStep.style.display = 'none';
+        step.style.display = 'block';
+        if (step === otpStep) {
+            otpInputs[0]?.focus();
+        }
+    };
+
+    editEmailBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            hideStatus(statusBox);
+            showStep(emailStep);
+        });
+    });
+
+    // OTP Input Logic
+    if (otpContainer) {
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', () => {
+                if (input.value && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasteData = e.clipboardData.getData('text');
+                if (pasteData.length === otpInputs.length) {
+                    otpInputs.forEach((box, i) => {
+                        box.value = pasteData[i] || '';
+                    });
+                    otpInputs[otpInputs.length - 1].focus();
+                }
+            });
+        });
+    }
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -191,17 +247,20 @@ export const initializeAuthForm = () => {
             case 'email-step':
                 submitBtn.textContent = 'در حال بررسی...';
                 currentEmail = form.querySelector('#auth-email').value;
+                
+                if(displayEmailPassword) displayEmailPassword.textContent = currentEmail;
+                if(displayEmailOtp) displayEmailOtp.textContent = currentEmail;
+
                 const exists = await checkUserExists(currentEmail);
-                emailStep.style.display = 'none';
                 if (exists) {
-                    passwordStep.style.display = 'block';
+                    showStep(passwordStep);
                 } else {
                     const { error } = await sendSignupOtp(currentEmail);
                     if (error) {
                         showStatus(statusBox, 'خطا در ارسال کد.');
-                        emailStep.style.display = 'block';
+                        showStep(emailStep);
                     } else {
-                        otpStep.style.display = 'block';
+                        showStep(otpStep);
                         showStatus(statusBox, 'کد تایید به ایمیل شما ارسال شد.', 'success');
                     }
                 }
@@ -220,13 +279,20 @@ export const initializeAuthForm = () => {
                 break;
             case 'otp-step':
                 submitBtn.textContent = 'در حال تایید...';
-                const otp = form.querySelector('#auth-otp').value;
+                const otp = otpInputs.map(input => input.value).join('');
+                
+                if (otp.length !== 6) {
+                    showStatus(statusBox, 'کد تایید باید ۶ رقم باشد.');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'تایید کد';
+                    return;
+                }
+
                 const { data, error: otpError } = await verifyOtp(currentEmail, otp);
                 if (otpError || !data.session) {
                     showStatus(statusBox, 'کد وارد شده صحیح نیست.');
                 } else {
-                    otpStep.style.display = 'none';
-                    setPasswordStep.style.display = 'block';
+                    showStep(setPasswordStep);
                     showStatus(statusBox, 'کد تایید شد. اکنون رمز عبور خود را تعیین کنید.', 'success');
                 }
                 submitBtn.textContent = 'تایید کد';
@@ -244,9 +310,7 @@ export const initializeAuthForm = () => {
                 if (updateError) {
                     showStatus(statusBox, 'خطا در ذخیره رمز عبور.');
                 } else {
-                    await getProfile(); 
-                    dom.mainContent.innerHTML = ''; 
-                    showProfileModal();
+                    location.hash = '#/';
                 }
                 submitBtn.textContent = 'ذخیره و ورود';
                 break;
@@ -254,16 +318,15 @@ export const initializeAuthForm = () => {
         if (submitBtn) submitBtn.disabled = false;
     });
 
-    if (forgotPasswordLink) {
-        forgotPasswordLink.addEventListener('click', async (e) => {
+    if (forgotPasswordBtn) {
+        forgotPasswordBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             hideStatus(statusBox);
             const { error } = await sendPasswordResetOtp(currentEmail);
             if (error) {
                 showStatus(statusBox, 'خطا در ارسال کد بازنشانی.');
             } else {
-                passwordStep.style.display = 'none';
-                otpStep.style.display = 'block';
+                showStep(otpStep);
                 showStatus(statusBox, 'کد بازنشانی رمز به ایمیل شما ارسال شد.', 'success');
             }
         });
@@ -271,7 +334,6 @@ export const initializeAuthForm = () => {
 
     form.dataset.listenerAttached = 'true';
 };
-
 
 export const updateUserUI = (user, profile) => {
     const authLink = document.getElementById('login-register-btn');
