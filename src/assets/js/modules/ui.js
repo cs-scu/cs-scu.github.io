@@ -1,6 +1,6 @@
 // src/assets/js/modules/ui.js
 import { state, dom } from './state.js';
-import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, updateUserPassword, updateProfile, getProfile, verifyTurnstile } from './api.js';
+import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, updateUserPassword, updateProfile, getProfile, connectTelegramAccount, verifyTurnstile } from './api.js';
 
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
@@ -16,6 +16,7 @@ const hideStatus = (statusBox) => {
     statusBox.style.display = 'none';
     statusBox.textContent = '';
 };
+
 export const showProfileModal = async () => {
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
@@ -31,6 +32,24 @@ export const showProfileModal = async () => {
     const profile = state.profile;
     const user = state.user;
 
+    let telegramConnectHTML = '';
+
+    if (profile?.telegram_id) {
+        telegramConnectHTML = `
+            <div class="telegram-connected-info" style="text-align: center; padding: 1rem; margin-top: 1.5rem; border-radius: 8px; background-color: rgba(0, 255, 100, 0.1); color: #96ff6f;">
+                <p style="margin:0;">✅ حساب تلگرام شما با نام کاربری <strong>@${profile.telegram_username}</strong> متصل است.</p>
+            </div>
+        `;
+    } else {
+        telegramConnectHTML = `
+            <h4>اتصال حساب تلگرام</h4>
+            <p>حساب تلگرام خود را برای تکمیل خودکار پروفایل متصل کنید.</p>
+            <div id="telegram-login-widget-container" style="margin-top: 1.5rem;"></div>
+        `;
+    }
+
+    const formattedPhone = user.phone ? `0${user.phone.substring(2)}` : 'هنوز ثبت نشده';
+
     const modalHtml = `
         <div class="content-box" style="padding-top: 4rem;">
             <h2>پروفایل کاربری</h2>
@@ -41,13 +60,15 @@ export const showProfileModal = async () => {
                     <input type="text" id="full-name" name="full-name" value="${profile?.full_name || ''}" required>
                 </div>
                 <div class="form-group">
-                    <label for="email-display">ایمیل</label>
-                    <input type="email" id="email-display" name="email-display" value="${user.email}" disabled style="background-color: rgba(128,128,128,0.1); cursor: not-allowed;">
+                    <label for="phone-display">شماره تلفن (از طریق تلگرام)</label>
+                    <input type="tel" id="phone-display" name="phone-display" value="${formattedPhone}" disabled style="background-color: rgba(128,128,128,0.1); cursor: not-allowed;">
                 </div>
                 <div class="form-status"></div>
                 <br>
                 <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
             </form>
+            <hr style="margin: 2rem 0;">
+            ${telegramConnectHTML}
         </div>
     `;
     
@@ -55,6 +76,25 @@ export const showProfileModal = async () => {
     genericModalContent.innerHTML = modalHtml;
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
+
+    if (!profile?.telegram_id) {
+        const script = document.createElement('script');
+        script.src = 'https://telegram.org/js/telegram-widget.js?22';
+        script.async = true;
+        script.setAttribute('data-telegram-login', 'scu_cs_bot');
+        script.setAttribute('data-size', 'large');
+        script.setAttribute('data-radius', '10');
+        script.setAttribute('data-auth-url', 'https://www.cs-scu.ir/#/telegram-auth'); 
+        script.setAttribute('data-request-access', 'write');
+
+        const container = document.getElementById('telegram-login-widget-container');
+        if (container) {
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+            container.appendChild(script);
+        }
+    }
 
     const profileForm = genericModalContent.querySelector('#profile-form');
     const statusBox = profileForm.querySelector('.form-status');
@@ -79,6 +119,7 @@ export const showProfileModal = async () => {
         }
     });
 };
+
 export const handleTelegramAuth = async () => {
     const hash = window.location.hash;
     const queryString = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
@@ -116,6 +157,7 @@ export const handleTelegramAuth = async () => {
                 <p>در حال بازگشت...</p>
             </div>
         `;
+        await getProfile();
         updateUserUI(state.user, state.profile);
         
         setTimeout(() => {
@@ -128,6 +170,9 @@ export const initializeAuthForm = () => {
     const form = dom.mainContent.querySelector('#auth-form');
     if (!form || form.dataset.listenerAttached) return;
 
+    let otpTimerInterval = null;
+    let otpContext = 'signup';
+
     const emailStep = form.querySelector('#email-step');
     const passwordStep = form.querySelector('#password-step');
     const otpStep = form.querySelector('#otp-step');
@@ -136,6 +181,8 @@ export const initializeAuthForm = () => {
     const statusBox = form.querySelector('.form-status');
     const forgotPasswordBtn = form.querySelector('#forgot-password-btn');
     const editEmailBtns = form.querySelectorAll('.edit-email-btn');
+    const resendOtpBtn = form.querySelector('#resend-otp-btn');
+    const otpTimerSpan = form.querySelector('#otp-timer');
 
     const displayEmailPassword = form.querySelector('#display-email-password');
     const displayEmailOtp = form.querySelector('#display-email-otp');
@@ -146,10 +193,34 @@ export const initializeAuthForm = () => {
     const turnstileWidget = form.querySelector('#turnstile-widget');
     if (turnstileWidget && typeof turnstile !== 'undefined') {
         turnstile.render('#turnstile-widget', {
-            sitekey: '0x4AAAAAABoNEi1N70S2VODl', // Your Site Key
+            sitekey: '0x4AAAAAABoNEi1N70S2VODl',
             theme: document.body.classList.contains('dark-theme') ? 'dark' : 'light',
         });
     }
+
+    const startOtpTimer = () => {
+        clearInterval(otpTimerInterval);
+        let duration = 60;
+        resendOtpBtn.disabled = true;
+        otpTimerSpan.style.display = 'inline';
+
+        const updateTimer = () => {
+            const minutes = String(Math.floor(duration / 60)).padStart(2, '0');
+            const seconds = String(duration % 60).padStart(2, '0');
+            otpTimerSpan.textContent = `(${minutes}:${seconds})`;
+        };
+        updateTimer();
+
+        otpTimerInterval = setInterval(() => {
+            duration--;
+            updateTimer();
+            if (duration <= 0) {
+                clearInterval(otpTimerInterval);
+                resendOtpBtn.disabled = false;
+                otpTimerSpan.style.display = 'none';
+            }
+        }, 1000);
+    };
 
     const showStep = (step) => {
         emailStep.style.display = 'none';
@@ -218,9 +289,7 @@ export const initializeAuthForm = () => {
                 const verification = await verifyTurnstile(turnstileToken);
                 if (!verification.success) {
                     showStatus(statusBox, 'تایید هویت با خطا مواجه شد. لطفاً صفحه را رفرش کنید.');
-                    if (typeof turnstile !== 'undefined') {
-                        turnstile.reset('#turnstile-widget');
-                    }
+                    if (typeof turnstile !== 'undefined') turnstile.reset('#turnstile-widget');
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'ادامه';
                     return;
@@ -234,12 +303,14 @@ export const initializeAuthForm = () => {
                 if (exists) {
                     showStep(passwordStep);
                 } else {
+                    otpContext = 'signup';
                     const { error } = await sendSignupOtp(currentEmail);
                     if (error) {
                         showStatus(statusBox, 'خطا در ارسال کد.');
                         showStep(emailStep);
                     } else {
                         showStep(otpStep);
+                        startOtpTimer();
                         showStatus(statusBox, 'کد تایید به ایمیل شما ارسال شد.', 'success');
                     }
                 }
@@ -289,7 +360,9 @@ export const initializeAuthForm = () => {
                 if (updateError) {
                     showStatus(statusBox, 'خطا در ذخیره رمز عبور.');
                 } else {
-                    location.hash = '#/';
+                    await getProfile();
+                    dom.mainContent.innerHTML = '';
+                    showProfileModal();
                 }
                 submitBtn.textContent = 'ذخیره و ورود';
                 break;
@@ -301,19 +374,38 @@ export const initializeAuthForm = () => {
         forgotPasswordBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             hideStatus(statusBox);
+            otpContext = 'reset';
             const { error } = await sendPasswordResetOtp(currentEmail);
             if (error) {
                 showStatus(statusBox, 'خطا در ارسال کد بازنشانی.');
             } else {
                 showStep(otpStep);
+                startOtpTimer();
                 showStatus(statusBox, 'کد بازنشانی رمز به ایمیل شما ارسال شد.', 'success');
+            }
+        });
+    }
+
+    if (resendOtpBtn) {
+        resendOtpBtn.addEventListener('click', async () => {
+            hideStatus(statusBox);
+            resendOtpBtn.disabled = true;
+
+            const apiCall = otpContext === 'signup' ? sendSignupOtp : sendPasswordResetOtp;
+            const { error } = await apiCall(currentEmail);
+
+            if (error) {
+                showStatus(statusBox, 'خطا در ارسال مجدد کد.');
+                resendOtpBtn.disabled = false;
+            } else {
+                showStatus(statusBox, 'کد جدید با موفقیت ارسال شد.', 'success');
+                startOtpTimer();
             }
         });
     }
 
     form.dataset.listenerAttached = 'true';
 };
-
 
 export const updateUserUI = (user, profile) => {
     const authLink = document.getElementById('login-register-btn');
@@ -372,7 +464,7 @@ export const initializeGlobalUI = () => {
             const authorTrigger = e.target.closest('.clickable-author');
             if (authorTrigger && authorTrigger.dataset.authorId) {
                 e.preventDefault();
-                // showMemberModal(authorTrigger.dataset.authorId); // This function needs to be defined or imported
+                // showMemberModal(authorTrigger.dataset.authorId);
                 return;
             }
             const eventCard = e.target.closest('.event-card');
@@ -382,7 +474,7 @@ export const initializeGlobalUI = () => {
                     const detailLink = eventCard.querySelector('a[href*="#/events/"]');
                     if (detailLink && detailLink.hash) {
                         const path = detailLink.hash.substring(1);
-                        // showEventModal(path); // This function needs to be defined or imported
+                        // showEventModal(path);
                     }
                 }
             }
@@ -404,128 +496,4 @@ export const initializeGlobalUI = () => {
             showProfileModal();
         });
     }
-};
-
-
-export const initializeContactForm = () => {
-    const contactForm = dom.mainContent.querySelector('#contact-form');
-    if (!contactForm || contactForm.dataset.listenerAttached) return;
-
-    contactForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const statusBox = contactForm.querySelector('.form-status');
-        const submitBtn = contactForm.querySelector('button[type="submit"]');
-        const formData = new FormData(contactForm);
-        const formProps = Object.fromEntries(formData);
-
-        hideStatus(statusBox);
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'در حال ارسال...';
-
-        const { error } = await supabaseClient
-            .from('contacts')
-            .insert({ name: formProps.نام, email: formProps.ایمیل, message: formProps.پیام });
-
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'ارسال پیام';
-
-        if (error) {
-            showStatus(statusBox, 'خطایی در ارسال پیام رخ داد.');
-        } else {
-            showStatus(statusBox, 'پیام شما با موفقیت ارسال شد.', 'success');
-            contactForm.reset();
-        }
-    });
-    contactForm.dataset.listenerAttached = 'true';
-};
-
-export const showEventModal = async (path) => {
-    const eventLink = `#${path}`;
-    const event = state.allEvents.find(e => e.detailPage === eventLink);
-    if (!event) return;
-
-    const genericModal = document.getElementById('generic-modal');
-    const genericModalContent = document.getElementById('generic-modal-content');
-    if (!genericModal || !genericModalContent) return;
-
-    const detailHtml = event.content || '<p>محتوای جزئیات برای این رویداد یافت نشد.</p>';
-
-    const modalHtml = `
-        <div class="content-box">
-            <div class="event-content-area">
-                <h1>${event.title}</h1>
-                <div class="event-modal-meta">
-                     <span class="event-meta-item">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        ${event.displayDate}
-                    </span>
-                    <span class="event-meta-item">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                        ${event.location}
-                    </span>
-                </div>
-                <hr>
-                ${detailHtml}
-            </div>
-        </div>
-    `;
-    genericModal.classList.add('wide-modal');
-    genericModalContent.innerHTML = modalHtml;
-    dom.body.classList.add('modal-is-open');
-    genericModal.classList.add('is-open');
-};
-
-const showMemberModal = (memberId) => {
-    const member = state.membersMap.get(parseInt(memberId, 10));
-    if (!member) return;
-
-    const template = document.getElementById('member-card-template');
-    const genericModal = document.getElementById('generic-modal');
-    const genericModalContent = document.getElementById('generic-modal-content');
-    if (!template || !genericModal || !genericModalContent) return;
-
-    const cardClone = template.content.cloneNode(true);
-    cardClone.querySelector('.member-card').classList.add('in-modal');
-    cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
-    cardClone.querySelector('.member-photo').alt = member.name;
-    cardClone.querySelector('.member-name').textContent = member.name;
-    cardClone.querySelector('.role').textContent = member.role || 'عضو انجمن';
-    cardClone.querySelector('.description').textContent = member.description;
-
-    const tagsContainer = cardClone.querySelector('.card-tags');
-    tagsContainer.innerHTML = '';
-    if (member.tags && Array.isArray(member.tags)) {
-        member.tags.forEach(tagText => {
-            const tagElement = document.createElement('span');
-            tagElement.className = 'tag';
-            tagElement.textContent = tagText;
-            tagsContainer.appendChild(tagElement);
-        });
-    }
-
-    const socials = cardClone.querySelector('.card-socials');
-    if (member.social) {
-        const socialLinks = {
-            linkedin: cardClone.querySelector('.social-linkedin'),
-            telegram: cardClone.querySelector('.social-telegram'),
-            github: cardClone.querySelector('.social-github')
-        };
-        let hasSocial = false;
-        for (const key in socialLinks) {
-            if (member.social[key] && socialLinks[key]) {
-                socialLinks[key].href = member.social[key];
-                socialLinks[key].style.display = 'inline-block';
-                hasSocial = true;
-            }
-        }
-        if (!hasSocial) socials.style.display = 'none';
-    } else {
-        socials.style.display = 'none';
-    }
-
-    genericModal.classList.remove('wide-modal');
-    genericModalContent.innerHTML = '';
-    genericModalContent.appendChild(cardClone);
-    dom.body.classList.add('modal-is-open');
-    genericModal.classList.add('is-open');
 };
