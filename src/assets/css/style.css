@@ -1802,6 +1802,7 @@ body.light-theme .user-menu-item:hover #logout-btn:hover {
 body.light-theme .user-avatar {
     border-color: var(--glass-border-light);
 }
+
 /* ================== Login Form Enhancements ================== */
 .email-display-box {
     display: flex;
@@ -1907,4 +1908,11 @@ body.dark-theme .otp-input:focus {
 body.light-theme .otp-input:focus {
     border-color: var(--primary-color-light-theme);
     box-shadow: 0 0 10px rgba(26, 92, 93, 0.3);
+}
+
+/* ================== Turnstile Container Styles ================== */
+.turnstile-container {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem 0;
 }

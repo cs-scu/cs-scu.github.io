@@ -18,22 +18,10 @@ export const sendSignupOtp = async (email) => {
     return await supabaseClient.auth.signInWithOtp({ email });
 };
 
-/**
- * Sends a password reset OTP to the user's email.
- * By not providing a `redirectTo` option, Supabase sends an OTP.
- * @param {string} email The user's email.
- * @returns {Promise<object>} The result from Supabase.
- */
 export const sendPasswordResetOtp = async (email) => {
     return await supabaseClient.auth.resetPasswordForEmail(email);
 };
 
-/**
- * Verifies an OTP for both signup and password reset.
- * @param {string} email The user's email.
- * @param {string} token The 6-digit OTP.
- * @returns {Promise<object>} The result from Supabase.
- */
 export const verifyOtp = async (email, token) => {
     return await supabaseClient.auth.verifyOtp({ email, token, type: 'email' });
 };
@@ -132,6 +120,25 @@ export const connectTelegramAccount = async (telegramData) => {
     } catch (error) {
         console.error('Error during Telegram connection process:', error);
         return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Verifies a Cloudflare Turnstile token by calling a server-side Edge Function.
+ * @param {string} token The cf-turnstile-response token from the widget.
+ * @returns {Promise<{success: boolean, message: string}>} The verification result.
+ */
+export const verifyTurnstile = async (token) => {
+    try {
+        const { data, error } = await supabaseClient.functions.invoke('verify-turnstile', {
+            body: { token },
+        });
+
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error verifying Turnstile token:', error);
+        return { success: false, message: error.message };
     }
 };
 

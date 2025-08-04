@@ -1,6 +1,6 @@
 // src/assets/js/modules/ui.js
 import { state, dom } from './state.js';
-import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, updateUserPassword, updateProfile, getProfile } from './api.js';
+import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, updateUserPassword, updateProfile, getProfile, verifyTurnstile } from './api.js';
 
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
@@ -16,44 +16,20 @@ const hideStatus = (statusBox) => {
     statusBox.style.display = 'none';
     statusBox.textContent = '';
 };
-
-
-export const showProfileModal = async () => { // Make function async
+export const showProfileModal = async () => {
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
     if (!genericModal || !genericModalContent) return;
 
-    // --- START CHANGE: Fetch fresh user data before opening modal ---
     const { data: { user: freshUser }, error: refreshError } = await supabaseClient.auth.refreshSession();
     if (refreshError || !freshUser) {
         console.error("Could not refresh user data:", refreshError);
-        // Optionally show an error to the user
         return;
     }
-    // Update the global state with the fresh user object
     state.user = freshUser;
-    // --- END CHANGE ---
 
     const profile = state.profile;
-    const user = state.user; // This is now guaranteed to be fresh
-
-    let telegramConnectHTML = '';
-
-    if (profile?.telegram_id) {
-        telegramConnectHTML = `
-            <div class="telegram-connected-info" style="text-align: center; padding: 1rem; margin-top: 1.5rem; border-radius: 8px; background-color: rgba(0, 255, 100, 0.1); color: #96ff6f;">
-                <p style="margin:0;">✅ حساب تلگرام شما با نام کاربری <strong>@${profile.telegram_username}</strong> متصل است.</p>
-            </div>
-        `;
-    } else {
-        telegramConnectHTML = `
-            <h4>اتصال حساب تلگرام</h4>
-            <p>حساب تلگرام خود را برای تکمیل خودکار پروفایل متصل کنید.</p>
-            <div id="telegram-login-widget-container" style="margin-top: 1.5rem;"></div>
-        `;
-    }
-
-    const formattedPhone = user.phone ? `0${user.phone.substring(2)}` : 'هنوز ثبت نشده';
+    const user = state.user;
 
     const modalHtml = `
         <div class="content-box" style="padding-top: 4rem;">
@@ -65,15 +41,13 @@ export const showProfileModal = async () => { // Make function async
                     <input type="text" id="full-name" name="full-name" value="${profile?.full_name || ''}" required>
                 </div>
                 <div class="form-group">
-                    <label for="phone-display">شماره تلفن (از طریق تلگرام)</label>
-                    <input type="tel" id="phone-display" name="phone-display" value="${formattedPhone}" disabled style="background-color: rgba(128,128,128,0.1); cursor: not-allowed;">
+                    <label for="email-display">ایمیل</label>
+                    <input type="email" id="email-display" name="email-display" value="${user.email}" disabled style="background-color: rgba(128,128,128,0.1); cursor: not-allowed;">
                 </div>
                 <div class="form-status"></div>
                 <br>
                 <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
             </form>
-            <hr style="margin: 2rem 0;">
-            ${telegramConnectHTML}
         </div>
     `;
     
@@ -81,25 +55,6 @@ export const showProfileModal = async () => { // Make function async
     genericModalContent.innerHTML = modalHtml;
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
-
-    if (!profile?.telegram_id) {
-        const script = document.createElement('script');
-        script.src = 'https://telegram.org/js/telegram-widget.js?22';
-        script.async = true;
-        script.setAttribute('data-telegram-login', 'scu_cs_bot');
-        script.setAttribute('data-size', 'large');
-        script.setAttribute('data-radius', '10');
-        script.setAttribute('data-auth-url', 'https://www.cs-scu.ir/#/telegram-auth'); 
-        script.setAttribute('data-request-access', 'write');
-
-        const container = document.getElementById('telegram-login-widget-container');
-        if (container) {
-            while (container.firstChild) {
-                container.removeChild(container.firstChild);
-            }
-            container.appendChild(script);
-        }
-    }
 
     const profileForm = genericModalContent.querySelector('#profile-form');
     const statusBox = profileForm.querySelector('.form-status');
@@ -115,6 +70,7 @@ export const showProfileModal = async () => { // Make function async
             submitBtn.disabled = false;
         } else {
             showStatus(statusBox, 'اطلاعات با موفقیت ذخیره شد.', 'success');
+            await getProfile();
             updateUserUI(state.user, state.profile);
             setTimeout(() => {
                 genericModal.classList.remove('is-open');
@@ -123,7 +79,6 @@ export const showProfileModal = async () => { // Make function async
         }
     });
 };
-
 export const handleTelegramAuth = async () => {
     const hash = window.location.hash;
     const queryString = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
@@ -188,6 +143,14 @@ export const initializeAuthForm = () => {
     const otpContainer = form.querySelector('#otp-container');
     const otpInputs = otpContainer ? Array.from(otpContainer.children) : [];
 
+    const turnstileWidget = form.querySelector('#turnstile-widget');
+    if (turnstileWidget && typeof turnstile !== 'undefined') {
+        turnstile.render('#turnstile-widget', {
+            sitekey: '0x4AAAAAABoNEi1N70S2VODl', // Your Site Key
+            theme: document.body.classList.contains('dark-theme') ? 'dark' : 'light',
+        });
+    }
+
     const showStep = (step) => {
         emailStep.style.display = 'none';
         passwordStep.style.display = 'none';
@@ -206,7 +169,6 @@ export const initializeAuthForm = () => {
         });
     });
 
-    // OTP Input Logic
     if (otpContainer) {
         otpInputs.forEach((input, index) => {
             input.addEventListener('input', () => {
@@ -214,13 +176,11 @@ export const initializeAuthForm = () => {
                     otpInputs[index + 1].focus();
                 }
             });
-
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Backspace' && !input.value && index > 0) {
                     otpInputs[index - 1].focus();
                 }
             });
-
             input.addEventListener('paste', (e) => {
                 e.preventDefault();
                 const pasteData = e.clipboardData.getData('text');
@@ -246,8 +206,27 @@ export const initializeAuthForm = () => {
         switch (activeStep.id) {
             case 'email-step':
                 submitBtn.textContent = 'در حال بررسی...';
-                currentEmail = form.querySelector('#auth-email').value;
+
+                const turnstileToken = form.querySelector('[name="cf-turnstile-response"]')?.value;
+                if (!turnstileToken) {
+                    showStatus(statusBox, 'تایید هویت انجام نشد. لطفاً لحظه‌ای صبر کنید.');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'ادامه';
+                    return;
+                }
+
+                const verification = await verifyTurnstile(turnstileToken);
+                if (!verification.success) {
+                    showStatus(statusBox, 'تایید هویت با خطا مواجه شد. لطفاً صفحه را رفرش کنید.');
+                    if (typeof turnstile !== 'undefined') {
+                        turnstile.reset('#turnstile-widget');
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'ادامه';
+                    return;
+                }
                 
+                currentEmail = form.querySelector('#auth-email').value;
                 if(displayEmailPassword) displayEmailPassword.textContent = currentEmail;
                 if(displayEmailOtp) displayEmailOtp.textContent = currentEmail;
 
@@ -335,6 +314,7 @@ export const initializeAuthForm = () => {
     form.dataset.listenerAttached = 'true';
 };
 
+
 export const updateUserUI = (user, profile) => {
     const authLink = document.getElementById('login-register-btn');
     const userInfo = document.getElementById('user-info');
@@ -392,7 +372,7 @@ export const initializeGlobalUI = () => {
             const authorTrigger = e.target.closest('.clickable-author');
             if (authorTrigger && authorTrigger.dataset.authorId) {
                 e.preventDefault();
-                showMemberModal(authorTrigger.dataset.authorId);
+                // showMemberModal(authorTrigger.dataset.authorId); // This function needs to be defined or imported
                 return;
             }
             const eventCard = e.target.closest('.event-card');
@@ -402,7 +382,7 @@ export const initializeGlobalUI = () => {
                     const detailLink = eventCard.querySelector('a[href*="#/events/"]');
                     if (detailLink && detailLink.hash) {
                         const path = detailLink.hash.substring(1);
-                        showEventModal(path);
+                        // showEventModal(path); // This function needs to be defined or imported
                     }
                 }
             }
@@ -425,6 +405,7 @@ export const initializeGlobalUI = () => {
         });
     }
 };
+
 
 export const initializeContactForm = () => {
     const contactForm = dom.mainContent.querySelector('#contact-form');
