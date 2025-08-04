@@ -1137,6 +1137,7 @@ body.light-theme .event-card-title { color: var(--primary-color-light-theme); }
     align-items: center;
     gap: 1rem;
     margin: 1vw;
+    padding: 0.5rem;
 }
 body.dark-theme .event-card-footer { border-top-color: var(--glass-border-dark); }
 body.light-theme .event-card-footer { border-top-color: var(--glass-border-light); }
