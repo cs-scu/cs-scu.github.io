@@ -16,12 +16,24 @@ const hideStatus = (statusBox) => {
     statusBox.textContent = '';
 };
 
-export const showProfileModal = () => {
-    const profile = state.profile;
-    const user = state.user;
+export const showProfileModal = async () => { // Make function async
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
-    if (!genericModal || !genericModalContent || !user) return;
+    if (!genericModal || !genericModalContent) return;
+
+    // --- START CHANGE: Fetch fresh user data before opening modal ---
+    const { data: { user: freshUser }, error: refreshError } = await supabaseClient.auth.refreshSession();
+    if (refreshError || !freshUser) {
+        console.error("Could not refresh user data:", refreshError);
+        // Optionally show an error to the user
+        return;
+    }
+    // Update the global state with the fresh user object
+    state.user = freshUser;
+    // --- END CHANGE ---
+
+    const profile = state.profile;
+    const user = state.user; // This is now guaranteed to be fresh
 
     let telegramConnectHTML = '';
 
@@ -292,6 +304,7 @@ export const updateUserUI = (user, profile) => {
         if (userAvatar) userAvatar.style.display = 'none';
     }
 };
+
 export const initializeGlobalUI = () => {
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const mobileDropdownMenu = document.getElementById('mobile-dropdown-menu');
@@ -350,6 +363,7 @@ export const initializeGlobalUI = () => {
         });
     }
 };
+
 export const initializeContactForm = () => {
     const contactForm = dom.mainContent.querySelector('#contact-form');
     if (!contactForm || contactForm.dataset.listenerAttached) return;
