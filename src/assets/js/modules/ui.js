@@ -18,9 +18,10 @@ const hideStatus = (statusBox) => {
 
 export const showProfileModal = () => {
     const profile = state.profile;
+    const user = state.user;
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
-    if (!genericModal || !genericModalContent) return;
+    if (!genericModal || !genericModalContent || !user) return;
 
     let telegramConnectHTML = '';
 
@@ -33,10 +34,12 @@ export const showProfileModal = () => {
     } else {
         telegramConnectHTML = `
             <h4>اتصال حساب تلگرام</h4>
-            <p>حساب تلگرام خود را برای تکمیل پروفایل و ورود آسان‌تر متصل کنید.</p>
+            <p>حساب تلگرام خود را برای تکمیل خودکار پروفایل متصل کنید.</p>
             <div id="telegram-login-widget-container" style="margin-top: 1.5rem;"></div>
         `;
     }
+
+    const formattedPhone = user.phone ? `0${user.phone.substring(3)}` : 'هنوز ثبت نشده';
 
     const modalHtml = `
         <div class="content-box" style="padding-top: 4rem;">
@@ -44,12 +47,12 @@ export const showProfileModal = () => {
             <p>اطلاعات خود را تکمیل یا ویرایش کنید.</p>
             <form id="profile-form">
                 <div class="form-group">
-                    <label for="first-name">نام</label>
-                    <input type="text" id="first-name" name="first-name" value="${profile?.first_name || ''}" required>
+                    <label for="full-name">نام و نام خانوادگی</label>
+                    <input type="text" id="full-name" name="full-name" value="${profile?.full_name || ''}" required>
                 </div>
                 <div class="form-group">
-                    <label for="last-name">نام خانوادگی</label>
-                    <input type="text" id="last-name" name="last-name" value="${profile?.last_name || ''}" required>
+                    <label for="phone-display">شماره تلفن (از طریق تلگرام)</label>
+                    <input type="tel" id="phone-display" name="phone-display" value="${formattedPhone}" disabled style="background-color: rgba(128,128,128,0.1); cursor: not-allowed;">
                 </div>
                 <div class="form-status"></div>
                 <br>
@@ -72,13 +75,11 @@ export const showProfileModal = () => {
         script.setAttribute('data-telegram-login', 'scu_cs_bot');
         script.setAttribute('data-size', 'large');
         script.setAttribute('data-radius', '10');
-        // IMPORTANT: The auth URL must point to the page that handles the logic
         script.setAttribute('data-auth-url', 'https://www.cs-scu.ir/#/telegram-auth'); 
         script.setAttribute('data-request-access', 'write');
 
         const container = document.getElementById('telegram-login-widget-container');
         if (container) {
-            // Clear previous widget if any
             while (container.firstChild) {
                 container.removeChild(container.firstChild);
             }
@@ -90,18 +91,16 @@ export const showProfileModal = () => {
     const statusBox = profileForm.querySelector('.form-status');
     profileForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const firstName = profileForm.querySelector('#first-name').value;
-        const lastName = profileForm.querySelector('#last-name').value;
+        const fullName = profileForm.querySelector('#full-name').value;
         const submitBtn = profileForm.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
 
-        const { error } = await updateProfile({ first_name: firstName, last_name: lastName });
+        const { error } = await updateProfile({ full_name: fullName });
         if (error) {
             showStatus(statusBox, 'خطا در ذخیره اطلاعات.');
             submitBtn.disabled = false;
         } else {
             showStatus(statusBox, 'اطلاعات با موفقیت ذخیره شد.', 'success');
-            // No need to fetch profile again, updateProfile does it.
             updateUserUI(state.user, state.profile);
             setTimeout(() => {
                 genericModal.classList.remove('is-open');
@@ -148,11 +147,9 @@ export const handleTelegramAuth = async () => {
                 <p>در حال بازگشت...</p>
             </div>
         `;
-        // The profile state is now updated via connectTelegramAccount -> getProfile
         updateUserUI(state.user, state.profile);
         
         setTimeout(() => {
-            // Redirect to a special route that will open the profile modal
             location.hash = '#/profile-updated';
         }, 1500);
     }
@@ -228,6 +225,7 @@ export const initializeAuthForm = () => {
                 if (newPassword.length < 6) {
                     showStatus(statusBox, 'رمز عبور باید حداقل ۶ کاراکتر باشد.');
                     submitBtn.disabled = false;
+                    submitBtn.textContent = 'ذخیره و ورود';
                     return;
                 }
                 const { error: updateError } = await updateUserPassword(newPassword);
@@ -241,7 +239,7 @@ export const initializeAuthForm = () => {
                 submitBtn.textContent = 'ذخیره و ورود';
                 break;
         }
-        submitBtn.disabled = false;
+        if (submitBtn) submitBtn.disabled = false;
     });
 
     if (forgotPasswordLink) {
@@ -250,17 +248,17 @@ export const initializeAuthForm = () => {
             hideStatus(statusBox);
             const { error } = await sendPasswordResetOtp(currentEmail);
             if (error) {
-                showStatus(statusBox, 'خطا در ارسال کد بازنشانی.');
+                showStatus(statusBox, 'خطا در ارسال ایمیل بازنشانی.');
             } else {
                 passwordStep.style.display = 'none';
-                otpStep.style.display = 'block';
-                showStatus(statusBox, 'کد بازنشانی رمز به ایمیل شما ارسال شد.', 'success');
+                showStatus(statusBox, 'ایمیل حاوی لینک بازنشانی رمز عبور برای شما ارسال شد.', 'success');
             }
         });
     }
 
     form.dataset.listenerAttached = 'true';
 };
+
 
 export const updateUserUI = (user, profile) => {
     const authLink = document.getElementById('login-register-btn');
@@ -269,24 +267,22 @@ export const updateUserUI = (user, profile) => {
     const adminLink = document.getElementById('admin-panel-link');
     const userAvatar = document.getElementById('user-avatar');
 
-    if (user && profile) {
+    if (user) {
         if (authLink) authLink.style.display = 'none';
         if (userInfo) userInfo.style.display = 'flex';
 
         if (welcomeMsg) {
-            const displayName = (profile.first_name && profile.last_name) 
-                ? `${profile.first_name} ${profile.last_name}` 
-                : (profile.first_name || user.email.split('@')[0]);
+            const displayName = profile?.full_name || user.email.split('@')[0];
             welcomeMsg.textContent = `سلام، ${displayName}`;
         }
         
         if (userAvatar) {
-            userAvatar.src = profile.avatar_url || DEFAULT_AVATAR_URL;
+            userAvatar.src = profile?.avatar_url || DEFAULT_AVATAR_URL;
             userAvatar.style.display = 'block';
         }
         
         if (adminLink) {
-            adminLink.style.display = (profile.role === 'admin') ? 'flex' : 'none';
+            adminLink.style.display = (profile?.role === 'admin') ? 'flex' : 'none';
         }
     } else {
         if (authLink) authLink.style.display = 'flex';
@@ -295,7 +291,6 @@ export const updateUserUI = (user, profile) => {
         if (userAvatar) userAvatar.style.display = 'none';
     }
 };
-
 export const initializeGlobalUI = () => {
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const mobileDropdownMenu = document.getElementById('mobile-dropdown-menu');
@@ -348,10 +343,8 @@ export const initializeGlobalUI = () => {
     if (userInfo) {
         userInfo.addEventListener('click', (e) => {
             if (e.target.closest('#logout-btn')) {
-                // The logout functionality is handled in main.js
                 return;
             }
-            // Open profile modal if any other part of the user info is clicked
             showProfileModal();
         });
     }

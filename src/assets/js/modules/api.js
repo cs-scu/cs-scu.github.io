@@ -20,7 +20,7 @@ export const sendSignupOtp = async (email) => {
 
 export const sendPasswordResetOtp = async (email) => {
     return await supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: undefined,
+        redirectTo: undefined, // Let Supabase handle the redirect link
     });
 };
 
@@ -53,7 +53,7 @@ export const getProfile = async () => {
     try {
         const { data, error, status } = await supabaseClient
             .from('profiles')
-            .select(`first_name, last_name, role, telegram_id, telegram_username, avatar_url`)
+            .select(`full_name, role, telegram_id, telegram_username, avatar_url`)
             .eq('id', state.user.id)
             .single();
             
@@ -78,7 +78,6 @@ export const updateProfile = async (profileData) => {
         const { error } = await supabaseClient.from('profiles').upsert(updates);
         if (error) throw error;
         
-        // Fetch the latest profile to ensure state is in sync
         await getProfile();
         
         return { error: null };
@@ -107,8 +106,6 @@ export const checkUserExists = async (email) => {
 
 export const connectTelegramAccount = async (telegramData) => {
     try {
-        // The logic is now handled by the Edge Function. 
-        // The client just needs to call the function.
         const { data: result, error } = await supabaseClient.functions.invoke('verify-telegram-auth', {
             body: telegramData,
         });
@@ -118,7 +115,6 @@ export const connectTelegramAccount = async (telegramData) => {
             throw new Error(result.error || 'خطا در پردازش اطلاعات تلگرام.');
         }
         
-        // After the function successfully runs, refetch the profile to get the latest data
         await getProfile();
         
         return { success: true, error: null };
@@ -128,7 +124,6 @@ export const connectTelegramAccount = async (telegramData) => {
         return { success: false, error: error.message };
     }
 };
-
 
 // --- Other Data Fetching Functions ---
 export const getBaseUrl = () => {
