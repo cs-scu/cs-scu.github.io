@@ -223,13 +223,28 @@ export const renderEventsPage = () => {
     
             const tagsContainer = card.querySelector('.event-card-tags');
             tagsContainer.innerHTML = '';
-            event.tags.forEach(([text, color]) => {
-                const tagEl = document.createElement('span');
-                tagEl.className = 'news-tag';
-                tagEl.textContent = text;
-                tagEl.style.backgroundColor = color;
-                tagsContainer.appendChild(tagEl);
-            });
+            
+            // FIX: Defensively parse tags to handle stringified JSON
+            let parsedTags = [];
+            if (typeof event.tags === 'string') {
+                try {
+                    parsedTags = JSON.parse(event.tags);
+                } catch (e) {
+                    console.error('Failed to parse event tags:', event.tags, e);
+                }
+            } else if (Array.isArray(event.tags)) {
+                parsedTags = event.tags;
+            }
+
+            if (Array.isArray(parsedTags)) {
+                parsedTags.forEach(([text, color]) => {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'news-tag';
+                    tagEl.textContent = text;
+                    tagEl.style.backgroundColor = color;
+                    tagsContainer.appendChild(tagEl);
+                });
+            }
     
             card.querySelector('.event-card-title-link').href = event.detailPage;
             card.querySelector('.event-card-title').textContent = event.title;
@@ -238,11 +253,11 @@ export const renderEventsPage = () => {
             const metaContainer = card.querySelector('.event-meta');
             metaContainer.innerHTML = `
                 <span class="event-meta-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                     ${event.displayDate}
                 </span>
                 <span class="event-meta-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                     ${event.location}
                 </span>
             `;

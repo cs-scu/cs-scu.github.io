@@ -1916,3 +1916,39 @@ body.light-theme .otp-input:focus {
     justify-content: center;
     margin: 1.5rem 0;
 }
+
+/* ================== OTP Timer and Resend Styles ================== */
+.otp-timer-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+}
+
+#resend-otp-btn {
+    text-decoration: none;
+    font-weight: normal;
+}
+
+#resend-otp-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    text-decoration: none;
+}
+
+#otp-timer {
+    font-weight: bold;
+    direction: ltr;
+    min-width: 50px; /* Ensures layout doesn't shift */
+    text-align: center;
+}
+
+body.dark-theme #otp-timer {
+    color: var(--primary-color);
+}
+
+body.light-theme #otp-timer {
+    color: var(--primary-color-light-theme);
+}
