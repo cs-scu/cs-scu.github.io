@@ -51,7 +51,7 @@ export const showProfileModal = async () => { // Make function async
         `;
     }
 
-    const formattedPhone = user.phone ? `0${user.phone.substring(3)}` : 'هنوز ثبت نشده';
+    const formattedPhone = user.phone ? `0${user.phone.substring(2)}` : 'هنوز ثبت نشده';
 
     const modalHtml = `
         <div class="content-box" style="padding-top: 4rem;">
