@@ -2094,3 +2094,36 @@ body.light-theme .btn-social.btn-google:hover {
 body.dark-theme .btn-social.btn-google:hover {
     background-color: rgba(255, 255, 255, 0.05);
 }
+/* src/assets/css/style.css */
+
+/* ================== Registration Status View ================== */
+.registration-status-details {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: 8px;
+}
+body.dark-theme .registration-status-details {
+    background-color: rgba(0,0,0,0.2);
+}
+body.light-theme .registration-status-details {
+    background-color: rgba(0,0,0,0.04);
+}
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 0;
+}
+.info-row span {
+    opacity: 0.8;
+}
+.registration-status-details hr {
+    border: none;
+    height: 1px;
+    margin: 0.5rem 0;
+}
+body.dark-theme .registration-status-details hr { background-color: var(--glass-border-dark); }
+body.light-theme .registration-status-details hr { background-color: var(--glass-border-light); }
+
+.status-pending { color: #ffc107; } /* زرد */
+.status-confirmed { color: #28a745; } /* سبز */
