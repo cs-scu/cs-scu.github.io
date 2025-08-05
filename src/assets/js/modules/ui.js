@@ -717,7 +717,6 @@ export const showEventRegistrationModal = (eventId) => {
     const profile = state.profile;
     const user = state.user;
 
-    // *** منطق جدید: بررسی نیاز به پرداخت ***
     const paymentInfo = event.payment_card_number;
     const isPaidEvent = event.cost && event.cost.toLowerCase() !== 'رایگان' && paymentInfo && paymentInfo.number;
     
@@ -752,6 +751,12 @@ export const showEventRegistrationModal = (eventId) => {
                     <label for="reg-tx-time">ساعت واریز</label>
                     <input type="time" id="reg-tx-time" name="transaction_time" required>
                 </div>
+            </div>`;
+    } else {
+        // *** تغییر در این بخش: اگر رویداد رایگان بود، این متن نمایش داده می‌شود ***
+        paymentSectionHTML = `
+            <div class="payment-info-section">
+                <p>هزینه شرکت در رویداد: <strong>رایگان</strong></p>
             </div>`;
     }
 
@@ -832,7 +837,7 @@ export const showEventRegistrationModal = (eventId) => {
             student_id: formData.get('student_id'),
             email: user.email,
             phone_number: formData.get('phone_number'),
-            status: isPaidEvent ? 'pending' : 'confirmed', // برای رویداد رایگان، ثبت‌نام نهایی است
+            status: isPaidEvent ? 'pending' : 'confirmed',
             card_last_four_digits: isPaidEvent ? formData.get('card_digits') : null,
             transaction_time: isPaidEvent ? formData.get('transaction_time') : null,
         };
