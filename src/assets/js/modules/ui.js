@@ -693,63 +693,87 @@ export const initializeContactForm = () => {
 };
 
 export const showEventRegistrationModal = (eventId) => {
-    const event = state.allEvents.find(e => e.id == eventId);
-    if (!event) return;
-
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
     if (!genericModal || !genericModalContent) return;
 
-    // از کاربر لاگین شده برای پر کردن فرم استفاده می‌کنیم
-    const user = state.user;
-    const profile = state.profile;
-    const initialName = profile?.full_name || '';
-    const initialEmail = user?.email || '';
-
-    const modalHtml = `
-        <div class="content-box">
-            <h2>ثبت‌نام در رویداد: ${event.title}</h2>
-            <p>برای شرکت در این رویداد، لطفاً اطلاعات زیر را تکمیل کنید.</p>
-            <form id="event-registration-form">
-                <input type="hidden" name="event_id" value="${event.id}">
-                <div class="form-group">
-                    <label for="reg-name">نام و نام خانوادگی</label>
-                    <input type="text" id="reg-name" name="name" value="${initialName}" required>
-                </div>
-                <div class="form-group">
-                    <label for="reg-email">ایمیل</label>
-                    <input type="email" id="reg-email" name="email" value="${initialEmail}" required ${initialEmail ? 'disabled' : ''}>
-                </div>
-                <div class="form-status"></div>
+    // مرحله ۱: بررسی وضعیت لاگین کاربر
+    if (!state.user) {
+        // کاربر لاگین نکرده است: نمایش مودال درخواست ورود
+        const modalHtml = `
+            <div class="content-box" style="text-align: center;">
+                <h2>ابتدا وارد شوید</h2>
+                <p>برای ثبت‌نام در رویدادها، ابتدا باید وارد حساب کاربری خود شوید یا یک حساب جدید بسازید.</p>
                 <br>
-                <button type="submit" class="btn btn-primary">تایید و ثبت‌نام</button>
-            </form>
-        </div>
-    `;
+                <div class="form-actions">
+                    <a href="#/login" id="go-to-login-btn" class="btn btn-primary btn-full">ورود یا ثبت‌نام</a>
+                </div>
+            </div>
+        `;
+        genericModal.classList.add('wide-modal');
+        genericModalContent.innerHTML = modalHtml;
 
-    genericModal.classList.add('wide-modal');
-    genericModalContent.innerHTML = modalHtml;
-    dom.body.classList.add('modal-is-open');
-    genericModal.classList.add('is-open');
-
-    const registrationForm = genericModalContent.querySelector('#event-registration-form');
-    registrationForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const submitBtn = registrationForm.querySelector('button[type="submit"]');
-        const statusBox = registrationForm.querySelector('.form-status');
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'در حال ثبت ...';
-
-        // در اینجا منطق ارسال اطلاعات فرم به Supabase را پیاده‌سازی می‌کنید
-        // به عنوان مثال، می‌توانید یک جدول جدید به نام event_registrations ایجاد کنید
-        
-        // شبیه‌سازی یک درخواست موفق
-        setTimeout(() => {
-            showStatus(statusBox, 'ثبت‌نام شما با موفقیت انجام شد.', 'success');
-             setTimeout(() => {
+        // بستن مودال فعلی هنگام کلیک روی دکمه ورود
+        const goToLoginBtn = genericModalContent.querySelector('#go-to-login-btn');
+        if(goToLoginBtn) {
+            goToLoginBtn.addEventListener('click', () => {
                 genericModal.classList.remove('is-open');
                 dom.body.classList.remove('modal-is-open');
-            }, 2000);
-        }, 1000);
-    });
+            });
+        }
+
+    } else {
+        // کاربر لاگین کرده است: نمایش فرم ثبت‌نام
+        const event = state.allEvents.find(e => e.id == eventId);
+        if (!event) return;
+
+        const profile = state.profile;
+        const initialName = profile?.full_name || '';
+        const initialEmail = state.user?.email || '';
+
+        const modalHtml = `
+            <div class="content-box">
+                <h2>ثبت‌نام در رویداد: ${event.title}</h2>
+                <p>اطلاعات شما از پروفایل کاربری خوانده شده است. در صورت نیاز آن را ویرایش کنید.</p>
+                <form id="event-registration-form">
+                    <input type="hidden" name="event_id" value="${event.id}">
+                    <div class="form-group">
+                        <label for="reg-name">نام و نام خانوادگی</label>
+                        <input type="text" id="reg-name" name="name" value="${initialName}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-email">ایمیل</label>
+                        <input type="email" id="reg-email" name="email" value="${initialEmail}" required disabled style="background-color: rgba(128,128,128,0.1); cursor: not-allowed;">
+                    </div>
+                    <div class="form-status"></div>
+                    <br>
+                    <button type="submit" class="btn btn-primary">تایید و ثبت‌نام</button>
+                </form>
+            </div>
+        `;
+        genericModal.classList.add('wide-modal');
+        genericModalContent.innerHTML = modalHtml;
+
+        const registrationForm = genericModalContent.querySelector('#event-registration-form');
+        registrationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = registrationForm.querySelector('button[type="submit"]');
+            const statusBox = registrationForm.querySelector('.form-status');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'در حال ثبت ...';
+
+            // شبیه‌سازی یک درخواست موفق
+            setTimeout(() => {
+                showStatus(statusBox, 'ثبت‌نام شما با موفقیت انجام شد.', 'success');
+                 setTimeout(() => {
+                    genericModal.classList.remove('is-open');
+                    dom.body.classList.remove('modal-is-open');
+                }, 2000);
+            }, 1000);
+        });
+    }
+
+    // در هر دو حالت، مودال را باز کن
+    dom.body.classList.add('modal-is-open');
+    genericModal.classList.add('is-open');
 };
