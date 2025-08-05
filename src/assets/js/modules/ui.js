@@ -711,7 +711,6 @@ export const showEventRegistrationModal = (eventId) => {
         return;
     }
 
-    // کاربر لاگین کرده است، مودال یکپارچه ثبت‌نام را نشان بده
     const event = state.allEvents.find(e => e.id == eventId);
     if (!event) return;
 
@@ -761,9 +760,10 @@ export const showEventRegistrationModal = (eventId) => {
                         <label for="reg-card-digits">۴ رقم آخر کارت پرداختی</label>
                         <input type="text" id="reg-card-digits" name="card_digits" inputmode="numeric" pattern="[0-9]{4}" placeholder="مثال: ۱۲۳۴" required>
                     </div>
+                    
                     <div class="form-group">
-                        <label for="reg-tx-time">تاریخ و ساعت دقیق واریز</label>
-                        <input type="text" id="reg-tx-time" name="transaction_time" placeholder="مثال: ۱۴۰۴/۰۵/۱۵ - ۱۶:۳۰" required>
+                        <label for="reg-tx-time">ساعت واریز</label>
+                        <input type="time" id="reg-tx-time" name="transaction_time" required>
                     </div>
                 </div>
 
@@ -787,6 +787,7 @@ export const showEventRegistrationModal = (eventId) => {
     const registrationForm = genericModalContent.querySelector('#event-registration-form');
     registrationForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        // ... بقیه کد مربوط به ارسال فرم بدون تغییر باقی می‌ماند ...
         const submitBtn = registrationForm.querySelector('button[type="submit"]');
         const statusBox = registrationForm.querySelector('.form-status');
         submitBtn.disabled = true;
@@ -804,7 +805,7 @@ export const showEventRegistrationModal = (eventId) => {
                 email: user.email,
                 phone_number: formData.get('phone_number'),
                 card_last_four_digits: formData.get('card_digits'),
-                transaction_time: formData.get('transaction_time'),
+                transaction_time: formData.get('transaction_time'), // مقدار این فیلد اکنون چیزی شبیه "16:30" خواهد بود
                 status: 'pending'
             });
 
