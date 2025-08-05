@@ -734,8 +734,9 @@ export const showEventRegistrationModal = async (eventId) => {
             paymentInfoHTML = `<div class="info-row"><span>چهار رقم آخر کارت:</span><strong>${existingRegistration.card_last_four_digits}</strong></div><div class="info-row"><span>ساعت واریز:</span><strong>${existingRegistration.transaction_time}</strong></div>`;
         }
 
-        const cancelButtonHTML = existingRegistration.status === 'pending' 
-            ? `<button id="cancel-and-retry-btn" class="btn btn-primary btn-full" style="margin-top: 1rem;">لغو و ثبت‌نام مجدد</button>` 
+        // *** تغییر کلیدی: دکمه ویرایش به جای لغو ***
+        const editButtonHTML = existingRegistration.status === 'pending' 
+            ? `<button id="edit-registration-btn" class="btn btn-primary" style="flex-grow: 1;">ویرایش اطلاعات</button>` 
             : '';
 
         const statusModalHtml = `
@@ -748,9 +749,12 @@ export const showEventRegistrationModal = async (eventId) => {
                     <div class="info-row"><span>کد دانشجویی:</span><strong>${existingRegistration.student_id}</strong></div>
                     <div class="info-row"><span>تلفن:</span><strong>${existingRegistration.phone_number}</strong></div>
                     ${paymentInfoHTML}
-                </div><br>
-                <button id="close-status-modal" class="btn btn-secondary btn-full">بستن</button>
-                ${cancelButtonHTML}
+                </div>
+                
+                <div class="form-actions" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button id="close-status-modal" class="btn btn-secondary" style="flex-grow: 1;">بستن</button>
+                    ${editButtonHTML}
+                </div>
             </div>`;
 
         genericModalContent.innerHTML = statusModalHtml;
@@ -759,26 +763,27 @@ export const showEventRegistrationModal = async (eventId) => {
             genericModal.classList.remove('is-open');
             dom.body.classList.remove('modal-is-open');
         });
-
-        const cancelBtn = genericModalContent.querySelector('#cancel-and-retry-btn');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', async () => {
-                if (confirm("آیا از لغو ثبت‌نام فعلی و شروع مجدد فرآیند مطمئن هستید؟")) {
-                    cancelBtn.disabled = true;
-                    cancelBtn.textContent = 'در حال لغو...';
+        
+        // منطق دکمه ویرایش
+        const editBtn = genericModalContent.querySelector('#edit-registration-btn');
+        if (editBtn) {
+            editBtn.addEventListener('click', async () => {
+                if (confirm("برای ویرایش، اطلاعات قبلی شما حذف و فرم ثبت‌نام مجدداً نمایش داده می‌شود. آیا ادامه می‌دهید؟")) {
+                    editBtn.disabled = true;
+                    editBtn.textContent = 'لطفا صبر کنید...';
                     const { success } = await deleteEventRegistration(existingRegistration.id);
                     if (success) {
-                        await showEventRegistrationModal(eventId); // بازخوانی مودال
+                        await showEventRegistrationModal(eventId); // بازخوانی مودال برای نمایش فرم
                     } else {
-                        alert('خطا در لغو ثبت‌نام.');
-                        cancelBtn.disabled = false;
-                        cancelBtn.textContent = 'لغو و ثبت‌نام مجدد';
+                        alert('خطا در پردازش درخواست. لطفاً دوباره تلاش کنید.');
+                        editBtn.disabled = false;
+                        editBtn.textContent = 'ویرایش اطلاعات';
                     }
                 }
             });
         }
     } else {
-        // 4. اگر ثبت‌نام قبلی نبود، نمایش فرم
+        // 4. اگر ثبت‌نام قبلی نبود، نمایش فرم (این بخش بدون تغییر باقی می‌ماند)
         const event = state.allEvents.find(e => e.id == eventId);
         if (!event) return;
 
