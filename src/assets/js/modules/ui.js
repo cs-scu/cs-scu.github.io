@@ -629,11 +629,19 @@ export const initializeGlobalUI = () => {
                     }
                 }
             }
+
             const courseHeader = e.target.closest('.course-card-chart.is-expandable .course-main-info');
             if (courseHeader) {
                 e.preventDefault();
                 const courseCard = courseHeader.closest('.course-card-chart');
                 courseCard.classList.toggle('is-expanded');
+            }
+
+            const registerBtn = e.target.closest('.btn-event-register');
+            if (registerBtn && !registerBtn.disabled) {
+                e.preventDefault();
+                const eventId = registerBtn.dataset.eventId;
+                showEventRegistrationModal(eventId);
             }
         });
     }
@@ -682,4 +690,66 @@ export const initializeContactForm = () => {
         }
     });
     contactForm.dataset.listenerAttached = 'true';
+};
+
+export const showEventRegistrationModal = (eventId) => {
+    const event = state.allEvents.find(e => e.id == eventId);
+    if (!event) return;
+
+    const genericModal = document.getElementById('generic-modal');
+    const genericModalContent = document.getElementById('generic-modal-content');
+    if (!genericModal || !genericModalContent) return;
+
+    // از کاربر لاگین شده برای پر کردن فرم استفاده می‌کنیم
+    const user = state.user;
+    const profile = state.profile;
+    const initialName = profile?.full_name || '';
+    const initialEmail = user?.email || '';
+
+    const modalHtml = `
+        <div class="content-box">
+            <h2>ثبت‌نام در رویداد: ${event.title}</h2>
+            <p>برای شرکت در این رویداد، لطفاً اطلاعات زیر را تکمیل کنید.</p>
+            <form id="event-registration-form">
+                <input type="hidden" name="event_id" value="${event.id}">
+                <div class="form-group">
+                    <label for="reg-name">نام و نام خانوادگی</label>
+                    <input type="text" id="reg-name" name="name" value="${initialName}" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">ایمیل</label>
+                    <input type="email" id="reg-email" name="email" value="${initialEmail}" required ${initialEmail ? 'disabled' : ''}>
+                </div>
+                <div class="form-status"></div>
+                <br>
+                <button type="submit" class="btn btn-primary">تایید و ثبت‌نام</button>
+            </form>
+        </div>
+    `;
+
+    genericModal.classList.add('wide-modal');
+    genericModalContent.innerHTML = modalHtml;
+    dom.body.classList.add('modal-is-open');
+    genericModal.classList.add('is-open');
+
+    const registrationForm = genericModalContent.querySelector('#event-registration-form');
+    registrationForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = registrationForm.querySelector('button[type="submit"]');
+        const statusBox = registrationForm.querySelector('.form-status');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'در حال ثبت ...';
+
+        // در اینجا منطق ارسال اطلاعات فرم به Supabase را پیاده‌سازی می‌کنید
+        // به عنوان مثال، می‌توانید یک جدول جدید به نام event_registrations ایجاد کنید
+        
+        // شبیه‌سازی یک درخواست موفق
+        setTimeout(() => {
+            showStatus(statusBox, 'ثبت‌نام شما با موفقیت انجام شد.', 'success');
+             setTimeout(() => {
+                genericModal.classList.remove('is-open');
+                dom.body.classList.remove('modal-is-open');
+            }, 2000);
+        }, 1000);
+    });
 };

@@ -313,14 +313,16 @@ export const renderEventsPage = () => {
             const actionsContainer = card.querySelector('.event-actions');
             actionsContainer.innerHTML = '';
             let button;
+
             if (event.registrationLink) {
-                button = document.createElement('a');
-                button.href = event.registrationLink;
-                button.target = "_blank";
-                button.className = 'btn btn-primary';
+                button = document.createElement('button'); // تغییر از 'a' به 'button'
+                button.className = 'btn btn-primary btn-event-register'; // افزودن کلاس برای شناسایی
+                button.dataset.eventId = event.id; // اضافه کردن شناسه رویداد به دیتای دکمه
+
                 if (new Date(event.endDate) < today) {
                     button.textContent = 'پایان یافته';
                     button.classList.add('disabled');
+                    button.disabled = true;
                 } else {
                     button.textContent = 'ثبت‌نام';
                 }
