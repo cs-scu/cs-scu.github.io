@@ -717,6 +717,12 @@ export const showEventRegistrationModal = (eventId) => {
     const profile = state.profile;
     const user = state.user;
 
+    // *** تغییر در این بخش: خواندن اطلاعات پرداخت از JSON ***
+    const paymentInfo = event.payment_card_number || {}; // اگر اطلاعات پرداخت وجود نداشت، یک آبجکت خالی در نظر بگیر
+    const cardHolderName = paymentInfo.name || 'انجمن علمی';
+    const cardNumber = paymentInfo.number || 'شماره کارتی ثبت نشده است';
+
+
     const modalHtml = `
         <div class="content-box">
             <h2>ثبت‌نام در رویداد: ${event.title}</h2>
@@ -725,8 +731,13 @@ export const showEventRegistrationModal = (eventId) => {
             <div class="payment-info-section">
                 <p>هزینه شرکت در رویداد: <strong>${event.cost}</strong></p>
                 <p>لطفاً مبلغ را به شماره کارت زیر واریز کرده و اطلاعات آن را در فرم زیر وارد کنید:</p>
-                <div class="payment-details-box" style="text-align:center; padding: 1rem; border: 1px dashed gray; margin: 1rem 0; border-radius: 8px; direction: ltr;">
-                    <p><strong>6037-xxxx-xxxx-xxxx</strong> (به نام انجمن علمی)</p>
+                
+                <div class="payment-details-box" style="text-align: center; padding: 1rem; border: 1px dashed gray; margin: 1rem 0; border-radius: 8px;">
+                    <p style="margin:0;">به نام: <strong>${cardHolderName}</strong></p>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 0.5rem; direction: ltr;">
+                        <strong id="card-to-copy">${cardNumber}</strong>
+                        <button id="copy-card-btn" class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">کپی</button>
+                    </div>
                 </div>
             </div>
 
@@ -749,7 +760,7 @@ export const showEventRegistrationModal = (eventId) => {
                     </div>
                     <div class="form-group">
                         <label for="reg-phone">شماره تلفن</label>
-                        <input type="tel" id="reg-phone" name="phone_number" inputmode="tel" required>
+                        <input type="tel" id="reg-phone" name="phone_number" placeholder="مثال: 09123456789" inputmode="tel" required>
                     </div>
                 </div>
 
@@ -760,7 +771,6 @@ export const showEventRegistrationModal = (eventId) => {
                         <label for="reg-card-digits">۴ رقم آخر کارت پرداختی</label>
                         <input type="text" id="reg-card-digits" name="card_digits" inputmode="numeric" pattern="[0-9]{4}" placeholder="مثال: ۱۲۳۴" required>
                     </div>
-                    
                     <div class="form-group">
                         <label for="reg-tx-time">ساعت واریز</label>
                         <input type="time" id="reg-tx-time" name="transaction_time" required>
@@ -784,6 +794,17 @@ export const showEventRegistrationModal = (eventId) => {
     genericModal.classList.add('wide-modal');
     genericModalContent.innerHTML = modalHtml;
 
+    const copyBtn = genericModalContent.querySelector('#copy-card-btn');
+    const cardText = genericModalContent.querySelector('#card-to-copy').innerText;
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(cardText.replace(/-/g, '')).then(() => { // حذف خط تیره قبل از کپی
+            copyBtn.textContent = 'کپی شد!';
+            setTimeout(() => {
+                copyBtn.textContent = 'کپی';
+            }, 2000);
+        });
+    });
+
     const registrationForm = genericModalContent.querySelector('#event-registration-form');
     registrationForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -805,7 +826,7 @@ export const showEventRegistrationModal = (eventId) => {
                 email: user.email,
                 phone_number: formData.get('phone_number'),
                 card_last_four_digits: formData.get('card_digits'),
-                transaction_time: formData.get('transaction_time'), // مقدار این فیلد اکنون چیزی شبیه "16:30" خواهد بود
+                transaction_time: formData.get('transaction_time'),
                 status: 'pending'
             });
 
