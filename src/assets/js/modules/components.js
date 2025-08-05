@@ -241,12 +241,15 @@ export const renderEventsPage = () => {
     const template = document.getElementById('event-card-template');
 
     if (!upcomingGrid || !pastGrid || !template) return;
+    
     const moveHighlighter = (activeTab) => {
         const highlighter = document.querySelector('.tabs-container .highlighter');
         if (!highlighter || !activeTab) return;
         highlighter.style.width = `${activeTab.offsetWidth}px`;
         highlighter.style.transform = `translateX(${activeTab.offsetLeft}px)`;
     };
+    
+    // این تابع داخلی، اکنون شامل منطق نمایش مدرس است
     const populateGrid = (grid, events) => {
         grid.innerHTML = '';
         if (events.length === 0) {
@@ -292,19 +295,29 @@ export const renderEventsPage = () => {
     
             const metaContainer = card.querySelector('.event-meta');
             
+            // *** کد جدید و نهایی برای نمایش اطلاعات رویداد ***
+            const instructorHTML = event.instructor_name 
+                ? `
+                <span class="event-meta-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span>مدرس: ${event.instructor_name}</span>
+                </span>`
+                : '';
+
             const costHTML = (event.cost && event.cost.trim() !== "") ? `
                 <span class="event-meta-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                     <span>${event.cost}</span>
                 </span>` : '';
 
             metaContainer.innerHTML = `
+                ${instructorHTML}
                 <span class="event-meta-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                     <span>${event.displayDate}</span>
                 </span>
                 <span class="event-meta-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                     <span>${event.location}</span>
                 </span>
                 ${costHTML}
@@ -313,12 +326,11 @@ export const renderEventsPage = () => {
             const actionsContainer = card.querySelector('.event-actions');
             actionsContainer.innerHTML = '';
             let button;
-
             if (event.registrationLink) {
-                button = document.createElement('button'); // تغییر از 'a' به 'button'
-                button.className = 'btn btn-primary btn-event-register'; // افزودن کلاس برای شناسایی
-                button.dataset.eventId = event.id; // اضافه کردن شناسه رویداد به دیتای دکمه
-
+                button = document.createElement('button');
+                button.className = 'btn btn-primary btn-event-register';
+                button.dataset.eventId = event.id;
+                
                 if (new Date(event.endDate) < today) {
                     button.textContent = 'پایان یافته';
                     button.classList.add('disabled');
@@ -337,6 +349,7 @@ export const renderEventsPage = () => {
             grid.appendChild(card);
         });
     };
+    
     populateGrid(upcomingGrid, upcomingEvents);
     populateGrid(pastGrid, pastEvents);
 
@@ -350,6 +363,7 @@ export const renderEventsPage = () => {
             moveHighlighter(button);
         });
     });
+    
     const initiallyActiveTab = dom.mainContent.querySelector('.tab-link.active');
     if (initiallyActiveTab) {
         requestAnimationFrame(() => {

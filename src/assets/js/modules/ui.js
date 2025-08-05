@@ -552,9 +552,27 @@ export const showEventModal = async (path) => {
     
     const costHTML = event.cost ? `
         <span class="event-meta-item">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             ${event.cost}
         </span>` : '';
+
+    // *** تغییر کلیدی: افزودن بخش دکمه‌های ثبت‌نام و تماس ***
+    let actionsHTML = '';
+    if (event.registrationLink) {
+        const isPastEvent = new Date(event.endDate) < new Date();
+        actionsHTML = `
+            <div class="event-modal-actions" style="display: flex; gap: 1rem; margin-top: 2rem; border-top: 1px solid var(--glass-border-dark); padding-top: 1.5rem;">
+                <button 
+                    class="btn btn-primary btn-event-register" 
+                    data-event-id="${event.id}" 
+                    style="flex-grow: 2;"
+                    ${isPastEvent ? 'disabled' : ''}>
+                    ${isPastEvent ? 'رویداد پایان یافته' : 'ثبت‌نام در این رویداد'}
+                </button>
+                <a href="#/contact" id="contact-for-event-btn" class="btn btn-secondary" style="flex-grow: 1;">پرسش درباره رویداد</a>
+            </div>
+        `;
+    }
 
     const modalHtml = `
         <div class="content-box">
@@ -562,26 +580,36 @@ export const showEventModal = async (path) => {
                 <h1>${event.title}</h1>
                 <div class="event-modal-meta">
                      <span class="event-meta-item">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                         ${event.displayDate}
                     </span>
                     <span class="event-meta-item">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                         ${event.location}
                     </span>
                     ${costHTML}
                 </div>
                 <hr>
                 ${detailHtml}
+                ${actionsHTML}
             </div>
         </div>
     `;
     genericModal.classList.add('wide-modal');
     genericModalContent.innerHTML = modalHtml;
+
+    // بستن مودال فعلی هنگام کلیک روی دکمه تماس، تا کاربر به صفحه تماس هدایت شود
+    const contactBtn = genericModalContent.querySelector('#contact-for-event-btn');
+    if(contactBtn) {
+        contactBtn.addEventListener('click', () => {
+            genericModal.classList.remove('is-open');
+            dom.body.classList.remove('modal-is-open');
+        });
+    }
+
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
 };
-
 export const initializeGlobalUI = () => {
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const mobileDropdownMenu = document.getElementById('mobile-dropdown-menu');
