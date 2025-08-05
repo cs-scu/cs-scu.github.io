@@ -222,3 +222,18 @@ export const getEventRegistration = async (eventId, userId) => {
         return { data: null, error };
     }
 };
+
+export const deleteEventRegistration = async (registrationId) => {
+    try {
+        const { error } = await supabaseClient
+            .from('event_registrations')
+            .delete()
+            .eq('id', registrationId);
+        
+        if (error) throw error;
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting registration:', error);
+        return { success: false, error };
+    }
+};

@@ -1,6 +1,6 @@
 // src/assets/js/modules/ui.js
 import { state, dom } from './state.js';
-import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, signInWithGoogle, updateUserPassword, updateProfile, getProfile, connectTelegramAccount, verifyTurnstile, getEventRegistration } from './api.js';
+import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, signInWithGoogle, updateUserPassword, updateProfile, getProfile, connectTelegramAccount, verifyTurnstile, getEventRegistration , deleteEventRegistration } from './api.js';
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
@@ -696,94 +696,94 @@ export const showEventRegistrationModal = async (eventId) => {
     const genericModalContent = document.getElementById('generic-modal-content');
     if (!genericModal || !genericModalContent) return;
 
-    // نمایش مودال لاگین برای کاربران مهمان
+    // 1. بررسی وضعیت لاگین
     if (!state.user) {
-        const modalHtml = `<div class="content-box" style="text-align: center;"><h2>ابتدا وارد شوید</h2><p>برای ثبت‌نام در رویدادها، ابتدا باید وارد حساب کاربری خود شوید.</p><br><div class="form-actions"><a href="#/login" id="go-to-login-btn" class="btn btn-primary btn-full">ورود یا ثبت‌نام</a></div></div>`;
-        genericModal.classList.add('wide-modal');
+        const modalHtml = `<div class="content-box" style="text-align: center;"><h2>ابتدا وارد شوید</h2><p>برای ثبت‌نام در رویدادها، باید وارد حساب کاربری خود شوید.</p><br><div class="form-actions"><a href="#/login" id="go-to-login-btn" class="btn btn-primary btn-full">ورود یا ثبت‌نام</a></div></div>`;
         genericModalContent.innerHTML = modalHtml;
         genericModalContent.querySelector('#go-to-login-btn')?.addEventListener('click', () => {
             genericModal.classList.remove('is-open');
             dom.body.classList.remove('modal-is-open');
         });
+        genericModal.classList.add('wide-modal');
         dom.body.classList.add('modal-is-open');
         genericModal.classList.add('is-open');
         return;
     }
 
-    // نمایش پیام لودینگ تا زمان دریافت پاسخ از سرور
+    // نمایش پیام لودینگ
     genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><p>در حال بررسی وضعیت ثبت‌نام شما...</p></div>`;
     genericModal.classList.add('wide-modal');
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
 
-    // استعلام وضعیت ثبت‌نام کاربر از طریق تابعی که به api.js اضافه کردیم
+    // 2. استعلام ثبت‌نام قبلی
     const { data: existingRegistration, error: fetchError } = await getEventRegistration(eventId, state.user.id);
 
     if (fetchError) {
-        genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><p>خطا در بررسی وضعیت ثبت‌نام. لطفاً دوباره تلاش کنید.</p></div>`;
+        genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><p>خطا در بررسی وضعیت. لطفاً دوباره تلاش کنید.</p></div>`;
         return;
     }
 
+    // 3. اگر ثبت‌نام قبلی وجود داشت، نمایش وضعیت
     if (existingRegistration) {
-        // اگر کاربر قبلاً ثبت‌نام کرده، اطلاعات او را نمایش بده
         const statusText = existingRegistration.status === 'pending' ? 'در انتظار تایید' : 'تایید شده';
         const statusClass = existingRegistration.status === 'pending' ? 'status-pending' : 'status-confirmed';
-
+        
         let paymentInfoHTML = '';
         if (existingRegistration.card_last_four_digits) {
-            paymentInfoHTML = `
-                <div class="info-row">
-                    <span>چهار رقم آخر کارت:</span>
-                    <strong>${existingRegistration.card_last_four_digits}</strong>
-                </div>
-                <div class="info-row">
-                    <span>ساعت واریز:</span>
-                    <strong>${existingRegistration.transaction_time}</strong>
-                </div>`;
+            paymentInfoHTML = `<div class="info-row"><span>چهار رقم آخر کارت:</span><strong>${existingRegistration.card_last_four_digits}</strong></div><div class="info-row"><span>ساعت واریز:</span><strong>${existingRegistration.transaction_time}</strong></div>`;
         }
+
+        const cancelButtonHTML = existingRegistration.status === 'pending' 
+            ? `<button id="cancel-and-retry-btn" class="btn btn-primary btn-full" style="margin-top: 1rem;">لغو و ثبت‌نام مجدد</button>` 
+            : '';
 
         const statusModalHtml = `
             <div class="content-box">
                 <h2>وضعیت ثبت‌نام شما</h2>
-                <p>شما قبلاً در این رویداد ثبت‌نام کرده‌اید. اطلاعات ثبت‌شده شما به شرح زیر است:</p>
+                <p>شما قبلاً در این رویداد ثبت‌نام کرده‌اید. اطلاعات شما به شرح زیر است:</p>
                 <div class="registration-status-details">
-                    <div class="info-row">
-                        <span>وضعیت:</span>
-                        <strong class="${statusClass}">${statusText}</strong>
-                    </div>
-                    <hr>
-                    <div class="info-row">
-                        <span>نام و نام خانوادگی:</span>
-                        <strong>${existingRegistration.full_name}</strong>
-                    </div>
-                    <div class="info-row">
-                        <span>کد دانشجویی:</span>
-                        <strong>${existingRegistration.student_id}</strong>
-                    </div>
-                    <div class="info-row">
-                        <span>شماره تلفن:</span>
-                        <strong>${existingRegistration.phone_number}</strong>
-                    </div>
+                    <div class="info-row"><span>وضعیت:</span><strong class="${statusClass}">${statusText}</strong></div><hr>
+                    <div class="info-row"><span>نام:</span><strong>${existingRegistration.full_name}</strong></div>
+                    <div class="info-row"><span>کد دانشجویی:</span><strong>${existingRegistration.student_id}</strong></div>
+                    <div class="info-row"><span>تلفن:</span><strong>${existingRegistration.phone_number}</strong></div>
                     ${paymentInfoHTML}
-                </div>
-                <br>
+                </div><br>
                 <button id="close-status-modal" class="btn btn-secondary btn-full">بستن</button>
+                ${cancelButtonHTML}
             </div>`;
-        
+
         genericModalContent.innerHTML = statusModalHtml;
+
         genericModalContent.querySelector('#close-status-modal').addEventListener('click', () => {
             genericModal.classList.remove('is-open');
             dom.body.classList.remove('modal-is-open');
         });
 
+        const cancelBtn = genericModalContent.querySelector('#cancel-and-retry-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', async () => {
+                if (confirm("آیا از لغو ثبت‌نام فعلی و شروع مجدد فرآیند مطمئن هستید؟")) {
+                    cancelBtn.disabled = true;
+                    cancelBtn.textContent = 'در حال لغو...';
+                    const { success } = await deleteEventRegistration(existingRegistration.id);
+                    if (success) {
+                        await showEventRegistrationModal(eventId); // بازخوانی مودال
+                    } else {
+                        alert('خطا در لغو ثبت‌نام.');
+                        cancelBtn.disabled = false;
+                        cancelBtn.textContent = 'لغو و ثبت‌نام مجدد';
+                    }
+                }
+            });
+        }
     } else {
-        // اگر کاربر ثبت‌نام نکرده، فرم ثبت‌نام را نمایش بده
+        // 4. اگر ثبت‌نام قبلی نبود، نمایش فرم
         const event = state.allEvents.find(e => e.id == eventId);
-        if (!event) return; // اطمینان از وجود رویداد
+        if (!event) return;
 
         const profile = state.profile;
         const user = state.user;
-
         const paymentInfo = event.payment_card_number;
         const isPaidEvent = event.cost && event.cost.toLowerCase() !== 'رایگان' && paymentInfo && paymentInfo.number;
         
@@ -792,143 +792,52 @@ export const showEventRegistrationModal = async (eventId) => {
 
         if (isPaidEvent) {
             const cardHolderName = paymentInfo.name || 'انجمن علمی';
-            const cardNumber = paymentInfo.number || 'شماره کارتی ثبت نشده است';
-
-            paymentSectionHTML = `
-                <div class="payment-info-section">
-                    <p>هزینه شرکت در رویداد: <strong>${event.cost}</strong></p>
-                    <p>لطفاً مبلغ را به شماره کارت زیر واریز کرده و اطلاعات آن را در فرم زیر وارد کنید:</p>
-                    <div class="payment-details-box" style="text-align: center; padding: 1rem; border: 1px dashed gray; margin: 1rem 0; border-radius: 8px;">
-                        <p style="margin:0;">به نام: <strong>${cardHolderName}</strong></p>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 0.5rem; direction: ltr;">
-                            <strong id="card-to-copy">${cardNumber}</strong>
-                            <button id="copy-card-btn" class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">کپی</button>
-                        </div>
-                    </div>
-                </div>`;
-
-            paymentFieldsHTML = `
-                <hr>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="reg-card-digits">۴ رقم آخر کارت پرداختی</label>
-                        <input type="text" id="reg-card-digits" name="card_digits" inputmode="numeric" pattern="[0-9]{4}" placeholder="مثال: ۱۲۳۴" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-tx-time">ساعت واریز</label>
-                        <input type="time" id="reg-tx-time" name="transaction_time" required>
-                    </div>
-                </div>`;
+            const cardNumber = paymentInfo.number || 'شماره کارتی ثبت نشده';
+            paymentSectionHTML = `<div class="payment-info-section"><p>هزینه: <strong>${event.cost}</strong></p><p>لطفاً مبلغ را به کارت زیر واریز نمایید:</p><div class="payment-details-box" style="text-align: center; padding: 1rem; border: 1px dashed gray; margin: 1rem 0; border-radius: 8px;"><p style="margin:0;">به نام: <strong>${cardHolderName}</strong></p><div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 0.5rem; direction: ltr;"><strong id="card-to-copy">${cardNumber}</strong><button id="copy-card-btn" class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">کپی</button></div></div></div>`;
+            paymentFieldsHTML = `<hr><div class="form-row"><div class="form-group"><label for="reg-card-digits">۴ رقم آخر کارت پرداختی</label><input type="text" id="reg-card-digits" name="card_digits" inputmode="numeric" pattern="[0-9]{4}" required></div><div class="form-group"><label for="reg-tx-time">ساعت واریز</label><input type="time" id="reg-tx-time" name="transaction_time" required></div></div>`;
         } else {
-            paymentSectionHTML = `
-                <div class="payment-info-section">
-                    <p>هزینه شرکت در رویداد: <strong>رایگان</strong></p>
-                </div>`;
+            paymentSectionHTML = `<div class="payment-info-section"><p>هزینه شرکت در رویداد: <strong>رایگان</strong></p></div>`;
         }
 
         const modalHtml = `
             <div class="content-box">
-                <h2>ثبت‌نام در رویداد: ${event.title}</h2>
-                <hr>
-                
-                ${paymentSectionHTML}
-
+                <h2>ثبت‌نام در: ${event.title}</h2><hr>${paymentSectionHTML}
                 <form id="event-registration-form" style="margin-top: ${isPaidEvent ? '2rem' : '1rem'};">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="reg-name">نام و نام خانوادگی</label>
-                            <input type="text" id="reg-name" name="name" value="${profile?.full_name || ''}" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="reg-email">ایمیل</label>
-                            <input type="email" id="reg-email" name="email" value="${user?.email || ''}" required disabled style="background-color: rgba(128,128,128,0.1); cursor: not-allowed;">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="reg-student-id">کد دانشجویی</label>
-                            <input type="text" id="reg-student-id" name="student_id" inputmode="numeric" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="reg-phone">شماره تلفن</label>
-                            <input type="tel" id="reg-phone" name="phone_number" placeholder="مثال: 09123456789" inputmode="tel" required>
-                        </div>
-                    </div>
-
+                    <div class="form-row"><div class="form-group"><label for="reg-name">نام و نام خانوادگی</label><input type="text" id="reg-name" name="name" value="${profile?.full_name || ''}" required></div><div class="form-group"><label for="reg-email">ایمیل</label><input type="email" id="reg-email" name="email" value="${user?.email || ''}" required disabled style="background-color: rgba(128,128,128,0.1);"></div></div>
+                    <div class="form-row"><div class="form-group"><label for="reg-student-id">کد دانشجویی</label><input type="text" id="reg-student-id" name="student_id" inputmode="numeric" required></div><div class="form-group"><label for="reg-phone">شماره تلفن</label><input type="tel" id="reg-phone" name="phone_number" placeholder="مثال: 09123456789" inputmode="tel" required></div></div>
                     ${paymentFieldsHTML}
-
-                    <div class="form-group" style="margin-top: 1.5rem;">
-                        <label for="reg-confirm" style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="reg-confirm" name="confirm" required style="width: auto; margin-left: 0.5rem;">
-                            <span>اطلاعات وارد شده را تایید می‌کنم ${isPaidEvent ? ' و پرداخت را انجام داده‌ام.' : '.'}</span>
-                        </label>
-                    </div>
-                    
-                    <div class="form-status"></div>
-                    <br>
+                    <div class="form-group" style="margin-top: 1.5rem;"><label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="reg-confirm" name="confirm" required style="width: auto; margin-left: 0.5rem;"><span>اطلاعات وارد شده را تایید می‌کنم ${isPaidEvent ? ' و پرداخت را انجام داده‌ام.' : '.'}</span></label></div>
+                    <div class="form-status"></div><br>
                     <button type="submit" class="btn btn-primary btn-full">${isPaidEvent ? 'ارسال و ثبت‌نام موقت' : 'ثبت‌نام نهایی'}</button>
                 </form>
-            </div>
-        `;
-
+            </div>`;
+        
         genericModalContent.innerHTML = modalHtml;
 
         if (isPaidEvent) {
             const copyBtn = genericModalContent.querySelector('#copy-card-btn');
             const cardText = genericModalContent.querySelector('#card-to-copy').innerText;
-            copyBtn.addEventListener('click', () => {
-                navigator.clipboard.writeText(cardText.replace(/-/g, '')).then(() => {
-                    copyBtn.textContent = 'کپی شد!';
-                    setTimeout(() => { copyBtn.textContent = 'کپی'; }, 2000);
-                });
-            });
+            copyBtn.addEventListener('click', () => { navigator.clipboard.writeText(cardText.replace(/-/g, '')).then(() => { copyBtn.textContent = 'کپی شد!'; setTimeout(() => { copyBtn.textContent = 'کپی'; }, 2000); }); });
         }
 
         const registrationForm = genericModalContent.querySelector('#event-registration-form');
         registrationForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = registrationForm.querySelector('button[type="submit"]');
-            const statusBox = registrationForm.querySelector('.form-status');
             submitBtn.disabled = true;
             submitBtn.textContent = 'در حال ثبت ...';
-
             const formData = new FormData(registrationForm);
-            
-            const registrationData = {
-                event_id: event.id,
-                user_id: user.id,
-                full_name: formData.get('name'),
-                student_id: formData.get('student_id'),
-                email: user.email,
-                phone_number: formData.get('phone_number'),
-                status: isPaidEvent ? 'pending' : 'confirmed',
-                card_last_four_digits: isPaidEvent ? formData.get('card_digits') : null,
-                transaction_time: isPaidEvent ? formData.get('transaction_time') : null,
-            };
-
+            const registrationData = { event_id: event.id, user_id: user.id, full_name: formData.get('name'), student_id: formData.get('student_id'), email: user.email, phone_number: formData.get('phone_number'), status: isPaidEvent ? 'pending' : 'confirmed', card_last_four_digits: isPaidEvent ? formData.get('card_digits') : null, transaction_time: isPaidEvent ? formData.get('transaction_time') : null };
             const { error } = await supabaseClient.from('event_registrations').insert(registrationData);
-
             if (error) {
+                const statusBox = registrationForm.querySelector('.form-status');
                 showStatus(statusBox, 'خطا در ثبت اطلاعات. لطفاً دوباره تلاش کنید.', 'error');
-                console.error('Registration Error:', error);
                 submitBtn.disabled = false;
                 submitBtn.textContent = isPaidEvent ? 'ارسال و ثبت‌نام موقت' : 'ثبت‌نام نهایی';
             } else {
-                const successMessage = isPaidEvent 
-                    ? 'اطلاعات شما با موفقیت ثبت شد و پس از بررسی توسط ادمین، ثبت‌نام شما نهایی خواهد شد.'
-                    : 'ثبت‌نام شما در این رویداد رایگان با موفقیت انجام شد!';
-                    
-                genericModalContent.innerHTML = `
-                    <div class="content-box" style="text-align: center;">
-                        <h2>ثبت‌نام شما دریافت شد!</h2>
-                        <p>${successMessage}</p>
-                    </div>
-                `;
-                 setTimeout(() => {
-                    genericModal.classList.remove('is-open');
-                    dom.body.classList.remove('modal-is-open');
-                }, 4000);
+                const successMessage = isPaidEvent ? 'اطلاعات شما با موفقیت ثبت شد و پس از بررسی توسط ادمین، نهایی خواهد شد.' : 'ثبت‌نام شما در این رویداد رایگان با موفقیت انجام شد!';
+                genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><h2>ثبت‌نام دریافت شد!</h2><p>${successMessage}</p></div>`;
+                setTimeout(() => { genericModal.classList.remove('is-open'); dom.body.classList.remove('modal-is-open'); }, 4000);
             }
         });
     }
