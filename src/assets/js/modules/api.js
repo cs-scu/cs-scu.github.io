@@ -200,3 +200,25 @@ export const loadChartData = async () => {
         console.error("Failed to load chart data:", error);
     }
 };
+
+export const getEventRegistration = async (eventId, userId) => {
+    if (!eventId || !userId) return { data: null, error: 'Event ID or User ID is missing' };
+    try {
+        const { data, error } = await supabaseClient
+            .from('event_registrations')
+            .select('*')
+            .eq('event_id', eventId)
+            .eq('user_id', userId)
+            .in('status', ['pending', 'confirmed']) // فقط وضعیت‌های در حال بررسی یا تایید شده را چک کن
+            .single(); // انتظار داریم حداکثر یک نتیجه برگردد
+
+        // اگر رکوردی پیدا نشود (کد خطای PGRST116)، این یک خطای واقعی نیست و باید نادیده گرفته شود
+        if (error && error.code !== 'PGRST116') {
+            throw error;
+        }
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error fetching event registration:', error);
+        return { data: null, error };
+    }
+};
