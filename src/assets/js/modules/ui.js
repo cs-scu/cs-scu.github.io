@@ -900,6 +900,7 @@ export const showEventRegistrationModal = async (eventId) => {
                                 <span class="time-separator">:</span>
                                 <div class="time-scroll-container" id="minute-scroll"></div>
                             </div>
+                            <button type="button" id="confirm-time-btn" class="btn btn-primary btn-full">تایید</button>
                         </div>
                     </div>
                 </div>
@@ -931,6 +932,7 @@ export const showEventRegistrationModal = async (eventId) => {
             const timePickerWidget = genericModalContent.querySelector('#time-picker-widget');
             const timeDisplaySpan = genericModalContent.querySelector('#reg-tx-time-display');
             const openTimePickerBtn = genericModalContent.querySelector('#open-time-picker-btn');
+            const confirmTimeBtn = genericModalContent.querySelector('#confirm-time-btn');
             const hourScroll = genericModalContent.querySelector('#hour-scroll');
             const minuteScroll = genericModalContent.querySelector('#minute-scroll');
 
@@ -969,27 +971,23 @@ export const showEventRegistrationModal = async (eventId) => {
                 }
                 return '';
             };
-            
-            // تغییر کلیدی: دکمه بازکننده ویجت حالا وظیفه باز و بسته کردن و تایید را بر عهده دارد
+
             openTimePickerBtn.addEventListener('click', () => {
-                // اگر ویجت باز است، آن را ببند و ساعت را ثبت کن
-                if (timePickerWidget.style.display === 'block') {
-                    selectedHour = snapToItem(hourScroll);
-                    selectedMinute = snapToItem(minuteScroll);
-                    if (selectedHour && selectedMinute) {
-                        transactionTime = `${selectedHour}:${selectedMinute}`;
-                        timeDisplaySpan.textContent = transactionTime;
-                    }
+                const now = new Date();
+                populateScroller(hourScroll, 24, now.getHours());
+                populateScroller(minuteScroll, 60, now.getMinutes());
+                selectedHour = snapToItem(hourScroll);
+                selectedMinute = snapToItem(minuteScroll);
+                timePickerWidget.style.display = 'block';
+            });
+            
+            confirmTimeBtn.addEventListener('click', () => {
+                selectedHour = snapToItem(hourScroll);
+                selectedMinute = snapToItem(minuteScroll);
+                if (selectedHour && selectedMinute) {
+                    transactionTime = `${selectedHour}:${selectedMinute}`;
+                    timeDisplaySpan.textContent = transactionTime;
                     timePickerWidget.style.display = 'none';
-                } 
-                // اگر ویجت بسته است، آن را باز کن
-                else {
-                    const now = new Date();
-                    populateScroller(hourScroll, 24, now.getHours());
-                    populateScroller(minuteScroll, 60, now.getMinutes());
-                    selectedHour = snapToItem(hourScroll);
-                    selectedMinute = snapToItem(minuteScroll);
-                    timePickerWidget.style.display = 'block';
                 }
             });
 
@@ -1007,11 +1005,8 @@ export const showEventRegistrationModal = async (eventId) => {
                 }, 100);
             });
             
-            // حذف دکمه تایید جداگانه
-            
             document.addEventListener('click', (e) => {
                 if (!openTimePickerBtn.contains(e.target) && !timePickerWidget.contains(e.target)) {
-                    // فقط اگر ویجت باز بود، آن را ببند
                     if (timePickerWidget.style.display === 'block') {
                         timePickerWidget.style.display = 'none';
                     }
