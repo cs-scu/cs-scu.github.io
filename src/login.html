@@ -1,139 +1,94 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ورود یا ثبت‌نام</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap">
-    <link rel="stylesheet" href="assets/css/style.css">
-</head>
-<body>
-    <div id="preloader" style="display: none;"></div>
-    <div id="particles-js"></div>
-    <div class="sticky-container">
-        <div class="notification-bar">
-            <h4 class="notification-bar-content">این وب‌سایت در حال توسعه است. منتظر امکانات جدید باشید!</h4>
+<section class="page-container">
+    <div class="container" style="max-width: 450px;">
+        <h1>ورود یا ثبت‌نام</h1>
+        <div class="content-box">
+            <form id="auth-form">
+                <div id="email-step">
+                    <p>برای ورود یا ثبت‌نام، ایمیل خود را وارد کنید.</p>
+                    <div class="form-group">
+                        <label for="auth-email" class="visually-hidden">ایمیل</label>
+                        <input type="email" id="auth-email" name="email" placeholder="ایمیل شما" required>
+                    </div>
+
+                    <div class="form-actions" style="margin-top: 1rem;">
+                        <button type="submit" class="btn btn-primary" id="email-submit-btn">ادامه</button>
+                        <button type="button" class="btn btn-social btn-secondary" id="google-signin-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21.35 11.1H12.18v2.73h6.51c-.33 3.81-3.5 6.09-6.51 6.09-4.22 0-7.65-3.09-7.65-7.72s3.43-7.72 7.65-7.72c2.42 0 4.19 1.04 5.25 2.05l2.1-2.09c-1.83-1.67-4.11-2.59-7.35-2.59-6.06 0-10.97 4.96-10.97 11.16 0 6.19 4.91 11.16 10.97 11.16 6.06 0 10.87-4.66 10.87-11.02 0-.32-.05-.6-.15-.88z" />
+                            </svg>
+                            <span>ورود با گوگل</span>
+                        </button>
+                    </div>
+                    <div id="turnstile-widget" class="turnstile-container"></div>
+                    </div>
+
+                <div id="password-step" style="display: none;">
+                    <div class="email-display-box">
+                        <span id="display-email-password"></span>
+                        <button type="button" class="btn-text edit-email-btn">ویرایش</button>
+                    </div>
+                    <p>خوش آمدید! رمز عبور خود را وارد کنید.</p>
+                     <div class="form-group password-group">
+                        <label for="auth-password" class="visually-hidden">رمز عبور</label>
+                        <input type="password" id="auth-password" name="password" placeholder="رمز عبور">
+                        <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility">
+                            <svg class="icon-eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <svg class="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                        </button>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-full" id="password-submit-btn">ورود</button>
+                        <button type="button" class="btn btn-secondary btn-full" id="forgot-password-btn">رمز عبورم را فراموش کرده‌ام</button>
+                    </div>
+                </div>
+
+                <div id="otp-step" style="display: none;">
+                    <div class="email-display-box">
+                        <span id="display-email-otp"></span>
+                        <button type="button" class="btn-text edit-email-btn">ویرایش</button>
+                    </div>
+                    <p>کد ۶ رقمی ارسال شده به ایمیلتان را وارد کنید.</p>
+                    <div class="form-group">
+                        <label for="auth-otp" class="visually-hidden">کد تایید</label>
+                        <div id="otp-container" class="otp-container" dir="ltr">
+                            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-full" id="otp-submit-btn">تایید کد</button>
+                    </div>
+                    <div class="otp-timer-actions">
+                        <button type="button" class="btn-text" id="resend-otp-btn" disabled>ارسال مجدد کد</button>
+                        <span id="otp-timer"></span>
+                    </div>
+                </div>
+
+                <div id="set-password-step" style="display: none;">
+                    <p>عالی! اکنون یک رمز عبور برای حساب خود تعیین کنید.</p>
+                    <div class="form-group password-group">
+                        <label for="new-password" class="visually-hidden">رمز عبور جدید</label>
+                        <input type="password" id="new-password" name="new-password" placeholder="رمز عبور جدید (حداقل ۶ کاراکتر)">
+                        <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility">
+                           <svg class="icon-eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                           <svg class="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                        </button>
+                    </div>
+                    <div id="password-strength-indicator">
+                        <div class="strength-bar"></div>
+                        <span class="strength-text"></span>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-full" id="set-password-submit-btn">ذخیره و ورود</button>
+                    </div>
+                </div>
+
+                <div class="form-status" style="margin-top: 1rem;"></div>
+            </form>
         </div>
-        <header class="main-header">
-            <div class="container">
-                <div class="menu-wrapper">
-                    <button id="mobile-menu-toggle" title="منو">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-                    </button>
-                    <div id="mobile-dropdown-menu">
-                        </div>
-                </div>
-                <a href="#/" class="logo">انجمن علمی علوم کامپیوتر</a>
-                <button id="theme-toggle" title="تغییر تم"></button>
-            </div>
-        </header>
     </div>
-
-    <main>
-        <section class="page-container">
-            <div class="container" style="max-width: 450px;">
-                <h1>ورود یا ثبت‌نام</h1>
-                <div class="content-box">
-                    <form id="auth-form">
-                        <div id="email-step">
-                            <p>برای ورود یا ثبت‌نام، ایمیل خود را وارد کنید.</p>
-                            <div class="form-group">
-                                <label for="auth-email" class="visually-hidden">ایمیل</label>
-                                <input type="email" id="auth-email" name="email" placeholder="ایمیل شما" required>
-                            </div>
-
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary btn-full" id="email-submit-btn">ادامه</button>
-                                <div class="social-divider"><span>یا</span></div>
-                                <button type="button" class="btn btn-social btn-google btn-secondary" id="google-signin-btn">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M21.35 11.1H12.18v2.73h6.51c-.33 3.81-3.5 6.09-6.51 6.09-4.22 0-7.65-3.09-7.65-7.72s3.43-7.72 7.65-7.72c2.42 0 4.19 1.04 5.25 2.05l2.1-2.09c-1.83-1.67-4.11-2.59-7.35-2.59-6.06 0-10.97 4.96-10.97 11.16 0 6.19 4.91 11.16 10.97 11.16 6.06 0 10.87-4.66 10.87-11.02 0-.32-.05-.6-.15-.88z" />
-                                    </svg>
-                                    <span>ورود با گوگل</span>
-                                </button>
-                            </div>
-                            <div id="turnstile-widget" class="turnstile-container"></div>
-                            </div>
-
-                        <div id="password-step" style="display: none;">
-                            <div class="email-display-box">
-                                <span id="display-email-password"></span>
-                                <button type="button" class="btn-text edit-email-btn">ویرایش</button>
-                            </div>
-                            <p>خوش آمدید! رمز عبور خود را وارد کنید.</p>
-                             <div class="form-group password-group">
-                                <label for="auth-password" class="visually-hidden">رمز عبور</label>
-                                <input type="password" id="auth-password" name="password" placeholder="رمز عبور">
-                                <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility">
-                                    <svg class="icon-eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                    <svg class="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                </button>
-                            </div>
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary btn-full" id="password-submit-btn">ورود</button>
-                                <button type="button" class="btn btn-secondary btn-full" id="forgot-password-btn">رمز عبورم را فراموش کرده‌ام</button>
-                            </div>
-                        </div>
-
-                        <div id="otp-step" style="display: none;">
-                            <div class="email-display-box">
-                                <span id="display-email-otp"></span>
-                                <button type="button" class="btn-text edit-email-btn">ویرایش</button>
-                            </div>
-                            <p>کد ۶ رقمی ارسال شده به ایمیلتان را وارد کنید.</p>
-                            <div class="form-group">
-                                <label for="auth-otp" class="visually-hidden">کد تایید</label>
-                                <div id="otp-container" class="otp-container" dir="ltr">
-                                    <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
-                                    <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
-                                    <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
-                                    <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
-                                    <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
-                                    <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]">
-                                </div>
-                            </div>
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary btn-full" id="otp-submit-btn">تایید کد</button>
-                            </div>
-                            <div class="otp-timer-actions">
-                                <button type="button" class="btn-text" id="resend-otp-btn" disabled>ارسال مجدد کد</button>
-                                <span id="otp-timer"></span>
-                            </div>
-                        </div>
-
-                        <div id="set-password-step" style="display: none;">
-                            <p>عالی! اکنون یک رمز عبور برای حساب خود تعیین کنید.</p>
-                            <div class="form-group password-group">
-                                <label for="new-password" class="visually-hidden">رمز عبور جدید</label>
-                                <input type="password" id="new-password" name="new-password" placeholder="رمز عبور جدید (حداقل ۶ کاراکتر)">
-                                <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility">
-                                   <svg class="icon-eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                   <svg class="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                </button>
-                            </div>
-                            <div id="password-strength-indicator">
-                                <div class="strength-bar"></div>
-                                <span class="strength-text"></span>
-                            </div>
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary btn-full" id="set-password-submit-btn">ذخیره و ورود</button>
-                            </div>
-                        </div>
-
-                        <div class="form-status" style="margin-top: 1rem;"></div>
-                    </form>
-                </div>
-            </div>
-        </section>
-    </main>
-    
-    <footer class="main-footer">
-        <div class="container">
-            </div>
-    </footer>
-    
-    </body>
-</html>
+</section>
