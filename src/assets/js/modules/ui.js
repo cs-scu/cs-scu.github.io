@@ -939,19 +939,17 @@ export const showEventRegistrationModal = async (eventId) => {
             let selectedHour = '00';
             let selectedMinute = '00';
             const itemHeight = 40;
-            const scrollRepetitions = 5; // تعداد تکرار لیست برای شبیه‌سازی اسکرول بی‌نهایت
+            const scrollRepetitions = 5;
 
             const populateScroller = (container, max, initialValue) => {
                 container.innerHTML = '';
                 const values = Array.from({ length: max }, (_, i) => String(i).padStart(2, '0'));
                 
-                // ایجاد لیست طولانی برای اسکرول بی‌نهایت
                 let fullList = [];
                 for (let i = 0; i < scrollRepetitions; i++) {
                     fullList = fullList.concat(values);
                 }
 
-                // اضافه کردن آیتم‌های خالی در ابتدا و انتها برای نمایش صحیح آیتم مرکزی
                 const emptyItems = ['', '']; 
                 fullList = [...emptyItems, ...fullList, ...emptyItems];
 
@@ -963,9 +961,9 @@ export const showEventRegistrationModal = async (eventId) => {
                     container.appendChild(item);
                 });
                 
-                // تنظیم اسکرول اولیه روی مقدار فعلی در مرکز لیست
-                const midPointIndex = Math.floor(fullList.length / 2);
-                const initialIndexInList = fullList.indexOf(String(initialValue).padStart(2, '0'), midPointIndex - max / 2);
+                const midPointOffset = max * Math.floor(scrollRepetitions / 2);
+                const initialIndexInList = initialValue + midPointOffset;
+                
                 container.scrollTop = initialIndexInList * itemHeight;
 
                 const initialItem = container.children[initialIndexInList + 1];
@@ -996,10 +994,8 @@ export const showEventRegistrationModal = async (eventId) => {
                 const threshold = max * itemHeight;
 
                 if (scrollPosition < threshold) {
-                    // اسکرول به سمت بالا (نزدیک شروع لیست)
                     container.scrollTop = scrollPosition + max * itemHeight * Math.floor(scrollRepetitions / 2);
                 } else if (scrollPosition > totalHeight - visibleHeight - threshold) {
-                    // اسکرول به سمت پایین (نزدیک انتهای لیست)
                     container.scrollTop = scrollPosition - max * itemHeight * Math.floor(scrollRepetitions / 2);
                 }
             };
