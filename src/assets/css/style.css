@@ -480,7 +480,7 @@ body.light-theme .modal-content {
 /* استایل برای مودال‌های عریض‌تر */
 #generic-modal.wide-modal .modal-content {
     max-width: 800px;
-    padding: 2.5rem;
+    padding: 0rem;
 }
 
 /* Base styles for all modal content panels */
