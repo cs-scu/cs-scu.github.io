@@ -881,7 +881,6 @@ export const showEventRegistrationModal = async (eventId) => {
             const cardNumber = paymentInfo.number || 'شماره کارتی ثبت نشده';
             paymentSectionHTML = `<div class="payment-info-section"><p>هزینه: <strong>${event.cost}</strong></p><p>لطفاً مبلغ را به کارت زیر واریز نمایید:</p><div class="payment-details-box" style="text-align: center; padding: 1rem; border: 1px dashed gray; margin: 1rem 0; border-radius: 8px;"><p style="margin:0;">به نام: <strong>${cardHolderName}</strong></p><div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 0.5rem; direction: ltr;"><strong id="card-to-copy">${cardNumber}</strong><button id="copy-card-btn" class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">کپی</button></div></div></div>`;
             
-            // تغییرات کلیدی: استفاده از دکمه برای انتخاب ساعت
             paymentFieldsHTML = `
                 <hr>
                 <div class="form-row">
@@ -939,7 +938,7 @@ export const showEventRegistrationModal = async (eventId) => {
 
             let selectedHour = '00';
             let selectedMinute = '00';
-            const itemHeight = 40; // این مقدار باید با CSS همخوانی داشته باشد
+            const itemHeight = 40;
 
             const populateScroller = (container, max, initialValue) => {
                 container.innerHTML = '';
@@ -952,16 +951,23 @@ export const showEventRegistrationModal = async (eventId) => {
                 }
                 const initialIndex = initialValue >= 0 && initialValue < max ? initialValue + 1 : 1;
                 container.scrollTop = initialIndex * itemHeight;
+                // Highlight initial value
+                const initialItem = container.children[initialIndex];
+                if (initialItem) {
+                    initialItem.classList.add('active');
+                    container.dataset.selectedValue = initialItem.dataset.value;
+                }
             };
-
+            
             const snapToItem = (container) => {
                 const centerIndex = Math.round(container.scrollTop / itemHeight);
                 container.scrollTop = centerIndex * itemHeight;
-                const selectedItem = container.children[centerIndex];
+                const selectedItem = container.children[centerIndex + 1];
                 if (selectedItem) {
                     const value = selectedItem.dataset.value;
                     container.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('active'));
                     selectedItem.classList.add('active');
+                    container.dataset.selectedValue = value;
                     return value;
                 }
                 return '';
@@ -971,12 +977,13 @@ export const showEventRegistrationModal = async (eventId) => {
                 const now = new Date();
                 populateScroller(hourScroll, 24, now.getHours());
                 populateScroller(minuteScroll, 60, now.getMinutes());
+                // Update selected values immediately after populating
+                selectedHour = snapToItem(hourScroll);
+                selectedMinute = snapToItem(minuteScroll);
                 timePickerWidget.style.display = 'block';
             });
             
             confirmTimeBtn.addEventListener('click', () => {
-                selectedHour = snapToItem(hourScroll);
-                selectedMinute = snapToItem(minuteScroll);
                 if (selectedHour && selectedMinute) {
                     transactionTime = `${selectedHour}:${selectedMinute}`;
                     timeDisplaySpan.textContent = transactionTime;
