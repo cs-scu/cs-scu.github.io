@@ -939,19 +939,36 @@ export const showEventRegistrationModal = async (eventId) => {
             let selectedHour = '00';
             let selectedMinute = '00';
             const itemHeight = 40;
+            const scrollRepetitions = 5; // تعداد تکرار لیست برای شبیه‌سازی اسکرول بی‌نهایت
 
             const populateScroller = (container, max, initialValue) => {
                 container.innerHTML = '';
-                for (let i = -1; i < max + 2; i++) {
+                const values = Array.from({ length: max }, (_, i) => String(i).padStart(2, '0'));
+                
+                // ایجاد لیست طولانی برای اسکرول بی‌نهایت
+                let fullList = [];
+                for (let i = 0; i < scrollRepetitions; i++) {
+                    fullList = fullList.concat(values);
+                }
+
+                // اضافه کردن آیتم‌های خالی در ابتدا و انتها برای نمایش صحیح آیتم مرکزی
+                const emptyItems = ['', '']; 
+                fullList = [...emptyItems, ...fullList, ...emptyItems];
+
+                fullList.forEach(value => {
                     const item = document.createElement('div');
                     item.className = 'scroll-item';
-                    item.textContent = i >= 0 && i < max ? String(i).padStart(2, '0') : '';
-                    item.dataset.value = item.textContent;
+                    item.textContent = value;
+                    item.dataset.value = value;
                     container.appendChild(item);
-                }
-                const initialIndex = initialValue >= 0 && initialValue < max ? initialValue + 1 : 1;
-                container.scrollTop = initialIndex * itemHeight;
-                const initialItem = container.children[initialIndex + 1];
+                });
+                
+                // تنظیم اسکرول اولیه روی مقدار فعلی در مرکز لیست
+                const midPointIndex = Math.floor(fullList.length / 2);
+                const initialIndexInList = fullList.indexOf(String(initialValue).padStart(2, '0'), midPointIndex - max / 2);
+                container.scrollTop = initialIndexInList * itemHeight;
+
+                const initialItem = container.children[initialIndexInList + 1];
                 if (initialItem) {
                     initialItem.classList.add('active');
                     container.dataset.selectedValue = initialItem.dataset.value;
@@ -970,6 +987,21 @@ export const showEventRegistrationModal = async (eventId) => {
                     return value;
                 }
                 return '';
+            };
+
+            const checkScrollPosition = (container, max) => {
+                const totalHeight = container.scrollHeight;
+                const visibleHeight = container.clientHeight;
+                const scrollPosition = container.scrollTop;
+                const threshold = max * itemHeight;
+
+                if (scrollPosition < threshold) {
+                    // اسکرول به سمت بالا (نزدیک شروع لیست)
+                    container.scrollTop = scrollPosition + max * itemHeight * Math.floor(scrollRepetitions / 2);
+                } else if (scrollPosition > totalHeight - visibleHeight - threshold) {
+                    // اسکرول به سمت پایین (نزدیک انتهای لیست)
+                    container.scrollTop = scrollPosition - max * itemHeight * Math.floor(scrollRepetitions / 2);
+                }
             };
 
             openTimePickerBtn.addEventListener('click', () => {
@@ -995,6 +1027,7 @@ export const showEventRegistrationModal = async (eventId) => {
                 clearTimeout(hourScroll.scrollTimeout);
                 hourScroll.scrollTimeout = setTimeout(() => {
                     snapToItem(hourScroll);
+                    checkScrollPosition(hourScroll, 24);
                 }, 100);
             });
 
@@ -1002,6 +1035,7 @@ export const showEventRegistrationModal = async (eventId) => {
                 clearTimeout(minuteScroll.scrollTimeout);
                 minuteScroll.scrollTimeout = setTimeout(() => {
                     snapToItem(minuteScroll);
+                    checkScrollPosition(minuteScroll, 60);
                 }, 100);
             });
             
