@@ -565,7 +565,7 @@ export const showEventModal = async (path) => {
         // تغییرات کلیدی: بررسی وجود لینک و غیرفعال کردن دکمه در صورت عدم وجود
         const contactButton = event.contact_link
             ? `<a href="${event.contact_link}" id="contact-for-event-btn" class="btn btn-secondary" style="flex-grow: 1;" target="_blank">پرسش درباره رویداد</a>`
-            : `<a href="https://www.cs-scu.ir/#/contact?subject=${encodeURIComponent('موضوع: رویداد ' + event.title)}" id="contact-for-event-btn" class="btn btn-secondary" style="flex-grow: 1;">پرسش درباره رویداد</a>`;
+            : `<button id="contact-for-event-btn" class="btn btn-secondary disabled" style="flex-grow: 1;" disabled>لینک تماس در دسترس نیست</button>`;
         
         actionsHTML = `
             <div class="event-modal-actions" style="display: flex; gap: 1rem; margin-top: 2rem; border-top: 1px solid var(--glass-border-dark); padding-top: 1.5rem;">
@@ -700,18 +700,6 @@ export const initializeContactForm = () => {
 
     const nameInput = contactForm.querySelector('#contact-name');
     const emailInput = contactForm.querySelector('#contact-email');
-    const messageTextarea = contactForm.querySelector('#contact-message');
-
-    // ** تغییرات جدید: بررسی URL برای پارامتر subject و پر کردن فیلد پیام **
-    const hash = window.location.hash;
-    const queryString = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
-    const urlParams = new URLSearchParams(queryString);
-    const subjectFromUrl = urlParams.get('subject');
-
-    if (subjectFromUrl) {
-        messageTextarea.value = `${decodeURIComponent(subjectFromUrl)}\n\n`;
-    }
-
 
     // چک کردن وضعیت کاربر و پر کردن خودکار فیلدها
     if (state.user) {
