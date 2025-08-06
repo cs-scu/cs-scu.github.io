@@ -1582,6 +1582,9 @@ body.light-theme .course-card-chart.is-prereq {
         width: 100%;
         text-align: center;
     }
+    .telegram-connected-info p {
+        font-size: 1rem;
+    }
 
 }
 
