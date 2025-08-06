@@ -900,14 +900,18 @@ export const showEventRegistrationModal = async (eventId) => {
                         </button>
                         <div id="time-picker-widget" class="time-picker-widget" style="display: none;">
                             <div class="time-picker-inputs">
-                                <div>
+                                <div class="time-column">
+                                    <button type="button" class="time-stepper-btn" data-unit="minute" data-step="1">▲</button>
                                     <div class="time-picker-label">دقیقه</div>
                                     <div class="time-scroll-container" id="minute-scroll"></div>
+                                    <button type="button" class="time-stepper-btn" data-unit="minute" data-step="-1">▼</button>
                                 </div>
                                 <span class="time-separator">:</span>
-                                <div>
+                                <div class="time-column">
+                                    <button type="button" class="time-stepper-btn" data-unit="hour" data-step="1">▲</button>
                                     <div class="time-picker-label">ساعت</div>
                                     <div class="time-scroll-container" id="hour-scroll"></div>
+                                    <button type="button" class="time-stepper-btn" data-unit="hour" data-step="-1">▼</button>
                                 </div>
                             </div>
                             <button type="button" id="confirm-time-btn" class="btn btn-primary btn-full">تایید</button>
@@ -949,26 +953,49 @@ export const showEventRegistrationModal = async (eventId) => {
             let selectedHour = '00';
             let selectedMinute = '00';
             const itemHeight = 40;
-            const scrollRepetitions = 5;
+            const scrollRepetitions = 3;
 
-            const snapToItem = (container) => {
+            const smoothScrollTo = (element, to, duration) => {
+                const start = element.scrollTop;
+                const change = to - start;
+                let currentTime = 0;
+                const increment = 20;
+
+                const animateScroll = () => {
+                    currentTime += increment;
+                    const val = Math.easeInOutQuad(currentTime, start, change, duration);
+                    element.scrollTop = val;
+                    if (currentTime < duration) {
+                        requestAnimationFrame(animateScroll);
+                    }
+                };
+                Math.easeInOutQuad = (t, b, c, d) => {
+                    t /= d / 2;
+                    if (t < 1) return c / 2 * t * t + b;
+                    t--;
+                    return -c / 2 * (t * (t - 2) - 1) + b;
+                };
+                animateScroll();
+            };
+
+            const snapToItem = (container, behavior = 'auto') => {
                 const scrollTop = container.scrollTop;
-                const middleIndex = Math.round(scrollTop / itemHeight) + 1; 
+                const middleIndex = Math.round(scrollTop / itemHeight) + 1;
                 const snappedScrollTop = (middleIndex - 1) * itemHeight;
 
-                if (Math.abs(scrollTop - snappedScrollTop) > 2) { 
-                    container.scrollTo({ top: snappedScrollTop, behavior: 'smooth' });
+                if (behavior === 'smooth') {
+                    smoothScrollTo(container, snappedScrollTop, 300);
+                } else {
+                    container.scrollTop = snappedScrollTop;
                 }
 
                 const selectedItem = container.children[middleIndex];
                 if (selectedItem && selectedItem.dataset.value) {
                     const value = selectedItem.dataset.value;
                     container.querySelectorAll('.scroll-item.active').forEach(el => el.classList.remove('active'));
-                    
                     const allItems = Array.from(container.children);
                     const activeElements = allItems.filter(el => el.dataset.value === value);
                     activeElements.forEach(el => el.classList.add('active'));
-                    
                     container.dataset.selectedValue = value;
                     return value;
                 }
@@ -979,15 +1006,10 @@ export const showEventRegistrationModal = async (eventId) => {
                 return new Promise(resolve => {
                     container.innerHTML = '';
                     const values = Array.from({ length: max }, (_, i) => String(i).padStart(2, '0'));
-                    
                     let fullList = [];
-                    for (let i = 0; i < scrollRepetitions; i++) {
-                        fullList = fullList.concat(values);
-                    }
-    
+                    for (let i = 0; i < scrollRepetitions; i++) fullList = fullList.concat(values);
                     const emptyItems = [''];
                     fullList = [...emptyItems, ...fullList, ...emptyItems];
-    
                     fullList.forEach(value => {
                         const item = document.createElement('div');
                         item.className = 'scroll-item';
@@ -995,19 +1017,20 @@ export const showEventRegistrationModal = async (eventId) => {
                         item.dataset.value = value;
                         container.appendChild(item);
                     });
-                    
                     const midPointOffset = values.length * Math.floor(scrollRepetitions / 2);
                     const initialIndexInList = values.indexOf(String(initialValue).padStart(2, '0'));
-                    
                     const targetIndex = initialIndexInList + midPointOffset + 1;
-                    
                     container.scrollTop = (targetIndex - 1) * itemHeight;
-
                     resolve();
                 });
             };
             
             openTimePickerBtn.addEventListener('click', async () => {
+                const btnRect = openTimePickerBtn.getBoundingClientRect();
+                const spaceBelow = window.innerHeight - btnRect.bottom;
+                const widgetHeight = 250; 
+                timePickerWidget.classList.toggle('show-above', spaceBelow < widgetHeight);
+                
                 const currentTime = timeDisplaySpan.textContent.split(':');
                 timePickerWidget.style.display = 'block';
 
@@ -1034,14 +1057,23 @@ export const showEventRegistrationModal = async (eventId) => {
                 let scrollTimeout;
                 container.addEventListener('scroll', () => {
                     clearTimeout(scrollTimeout);
-                    scrollTimeout = setTimeout(() => {
-                        snapToItem(container);
-                    }, 200);
+                    scrollTimeout = setTimeout(() => snapToItem(container, 'smooth'), 250);
                 });
             };
             
             setupScrollListener(hourScroll);
             setupScrollListener(minuteScroll);
+
+            genericModalContent.querySelectorAll('.time-stepper-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const unit = btn.dataset.unit;
+                    const step = parseInt(btn.dataset.step, 10);
+                    const container = (unit === 'hour') ? hourScroll : minuteScroll;
+                    const currentScrollTop = container.scrollTop;
+                    const targetScrollTop = currentScrollTop + (step * itemHeight);
+                    smoothScrollTo(container, targetScrollTop, 200);
+                });
+            });
             
             document.addEventListener('click', (e) => {
                 if (!openTimePickerBtn.contains(e.target) && !timePickerWidget.contains(e.target)) {
