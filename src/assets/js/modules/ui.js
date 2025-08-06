@@ -900,7 +900,6 @@ export const showEventRegistrationModal = async (eventId) => {
                                 <span class="time-separator">:</span>
                                 <div class="time-scroll-container" id="minute-scroll"></div>
                             </div>
-                            <button type="button" id="confirm-time-btn" class="btn btn-primary btn-full">تایید</button>
                         </div>
                     </div>
                 </div>
@@ -932,7 +931,6 @@ export const showEventRegistrationModal = async (eventId) => {
             const timePickerWidget = genericModalContent.querySelector('#time-picker-widget');
             const timeDisplaySpan = genericModalContent.querySelector('#reg-tx-time-display');
             const openTimePickerBtn = genericModalContent.querySelector('#open-time-picker-btn');
-            const confirmTimeBtn = genericModalContent.querySelector('#confirm-time-btn');
             const hourScroll = genericModalContent.querySelector('#hour-scroll');
             const minuteScroll = genericModalContent.querySelector('#minute-scroll');
 
@@ -951,7 +949,6 @@ export const showEventRegistrationModal = async (eventId) => {
                 }
                 const initialIndex = initialValue >= 0 && initialValue < max ? initialValue + 1 : 1;
                 container.scrollTop = initialIndex * itemHeight;
-                // Highlight initial value
                 const initialItem = container.children[initialIndex];
                 if (initialItem) {
                     initialItem.classList.add('active');
@@ -972,42 +969,52 @@ export const showEventRegistrationModal = async (eventId) => {
                 }
                 return '';
             };
-
-            openTimePickerBtn.addEventListener('click', () => {
-                const now = new Date();
-                populateScroller(hourScroll, 24, now.getHours());
-                populateScroller(minuteScroll, 60, now.getMinutes());
-                // Update selected values immediately after populating
-                selectedHour = snapToItem(hourScroll);
-                selectedMinute = snapToItem(minuteScroll);
-                timePickerWidget.style.display = 'block';
-            });
             
-            confirmTimeBtn.addEventListener('click', () => {
-                if (selectedHour && selectedMinute) {
-                    transactionTime = `${selectedHour}:${selectedMinute}`;
-                    timeDisplaySpan.textContent = transactionTime;
+            // تغییر کلیدی: دکمه بازکننده ویجت حالا وظیفه باز و بسته کردن و تایید را بر عهده دارد
+            openTimePickerBtn.addEventListener('click', () => {
+                // اگر ویجت باز است، آن را ببند و ساعت را ثبت کن
+                if (timePickerWidget.style.display === 'block') {
+                    selectedHour = snapToItem(hourScroll);
+                    selectedMinute = snapToItem(minuteScroll);
+                    if (selectedHour && selectedMinute) {
+                        transactionTime = `${selectedHour}:${selectedMinute}`;
+                        timeDisplaySpan.textContent = transactionTime;
+                    }
                     timePickerWidget.style.display = 'none';
+                } 
+                // اگر ویجت بسته است، آن را باز کن
+                else {
+                    const now = new Date();
+                    populateScroller(hourScroll, 24, now.getHours());
+                    populateScroller(minuteScroll, 60, now.getMinutes());
+                    selectedHour = snapToItem(hourScroll);
+                    selectedMinute = snapToItem(minuteScroll);
+                    timePickerWidget.style.display = 'block';
                 }
             });
 
             hourScroll.addEventListener('scroll', () => {
                 clearTimeout(hourScroll.scrollTimeout);
                 hourScroll.scrollTimeout = setTimeout(() => {
-                    selectedHour = snapToItem(hourScroll);
+                    snapToItem(hourScroll);
                 }, 100);
             });
 
             minuteScroll.addEventListener('scroll', () => {
                 clearTimeout(minuteScroll.scrollTimeout);
                 minuteScroll.scrollTimeout = setTimeout(() => {
-                    selectedMinute = snapToItem(minuteScroll);
+                    snapToItem(minuteScroll);
                 }, 100);
             });
             
+            // حذف دکمه تایید جداگانه
+            
             document.addEventListener('click', (e) => {
                 if (!openTimePickerBtn.contains(e.target) && !timePickerWidget.contains(e.target)) {
-                    timePickerWidget.style.display = 'none';
+                    // فقط اگر ویجت باز بود، آن را ببند
+                    if (timePickerWidget.style.display === 'block') {
+                        timePickerWidget.style.display = 'none';
+                    }
                 }
             });
         }
@@ -1045,7 +1052,7 @@ export const showEventRegistrationModal = async (eventId) => {
                 const statusBox = registrationForm.querySelector('.form-status');
                 showStatus(statusBox, 'خطا در ثبت اطلاعات. لطفاً دوباره تلاش کنید.', 'error');
                 submitBtn.disabled = false;
-                submitBtn.textContent = isPaidEvent ? 'ارسال و ثبت‌نام موقت' : 'ثبت‌نام نهایی';
+                submitBtn.textContent = 'ارسال و ثبت‌نام موقت';
             } else {
                 const successMessage = isPaidEvent ? 'اطلاعات شما با موفقیت ثبت شد و پس از بررسی توسط ادمین، نهایی خواهد شد.' : 'ثبت‌نام شما در این رویداد رایگان با موفقیت انجام شد!';
                 genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><h2>ثبت‌نام دریافت شد!</h2><p>${successMessage}</p></div>`;
