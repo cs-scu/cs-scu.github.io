@@ -777,6 +777,7 @@ const showTimePickerModal = (callback) => {
         }
     });
 };
+
 export const showEventRegistrationModal = async (eventId) => {
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
@@ -802,7 +803,7 @@ export const showEventRegistrationModal = async (eventId) => {
 
     const { data: existingRegistration, error: fetchError } = await getEventRegistration(eventId, state.user.id);
 
-    if (fetchError && fetchError.code !== 'PGRST116') { // Corrected error check
+    if (fetchError && fetchError.code !== 'PGRST116') {
         genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><p>خطا در بررسی وضعیت. لطفاً دوباره تلاش کنید.</p></div>`;
         return;
     }
@@ -874,12 +875,10 @@ export const showEventRegistrationModal = async (eventId) => {
         let paymentSectionHTML = '';
         let paymentFieldsHTML = '';
         
-        // --- START: NEW CHANGE FOR DEFAULT TIME ---
         const now = new Date();
         const defaultHour = String(now.getHours()).padStart(2, '0');
         const defaultMinute = String(now.getMinutes()).padStart(2, '0');
         let transactionTime = `${defaultHour}:${defaultMinute}`;
-        // --- END: NEW CHANGE FOR DEFAULT TIME ---
 
         if (isPaidEvent) {
             const cardHolderName = paymentInfo.name || 'انجمن علمی';
@@ -896,9 +895,7 @@ export const showEventRegistrationModal = async (eventId) => {
                     <div class="form-group time-picker-container" style="position: relative;">
                         <label for="open-time-picker-btn">ساعت واریز</label>
                         <button type="button" id="open-time-picker-btn" class="time-picker-btn">
-                            // --- START: NEW CHANGE FOR DEFAULT TIME DISPLAY ---
                             <span id="reg-tx-time-display">${transactionTime}</span>
-                            // --- END: NEW CHANGE FOR DEFAULT TIME DISPLAY ---
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="time-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                         </button>
                         <div id="time-picker-widget" class="time-picker-widget" style="display: none;">
@@ -976,13 +973,11 @@ export const showEventRegistrationModal = async (eventId) => {
             
             const snapToItem = (container) => {
                 const centerIndex = Math.round(container.scrollTop / itemHeight);
-                container.scrollTop = centerIndex * itemHeight;
-                const selectedItem = container.children[centerIndex + 2]; // Adjusted for empty items
+                const selectedItem = container.children[centerIndex + 2];
                 if (selectedItem) {
                     const value = selectedItem.dataset.value;
                     container.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('active'));
                     
-                    // Add active class to the correct item
                     const allItems = Array.from(container.children);
                     const activeElements = allItems.filter(el => el.dataset.value === value);
                     activeElements.forEach(el => el.classList.add('active'));
@@ -1025,20 +1020,21 @@ export const showEventRegistrationModal = async (eventId) => {
                 }
             });
 
+            let scrollTimeout;
             hourScroll.addEventListener('scroll', () => {
-                clearTimeout(hourScroll.scrollTimeout);
-                hourScroll.scrollTimeout = setTimeout(() => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
                     snapToItem(hourScroll);
                     checkScrollPosition(hourScroll, 24);
-                }, 100);
+                }, 150);
             });
 
             minuteScroll.addEventListener('scroll', () => {
-                clearTimeout(minuteScroll.scrollTimeout);
-                minuteScroll.scrollTimeout = setTimeout(() => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
                     snapToItem(minuteScroll);
                     checkScrollPosition(minuteScroll, 60);
-                }, 100);
+                }, 150);
             });
             
             document.addEventListener('click', (e) => {
@@ -1054,17 +1050,17 @@ export const showEventRegistrationModal = async (eventId) => {
         registrationForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = registrationForm.querySelector('button[type="submit"]');
+            const statusBox = registrationForm.querySelector('.form-status');
+            hideStatus(statusBox);
+
+            if (isPaidEvent && !transactionTime) {
+                showStatus(statusBox, 'لطفاً ساعت واریز را انتخاب کنید.', 'error');
+                return;
+            }
+            
             submitBtn.disabled = true;
             submitBtn.textContent = 'در حال ثبت ...';
             const formData = new FormData(registrationForm);
-
-            if (isPaidEvent && !transactionTime) {
-                const statusBox = registrationForm.querySelector('.form-status');
-                showStatus(statusBox, 'لطفاً ساعت واریز را انتخاب کنید.', 'error');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'ارسال و ثبت‌نام موقت';
-                return;
-            }
 
             const registrationData = { 
                 event_id: event.id, 
@@ -1080,10 +1076,9 @@ export const showEventRegistrationModal = async (eventId) => {
 
             const { error } = await supabaseClient.from('event_registrations').insert(registrationData);
             if (error) {
-                const statusBox = registrationForm.querySelector('.form-status');
                 showStatus(statusBox, 'خطا در ثبت اطلاعات. لطفاً دوباره تلاش کنید.', 'error');
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'ارسال و ثبت‌نام موقت';
+                submitBtn.textContent = isPaidEvent ? 'ارسال و ثبت‌نام موقت' : 'ثبت‌نام نهایی';
             } else {
                 const successMessage = isPaidEvent ? 'اطلاعات شما با موفقیت ثبت شد و پس از بررسی توسط ادمین، نهایی خواهد شد.' : 'ثبت‌نام شما در این رویداد رایگان با موفقیت انجام شد!';
                 genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><h2>ثبت‌نام دریافت شد!</h2><p>${successMessage}</p></div>`;
