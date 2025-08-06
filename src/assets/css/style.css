@@ -491,10 +491,6 @@ body.light-theme .modal-content {
     text-align: right;
     padding-top: 4rem;
 }
-#generic-modal.wide-modal .modal-content {
-    max-width: 800px;
-    padding: 2.5rem;
-}
 
 body.dark-theme #register-modal .modal-content,
 body.dark-theme #generic-modal.wide-modal .modal-content {
