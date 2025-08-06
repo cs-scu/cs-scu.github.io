@@ -478,10 +478,6 @@ body.light-theme .modal-content {
 }
 
 /* استایل برای مودال‌های عریض‌تر */
-#generic-modal.wide-modal .modal-content {
-    max-width: 800px;
-    padding: 0rem;
-}
 
 /* Base styles for all modal content panels */
 #register-modal .modal-content, #generic-modal.wide-modal .modal-content {
@@ -490,6 +486,10 @@ body.light-theme .modal-content {
     border-radius: 15px;
     text-align: right;
     padding-top: 4rem;
+}
+#generic-modal.wide-modal .modal-content {
+    max-width: 800px;
+    padding: 0rem;
 }
 
 body.dark-theme #register-modal .modal-content,
