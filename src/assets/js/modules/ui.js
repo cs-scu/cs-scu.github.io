@@ -702,6 +702,20 @@ export const initializeContactForm = () => {
     const contactForm = dom.mainContent.querySelector('#contact-form');
     if (!contactForm || contactForm.dataset.listenerAttached) return;
 
+    const nameInput = contactForm.querySelector('#contact-name');
+    const emailInput = contactForm.querySelector('#contact-email');
+
+    // چک کردن وضعیت کاربر و پر کردن خودکار فیلدها
+    if (state.user) {
+        const displayName = state.profile?.full_name || state.user.email.split('@')[0];
+        nameInput.value = displayName;
+        emailInput.value = state.user.email;
+        
+        // غیرفعال کردن فیلدها برای جلوگیری از ویرایش
+        nameInput.disabled = true;
+        emailInput.disabled = true;
+    }
+
     contactForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const statusBox = contactForm.querySelector('.form-status');
@@ -732,7 +746,6 @@ export const initializeContactForm = () => {
     });
     contactForm.dataset.listenerAttached = 'true';
 };
-
 export const showEventRegistrationModal = async (eventId) => {
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
