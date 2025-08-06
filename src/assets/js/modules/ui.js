@@ -803,9 +803,7 @@ export const showEventRegistrationModal = async (eventId) => {
 
     const { data: existingRegistration, error: fetchError } = await getEventRegistration(eventId, state.user.id);
 
-    // تغییرات جدید: اگر خطا 406 باشد یا هیچ رکوردی پیدا نشود، به عنوان عدم وجود ثبت‌نام در نظر می‌گیریم.
     if (fetchError && error.code !== 'PGRST116') {
-        // اگر خطای دیگری به جز "No rows found" رخ دهد، آن را نمایش می‌دهیم.
         genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><p>خطا در بررسی وضعیت. لطفاً دوباره تلاش کنید.</p></div>`;
         return;
     }
@@ -883,6 +881,7 @@ export const showEventRegistrationModal = async (eventId) => {
             const cardNumber = paymentInfo.number || 'شماره کارتی ثبت نشده';
             paymentSectionHTML = `<div class="payment-info-section"><p>هزینه: <strong>${event.cost}</strong></p><p>لطفاً مبلغ را به کارت زیر واریز نمایید:</p><div class="payment-details-box" style="text-align: center; padding: 1rem; border: 1px dashed gray; margin: 1rem 0; border-radius: 8px;"><p style="margin:0;">به نام: <strong>${cardHolderName}</strong></p><div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 0.5rem; direction: ltr;"><strong id="card-to-copy">${cardNumber}</strong><button id="copy-card-btn" class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">کپی</button></div></div></div>`;
             
+            // تغییرات کلیدی: استفاده از دکمه برای انتخاب ساعت
             paymentFieldsHTML = `
                 <hr>
                 <div class="form-row">
@@ -892,7 +891,10 @@ export const showEventRegistrationModal = async (eventId) => {
                     </div>
                     <div class="form-group time-picker-container" style="position: relative;">
                         <label for="reg-tx-time-display">ساعت واریز</label>
-                        <input type="text" id="reg-tx-time-display" value="انتخاب نشده" disabled style="background-color: rgba(128,128,128,0.1); cursor: pointer;">
+                        <button type="button" id="open-time-picker-btn" class="btn btn-secondary" style="width: 100%; text-align: right; justify-content: space-between;">
+                            <span id="reg-tx-time-display">انتخاب نشده</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="time-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        </button>
                         <div id="time-picker-widget" class="time-picker-widget">
                             <input type="time" id="time-picker-input">
                             <button type="button" id="confirm-time-btn" class="btn btn-primary" style="width: 100%;">تایید</button>
@@ -926,10 +928,11 @@ export const showEventRegistrationModal = async (eventId) => {
 
             const timePickerWidget = genericModalContent.querySelector('#time-picker-widget');
             const timePickerInput = genericModalContent.querySelector('#time-picker-input');
-            const timeDisplayInput = genericModalContent.querySelector('#reg-tx-time-display');
+            const timeDisplaySpan = genericModalContent.querySelector('#reg-tx-time-display');
+            const openTimePickerBtn = genericModalContent.querySelector('#open-time-picker-btn');
             const confirmTimeBtn = genericModalContent.querySelector('#confirm-time-btn');
 
-            timeDisplayInput.addEventListener('click', () => {
+            openTimePickerBtn.addEventListener('click', () => {
                 timePickerWidget.style.display = 'block';
                 timePickerInput.focus();
             });
@@ -938,13 +941,13 @@ export const showEventRegistrationModal = async (eventId) => {
                 const selectedTime = timePickerInput.value;
                 if (selectedTime) {
                     transactionTime = selectedTime;
-                    timeDisplayInput.value = selectedTime;
+                    timeDisplaySpan.textContent = selectedTime;
                     timePickerWidget.style.display = 'none';
                 }
             });
 
             document.addEventListener('click', (e) => {
-                if (!timePickerWidget.contains(e.target) && e.target !== timeDisplayInput) {
+                if (!openTimePickerBtn.contains(e.target) && !timePickerWidget.contains(e.target)) {
                     timePickerWidget.style.display = 'none';
                 }
             });
