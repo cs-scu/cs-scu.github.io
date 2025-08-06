@@ -804,9 +804,7 @@ export const showEventRegistrationModal = async (eventId) => {
 
     const { data: existingRegistration, error: fetchError } = await getEventRegistration(eventId, state.user.id);
 
-    // تغییرات جدید: اگر خطا 406 باشد یا هیچ رکوردی پیدا نشود، به عنوان عدم وجود ثبت‌نام در نظر می‌گیریم.
-    if (fetchError && error.code !== 'PGRST116') {
-        // اگر خطای دیگری به جز "No rows found" رخ دهد، آن را نمایش می‌دهیم.
+    if (fetchError && fetchError.code !== 'PGRST116') {
         genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><p>خطا در بررسی وضعیت. لطفاً دوباره تلاش کنید.</p></div>`;
         return;
     }
@@ -877,7 +875,11 @@ export const showEventRegistrationModal = async (eventId) => {
         
         let paymentSectionHTML = '';
         let paymentFieldsHTML = '';
-        let transactionTime = '';
+        
+        const now = new Date();
+        const defaultHour = String(now.getHours()).padStart(2, '0');
+        const defaultMinute = String(now.getMinutes()).padStart(2, '0');
+        let transactionTime = `${defaultHour}:${defaultMinute}`;
 
         if (isPaidEvent) {
             const cardHolderName = paymentInfo.name || 'انجمن علمی';
@@ -885,6 +887,7 @@ export const showEventRegistrationModal = async (eventId) => {
             paymentSectionHTML = `<div class="payment-info-section"><p>هزینه: <strong>${event.cost}</strong></p><p>لطفاً مبلغ را به کارت زیر واریز نمایید:</p><div class="payment-details-box" style="text-align: center; padding: 1rem; border: 1px dashed gray; margin: 1rem 0; border-radius: 8px;"><p style="margin:0;">به نام: <strong>${cardHolderName}</strong></p><div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 0.5rem; direction: ltr;"><strong id="card-to-copy">${cardNumber}</strong><button id="copy-card-btn" class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">کپی</button></div></div></div>`;
             
             paymentFieldsHTML = `
+                <br>
                 <hr>
                 <div class="form-row">
                     <div class="form-group">
@@ -892,11 +895,28 @@ export const showEventRegistrationModal = async (eventId) => {
                         <input type="text" id="reg-card-digits" name="card_digits" inputmode="numeric" pattern="[0-9]{4}" required>
                     </div>
                     <div class="form-group time-picker-container" style="position: relative;">
-                        <label for="reg-tx-time-display">ساعت واریز</label>
-                        <input type="text" id="reg-tx-time-display" value="انتخاب نشده" disabled style="background-color: rgba(128,128,128,0.1); cursor: pointer;">
-                        <div id="time-picker-widget" class="time-picker-widget">
-                            <input type="time" id="time-picker-input">
-                            <button type="button" id="confirm-time-btn" class="btn btn-primary" style="width: 100%;">تایید</button>
+                        <label for="open-time-picker-btn">ساعت واریز</label>
+                        <button type="button" id="open-time-picker-btn" class="time-picker-btn">
+                            <span id="reg-tx-time-display">${transactionTime}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="time-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        </button>
+                        <div id="time-picker-widget" class="time-picker-widget" style="display: none;">
+                            <div class="time-picker-inputs">
+                                <div class="time-column">
+                                    <button type="button" class="time-stepper-btn" data-unit="minute" data-step="-1">▲</button>
+                                    <div class="time-picker-label">دقیقه</div>
+                                    <div class="time-scroll-container" id="minute-scroll"></div>
+                                    <button type="button" class="time-stepper-btn" data-unit="minute" data-step="1">▼</button>
+                                </div>
+                                <span class="time-separator">:</span>
+                                <div class="time-column">
+                                    <button type="button" class="time-stepper-btn" data-unit="hour" data-step="-1">▲</button>
+                                    <div class="time-picker-label">ساعت</div>
+                                    <div class="time-scroll-container" id="hour-scroll"></div>
+                                    <button type="button" class="time-stepper-btn" data-unit="hour" data-step="1">▼</button>
+                                </div>
+                            </div>
+                            <button type="button" id="confirm-time-btn" class="btn btn-primary btn-full">تایید</button>
                         </div>
                     </div>
                 </div>
@@ -926,47 +946,170 @@ export const showEventRegistrationModal = async (eventId) => {
             copyBtn.addEventListener('click', () => { navigator.clipboard.writeText(cardText.replace(/-/g, '')).then(() => { copyBtn.textContent = 'کپی شد!'; setTimeout(() => { copyBtn.textContent = 'کپی'; }, 2000); }); });
 
             const timePickerWidget = genericModalContent.querySelector('#time-picker-widget');
-            const timePickerInput = genericModalContent.querySelector('#time-picker-input');
-            const timeDisplayInput = genericModalContent.querySelector('#reg-tx-time-display');
+            const timeDisplaySpan = genericModalContent.querySelector('#reg-tx-time-display');
+            const openTimePickerBtn = genericModalContent.querySelector('#open-time-picker-btn');
             const confirmTimeBtn = genericModalContent.querySelector('#confirm-time-btn');
+            const hourScroll = genericModalContent.querySelector('#hour-scroll');
+            const minuteScroll = genericModalContent.querySelector('#minute-scroll');
 
-            timeDisplayInput.addEventListener('click', () => {
+            let selectedHour = '00';
+            let selectedMinute = '00';
+            const itemHeight = 40;
+            const scrollRepetitions = 3;
+
+            const smoothScrollTo = (element, to, duration) => {
+                const start = element.scrollTop;
+                const change = to - start;
+                let currentTime = 0;
+                const increment = 20;
+
+                const easeInOutQuad = (t, b, c, d) => {
+                    t /= d / 2;
+                    if (t < 1) return c / 2 * t * t + b;
+                    t--;
+                    return -c / 2 * (t * (t - 2) - 1) + b;
+                };
+
+                const animateScroll = () => {
+                    currentTime += increment;
+                    const val = easeInOutQuad(currentTime, start, change, duration);
+                    element.scrollTop = val;
+                    if (currentTime < duration) {
+                        requestAnimationFrame(animateScroll);
+                    }
+                };
+                animateScroll();
+            };
+
+            const updateHighlight = (container) => {
+                const scrollTop = container.scrollTop;
+                const middleIndex = Math.round(scrollTop / itemHeight) + 1;
+                const selectedItem = container.children[middleIndex];
+                
+                container.querySelectorAll('.scroll-item.active').forEach(el => el.classList.remove('active'));
+
+                if (selectedItem && selectedItem.dataset.value) {
+                    const value = selectedItem.dataset.value;
+                    const allItems = Array.from(container.children);
+                    const activeElements = allItems.filter(el => el.dataset.value === value);
+                    activeElements.forEach(el => el.classList.add('active'));
+                }
+            };
+            
+            const snapToItem = (container) => {
+                const scrollTop = container.scrollTop;
+                const middleIndex = Math.round(scrollTop / itemHeight) + 1;
+                const snappedScrollTop = (middleIndex - 1) * itemHeight;
+
+                smoothScrollTo(container, snappedScrollTop, 300);
+
+                const selectedItem = container.children[middleIndex];
+                if (selectedItem && selectedItem.dataset.value) {
+                    container.dataset.selectedValue = selectedItem.dataset.value;
+                    return selectedItem.dataset.value;
+                }
+                return container.dataset.selectedValue || '00';
+            };
+
+            const populateScroller = (container, max, initialValue) => {
+                return new Promise(resolve => {
+                    container.innerHTML = '';
+                    const values = Array.from({ length: max }, (_, i) => String(i).padStart(2, '0'));
+                    let fullList = [];
+                    for (let i = 0; i < scrollRepetitions; i++) fullList = fullList.concat(values);
+                    const emptyItems = [''];
+                    fullList = [...emptyItems, ...fullList, ...emptyItems];
+                    fullList.forEach(value => {
+                        const item = document.createElement('div');
+                        item.className = 'scroll-item';
+                        item.textContent = value;
+                        item.dataset.value = value;
+                        container.appendChild(item);
+                    });
+                    const midPointOffset = values.length * Math.floor(scrollRepetitions / 2);
+                    const initialIndexInList = values.indexOf(String(initialValue).padStart(2, '0'));
+                    const targetIndex = initialIndexInList + midPointOffset + 1;
+                    container.scrollTop = (targetIndex - 1) * itemHeight;
+                    updateHighlight(container);
+                    resolve();
+                });
+            };
+            
+            openTimePickerBtn.addEventListener('click', async () => {
+                const btnRect = openTimePickerBtn.getBoundingClientRect();
+                const spaceBelow = window.innerHeight - btnRect.bottom;
+                const widgetHeight = 250; 
+                timePickerWidget.classList.toggle('show-above', spaceBelow < widgetHeight);
+                
+                const currentTime = timeDisplaySpan.textContent.split(':');
                 timePickerWidget.style.display = 'block';
-                timePickerInput.focus();
-            });
 
+                await Promise.all([
+                    populateScroller(hourScroll, 24, parseInt(currentTime[0], 10)),
+                    populateScroller(minuteScroll, 60, parseInt(currentTime[1], 10))
+                ]);
+                
+                selectedHour = hourScroll.dataset.selectedValue;
+                selectedMinute = minuteScroll.dataset.selectedValue;
+            });
+            
             confirmTimeBtn.addEventListener('click', () => {
-                const selectedTime = timePickerInput.value;
-                if (selectedTime) {
-                    transactionTime = selectedTime;
-                    timeDisplayInput.value = selectedTime;
+                selectedHour = snapToItem(hourScroll);
+                selectedMinute = snapToItem(minuteScroll);
+                if (selectedHour && selectedMinute) {
+                    transactionTime = `${selectedHour}:${selectedMinute}`;
+                    timeDisplaySpan.textContent = transactionTime;
                     timePickerWidget.style.display = 'none';
                 }
             });
 
+            const setupScrollListener = (container) => {
+                let scrollTimeout;
+                container.addEventListener('scroll', () => {
+                    updateHighlight(container);
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => snapToItem(container), 250);
+                });
+            };
+            
+            setupScrollListener(hourScroll);
+            setupScrollListener(minuteScroll);
+
+            genericModalContent.querySelectorAll('.time-stepper-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const unit = btn.dataset.unit;
+                    const step = parseInt(btn.dataset.step, 10);
+                    const container = (unit === 'hour') ? hourScroll : minuteScroll;
+                    const currentScrollTop = container.scrollTop;
+                    const targetScrollTop = currentScrollTop + (step * itemHeight);
+                    smoothScrollTo(container, targetScrollTop, 200);
+                });
+            });
+            
             document.addEventListener('click', (e) => {
-                if (!timePickerWidget.contains(e.target) && e.target !== timeDisplayInput) {
-                    timePickerWidget.style.display = 'none';
+                if (!openTimePickerBtn.contains(e.target) && !timePickerWidget.contains(e.target)) {
+                    if (timePickerWidget.style.display === 'block') {
+                        timePickerWidget.style.display = 'none';
+                    }
                 }
             });
-
         }
 
         const registrationForm = genericModalContent.querySelector('#event-registration-form');
         registrationForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = registrationForm.querySelector('button[type="submit"]');
+            const statusBox = registrationForm.querySelector('.form-status');
+            hideStatus(statusBox);
+
+            if (isPaidEvent && !transactionTime) {
+                showStatus(statusBox, 'لطفاً ساعت واریز را انتخاب کنید.', 'error');
+                return;
+            }
+            
             submitBtn.disabled = true;
             submitBtn.textContent = 'در حال ثبت ...';
             const formData = new FormData(registrationForm);
-
-            if (isPaidEvent && !transactionTime) {
-                const statusBox = registrationForm.querySelector('.form-status');
-                showStatus(statusBox, 'لطفاً ساعت واریز را انتخاب کنید.', 'error');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'ارسال و ثبت‌نام موقت';
-                return;
-            }
 
             const registrationData = { 
                 event_id: event.id, 
@@ -982,7 +1125,6 @@ export const showEventRegistrationModal = async (eventId) => {
 
             const { error } = await supabaseClient.from('event_registrations').insert(registrationData);
             if (error) {
-                const statusBox = registrationForm.querySelector('.form-status');
                 showStatus(statusBox, 'خطا در ثبت اطلاعات. لطفاً دوباره تلاش کنید.', 'error');
                 submitBtn.disabled = false;
                 submitBtn.textContent = isPaidEvent ? 'ارسال و ثبت‌نام موقت' : 'ثبت‌نام نهایی';
