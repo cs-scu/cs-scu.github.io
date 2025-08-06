@@ -945,69 +945,73 @@ export const showEventRegistrationModal = async (eventId) => {
             const itemHeight = 40;
             const scrollRepetitions = 5;
 
-            const populateScroller = (container, max, initialValue) => {
-                container.innerHTML = '';
-                const values = Array.from({ length: max }, (_, i) => String(i).padStart(2, '0'));
-                
-                let fullList = [];
-                for (let i = 0; i < scrollRepetitions; i++) {
-                    fullList = fullList.concat(values);
+            const snapToItem = (container) => {
+                const scrollTop = container.scrollTop;
+                const middleIndex = Math.round(scrollTop / itemHeight) + 1;
+                const snappedScrollTop = (middleIndex - 1) * itemHeight;
+
+                if (Math.abs(scrollTop - snappedScrollTop) > 1) {
+                     container.scrollTop = snappedScrollTop;
                 }
 
-                const emptyItems = ['', '']; 
-                fullList = [...emptyItems, ...fullList, ...emptyItems];
-
-                fullList.forEach(value => {
-                    const item = document.createElement('div');
-                    item.className = 'scroll-item';
-                    item.textContent = value;
-                    item.dataset.value = value;
-                    container.appendChild(item);
-                });
-                
-                const midPointOffset = values.length * Math.floor(scrollRepetitions / 2);
-                const initialIndexInList = values.indexOf(String(initialValue).padStart(2, '0'));
-                
-                container.scrollTop = (initialIndexInList + midPointOffset) * itemHeight;
-            };
-            
-            const snapToItem = (container) => {
-                const centerIndex = Math.round(container.scrollTop / itemHeight);
-                const selectedItem = container.children[centerIndex + 2];
-                if (selectedItem) {
+                const selectedItem = container.children[middleIndex];
+                if (selectedItem && selectedItem.dataset.value) {
                     const value = selectedItem.dataset.value;
-                    container.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('active'));
+                    container.querySelectorAll('.scroll-item.active').forEach(el => el.classList.remove('active'));
                     
                     const allItems = Array.from(container.children);
                     const activeElements = allItems.filter(el => el.dataset.value === value);
                     activeElements.forEach(el => el.classList.add('active'));
-
+                    
                     container.dataset.selectedValue = value;
                     return value;
                 }
-                return '';
+                return container.dataset.selectedValue || '00';
             };
 
-            const checkScrollPosition = (container, max) => {
-                const totalHeight = container.scrollHeight;
-                const visibleHeight = container.clientHeight;
-                const scrollPosition = container.scrollTop;
-                const threshold = max * itemHeight;
+            const populateScroller = (container, max, initialValue) => {
+                return new Promise(resolve => {
+                    container.innerHTML = '';
+                    const values = Array.from({ length: max }, (_, i) => String(i).padStart(2, '0'));
+                    
+                    let fullList = [];
+                    for (let i = 0; i < scrollRepetitions; i++) {
+                        fullList = fullList.concat(values);
+                    }
+    
+                    const emptyItems = [''];
+                    fullList = [...emptyItems, ...fullList, ...emptyItems];
+    
+                    fullList.forEach(value => {
+                        const item = document.createElement('div');
+                        item.className = 'scroll-item';
+                        item.textContent = value;
+                        item.dataset.value = value;
+                        container.appendChild(item);
+                    });
+                    
+                    const midPointOffset = values.length * Math.floor(scrollRepetitions / 2);
+                    const initialIndexInList = values.indexOf(String(initialValue).padStart(2, '0'));
+                    
+                    const targetIndex = initialIndexInList + midPointOffset + 1;
+                    
+                    container.scrollTop = (targetIndex - 1) * itemHeight;
 
-                if (scrollPosition < threshold) {
-                    container.scrollTop = scrollPosition + max * itemHeight * Math.floor(scrollRepetitions / 2);
-                } else if (scrollPosition > totalHeight - visibleHeight - threshold) {
-                    container.scrollTop = scrollPosition - max * itemHeight * Math.floor(scrollRepetitions / 2);
-                }
+                    resolve();
+                });
             };
+            
+            openTimePickerBtn.addEventListener('click', async () => {
+                const currentTime = timeDisplaySpan.textContent.split(':');
+                timePickerWidget.style.display = 'block';
 
-            openTimePickerBtn.addEventListener('click', () => {
-                const now = new Date();
-                populateScroller(hourScroll, 24, now.getHours());
-                populateScroller(minuteScroll, 60, now.getMinutes());
+                await Promise.all([
+                    populateScroller(hourScroll, 24, parseInt(currentTime[0], 10)),
+                    populateScroller(minuteScroll, 60, parseInt(currentTime[1], 10))
+                ]);
+                
                 selectedHour = snapToItem(hourScroll);
                 selectedMinute = snapToItem(minuteScroll);
-                timePickerWidget.style.display = 'block';
             });
             
             confirmTimeBtn.addEventListener('click', () => {
@@ -1020,22 +1024,18 @@ export const showEventRegistrationModal = async (eventId) => {
                 }
             });
 
-            let scrollTimeout;
-            hourScroll.addEventListener('scroll', () => {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    snapToItem(hourScroll);
-                    checkScrollPosition(hourScroll, 24);
-                }, 150);
-            });
-
-            minuteScroll.addEventListener('scroll', () => {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    snapToItem(minuteScroll);
-                    checkScrollPosition(minuteScroll, 60);
-                }, 150);
-            });
+            const setupScrollListener = (container) => {
+                let scrollTimeout;
+                container.addEventListener('scroll', () => {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        snapToItem(container);
+                    }, 150); 
+                });
+            };
+            
+            setupScrollListener(hourScroll);
+            setupScrollListener(minuteScroll);
             
             document.addEventListener('click', (e) => {
                 if (!openTimePickerBtn.contains(e.target) && !timePickerWidget.contains(e.target)) {
