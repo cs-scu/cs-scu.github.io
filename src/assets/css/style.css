@@ -2355,21 +2355,29 @@ body.light-theme .time-picker-widget {
 .time-picker-inputs {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* Changed to flex-start for labels */
     gap: 1.5rem;
     margin-bottom: 1rem;
+}
+.time-picker-label {
+    text-align: center;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 0.5rem;
 }
 
 .time-separator {
     font-size: 2rem;
     font-weight: bold;
     opacity: 0.8;
+    margin-top: 2.2rem; /* Align with scrollers */
 }
 
 .time-scroll-container {
-    height: 120px; /* نمایش ۳ آیتم در هر اسکرولر */
+    height: 120px;
     width: 80px;
     overflow-y: scroll;
+    overflow-x: hidden; /* Prevent horizontal scroll */
     text-align: center;
     font-size: 1.5rem;
     font-weight: bold;
@@ -2377,7 +2385,6 @@ body.light-theme .time-picker-widget {
     scroll-behavior: smooth;
     border-radius: 8px;
     position: relative;
-    /* خطوط جداکننده افقی و محو شدن لبه‌ها */
     mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
 }
 

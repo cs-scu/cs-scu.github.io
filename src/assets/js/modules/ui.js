@@ -900,9 +900,15 @@ export const showEventRegistrationModal = async (eventId) => {
                         </button>
                         <div id="time-picker-widget" class="time-picker-widget" style="display: none;">
                             <div class="time-picker-inputs">
-                                <div class="time-scroll-container" id="hour-scroll"></div>
+                                <div>
+                                    <div class="time-picker-label">دقیقه</div>
+                                    <div class="time-scroll-container" id="minute-scroll"></div>
+                                </div>
                                 <span class="time-separator">:</span>
-                                <div class="time-scroll-container" id="minute-scroll"></div>
+                                <div>
+                                    <div class="time-picker-label">ساعت</div>
+                                    <div class="time-scroll-container" id="hour-scroll"></div>
+                                </div>
                             </div>
                             <button type="button" id="confirm-time-btn" class="btn btn-primary btn-full">تایید</button>
                         </div>
@@ -947,11 +953,11 @@ export const showEventRegistrationModal = async (eventId) => {
 
             const snapToItem = (container) => {
                 const scrollTop = container.scrollTop;
-                const middleIndex = Math.round(scrollTop / itemHeight) + 1;
+                const middleIndex = Math.round(scrollTop / itemHeight) + 1; 
                 const snappedScrollTop = (middleIndex - 1) * itemHeight;
 
-                if (Math.abs(scrollTop - snappedScrollTop) > 1) {
-                     container.scrollTop = snappedScrollTop;
+                if (Math.abs(scrollTop - snappedScrollTop) > 2) { 
+                    container.scrollTo({ top: snappedScrollTop, behavior: 'smooth' });
                 }
 
                 const selectedItem = container.children[middleIndex];
@@ -1030,7 +1036,7 @@ export const showEventRegistrationModal = async (eventId) => {
                     clearTimeout(scrollTimeout);
                     scrollTimeout = setTimeout(() => {
                         snapToItem(container);
-                    }, 150); 
+                    }, 200);
                 });
             };
             
