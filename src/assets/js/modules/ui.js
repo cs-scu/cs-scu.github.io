@@ -886,6 +886,7 @@ export const showEventRegistrationModal = async (eventId) => {
             paymentSectionHTML = `<div class="payment-info-section"><p>هزینه: <strong>${event.cost}</strong></p><p>لطفاً مبلغ را به کارت زیر واریز نمایید:</p><div class="payment-details-box" style="text-align: center; padding: 1rem; border: 1px dashed gray; margin: 1rem 0; border-radius: 8px;"><p style="margin:0;">به نام: <strong>${cardHolderName}</strong></p><div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 0.5rem; direction: ltr;"><strong id="card-to-copy">${cardNumber}</strong><button id="copy-card-btn" class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">کپی</button></div></div></div>`;
             
             paymentFieldsHTML = `
+                <br>
                 <hr>
                 <div class="form-row">
                     <div class="form-group">
@@ -963,7 +964,7 @@ export const showEventRegistrationModal = async (eventId) => {
 
                 const animateScroll = () => {
                     currentTime += increment;
-                    const val = Math.easeInOutQuad(currentTime, start, change, duration);
+                    const val = Math.easeInOutQuad(t, b, c, d);
                     element.scrollTop = val;
                     if (currentTime < duration) {
                         requestAnimationFrame(animateScroll);
@@ -978,26 +979,32 @@ export const showEventRegistrationModal = async (eventId) => {
                 animateScroll();
             };
 
-            const snapToItem = (container, behavior = 'auto') => {
+            const updateHighlight = (container) => {
+                const scrollTop = container.scrollTop;
+                const middleIndex = Math.round(scrollTop / itemHeight) + 1;
+                const selectedItem = container.children[middleIndex];
+                
+                container.querySelectorAll('.scroll-item.active').forEach(el => el.classList.remove('active'));
+
+                if (selectedItem && selectedItem.dataset.value) {
+                    const value = selectedItem.dataset.value;
+                    const allItems = Array.from(container.children);
+                    const activeElements = allItems.filter(el => el.dataset.value === value);
+                    activeElements.forEach(el => el.classList.add('active'));
+                }
+            };
+            
+            const snapToItem = (container) => {
                 const scrollTop = container.scrollTop;
                 const middleIndex = Math.round(scrollTop / itemHeight) + 1;
                 const snappedScrollTop = (middleIndex - 1) * itemHeight;
 
-                if (behavior === 'smooth') {
-                    smoothScrollTo(container, snappedScrollTop, 300);
-                } else {
-                    container.scrollTop = snappedScrollTop;
-                }
+                smoothScrollTo(container, snappedScrollTop, 300);
 
                 const selectedItem = container.children[middleIndex];
                 if (selectedItem && selectedItem.dataset.value) {
-                    const value = selectedItem.dataset.value;
-                    container.querySelectorAll('.scroll-item.active').forEach(el => el.classList.remove('active'));
-                    const allItems = Array.from(container.children);
-                    const activeElements = allItems.filter(el => el.dataset.value === value);
-                    activeElements.forEach(el => el.classList.add('active'));
-                    container.dataset.selectedValue = value;
-                    return value;
+                    container.dataset.selectedValue = selectedItem.dataset.value;
+                    return selectedItem.dataset.value;
                 }
                 return container.dataset.selectedValue || '00';
             };
@@ -1021,6 +1028,7 @@ export const showEventRegistrationModal = async (eventId) => {
                     const initialIndexInList = values.indexOf(String(initialValue).padStart(2, '0'));
                     const targetIndex = initialIndexInList + midPointOffset + 1;
                     container.scrollTop = (targetIndex - 1) * itemHeight;
+                    updateHighlight(container);
                     resolve();
                 });
             };
@@ -1039,8 +1047,8 @@ export const showEventRegistrationModal = async (eventId) => {
                     populateScroller(minuteScroll, 60, parseInt(currentTime[1], 10))
                 ]);
                 
-                selectedHour = snapToItem(hourScroll);
-                selectedMinute = snapToItem(minuteScroll);
+                selectedHour = hourScroll.dataset.selectedValue;
+                selectedMinute = minuteScroll.dataset.selectedValue;
             });
             
             confirmTimeBtn.addEventListener('click', () => {
@@ -1056,8 +1064,9 @@ export const showEventRegistrationModal = async (eventId) => {
             const setupScrollListener = (container) => {
                 let scrollTimeout;
                 container.addEventListener('scroll', () => {
+                    updateHighlight(container);
                     clearTimeout(scrollTimeout);
-                    scrollTimeout = setTimeout(() => snapToItem(container, 'smooth'), 250);
+                    scrollTimeout = setTimeout(() => snapToItem(container), 250);
                 });
             };
             
