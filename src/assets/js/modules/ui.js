@@ -68,6 +68,7 @@ export const showProfileModal = async () => {
                     <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
                     </div>
             </form>
+            <br>
             <hr style="margin: 2rem 0;">
             ${telegramConnectHTML}
         </div>
