@@ -951,7 +951,7 @@ export const showEventRegistrationModal = async (eventId) => {
                 }
                 const initialIndex = initialValue >= 0 && initialValue < max ? initialValue + 1 : 1;
                 container.scrollTop = initialIndex * itemHeight;
-                const initialItem = container.children[initialIndex];
+                const initialItem = container.children[initialIndex + 1];
                 if (initialItem) {
                     initialItem.classList.add('active');
                     container.dataset.selectedValue = initialItem.dataset.value;
