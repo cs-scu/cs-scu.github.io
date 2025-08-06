@@ -2165,7 +2165,6 @@ body.light-theme .social-divider { border-color: var(--glass-border-light); }
 }
 
 .btn-social {
-    /* تغییرات جدید برای دکمه‌های اجتماعی */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2177,21 +2176,12 @@ body.light-theme .social-divider { border-color: var(--glass-border-light); }
     background: transparent;
     color: inherit;
     cursor: pointer;
-    /* حذف حاشیه و پدینگ اضافی برای هماهنگی */
     margin: 0 !important;
-    border-radius: 0;
+    border-radius: 0; /* مهم: این خط گوشه‌های دکمه را صاف می‌کند */
 }
-.btn-social:first-of-type {
-    border-radius: 50px 50px 0 0; /* گوشه‌های بالا گرد می‌شود */
-}
-.btn-social:last-of-type {
-    border-radius: 0 0 50px 50px; /* گوشه‌های پایین گرد می‌شود */
-}
-.btn-social:first-child {
-    border-radius: 50px 50px 0 0; /* گوشه‌های بالا گرد می‌شود */
-}
+
 .btn-social:last-child {
-    border-radius: 0 0 50px 50px; /* گوشه‌های پایین گرد می‌شود */
+    border-radius: 50px; /* گوشه‌های پایین گرد می‌شود */
 }
 .btn-social:hover {
     filter: brightness(1.1);
@@ -2264,43 +2254,3 @@ body.light-theme .registration-status-details hr { background-color: var(--glass
     transform: scale(1.1);
 }
 
-
-/* ================== Forms ================== */
-/* ... (سایر کدهای مربوط به فرم‌ها) ... */
-
-/* این استایل برای قرار دادن دکمه‌ها زیر هم است */
-.form-actions {
-    display: flex;
-    flex-direction: column; /* دکمه‌ها را به صورت عمودی (زیر هم) نمایش می‌دهد */
-    align-items: center;
-    gap: 0; /* فاصله بین دکمه‌ها را حذف می‌کند */
-    margin-top: 1.5rem;
-    width: 100%; /* این خط مطمئن می‌شود کادر دکمه‌ها کل عرض را بگیرد */
-}
-
-/* این استایل عرض دکمه‌ها را به ۱۰۰٪ کادر والد می‌رساند */
-.form-actions .btn {
-    width: 100%;
-}
-
-.btn-social {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    padding-top: 0.8rem;
-    padding-bottom: 0.8rem;
-    font-size: 1rem;
-    border: 1px solid;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-    margin: 0 !important;
-    border-radius: 0;
-}
-.btn-social:first-of-type {
-    border-radius: 50px 50px 0 0;
-}
-.btn-social:last-of-type {
-    border-radius: 0 0 50px 50px;
-}
