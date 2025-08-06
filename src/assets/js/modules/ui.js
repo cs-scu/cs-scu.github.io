@@ -606,6 +606,18 @@ export const showEventModal = async (path) => {
             dom.body.classList.remove('modal-is-open');
         });
     }
+    const registerBtnInModal = genericModalContent.querySelector('.btn-event-register');
+    if (registerBtnInModal) {
+        registerBtnInModal.addEventListener('click', (e) => {
+            e.preventDefault();
+            const eventId = registerBtnInModal.dataset.eventId;
+            // بستن مدال فعلی قبل از باز کردن مدال ثبت‌نام
+            genericModal.classList.remove('is-open');
+            dom.body.classList.remove('modal-is-open');
+            // فراخوانی تابع ثبت‌نام
+            showEventRegistrationModal(eventId);
+        });
+    }
 
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');

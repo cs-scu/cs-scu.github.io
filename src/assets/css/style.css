@@ -1517,7 +1517,7 @@ body.light-theme .course-card-chart.is-prereq {
     
     #generic-modal.wide-modal .modal-content,
     #register-modal .modal-content {
-        padding: 2.5rem 1.5rem;
+        padding: 0rem 0rem;
     }
     #generic-modal .event-content-area,
     .news-detail-page .news-content-area {
@@ -1572,6 +1572,16 @@ body.light-theme .course-card-chart.is-prereq {
     }
     .journal-card-summary { max-height: 100px; opacity: 1; }
     .journal-card-download { transform: scale(1); }
+
+    .event-modal-actions {
+        flex-direction: column;
+        gap: 0.75rem !important; /* فاصله بین دکمه‌ها را کاهش می‌دهد */
+    }
+
+    .event-modal-actions .btn {
+        width: 100%;
+        text-align: center;
+    }
 
 }
 
@@ -2230,3 +2240,4 @@ body.light-theme .registration-status-details hr { background-color: var(--glass
     background-color: rgba(0, 0, 0, 0.5);
     transform: scale(1.1);
 }
+
