@@ -777,7 +777,6 @@ const showTimePickerModal = (callback) => {
         }
     });
 };
-
 export const showEventRegistrationModal = async (eventId) => {
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
@@ -961,22 +960,16 @@ export const showEventRegistrationModal = async (eventId) => {
                     container.appendChild(item);
                 });
                 
-                const midPointOffset = max * Math.floor(scrollRepetitions / 2);
-                const initialIndexInList = initialValue + midPointOffset;
+                const midPointOffset = values.length * Math.floor(scrollRepetitions / 2);
+                const initialIndexInList = values.indexOf(String(initialValue).padStart(2, '0'));
                 
-                container.scrollTop = initialIndexInList * itemHeight;
-
-                const initialItem = container.children[initialIndexInList + 1];
-                if (initialItem) {
-                    initialItem.classList.add('active');
-                    container.dataset.selectedValue = initialItem.dataset.value;
-                }
+                container.scrollTop = (initialIndexInList + midPointOffset) * itemHeight;
             };
             
             const snapToItem = (container) => {
                 const centerIndex = Math.round(container.scrollTop / itemHeight);
                 container.scrollTop = centerIndex * itemHeight;
-                const selectedItem = container.children[centerIndex + 1];
+                const selectedItem = container.children[centerIndex];
                 if (selectedItem) {
                     const value = selectedItem.dataset.value;
                     container.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('active'));
