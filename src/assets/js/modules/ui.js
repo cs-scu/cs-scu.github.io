@@ -897,9 +897,9 @@ export const showEventRegistrationModal = async (eventId) => {
                         </button>
                         <div id="time-picker-widget" class="time-picker-widget" style="display: none;">
                             <div class="time-picker-inputs">
-                                <input type="number" id="time-picker-hour" min="0" max="23" placeholder="ساعت">
-                                <span>:</span>
-                                <input type="number" id="time-picker-minute" min="0" max="59" placeholder="دقیقه">
+                                <div class="time-scroll-container" id="hour-scroll"></div>
+                                <span class="time-separator">:</span>
+                                <div class="time-scroll-container" id="minute-scroll"></div>
                             </div>
                             <button type="button" id="confirm-time-btn" class="btn btn-primary btn-full">تایید</button>
                         </div>
@@ -931,38 +931,78 @@ export const showEventRegistrationModal = async (eventId) => {
             copyBtn.addEventListener('click', () => { navigator.clipboard.writeText(cardText.replace(/-/g, '')).then(() => { copyBtn.textContent = 'کپی شد!'; setTimeout(() => { copyBtn.textContent = 'کپی'; }, 2000); }); });
 
             const timePickerWidget = genericModalContent.querySelector('#time-picker-widget');
-            const timePickerHour = genericModalContent.querySelector('#time-picker-hour');
-            const timePickerMinute = genericModalContent.querySelector('#time-picker-minute');
             const timeDisplaySpan = genericModalContent.querySelector('#reg-tx-time-display');
             const openTimePickerBtn = genericModalContent.querySelector('#open-time-picker-btn');
             const confirmTimeBtn = genericModalContent.querySelector('#confirm-time-btn');
+            const hourScroll = genericModalContent.querySelector('#hour-scroll');
+            const minuteScroll = genericModalContent.querySelector('#minute-scroll');
+
+            let selectedHour = '00';
+            let selectedMinute = '00';
+            const itemHeight = 40; // این مقدار باید با CSS همخوانی داشته باشد
+
+            const populateScroller = (container, max, initialValue) => {
+                container.innerHTML = '';
+                for (let i = -1; i < max + 2; i++) {
+                    const item = document.createElement('div');
+                    item.className = 'scroll-item';
+                    item.textContent = i >= 0 && i < max ? String(i).padStart(2, '0') : '';
+                    item.dataset.value = item.textContent;
+                    container.appendChild(item);
+                }
+                const initialIndex = initialValue >= 0 && initialValue < max ? initialValue + 1 : 1;
+                container.scrollTop = initialIndex * itemHeight;
+            };
+
+            const snapToItem = (container) => {
+                const centerIndex = Math.round(container.scrollTop / itemHeight);
+                container.scrollTop = centerIndex * itemHeight;
+                const selectedItem = container.children[centerIndex];
+                if (selectedItem) {
+                    const value = selectedItem.dataset.value;
+                    container.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('active'));
+                    selectedItem.classList.add('active');
+                    return value;
+                }
+                return '';
+            };
 
             openTimePickerBtn.addEventListener('click', () => {
+                const now = new Date();
+                populateScroller(hourScroll, 24, now.getHours());
+                populateScroller(minuteScroll, 60, now.getMinutes());
                 timePickerWidget.style.display = 'block';
-                timePickerHour.focus();
             });
-
+            
             confirmTimeBtn.addEventListener('click', () => {
-                const hour = timePickerHour.value.padStart(2, '0');
-                const minute = timePickerMinute.value.padStart(2, '0');
-                if (hour && minute) {
-                    transactionTime = `${hour}:${minute}`;
+                selectedHour = snapToItem(hourScroll);
+                selectedMinute = snapToItem(minuteScroll);
+                if (selectedHour && selectedMinute) {
+                    transactionTime = `${selectedHour}:${selectedMinute}`;
                     timeDisplaySpan.textContent = transactionTime;
                     timePickerWidget.style.display = 'none';
                 }
             });
 
+            hourScroll.addEventListener('scroll', () => {
+                clearTimeout(hourScroll.scrollTimeout);
+                hourScroll.scrollTimeout = setTimeout(() => {
+                    selectedHour = snapToItem(hourScroll);
+                }, 100);
+            });
+
+            minuteScroll.addEventListener('scroll', () => {
+                clearTimeout(minuteScroll.scrollTimeout);
+                minuteScroll.scrollTimeout = setTimeout(() => {
+                    selectedMinute = snapToItem(minuteScroll);
+                }, 100);
+            });
+            
             document.addEventListener('click', (e) => {
                 if (!openTimePickerBtn.contains(e.target) && !timePickerWidget.contains(e.target)) {
                     timePickerWidget.style.display = 'none';
                 }
             });
-
-            // تنظیم مقدار پیش‌فرض ساعت به زمان فعلی برای راحتی کاربر
-            const now = new Date();
-            timePickerHour.value = String(now.getHours()).padStart(2, '0');
-            timePickerMinute.value = String(now.getMinutes()).padStart(2, '0');
-
         }
 
         const registrationForm = genericModalContent.querySelector('#event-registration-form');
