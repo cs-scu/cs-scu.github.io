@@ -1476,7 +1476,7 @@ body.light-theme .course-card-chart.is-prereq {
 
     /* --- Modals --- */
     .modal-overlay {
-        align-items: flex-end; /* Align modal to bottom */
+        align-items: center; /* Align modal to bottom */
         padding: 1rem; 
 
     }
