@@ -890,14 +890,18 @@ export const showEventRegistrationModal = async (eventId) => {
                         <input type="text" id="reg-card-digits" name="card_digits" inputmode="numeric" pattern="[0-9]{4}" required>
                     </div>
                     <div class="form-group time-picker-container" style="position: relative;">
-                        <label for="reg-tx-time-display">ساعت واریز</label>
-                        <button type="button" id="open-time-picker-btn" class="btn btn-secondary" style="width: 100%; text-align: right; justify-content: space-between;">
+                        <label for="open-time-picker-btn">ساعت واریز</label>
+                        <button type="button" id="open-time-picker-btn" class="time-picker-btn">
                             <span id="reg-tx-time-display">انتخاب نشده</span>
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="time-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                         </button>
-                        <div id="time-picker-widget" class="time-picker-widget">
-                            <input type="time" id="time-picker-input">
-                            <button type="button" id="confirm-time-btn" class="btn btn-primary" style="width: 100%;">تایید</button>
+                        <div id="time-picker-widget" class="time-picker-widget" style="display: none;">
+                            <div class="time-picker-inputs">
+                                <input type="number" id="time-picker-hour" min="0" max="23" placeholder="ساعت">
+                                <span>:</span>
+                                <input type="number" id="time-picker-minute" min="0" max="59" placeholder="دقیقه">
+                            </div>
+                            <button type="button" id="confirm-time-btn" class="btn btn-primary btn-full">تایید</button>
                         </div>
                     </div>
                 </div>
@@ -927,21 +931,23 @@ export const showEventRegistrationModal = async (eventId) => {
             copyBtn.addEventListener('click', () => { navigator.clipboard.writeText(cardText.replace(/-/g, '')).then(() => { copyBtn.textContent = 'کپی شد!'; setTimeout(() => { copyBtn.textContent = 'کپی'; }, 2000); }); });
 
             const timePickerWidget = genericModalContent.querySelector('#time-picker-widget');
-            const timePickerInput = genericModalContent.querySelector('#time-picker-input');
+            const timePickerHour = genericModalContent.querySelector('#time-picker-hour');
+            const timePickerMinute = genericModalContent.querySelector('#time-picker-minute');
             const timeDisplaySpan = genericModalContent.querySelector('#reg-tx-time-display');
             const openTimePickerBtn = genericModalContent.querySelector('#open-time-picker-btn');
             const confirmTimeBtn = genericModalContent.querySelector('#confirm-time-btn');
 
             openTimePickerBtn.addEventListener('click', () => {
                 timePickerWidget.style.display = 'block';
-                timePickerInput.focus();
+                timePickerHour.focus();
             });
 
             confirmTimeBtn.addEventListener('click', () => {
-                const selectedTime = timePickerInput.value;
-                if (selectedTime) {
-                    transactionTime = selectedTime;
-                    timeDisplaySpan.textContent = selectedTime;
+                const hour = timePickerHour.value.padStart(2, '0');
+                const minute = timePickerMinute.value.padStart(2, '0');
+                if (hour && minute) {
+                    transactionTime = `${hour}:${minute}`;
+                    timeDisplaySpan.textContent = transactionTime;
                     timePickerWidget.style.display = 'none';
                 }
             });
@@ -951,6 +957,11 @@ export const showEventRegistrationModal = async (eventId) => {
                     timePickerWidget.style.display = 'none';
                 }
             });
+
+            // تنظیم مقدار پیش‌فرض ساعت به زمان فعلی برای راحتی کاربر
+            const now = new Date();
+            timePickerHour.value = String(now.getHours()).padStart(2, '0');
+            timePickerMinute.value = String(now.getMinutes()).padStart(2, '0');
 
         }
 
