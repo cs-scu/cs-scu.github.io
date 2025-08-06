@@ -1984,9 +1984,11 @@ body.light-theme .btn-text {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: 0; /* حذف فاصله بین دکمه‌ها */
     margin-top: 1.5rem;
-    
+}
+.form-actions .btn {
+    width: 100%; /* دکمه‌ها را هم‌اندازه و به اندازه عرض والد می‌کند */
 }
 .btn.btn-full {
     width: 100%;
@@ -2162,11 +2164,12 @@ body.light-theme .social-divider { border-color: var(--glass-border-light); }
 }
 
 .btn-social {
+    /* تغییرات جدید برای دکمه‌های اجتماعی */
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    width: 100%;
+    width: 100%; /* دکمه را هم‌اندازه و به اندازه عرض والد می‌کند */
     padding-top: 0.8rem;
     padding-bottom: 0.8rem;
     font-size: 1rem;
@@ -2174,6 +2177,15 @@ body.light-theme .social-divider { border-color: var(--glass-border-light); }
     background: transparent;
     color: inherit;
     cursor: pointer;
+    /* حذف حاشیه و پدینگ اضافی برای هماهنگی */
+    margin: 0 !important;
+    border-radius: 0;
+}
+.btn-social:first-child {
+    border-radius: 50px 50px 0 0; /* گوشه‌های بالا گرد می‌شود */
+}
+.btn-social:last-child {
+    border-radius: 0 0 50px 50px; /* گوشه‌های پایین گرد می‌شود */
 }
 .btn-social:hover {
     filter: brightness(1.1);
