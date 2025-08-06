@@ -1586,6 +1586,7 @@ body.light-theme .course-card-chart.is-prereq {
         font-size: 1rem;
     }
 
+
 }
 
 body.dark-theme .card-socials .social-telegram{
@@ -1985,6 +1986,7 @@ body.light-theme .btn-text {
     align-items: center;
     gap: 1rem;
     margin-top: 1.5rem;
+    
 }
 .btn.btn-full {
     width: 100%;
