@@ -2393,10 +2393,10 @@ body.light-theme .time-picker-widget {
 }
 
 .time-separator {
-    font-size: 2rem;
+    font-size: 3rem;
     font-weight: bold;
     opacity: 0.8;
-    margin-top: 2rem; /* Align with scrollers */
+    margin-top: 4rem;
 }
 .time-stepper-btn:hover {
     opacity: 1;
