@@ -2252,3 +2252,33 @@ body.light-theme .registration-status-details hr { background-color: var(--glass
     transform: scale(1.1);
 }
 
+.time-picker-widget {
+    position: absolute;
+    top: 100%;
+    right: 0; /* برای نمایش در زیر و راست فیلد اصلی */
+    z-index: 10;
+    width: 100%;
+    max-width: 250px;
+    padding: 1rem;
+    border-radius: 8px;
+    display: none; /* ابتدا مخفی است */
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    margin-top: 5px; /* فاصله از فیلد اصلی */
+}
+
+body.dark-theme .time-picker-widget {
+    background-color: #1a1a1a;
+    border: 1px solid var(--glass-border-dark);
+}
+
+body.light-theme .time-picker-widget {
+    background-color: #fff;
+    border: 1px solid var(--glass-border-light);
+}
+
+.time-picker-widget #time-picker-input {
+    width: 100%;
+    margin-bottom: 0.75rem;
+}
+

@@ -779,7 +779,6 @@ const showTimePickerModal = (callback) => {
 };
 
 
-
 export const showEventRegistrationModal = async (eventId) => {
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
@@ -890,10 +889,13 @@ export const showEventRegistrationModal = async (eventId) => {
                         <label for="reg-card-digits">۴ رقم آخر کارت پرداختی</label>
                         <input type="text" id="reg-card-digits" name="card_digits" inputmode="numeric" pattern="[0-9]{4}" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group time-picker-container" style="position: relative;">
                         <label for="reg-tx-time-display">ساعت واریز</label>
-                        <input type="text" id="reg-tx-time-display" value="انتخاب نشده" disabled style="background-color: rgba(128,128,128,0.1); cursor: not-allowed;">
-                        <button type="button" id="open-time-picker-btn" class="btn btn-secondary" style="margin-top: 0.5rem;">انتخاب ساعت</button>
+                        <input type="text" id="reg-tx-time-display" value="انتخاب نشده" disabled style="background-color: rgba(128,128,128,0.1); cursor: pointer;">
+                        <div id="time-picker-widget" class="time-picker-widget">
+                            <input type="time" id="time-picker-input">
+                            <button type="button" id="confirm-time-btn" class="btn btn-primary" style="width: 100%;">تایید</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -921,14 +923,32 @@ export const showEventRegistrationModal = async (eventId) => {
             const cardText = genericModalContent.querySelector('#card-to-copy').innerText;
             copyBtn.addEventListener('click', () => { navigator.clipboard.writeText(cardText.replace(/-/g, '')).then(() => { copyBtn.textContent = 'کپی شد!'; setTimeout(() => { copyBtn.textContent = 'کپی'; }, 2000); }); });
 
-            const openTimePickerBtn = genericModalContent.querySelector('#open-time-picker-btn');
-            openTimePickerBtn.addEventListener('click', () => {
-                showTimePickerModal((selectedTime) => {
-                    transactionTime = selectedTime;
-                    const displayInput = genericModalContent.querySelector('#reg-tx-time-display');
-                    displayInput.value = selectedTime;
-                });
+            const timePickerWidget = genericModalContent.querySelector('#time-picker-widget');
+            const timePickerInput = genericModalContent.querySelector('#time-picker-input');
+            const timeDisplayInput = genericModalContent.querySelector('#reg-tx-time-display');
+            const confirmTimeBtn = genericModalContent.querySelector('#confirm-time-btn');
+
+            timeDisplayInput.addEventListener('click', () => {
+                timePickerWidget.style.display = 'block';
+                timePickerInput.focus();
             });
+
+            confirmTimeBtn.addEventListener('click', () => {
+                const selectedTime = timePickerInput.value;
+                if (selectedTime) {
+                    transactionTime = selectedTime;
+                    timeDisplayInput.value = selectedTime;
+                    timePickerWidget.style.display = 'none';
+                }
+            });
+
+            // برای بستن ویجت با کلیک خارج از آن
+            document.addEventListener('click', (e) => {
+                if (!timePickerWidget.contains(e.target) && e.target !== timeDisplayInput) {
+                    timePickerWidget.style.display = 'none';
+                }
+            });
+
         }
 
         const registrationForm = genericModalContent.querySelector('#event-registration-form');
@@ -939,7 +959,6 @@ export const showEventRegistrationModal = async (eventId) => {
             submitBtn.textContent = 'در حال ثبت ...';
             const formData = new FormData(registrationForm);
 
-            // اطمینان از وجود ساعت واریزی برای رویدادهای پولی
             if (isPaidEvent && !transactionTime) {
                 const statusBox = registrationForm.querySelector('.form-status');
                 showStatus(statusBox, 'لطفاً ساعت واریز را انتخاب کنید.', 'error');
@@ -965,7 +984,7 @@ export const showEventRegistrationModal = async (eventId) => {
                 const statusBox = registrationForm.querySelector('.form-status');
                 showStatus(statusBox, 'خطا در ثبت اطلاعات. لطفاً دوباره تلاش کنید.', 'error');
                 submitBtn.disabled = false;
-                submitBtn.textContent = isPaidEvent ? 'ارسال و ثبت‌نام موقت' : 'ثبت‌نام نهایی';
+                submitBtn.textContent = 'ارسال و ثبت‌نام موقت';
             } else {
                 const successMessage = isPaidEvent ? 'اطلاعات شما با موفقیت ثبت شد و پس از بررسی توسط ادمین، نهایی خواهد شد.' : 'ثبت‌نام شما در این رویداد رایگان با موفقیت انجام شد!';
                 genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><h2>ثبت‌نام دریافت شد!</h2><p>${successMessage}</p></div>`;
