@@ -558,10 +558,15 @@ export const showEventModal = async (path) => {
             ${event.cost}
         </span>` : '';
 
-    // *** تغییر کلیدی: افزودن بخش دکمه‌های ثبت‌نام و تماس ***
     let actionsHTML = '';
     if (event.registrationLink) {
         const isPastEvent = new Date(event.endDate) < new Date();
+        
+        // تغییرات کلیدی: بررسی وجود لینک و غیرفعال کردن دکمه در صورت عدم وجود
+        const contactButton = event.contact_link
+            ? `<a href="${event.contact_link}" id="contact-for-event-btn" class="btn btn-secondary" style="flex-grow: 1;" target="_blank">پرسش درباره رویداد</a>`
+            : `<a href="https://www.cs-scu.ir/#/contact?subject=${encodeURIComponent('موضوع: رویداد ' + event.title)}" id="contact-for-event-btn" class="btn btn-secondary" style="flex-grow: 1;">پرسش درباره رویداد</a>`;
+        
         actionsHTML = `
             <div class="event-modal-actions" style="display: flex; gap: 1rem; margin-top: 2rem; border-top: 1px solid var(--glass-border-dark); padding-top: 1.5rem;">
                 <button 
@@ -571,7 +576,7 @@ export const showEventModal = async (path) => {
                     ${isPastEvent ? 'disabled' : ''}>
                     ${isPastEvent ? 'رویداد پایان یافته' : 'ثبت‌نام در این رویداد'}
                 </button>
-                <a href="#/contact" id="contact-for-event-btn" class="btn btn-secondary" style="flex-grow: 1;">پرسش درباره رویداد</a>
+                ${contactButton}
             </div>
         `;
     }
@@ -600,23 +605,13 @@ export const showEventModal = async (path) => {
     genericModal.classList.add('wide-modal');
     genericModalContent.innerHTML = modalHtml;
 
-    // بستن مودال فعلی هنگام کلیک روی دکمه تماس، تا کاربر به صفحه تماس هدایت شود
-    const contactBtn = genericModalContent.querySelector('#contact-for-event-btn');
-    if(contactBtn) {
-        contactBtn.addEventListener('click', () => {
-            genericModal.classList.remove('is-open');
-            dom.body.classList.remove('modal-is-open');
-        });
-    }
     const registerBtnInModal = genericModalContent.querySelector('.btn-event-register');
     if (registerBtnInModal) {
         registerBtnInModal.addEventListener('click', (e) => {
             e.preventDefault();
             const eventId = registerBtnInModal.dataset.eventId;
-            // بستن مدال فعلی قبل از باز کردن مدال ثبت‌نام
             genericModal.classList.remove('is-open');
             dom.body.classList.remove('modal-is-open');
-            // فراخوانی تابع ثبت‌نام
             showEventRegistrationModal(eventId);
         });
     }
@@ -624,6 +619,7 @@ export const showEventModal = async (path) => {
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
 };
+
 export const initializeGlobalUI = () => {
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const mobileDropdownMenu = document.getElementById('mobile-dropdown-menu');
@@ -704,6 +700,18 @@ export const initializeContactForm = () => {
 
     const nameInput = contactForm.querySelector('#contact-name');
     const emailInput = contactForm.querySelector('#contact-email');
+    const messageTextarea = contactForm.querySelector('#contact-message');
+
+    // ** تغییرات جدید: بررسی URL برای پارامتر subject و پر کردن فیلد پیام **
+    const hash = window.location.hash;
+    const queryString = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
+    const urlParams = new URLSearchParams(queryString);
+    const subjectFromUrl = urlParams.get('subject');
+
+    if (subjectFromUrl) {
+        messageTextarea.value = `${decodeURIComponent(subjectFromUrl)}\n\n`;
+    }
+
 
     // چک کردن وضعیت کاربر و پر کردن خودکار فیلدها
     if (state.user) {
