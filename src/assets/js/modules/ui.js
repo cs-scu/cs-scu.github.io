@@ -564,7 +564,7 @@ export const showEventModal = async (path) => {
         
         // تغییرات کلیدی: بررسی وجود لینک و غیرفعال کردن دکمه در صورت عدم وجود
         const contactButton = event.contact_link
-            ? `<a href="${event.contact_link}" id="contact-for-event-btn" class="btn btn-secondary" style="flex-grow: 1; textx-align: center;" target="_blank">پرسش درباره رویداد</a>`
+            ? `<a href="${event.contact_link}" id="contact-for-event-btn" class="btn btn-secondary" style="flex-grow: 1; text-align: center;" target="_blank">پرسش درباره رویداد</a>`
             : `<button id="contact-for-event-btn" class="btn btn-secondary disabled" style="flex-grow: 1;" disabled>لینک تماس در دسترس نیست</button>`;
         
         actionsHTML = `
