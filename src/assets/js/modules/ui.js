@@ -802,7 +802,7 @@ export const showEventRegistrationModal = async (eventId) => {
 
     const { data: existingRegistration, error: fetchError } = await getEventRegistration(eventId, state.user.id);
 
-    if (fetchError && error.code !== 'PGRST116') {
+    if (fetchError && fetchError.code !== 'PGRST116') { // Corrected error check
         genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><p>خطا در بررسی وضعیت. لطفاً دوباره تلاش کنید.</p></div>`;
         return;
     }
@@ -873,7 +873,13 @@ export const showEventRegistrationModal = async (eventId) => {
         
         let paymentSectionHTML = '';
         let paymentFieldsHTML = '';
-        let transactionTime = '';
+        
+        // --- START: NEW CHANGE FOR DEFAULT TIME ---
+        const now = new Date();
+        const defaultHour = String(now.getHours()).padStart(2, '0');
+        const defaultMinute = String(now.getMinutes()).padStart(2, '0');
+        let transactionTime = `${defaultHour}:${defaultMinute}`;
+        // --- END: NEW CHANGE FOR DEFAULT TIME ---
 
         if (isPaidEvent) {
             const cardHolderName = paymentInfo.name || 'انجمن علمی';
@@ -890,8 +896,10 @@ export const showEventRegistrationModal = async (eventId) => {
                     <div class="form-group time-picker-container" style="position: relative;">
                         <label for="open-time-picker-btn">ساعت واریز</label>
                         <button type="button" id="open-time-picker-btn" class="time-picker-btn">
-                            <span id="reg-tx-time-display">انتخاب نشده</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="time-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            // --- START: NEW CHANGE FOR DEFAULT TIME DISPLAY ---
+                            <span id="reg-tx-time-display">${transactionTime}</span>
+                            // --- END: NEW CHANGE FOR DEFAULT TIME DISPLAY ---
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="time-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                         </button>
                         <div id="time-picker-widget" class="time-picker-widget" style="display: none;">
                             <div class="time-picker-inputs">
@@ -969,11 +977,16 @@ export const showEventRegistrationModal = async (eventId) => {
             const snapToItem = (container) => {
                 const centerIndex = Math.round(container.scrollTop / itemHeight);
                 container.scrollTop = centerIndex * itemHeight;
-                const selectedItem = container.children[centerIndex];
+                const selectedItem = container.children[centerIndex + 2]; // Adjusted for empty items
                 if (selectedItem) {
                     const value = selectedItem.dataset.value;
                     container.querySelectorAll('.scroll-item').forEach(el => el.classList.remove('active'));
-                    selectedItem.classList.add('active');
+                    
+                    // Add active class to the correct item
+                    const allItems = Array.from(container.children);
+                    const activeElements = allItems.filter(el => el.dataset.value === value);
+                    activeElements.forEach(el => el.classList.add('active'));
+
                     container.dataset.selectedValue = value;
                     return value;
                 }
