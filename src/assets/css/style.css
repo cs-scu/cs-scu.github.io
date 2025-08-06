@@ -2352,6 +2352,13 @@ body.light-theme .time-picker-widget {
     border: 1px solid var(--glass-border-light);
 }
 
+.time-picker-widget.show-above {
+    top: auto;
+    bottom: 100%;
+    margin-bottom: 5px;
+    margin-top: 0;
+}
+
 .time-picker-inputs {
     display: flex;
     justify-content: center;
@@ -2359,6 +2366,13 @@ body.light-theme .time-picker-widget {
     gap: 1.5rem;
     margin-bottom: 1rem;
 }
+
+.time-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 .time-picker-label {
     text-align: center;
     font-size: 0.9rem;
@@ -2366,28 +2380,49 @@ body.light-theme .time-picker-widget {
     margin-bottom: 0.5rem;
 }
 
+.time-stepper-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.2rem;
+    line-height: 1;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
 .time-separator {
     font-size: 2rem;
     font-weight: bold;
     opacity: 0.8;
-    margin-top: 2.2rem; /* Align with scrollers */
+    margin-top: 2rem; /* Align with scrollers */
+}
+.time-stepper-btn:hover {
+    opacity: 1;
+}
+.time-picker-label {
+    text-align: center;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-bottom: 0.3rem;
+    font-weight: bold;
 }
 
 .time-scroll-container {
     height: 120px;
-    width: 80px;
+    width: 60px; /* Made it a bit narrower */
     overflow-y: scroll;
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow-x: hidden;
     text-align: center;
     font-size: 1.5rem;
     font-weight: bold;
     -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
+    /* scroll-behavior: smooth; // We handle this in JS now */
     border-radius: 8px;
     position: relative;
-    mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, black 25%, black 75%, transparent);
 }
-
 body.dark-theme .time-scroll-container {
     background-color: rgba(255, 255, 255, 0.05);
 }
@@ -2403,7 +2438,6 @@ body.light-theme .time-scroll-container {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
-
 .scroll-item {
     height: 40px;
     line-height: 40px;
@@ -2416,4 +2450,10 @@ body.light-theme .time-scroll-container {
     font-size: 1.8rem;
     font-weight: 900;
     transform: scale(1.1);
+}
+body.dark-theme .scroll-item.active {
+    color: var(--primary-color);
+}
+body.light-theme .scroll-item.active {
+    color: var(--primary-color-light-theme);
 }
