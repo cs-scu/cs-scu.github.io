@@ -778,7 +778,6 @@ const showTimePickerModal = (callback) => {
     });
 };
 
-
 export const showEventRegistrationModal = async (eventId) => {
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
@@ -804,7 +803,9 @@ export const showEventRegistrationModal = async (eventId) => {
 
     const { data: existingRegistration, error: fetchError } = await getEventRegistration(eventId, state.user.id);
 
-    if (fetchError) {
+    // تغییرات جدید: اگر خطا 406 باشد یا هیچ رکوردی پیدا نشود، به عنوان عدم وجود ثبت‌نام در نظر می‌گیریم.
+    if (fetchError && error.code !== 'PGRST116') {
+        // اگر خطای دیگری به جز "No rows found" رخ دهد، آن را نمایش می‌دهیم.
         genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><p>خطا در بررسی وضعیت. لطفاً دوباره تلاش کنید.</p></div>`;
         return;
     }
@@ -883,7 +884,6 @@ export const showEventRegistrationModal = async (eventId) => {
             paymentSectionHTML = `<div class="payment-info-section"><p>هزینه: <strong>${event.cost}</strong></p><p>لطفاً مبلغ را به کارت زیر واریز نمایید:</p><div class="payment-details-box" style="text-align: center; padding: 1rem; border: 1px dashed gray; margin: 1rem 0; border-radius: 8px;"><p style="margin:0;">به نام: <strong>${cardHolderName}</strong></p><div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 0.5rem; direction: ltr;"><strong id="card-to-copy">${cardNumber}</strong><button id="copy-card-btn" class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">کپی</button></div></div></div>`;
             
             paymentFieldsHTML = `
-                <br>
                 <hr>
                 <div class="form-row">
                     <div class="form-group">
@@ -943,7 +943,6 @@ export const showEventRegistrationModal = async (eventId) => {
                 }
             });
 
-            // برای بستن ویجت با کلیک خارج از آن
             document.addEventListener('click', (e) => {
                 if (!timePickerWidget.contains(e.target) && e.target !== timeDisplayInput) {
                     timePickerWidget.style.display = 'none';
@@ -985,7 +984,7 @@ export const showEventRegistrationModal = async (eventId) => {
                 const statusBox = registrationForm.querySelector('.form-status');
                 showStatus(statusBox, 'خطا در ثبت اطلاعات. لطفاً دوباره تلاش کنید.', 'error');
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'ارسال و ثبت‌نام موقت';
+                submitBtn.textContent = isPaidEvent ? 'ارسال و ثبت‌نام موقت' : 'ثبت‌نام نهایی';
             } else {
                 const successMessage = isPaidEvent ? 'اطلاعات شما با موفقیت ثبت شد و پس از بررسی توسط ادمین، نهایی خواهد شد.' : 'ثبت‌نام شما در این رویداد رایگان با موفقیت انجام شد!';
                 genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><h2>ثبت‌نام دریافت شد!</h2><p>${successMessage}</p></div>`;
