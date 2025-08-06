@@ -742,12 +742,49 @@ export const initializeContactForm = () => {
     });
     contactForm.dataset.listenerAttached = 'true';
 };
+
+const showTimePickerModal = (callback) => {
+    const genericModal = document.getElementById('generic-modal');
+    const genericModalContent = document.getElementById('generic-modal-content');
+    if (!genericModal || !genericModalContent) return;
+
+    const modalHtml = `
+        <div class="content-box" style="text-align: center; padding-top: 4rem;">
+            <h2>انتخاب ساعت</h2>
+            <p>لطفا ساعت دقیق واریز وجه را انتخاب کنید.</p>
+            <div class="form-group" style="margin-top: 2rem;">
+                <label for="time-picker-input" class="visually-hidden">ساعت واریز</label>
+                <input type="time" id="time-picker-input" name="time-picker" required style="width: 100%; max-width: 250px;">
+            </div>
+            <div class="form-actions">
+                <button id="confirm-time-btn" class="btn btn-primary btn-full">تایید</button>
+            </div>
+        </div>
+    `;
+    
+    genericModal.classList.add('wide-modal');
+    genericModalContent.innerHTML = modalHtml;
+    dom.body.classList.add('modal-is-open');
+    genericModal.classList.add('is-open');
+
+    const confirmBtn = genericModalContent.querySelector('#confirm-time-btn');
+    confirmBtn.addEventListener('click', () => {
+        const selectedTime = genericModalContent.querySelector('#time-picker-input').value;
+        if (selectedTime) {
+            callback(selectedTime);
+            genericModal.classList.remove('is-open');
+            dom.body.classList.remove('modal-is-open');
+        }
+    });
+};
+
+
+
 export const showEventRegistrationModal = async (eventId) => {
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
     if (!genericModal || !genericModalContent) return;
 
-    // 1. بررسی وضعیت لاگین
     if (!state.user) {
         const modalHtml = `<div class="content-box" style="text-align: center;"><h2>ابتدا وارد شوید</h2><p>برای ثبت‌نام در رویدادها، باید وارد حساب کاربری خود شوید.</p><br><div class="form-actions"><a href="#/login" id="go-to-login-btn" class="btn btn-primary btn-full">ورود یا ثبت‌نام</a></div></div>`;
         genericModalContent.innerHTML = modalHtml;
@@ -761,13 +798,11 @@ export const showEventRegistrationModal = async (eventId) => {
         return;
     }
 
-    // نمایش پیام لودینگ
     genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><p>در حال بررسی وضعیت ثبت‌نام شما...</p></div>`;
     genericModal.classList.add('wide-modal');
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
 
-    // 2. استعلام ثبت‌نام قبلی
     const { data: existingRegistration, error: fetchError } = await getEventRegistration(eventId, state.user.id);
 
     if (fetchError) {
@@ -775,7 +810,6 @@ export const showEventRegistrationModal = async (eventId) => {
         return;
     }
 
-    // 3. اگر ثبت‌نام قبلی وجود داشت، نمایش وضعیت
     if (existingRegistration) {
         const statusText = existingRegistration.status === 'pending' ? 'در انتظار تایید' : 'تایید شده';
         const statusClass = existingRegistration.status === 'pending' ? 'status-pending' : 'status-confirmed';
@@ -785,7 +819,6 @@ export const showEventRegistrationModal = async (eventId) => {
             paymentInfoHTML = `<div class="info-row"><span>چهار رقم آخر کارت:</span><strong>${existingRegistration.card_last_four_digits}</strong></div><div class="info-row"><span>ساعت واریز:</span><strong>${existingRegistration.transaction_time}</strong></div>`;
         }
 
-        // *** تغییر کلیدی: دکمه ویرایش به جای لغو ***
         const editButtonHTML = existingRegistration.status === 'pending' 
             ? `<button id="edit-registration-btn" class="btn btn-primary" style="flex-grow: 1;">ویرایش اطلاعات</button>` 
             : '';
@@ -815,7 +848,6 @@ export const showEventRegistrationModal = async (eventId) => {
             dom.body.classList.remove('modal-is-open');
         });
         
-        // منطق دکمه ویرایش
         const editBtn = genericModalContent.querySelector('#edit-registration-btn');
         if (editBtn) {
             editBtn.addEventListener('click', async () => {
@@ -824,7 +856,7 @@ export const showEventRegistrationModal = async (eventId) => {
                     editBtn.textContent = 'لطفا صبر کنید...';
                     const { success } = await deleteEventRegistration(existingRegistration.id);
                     if (success) {
-                        await showEventRegistrationModal(eventId); // بازخوانی مودال برای نمایش فرم
+                        await showEventRegistrationModal(eventId);
                     } else {
                         alert('خطا در پردازش درخواست. لطفاً دوباره تلاش کنید.');
                         editBtn.disabled = false;
@@ -834,7 +866,6 @@ export const showEventRegistrationModal = async (eventId) => {
             });
         }
     } else {
-        // 4. اگر ثبت‌نام قبلی نبود، نمایش فرم (این بخش بدون تغییر باقی می‌ماند)
         const event = state.allEvents.find(e => e.id == eventId);
         if (!event) return;
 
@@ -845,12 +876,27 @@ export const showEventRegistrationModal = async (eventId) => {
         
         let paymentSectionHTML = '';
         let paymentFieldsHTML = '';
+        let transactionTime = '';
 
         if (isPaidEvent) {
             const cardHolderName = paymentInfo.name || 'انجمن علمی';
             const cardNumber = paymentInfo.number || 'شماره کارتی ثبت نشده';
             paymentSectionHTML = `<div class="payment-info-section"><p>هزینه: <strong>${event.cost}</strong></p><p>لطفاً مبلغ را به کارت زیر واریز نمایید:</p><div class="payment-details-box" style="text-align: center; padding: 1rem; border: 1px dashed gray; margin: 1rem 0; border-radius: 8px;"><p style="margin:0;">به نام: <strong>${cardHolderName}</strong></p><div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 0.5rem; direction: ltr;"><strong id="card-to-copy">${cardNumber}</strong><button id="copy-card-btn" class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">کپی</button></div></div></div>`;
-            paymentFieldsHTML = `<hr><div class="form-row"><div class="form-group"><label for="reg-card-digits">۴ رقم آخر کارت پرداختی</label><input type="text" id="reg-card-digits" name="card_digits" inputmode="numeric" pattern="[0-9]{4}" required></div><div class="form-group"><label for="reg-tx-time">ساعت واریز</label><input type="time" id="reg-tx-time" name="transaction_time" required></div></div>`;
+            
+            paymentFieldsHTML = `
+                <hr>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="reg-card-digits">۴ رقم آخر کارت پرداختی</label>
+                        <input type="text" id="reg-card-digits" name="card_digits" inputmode="numeric" pattern="[0-9]{4}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-tx-time-display">ساعت واریز</label>
+                        <input type="text" id="reg-tx-time-display" value="انتخاب نشده" disabled style="background-color: rgba(128,128,128,0.1); cursor: not-allowed;">
+                        <button type="button" id="open-time-picker-btn" class="btn btn-secondary" style="margin-top: 0.5rem;">انتخاب ساعت</button>
+                    </div>
+                </div>
+            `;
         } else {
             paymentSectionHTML = `<div class="payment-info-section"><p>هزینه شرکت در رویداد: <strong>رایگان</strong></p></div>`;
         }
@@ -874,6 +920,15 @@ export const showEventRegistrationModal = async (eventId) => {
             const copyBtn = genericModalContent.querySelector('#copy-card-btn');
             const cardText = genericModalContent.querySelector('#card-to-copy').innerText;
             copyBtn.addEventListener('click', () => { navigator.clipboard.writeText(cardText.replace(/-/g, '')).then(() => { copyBtn.textContent = 'کپی شد!'; setTimeout(() => { copyBtn.textContent = 'کپی'; }, 2000); }); });
+
+            const openTimePickerBtn = genericModalContent.querySelector('#open-time-picker-btn');
+            openTimePickerBtn.addEventListener('click', () => {
+                showTimePickerModal((selectedTime) => {
+                    transactionTime = selectedTime;
+                    const displayInput = genericModalContent.querySelector('#reg-tx-time-display');
+                    displayInput.value = selectedTime;
+                });
+            });
         }
 
         const registrationForm = genericModalContent.querySelector('#event-registration-form');
@@ -883,7 +938,28 @@ export const showEventRegistrationModal = async (eventId) => {
             submitBtn.disabled = true;
             submitBtn.textContent = 'در حال ثبت ...';
             const formData = new FormData(registrationForm);
-            const registrationData = { event_id: event.id, user_id: user.id, full_name: formData.get('name'), student_id: formData.get('student_id'), email: user.email, phone_number: formData.get('phone_number'), status: isPaidEvent ? 'pending' : 'confirmed', card_last_four_digits: isPaidEvent ? formData.get('card_digits') : null, transaction_time: isPaidEvent ? formData.get('transaction_time') : null };
+
+            // اطمینان از وجود ساعت واریزی برای رویدادهای پولی
+            if (isPaidEvent && !transactionTime) {
+                const statusBox = registrationForm.querySelector('.form-status');
+                showStatus(statusBox, 'لطفاً ساعت واریز را انتخاب کنید.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'ارسال و ثبت‌نام موقت';
+                return;
+            }
+
+            const registrationData = { 
+                event_id: event.id, 
+                user_id: user.id, 
+                full_name: formData.get('name'), 
+                student_id: formData.get('student_id'), 
+                email: user.email, 
+                phone_number: formData.get('phone_number'), 
+                status: isPaidEvent ? 'pending' : 'confirmed', 
+                card_last_four_digits: isPaidEvent ? formData.get('card_digits') : null, 
+                transaction_time: isPaidEvent ? transactionTime : null 
+            };
+
             const { error } = await supabaseClient.from('event_registrations').insert(registrationData);
             if (error) {
                 const statusBox = registrationForm.querySelector('.form-status');
