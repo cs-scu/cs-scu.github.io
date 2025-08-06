@@ -886,7 +886,6 @@ export const showEventRegistrationModal = async (eventId) => {
             paymentSectionHTML = `<div class="payment-info-section"><p>هزینه: <strong>${event.cost}</strong></p><p>لطفاً مبلغ را به کارت زیر واریز نمایید:</p><div class="payment-details-box" style="text-align: center; padding: 1rem; border: 1px dashed gray; margin: 1rem 0; border-radius: 8px;"><p style="margin:0;">به نام: <strong>${cardHolderName}</strong></p><div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 0.5rem; direction: ltr;"><strong id="card-to-copy">${cardNumber}</strong><button id="copy-card-btn" class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">کپی</button></div></div></div>`;
             
             paymentFieldsHTML = `
-                <br>
                 <hr>
                 <div class="form-row">
                     <div class="form-group">
@@ -902,17 +901,17 @@ export const showEventRegistrationModal = async (eventId) => {
                         <div id="time-picker-widget" class="time-picker-widget" style="display: none;">
                             <div class="time-picker-inputs">
                                 <div class="time-column">
-                                    <button type="button" class="time-stepper-btn" data-unit="minute" data-step="1">▲</button>
+                                    <button type="button" class="time-stepper-btn" data-unit="minute" data-step="-1">▲</button>
                                     <div class="time-picker-label">دقیقه</div>
                                     <div class="time-scroll-container" id="minute-scroll"></div>
-                                    <button type="button" class="time-stepper-btn" data-unit="minute" data-step="-1">▼</button>
+                                    <button type="button" class="time-stepper-btn" data-unit="minute" data-step="1">▼</button>
                                 </div>
                                 <span class="time-separator">:</span>
                                 <div class="time-column">
-                                    <button type="button" class="time-stepper-btn" data-unit="hour" data-step="1">▲</button>
+                                    <button type="button" class="time-stepper-btn" data-unit="hour" data-step="-1">▲</button>
                                     <div class="time-picker-label">ساعت</div>
                                     <div class="time-scroll-container" id="hour-scroll"></div>
-                                    <button type="button" class="time-stepper-btn" data-unit="hour" data-step="-1">▼</button>
+                                    <button type="button" class="time-stepper-btn" data-unit="hour" data-step="1">▼</button>
                                 </div>
                             </div>
                             <button type="button" id="confirm-time-btn" class="btn btn-primary btn-full">تایید</button>
@@ -962,19 +961,20 @@ export const showEventRegistrationModal = async (eventId) => {
                 let currentTime = 0;
                 const increment = 20;
 
-                const animateScroll = () => {
-                    currentTime += increment;
-                    const val = Math.easeInOutQuad(t, b, c, d);
-                    element.scrollTop = val;
-                    if (currentTime < duration) {
-                        requestAnimationFrame(animateScroll);
-                    }
-                };
-                Math.easeInOutQuad = (t, b, c, d) => {
+                const easeInOutQuad = (t, b, c, d) => {
                     t /= d / 2;
                     if (t < 1) return c / 2 * t * t + b;
                     t--;
                     return -c / 2 * (t * (t - 2) - 1) + b;
+                };
+
+                const animateScroll = () => {
+                    currentTime += increment;
+                    const val = easeInOutQuad(currentTime, start, change, duration);
+                    element.scrollTop = val;
+                    if (currentTime < duration) {
+                        requestAnimationFrame(animateScroll);
+                    }
                 };
                 animateScroll();
             };
