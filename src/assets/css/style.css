@@ -1988,8 +1988,10 @@ body.light-theme .btn-text {
     margin-top: 1.5rem;
     width: 100%; /* این خط را اضافه کنید تا کانتینر دکمه‌ها کل عرض را بگیرد */
 }
+
 .form-actions .btn {
     width: 100%; /* دکمه‌ها را هم‌اندازه و به اندازه عرض والد می‌کند */
+    margin: 1rem;
 }
 .btn.btn-full {
     width: 100%;
