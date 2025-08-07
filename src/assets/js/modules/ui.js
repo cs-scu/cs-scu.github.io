@@ -621,32 +621,201 @@ export const showEventModal = async (path) => {
     genericModal.classList.add('is-open');
 };
 
-const handleModalClick = (e) => {
-    // Accordion toggle logic
+const handleModalClick = async (e, eventData, scheduleData) => {
     const header = e.target.closest('.accordion-header');
     if (header) {
-        const item = header.parentElement;
-        item.classList.toggle('is-open');
-        return; // Important: stop further execution
+        header.parentElement.classList.toggle('is-open');
+        return;
     }
 
-    // Copy button logic
     const copyBtn = e.target.closest('.btn-copy-schedule-link');
     if (copyBtn) {
         const copyBtnSpan = copyBtn.querySelector('span');
         if (!copyBtnSpan) return;
-        
         const originalText = copyBtnSpan.textContent;
         const linkToCopy = copyBtn.dataset.link;
-
         navigator.clipboard.writeText(linkToCopy).then(() => {
             copyBtnSpan.textContent = 'کپی شد!';
-            copyBtn.classList.add('btn-success'); 
+            copyBtn.classList.add('btn-success');
             setTimeout(() => {
                 copyBtnSpan.textContent = originalText;
                 copyBtn.classList.remove('btn-success');
             }, 2000);
         });
+        return;
+    }
+
+    const downloadBtn = e.target.closest('.btn-download-schedule');
+    if (downloadBtn) {
+        downloadBtn.disabled = true;
+        const downloadBtnSpan = downloadBtn.querySelector('span');
+        downloadBtnSpan.textContent = 'در حال آماده‌سازی...';
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            // --- تعریف رنگ‌ها و استایل‌ها ---
+            const primaryColor = '#1a5c5d';
+            const textColor = '#2c3e50';
+            const mutedColor = '#7f8c8d';
+            const cardBgColor = '#ffffff'; // پس زمینه سفید خالص برای کارت
+            const pageBgColor = '#f4f7f6';
+            const headerBgColor = '#eaf0f0'; // <<-- اصلاح کلیدی: جایگزینی گرادیان با رنگ ثابت و زیبا
+
+            // --- بارگذاری منابع (لوگو و فونت) ---
+            const logoUrl = 'https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/ui/icons/favicon.png';
+            const logoResponse = await fetch(logoUrl);
+            if (!logoResponse.ok) throw new Error('فایل لوگو یافت نشد');
+            const logoBlob = await logoResponse.blob();
+            const logoBase64 = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.readAsDataURL(logoBlob);
+                reader.onloadend = () => resolve(reader.result);
+            });
+
+            const fontResponse = await fetch('assets/fonts/Vazirmatn-Regular.ttf');
+            const fontBlob = await fontResponse.blob();
+            const fontBase64 = await new Promise(resolve => {
+                const fontReader = new FileReader();
+                fontReader.readAsDataURL(fontBlob);
+                fontReader.onloadend = () => resolve(fontReader.result.split(',')[1]);
+            });
+
+            doc.addFileToVFS('Vazirmatn-Regular.ttf', fontBase64);
+            doc.addFont('Vazirmatn-Regular.ttf', 'Vazirmatn', 'normal');
+            doc.setFont('Vazirmatn');
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 15;
+
+            // --- تابع برای افزودن هدر، فوتر و پس‌زمینه به هر صفحه ---
+            const addPageLayout = (pageNumber) => {
+                // پس‌زمینه کلی صفحه
+                doc.setFillColor(pageBgColor);
+                doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+                // هدر با رنگ ثابت
+                doc.setFillColor(headerBgColor);
+                doc.rect(0, 0, pageWidth, 30, 'F');
+                
+                // واترمارک لوگو
+                doc.saveGraphicsState();
+                doc.setGState(new doc.GState({ opacity: 0.04 }));
+                doc.addImage(logoBase64, 'PNG', (pageWidth / 2) - 50, (pageHeight / 2) - 50, 100, 100);
+                doc.restoreGraphicsState();
+                
+                // محتوای هدر
+                doc.addImage(logoBase64, 'PNG', pageWidth - margin - 12, 9, 12, 12);
+                doc.setTextColor(textColor);
+                doc.setFontSize(10);
+                doc.text('انجمن علمی علوم کامپیوتر دانشگاه شهید چمران اهواز', pageWidth - margin - 15, 13, { align: 'right' });
+                doc.setFontSize(14);
+                doc.setTextColor(primaryColor);
+                doc.text(eventData.title, pageWidth - margin - 15, 22, { align: 'right' });
+
+                // فوتر
+                const footerY = pageHeight - 15;
+                doc.setDrawColor('#dddddd'); // رنگ خط جداکننده ملایم‌تر
+                doc.setLineWidth(0.2);
+                doc.line(margin, footerY, pageWidth - margin, footerY);
+                const footerText = 'cs-scu.ir';
+                const today = new Date().toLocaleDateString('fa-IR');
+                doc.setFontSize(9);
+                doc.setTextColor(mutedColor);
+                doc.text(footerText, margin, footerY + 5, { align: 'left' });
+                doc.text(`صفحه ${pageNumber}`, pageWidth / 2, footerY + 5, { align: 'center' });
+                doc.text(`تاریخ تهیه: ${today}`, pageWidth - margin, footerY + 5, { align: 'right' });
+            };
+            
+            let currentPage = 1;
+            addPageLayout(currentPage);
+            let y = 45; // نقطه شروع محتوا بعد از هدر
+
+            // --- تابع برای رسم کارت هر جلسه ---
+            const drawSessionCard = (session, index) => {
+                const cardHeight = 58;
+                if (y + cardHeight > pageHeight - 25) {
+                    doc.addPage();
+                    currentPage++;
+                    addPageLayout(currentPage);
+                    y = 45;
+                }
+
+                // سایه کارت
+                doc.setFillColor('#000000');
+                doc.setGState(new doc.GState({ opacity: 0.05 }));
+                doc.roundedRect(margin + 0.5, y + 0.5, pageWidth - (2 * margin), cardHeight, 3, 3, 'F');
+                doc.setGState(new doc.GState({ opacity: 1 }));
+
+                // پس‌زمینه کارت
+                doc.setFillColor(cardBgColor);
+                doc.setDrawColor('#e0e0e0');
+                doc.setLineWidth(0.2);
+                doc.roundedRect(margin, y, pageWidth - (2 * margin), cardHeight, 3, 3, 'FD');
+
+                // خط رنگی کنار کارت
+                doc.setFillColor(primaryColor);
+                doc.roundedRect(pageWidth - margin - 3, y, 3, cardHeight, 1.5, 1.5, 'F');
+
+                // عنوان جلسه
+                doc.setFontSize(12);
+                doc.setTextColor(textColor);
+                const sessionTitle = session.session_name || `جلسه ${index + 1}`;
+                doc.text(sessionTitle, pageWidth - margin - 8, y + 12, { align: 'right' });
+                
+                // تابع ترسیم ردیف اطلاعات با جداسازی کامل اجزا
+                const drawInfoRow = (label, value, yOffset, icon) => {
+                    const iconMap = { topic: '🗒️', speaker: '👤', time: '🕒', location: '📍', link: '🔗' };
+                    const labelPart = `${iconMap[icon] || ''} ${label}`;
+                    const colonPart = ":";
+                    const valuePart = value || '---';
+                    const rightEdge = pageWidth - margin - 8;
+                    const spacing = 1.5;
+                    doc.setFontSize(9);
+                    doc.setTextColor(mutedColor);
+                    doc.text(labelPart, rightEdge, y + yOffset, { align: 'right' });
+                    const labelWidth = doc.getTextWidth(labelPart);
+                    const colonX = rightEdge - labelWidth;
+                    doc.text(colonPart, colonX, y + yOffset, { align: 'right' });
+                    const colonWidth = doc.getTextWidth(colonPart);
+                    const valueX = colonX - colonWidth - spacing;
+                    const availableWidth = valueX - margin;
+                    doc.setTextColor(textColor);
+                    doc.text(valuePart, valueX, y + yOffset, { align: 'right', maxWidth: availableWidth });
+                };
+                
+                drawInfoRow('موضوع', session.topic, 24, 'topic');
+                drawInfoRow('مدرس', session.speaker, 34, 'speaker');
+                drawInfoRow('زمان', `${session.date || ''} ساعت ${session.time || ''}`, 44, 'time');
+                
+                const isUrl = (address) => { try { new URL(address); return true; } catch (_) { return false; } };
+                if (session.addres) {
+                    const label = (session.type === 'online' && isUrl(session.addres)) ? 'لینک' : 'مکان';
+                    const icon = (session.type === 'online' && isUrl(session.addres)) ? 'link' : 'location';
+                    drawInfoRow(label, session.addres, 54, 'location');
+                }
+                
+                y += cardHeight + 8;
+            };
+            
+            scheduleData.forEach(drawSessionCard);
+
+            // ذخیره فایل PDF
+            doc.save(`برنامه-${eventData.title.replace(/ /g, '-')}.pdf`);
+
+        } catch (error) {
+            console.error('خطا در ساخت فایل PDF:', error);
+            alert('مشکلی در ساخت فایل PDF به وجود آمد.');
+        } finally {
+            downloadBtnSpan.textContent = 'دانلود';
+            downloadBtn.disabled = false;
+        }
     }
 };
 
@@ -657,10 +826,10 @@ export const showEventScheduleModal = (eventId) => {
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
     if (!genericModal || !genericModalContent) return;
-    
-    // <<-- کلید اصلی حل مشکل: حذف شنونده‌ی قدیمی قبل از افزودن جدید -->>
-    // First, remove any lingering event listener to prevent duplicates
-    genericModalContent.removeEventListener('click', handleModalClick);
+
+    if (genericModalContent.currentHandler) {
+        genericModalContent.removeEventListener('click', genericModalContent.currentHandler);
+    }
 
     let scheduleData = [];
     try {
@@ -668,22 +837,25 @@ export const showEventScheduleModal = (eventId) => {
     } catch (e) {
         console.error("Could not parse event schedule JSON:", e);
         genericModalContent.innerHTML = `<div class="content-box"><p>خطا در بارگذاری برنامه زمانی.</p></div>`;
-        genericModal.classList.add('is-open');
-        dom.body.classList.add('modal-is-open');
+        genericModal.classList.add('is-open'); dom.body.classList.add('modal-is-open');
         return;
     }
 
-    if (!Array.isArray(scheduleData) || scheduleData.length === 0) {
-        return;
-    }
+    if (!Array.isArray(scheduleData) || scheduleData.length === 0) return;
 
     const scheduleTitle = event.schedule_title || 'برنامه زمانی جلسات';
     let scheduleHtml = `
         <div class="content-box" style="padding: 1.5rem;">
-            <h2 class="modal-title-breakable">
-                <span class="modal-title-main">${scheduleTitle}:</span>
-                <span class="modal-title-event">${event.title}</span>
-            </h2>
+            <div class="modal-header-actions">
+                <h2 class="modal-title-breakable">
+                    <span class="modal-title-main">${scheduleTitle}:</span>
+                    <span class="modal-title-event">${event.title}</span>
+                </h2>
+                <button class="btn btn-secondary btn-download-schedule" title="دانلود برنامه به صورت PDF">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>دانلود</span>
+                </button>
+            </div>
             <div class="accordion-container">
     `;
 
@@ -747,15 +919,15 @@ export const showEventScheduleModal = (eventId) => {
             </div>
         `;
     });
-
+    
     scheduleHtml += `</div></div>`;
     genericModal.classList.add('wide-modal');
     genericModalContent.innerHTML = scheduleHtml;
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
 
-    // Add the single, clean event listener
-    genericModalContent.addEventListener('click', handleModalClick);
+    genericModalContent.currentHandler = (e) => handleModalClick(e, event, scheduleData);
+    genericModalContent.addEventListener('click', genericModalContent.currentHandler);
 };
 
 export const initializeGlobalUI = () => {
