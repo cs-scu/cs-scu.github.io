@@ -183,7 +183,11 @@ export const renderMembersPage = () => {
     if (!membersGrid || !template) return;
     membersGrid.innerHTML = '';
 
-    state.membersMap.forEach(member => {
+    // تبدیل Map به آرایه، مرتب‌سازی بر اساس ID و سپس نمایش
+    const membersArray = Array.from(state.membersMap.values());
+    membersArray.sort((a, b) => a.id - b.id);
+
+    membersArray.forEach(member => {
         const cardClone = template.content.cloneNode(true);
         const img = cardClone.querySelector('.member-photo');
         img.src = member.imageUrl || DEFAULT_AVATAR_URL;

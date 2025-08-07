@@ -1504,13 +1504,6 @@ body.light-theme .course-card-chart.is-prereq {
         transform: translateY(0);
         position: relative; /* Needed for absolute positioning of close button */
     }
-    body.dark-theme #generic-modal:not(.wide-modal) .modal-content {
-        background-color: var(--background-color-dark);
-    }
-    body.light-theme #generic-modal:not(.wide-modal) .modal-content {
-        background-color: var(--background-color-light);
-    }
-    
     #generic-modal.wide-modal .modal-content,
     #register-modal .modal-content {
         padding: 0rem 0rem;
