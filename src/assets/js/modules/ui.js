@@ -621,6 +621,132 @@ export const showEventModal = async (path) => {
     genericModal.classList.add('is-open');
 };
 
+export const showEventScheduleModal = (eventId) => {
+    const event = state.allEvents.find(e => e.id == eventId);
+    if (!event) return;
+
+    const genericModal = document.getElementById('generic-modal');
+    const genericModalContent = document.getElementById('generic-modal-content');
+    if (!genericModal || !genericModalContent) return;
+
+    let scheduleData = [];
+    try {
+        scheduleData = typeof event.schedule === 'string' ? JSON.parse(event.schedule) : event.schedule;
+    } catch (e) {
+        console.error("Could not parse event schedule JSON:", e);
+        genericModalContent.innerHTML = `<div class="content-box"><p>خطا در بارگذاری برنامه زمانی.</p></div>`;
+        genericModal.classList.add('is-open');
+        dom.body.classList.add('modal-is-open');
+        return;
+    }
+
+    if (!Array.isArray(scheduleData) || scheduleData.length === 0) {
+        return;
+    }
+
+    const scheduleTitle = event.schedule_title || 'برنامه زمانی جلسات';
+    let scheduleHtml = `
+        <div class="content-box" style="padding: 1.5rem;">
+            <h2 class="modal-title-breakable">
+                <span class="modal-title-main">${scheduleTitle}:</span>
+                <span class="modal-title-event">${event.title}</span>
+            </h2>
+            <div class="accordion-container">
+    `;
+
+    scheduleData.forEach((session, index) => {
+        let addresHtml = '';
+        const isUrl = (address) => { try { new URL(address); return true; } catch (_) { return false; } }
+
+        if (session.addres) {
+            if (session.type === 'online' && isUrl(session.addres)) {
+                // <<-- ساختار HTML برای این بخش کاملاً ساده‌سازی و بازنویسی شده است
+                addresHtml = `
+                    <div class="accordion-row accordion-link-row">
+                        <div class="accordion-label-actions">
+                            <strong class="accordion-label">لینک جلسه:</strong>
+                            <div class="accordion-link-buttons">
+                                <button class="btn btn-secondary btn-copy-schedule-link" data-link="${session.addres}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                    <span>کپی</span>
+                                </button>
+                                <a href="${session.addres}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                    <span>ورود</span>
+                                </a>
+                            </div>
+                        </div>
+                        <span class="accordion-link-text">${session.addres}</span>
+                    </div>
+                `;
+            } else {
+                addresHtml = `
+                    <div class="accordion-row">
+                        <strong class="accordion-label">مکان جلسه:</strong>
+                        <div class="accordion-content">${session.addres}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        scheduleHtml += `
+            <div class="accordion-item">
+                <button class="accordion-header">
+                    <span>${session.session_name || `جلسه ${index + 1}`}</span>
+                    <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="accordion-body">
+                    <div class="accordion-body-content">
+                        <div class="accordion-row">
+                            <strong class="accordion-label">موضوع:</strong>
+                            <div class="accordion-content">${session.topic || '---'}</div>
+                        </div>
+                        <div class="accordion-row">
+                            <strong class="accordion-label">مدرس:</strong>
+                            <div class="accordion-content">${session.speaker || '---'}</div>
+                        </div>
+                        <div class="accordion-row">
+                            <strong class="accordion-label">زمان:</strong>
+                            <div class="accordion-content">${session.date || ''} ساعت ${session.time || ''}</div>
+                        </div>
+                        ${addresHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    scheduleHtml += `</div></div>`;
+    genericModal.classList.add('wide-modal');
+    genericModalContent.innerHTML = scheduleHtml;
+    dom.body.classList.add('modal-is-open');
+    genericModal.classList.add('is-open');
+
+    genericModalContent.addEventListener('click', (e) => {
+        const header = e.target.closest('.accordion-header');
+        if (header) {
+            const item = header.parentElement;
+            item.classList.toggle('is-open');
+            return;
+        }
+        const copyBtn = e.target.closest('.btn-copy-schedule-link');
+        if (copyBtn) {
+            const copyBtnSpan = copyBtn.querySelector('span');
+            if (!copyBtnSpan) return;
+            const originalText = copyBtnSpan.textContent;
+            const linkToCopy = copyBtn.dataset.link;
+            navigator.clipboard.writeText(linkToCopy).then(() => {
+                copyBtnSpan.textContent = 'کپی شد!';
+                copyBtn.classList.add('btn-success');
+                setTimeout(() => {
+                    copyBtnSpan.textContent = originalText;
+                    copyBtn.classList.remove('btn-success');
+                }, 2000);
+            });
+        }
+    });
+};
+
 export const initializeGlobalUI = () => {
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const mobileDropdownMenu = document.getElementById('mobile-dropdown-menu');
@@ -656,9 +782,20 @@ export const initializeGlobalUI = () => {
                 showMemberModal(authorTrigger.dataset.authorId);
                 return;
             }
+
+            // *** NEW: Handler for the schedule button ***
+            const scheduleBtn = e.target.closest('.btn-view-schedule');
+            if (scheduleBtn) {
+                e.preventDefault();
+                const eventId = scheduleBtn.dataset.eventId;
+                showEventScheduleModal(eventId);
+                return;
+            }
+
             const eventCard = e.target.closest('.event-card');
             if (eventCard) {
-                if (!e.target.closest('a.btn')) {
+                // Ensure the click is not on any button inside the card's action area
+                if (!e.target.closest('.event-actions button, .event-actions a')) {
                     e.preventDefault();
                     const detailLink = eventCard.querySelector('a[href*="#/events/"]');
                     if (detailLink && detailLink.hash) {

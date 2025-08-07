@@ -329,26 +329,44 @@ export const renderEventsPage = () => {
     
             const actionsContainer = card.querySelector('.event-actions');
             actionsContainer.innerHTML = '';
-            let button;
+
+            // *** NEW: Add schedule button if schedule data exists ***
+            let scheduleData = [];
+            if (event.schedule) {
+                try {
+                    scheduleData = typeof event.schedule === 'string' ? JSON.parse(event.schedule) : event.schedule;
+                } catch (e) {
+                    console.error("Could not parse schedule JSON in card render:", e);
+                }
+            }
+            if (Array.isArray(scheduleData) && scheduleData.length > 0) {
+                const scheduleButton = document.createElement('button');
+                scheduleButton.className = 'btn btn-secondary btn-view-schedule';
+                scheduleButton.textContent = 'برنامه زمانی';
+                scheduleButton.dataset.eventId = event.id;
+                actionsContainer.appendChild(scheduleButton);
+            }
+            
+            let mainButton;
             if (event.registrationLink) {
-                button = document.createElement('button');
-                button.className = 'btn btn-primary btn-event-register';
-                button.dataset.eventId = event.id;
+                mainButton = document.createElement('button');
+                mainButton.className = 'btn btn-primary btn-event-register';
+                mainButton.dataset.eventId = event.id;
                 
                 if (new Date(event.endDate) < today) {
-                    button.textContent = 'پایان یافته';
-                    button.classList.add('disabled');
-                    button.disabled = true;
+                    mainButton.textContent = 'پایان یافته';
+                    mainButton.classList.add('disabled');
+                    mainButton.disabled = true;
                 } else {
-                    button.textContent = 'ثبت‌نام';
+                    mainButton.textContent = 'ثبت‌نام';
                 }
             } else {
-                button = document.createElement('a');
-                button.href = event.detailPage;
-                button.className = 'btn btn-secondary';
-                button.textContent = 'اطلاعات بیشتر';
+                mainButton = document.createElement('a');
+                mainButton.href = event.detailPage;
+                mainButton.className = 'btn btn-secondary';
+                mainButton.textContent = 'اطلاعات بیشتر';
             }
-            actionsContainer.appendChild(button);
+            actionsContainer.appendChild(mainButton);
     
             grid.appendChild(card);
         });
