@@ -2658,3 +2658,119 @@ body.light-theme .accordion-body-content {
         gap: 0.75rem;
     }
 }
+
+/* ================== Contact Info Widget (Popup Style) ================== */
+.event-modal-actions {
+    position: relative;
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    border-top: 1px solid var(--glass-border-dark);
+    padding-top: 1.5rem;
+}
+
+.contact-widget-trigger-wrapper {
+    position: relative;
+    flex-grow: 1;
+    display: flex;
+}
+
+.contact-widget-trigger-wrapper .btn {
+    width: 100%;
+}
+
+.contact-widget {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    right: 0;
+    width: 260px; /* *** تغییر اصلی در این خط است *** */
+    z-index: 10;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    transform-origin: bottom right;
+    transform: scale(0.95) translateY(10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s, visibility 0.2s;
+}
+
+.contact-widget.is-visible {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+body.dark-theme .contact-widget {
+    background: rgba(40, 60, 61, 0.85);
+    border: 1px solid var(--glass-border-dark);
+}
+
+body.light-theme .contact-widget {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid var(--glass-border-light);
+}
+
+.contact-widget-container {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.contact-widget-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.2s ease;
+}
+
+body.dark-theme .contact-widget-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.light-theme .contact-widget-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.contact-widget-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.75rem;
+    flex-shrink: 0;
+    color: white;
+}
+
+.contact-widget-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.contact-widget-icon.phone-icon { background-color: #28a745; }
+.contact-widget-icon.telegram-icon { background-color: #0088cc; }
+.contact-widget-icon.whatsapp-icon { background-color: #25D366; }
+
+.contact-widget-info {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+}
+
+.contact-widget-info strong {
+    font-size: 1rem;
+}
+
+.contact-widget-info span {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    direction: ltr;
+    text-align: right;
+}

@@ -100,12 +100,13 @@ export const onAuthStateChange = (callback) => {
     });
 };
 
-export const checkUserExists = async (email) => {
-    const { data, error } = await supabaseClient.rpc('user_exists', { user_email: email });
+export const checkUserStatus = async (email) => {
+    const { data, error } = await supabaseClient.rpc('check_user_status', { user_email: email });
     if (error) {
-        console.error("Error checking user existence:", error);
-        return false;
+        console.error("Error checking user status:", error);
+        return 'error'; // یک وضعیت برای خطا برمی‌گردانیم
     }
+    // مقادیر مورد انتظار: 'does_not_exist', 'exists_unconfirmed', 'exists_and_confirmed'
     return data;
 };
 

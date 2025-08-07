@@ -1,6 +1,6 @@
 // src/assets/js/modules/ui.js
 import { state, dom } from './state.js';
-import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, signInWithGoogle, updateUserPassword, updateProfile, getProfile, connectTelegramAccount, verifyTurnstile, getEventRegistration , deleteEventRegistration } from './api.js';
+import { supabaseClient, checkUserExists, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, signInWithGoogle, updateUserPassword, updateProfile, getProfile, connectTelegramAccount, verifyTurnstile, getEventRegistration , deleteEventRegistration , checkUserStatus } from './api.js';
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
@@ -201,7 +201,6 @@ export const initializeAuthForm = () => {
         });
     }
 
-    // --- Social Login Handler ---
     if (googleSignInBtn) {
         googleSignInBtn.addEventListener('click', async () => {
             hideStatus(statusBox);
@@ -212,7 +211,6 @@ export const initializeAuthForm = () => {
         });
     }
 
-    // --- Password Visibility Toggle ---
     form.querySelectorAll('.password-toggle-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const passwordInput = btn.previousElementSibling;
@@ -223,13 +221,9 @@ export const initializeAuthForm = () => {
         });
     });
 
-    // --- Password Strength Indicator ---
     const newPasswordInput = form.querySelector('#new-password');
     const strengthIndicator = form.querySelector('#password-strength-indicator');
     if (newPasswordInput && strengthIndicator) {
-        const strengthBar = strengthIndicator.querySelector('.strength-bar');
-        const strengthText = strengthIndicator.querySelector('.strength-text');
-
         newPasswordInput.addEventListener('input', () => {
             const password = newPasswordInput.value;
             let strength = 'none';
@@ -290,23 +284,13 @@ export const initializeAuthForm = () => {
 
     if (otpContainer) {
         otpInputs.forEach((input, index) => {
-            input.addEventListener('input', () => {
-                if (input.value && index < otpInputs.length - 1) {
-                    otpInputs[index + 1].focus();
-                }
-            });
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace' && !input.value && index > 0) {
-                    otpInputs[index - 1].focus();
-                }
-            });
+            input.addEventListener('input', () => { if (input.value && index < otpInputs.length - 1) { otpInputs[index + 1].focus(); } });
+            input.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !input.value && index > 0) { otpInputs[index - 1].focus(); } });
             input.addEventListener('paste', (e) => {
                 e.preventDefault();
                 const pasteData = e.clipboardData.getData('text');
                 if (pasteData.length === otpInputs.length) {
-                    otpInputs.forEach((box, i) => {
-                        box.value = pasteData[i] || '';
-                    });
+                    otpInputs.forEach((box, i) => { box.value = pasteData[i] || ''; });
                     otpInputs[otpInputs.length - 1].focus();
                 }
             });
@@ -347,10 +331,14 @@ export const initializeAuthForm = () => {
                 if(displayEmailPassword) displayEmailPassword.textContent = currentEmail;
                 if(displayEmailOtp) displayEmailOtp.textContent = currentEmail;
 
-                const exists = await checkUserExists(currentEmail);
-                if (exists) {
+                // *** منطق جدید و اصلاح‌شده ***
+                const status = await checkUserStatus(currentEmail);
+
+                if (status === 'exists_and_confirmed') {
+                    // کاربر وجود دارد و ثبت‌نام کامل است -> درخواست رمز عبور
                     showStep(passwordStep);
-                } else {
+                } else if (status === 'does_not_exist' || status === 'exists_unconfirmed') {
+                    // کاربر جدید است یا ثبت‌نام را کامل نکرده -> ارسال کد برای ادامه/شروع ثبت‌نام
                     otpContext = 'signup';
                     const { error } = await sendSignupOtp(currentEmail);
                     if (error) {
@@ -361,9 +349,14 @@ export const initializeAuthForm = () => {
                         startOtpTimer();
                         showStatus(statusBox, 'کد تایید به ایمیل شما ارسال شد.', 'success');
                     }
+                } else {
+                    // مدیریت خطا
+                    showStatus(statusBox, 'خطا در بررسی وضعیت کاربر. لطفاً دوباره تلاش کنید.');
                 }
+                
                 submitBtn.textContent = 'ادامه';
                 break;
+            // ... بقیه کدهای switch بدون تغییر باقی می‌مانند ...
             case 'password-step':
                 submitBtn.textContent = 'در حال ورود...';
                 const password = form.querySelector('#auth-password').value;
@@ -378,14 +371,12 @@ export const initializeAuthForm = () => {
             case 'otp-step':
                 submitBtn.textContent = 'در حال تایید...';
                 const otp = otpInputs.map(input => input.value).join('');
-                
                 if (otp.length !== 6) {
                     showStatus(statusBox, 'کد تایید باید ۶ رقم باشد.');
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'تایید کد';
                     return;
                 }
-
                 const { data, error: otpError } = await verifyOtp(currentEmail, otp);
                 if (otpError || !data.session) {
                     showStatus(statusBox, 'کد وارد شده صحیح نیست.');
@@ -438,10 +429,8 @@ export const initializeAuthForm = () => {
         resendOtpBtn.addEventListener('click', async () => {
             hideStatus(statusBox);
             resendOtpBtn.disabled = true;
-
             const apiCall = otpContext === 'signup' ? sendSignupOtp : sendPasswordResetOtp;
             const { error } = await apiCall(currentEmail);
-
             if (error) {
                 showStatus(statusBox, 'خطا در ارسال مجدد کد.');
                 resendOtpBtn.disabled = false;
@@ -454,7 +443,6 @@ export const initializeAuthForm = () => {
 
     form.dataset.listenerAttached = 'true';
 };
-
 export const updateUserUI = (user, profile) => {
     const authLink = document.getElementById('login-register-btn');
     const userInfo = document.getElementById('user-info');
@@ -542,6 +530,8 @@ const showMemberModal = (memberId) => {
     genericModal.classList.add('is-open');
 };
 
+
+// تابع اصلی نمایش مودال رویداد (اصلاح‌شده)
 export const showEventModal = async (path) => {
     const eventLink = `#${path}`;
     const event = state.allEvents.find(e => e.detailPage === eventLink);
@@ -552,7 +542,7 @@ export const showEventModal = async (path) => {
     if (!genericModal || !genericModalContent) return;
 
     const detailHtml = event.content || '<p>محتوای جزئیات برای این رویداد یافت نشد.</p>';
-    
+
     const costHTML = event.cost ? `
         <span class="event-meta-item">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
@@ -562,17 +552,33 @@ export const showEventModal = async (path) => {
     let actionsHTML = '';
     if (event.registrationLink) {
         const isPastEvent = new Date(event.endDate) < new Date();
-        
-        // تغییرات کلیدی: بررسی وجود لینک و غیرفعال کردن دکمه در صورت عدم وجود
-        const contactButton = event.contact_link
-            ? `<a href="${event.contact_link}" id="contact-for-event-btn" class="btn btn-secondary" style="flex-grow: 1; text-align: center;" target="_blank">پرسش درباره رویداد</a>`
-            : `<button id="contact-for-event-btn" class="btn btn-secondary disabled" style="flex-grow: 1;" disabled>لینک تماس در دسترس نیست</button>`;
-        
+
+        let contactInfo = null;
+        try {
+            if (event.contact_link && typeof event.contact_link === 'string') {
+                contactInfo = JSON.parse(event.contact_link);
+            } else {
+                contactInfo = event.contact_link;
+            }
+        } catch (e) { console.error("Could not parse contact info JSON:", e); }
+
+        const contactButton = (contactInfo && Object.keys(contactInfo).length > 0)
+            ? `
+                <div class="contact-widget-trigger-wrapper">
+                    <button id="contact-for-event-btn" class="btn btn-secondary">پرسش درباره رویداد</button>
+                </div>
+            `
+            : `
+                <div class="contact-widget-trigger-wrapper">
+                    <button class="btn btn-secondary disabled" disabled>اطلاعات تماس موجود نیست</button>
+                </div>
+            `;
+
         actionsHTML = `
-            <div class="event-modal-actions" style="display: flex; gap: 1rem; margin-top: 2rem; border-top: 1px solid var(--glass-border-dark); padding-top: 1.5rem;">
-                <button 
-                    class="btn btn-primary btn-event-register" 
-                    data-event-id="${event.id}" 
+            <div class="event-modal-actions">
+                <button
+                    class="btn btn-primary btn-event-register"
+                    data-event-id="${event.id}"
                     style="flex-grow: 2;"
                     ${isPastEvent ? 'disabled' : ''}>
                     ${isPastEvent ? 'رویداد پایان یافته' : 'ثبت‌نام در این رویداد'}
@@ -614,6 +620,48 @@ export const showEventModal = async (path) => {
             genericModal.classList.remove('is-open');
             dom.body.classList.remove('modal-is-open');
             showEventRegistrationModal(eventId);
+        });
+    }
+
+    const contactBtn = genericModalContent.querySelector('#contact-for-event-btn');
+    if (contactBtn && !contactBtn.disabled) {
+        contactBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const wrapper = contactBtn.parentElement;
+
+            const existingWidget = wrapper.querySelector('.contact-widget');
+            if (existingWidget) {
+                existingWidget.remove();
+                return;
+            }
+
+            let contactInfo = null;
+            try {
+                contactInfo = (typeof event.contact_link === 'string') ? JSON.parse(event.contact_link) : event.contact_link;
+            } catch (err) { console.error("Invalid contact JSON:", err); return; }
+
+            if (!contactInfo) return;
+
+            let contactItemsHTML = '';
+            if (contactInfo.phone) { contactItemsHTML += `<a href="tel:${contactInfo.phone}" class="contact-widget-item"><div class="contact-widget-icon phone-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div><div class="contact-widget-info"><strong>تماس تلفنی</strong><span>${contactInfo.phone}</span></div></a>`; }
+            if (contactInfo.telegram) { contactItemsHTML += `<a href="${contactInfo.telegram}" target="_blank" rel="noopener noreferrer" class="contact-widget-item"><div class="contact-widget-icon telegram-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 L11 13 L2 9 L22 2 Z M22 2 L15 22 L11 13 L2 9 L22 2 Z"></path></svg></div><div class="contact-widget-info"><strong>تلگرام</strong><span>ارسال پیام</span></div></a>`; }
+            if (contactInfo.whatsapp) { contactItemsHTML += `<a href="${contactInfo.whatsapp}" target="_blank" rel="noopener noreferrer" class="contact-widget-item"><div class="contact-widget-icon whatsapp-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></div><div class="contact-widget-info"><strong>واتساپ</strong><span>ارسال پیام</span></div></a>`; }
+
+            const widget = document.createElement('div');
+            widget.className = 'contact-widget';
+            widget.innerHTML = `<div class="contact-widget-container">${contactItemsHTML}</div>`;
+            wrapper.appendChild(widget);
+
+            setTimeout(() => widget.classList.add('is-visible'), 10);
+
+            const closeListener = (event) => {
+                if (!wrapper.contains(event.target)) {
+                    widget.classList.remove('is-visible');
+                    setTimeout(() => widget.remove(), 300);
+                    document.removeEventListener('click', closeListener, true);
+                }
+            };
+            document.addEventListener('click', closeListener, true);
         });
     }
 
@@ -1459,3 +1507,6 @@ export const showEventRegistrationModal = async (eventId) => {
         });
     }
 };
+
+
+
