@@ -2450,3 +2450,15 @@ body.dark-theme .scroll-item.active {
 body.light-theme .scroll-item.active {
     color: var(--primary-color-light-theme);
 }
+
+/* استایل برای فیلدهای پر شده خودکار */
+.form-group input.prefilled {
+    cursor: not-allowed;
+}
+body.dark-theme .form-group input.prefilled {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+body.light-theme .form-group input.prefilled {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
