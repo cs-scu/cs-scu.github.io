@@ -2629,7 +2629,7 @@ body.light-theme .accordion-body-content {
 /* ================== Download Button Styles ================== */
 
 .modal-header-actions {
-    display: flex;
+    display: block;
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
