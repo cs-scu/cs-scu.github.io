@@ -1253,7 +1253,7 @@ body.light-theme .event-card-footer { border-top-color: var(--glass-border-light
 .event-modal-meta { display: flex; gap: 1.5rem; margin-bottom: 1rem; }
 
 .event-actions {
-    display: flex;
+    display: grid;
     gap: 0.5rem; /* Add some space between buttons */
     flex-wrap: wrap; /* Allow buttons to wrap on small screens */
 }
