@@ -170,9 +170,24 @@ export const handleTelegramAuth = async () => {
 
 // فایل: src/assets/js/modules/ui.js
 
+// فایل: src/assets/js/modules/ui.js
+
 export const initializeAuthForm = () => {
     const form = dom.mainContent.querySelector('#auth-form');
     if (!form || form.dataset.listenerAttached) return;
+
+    // --- تابع کمکی جدید برای مدیریت ریدایرکت پس از ورود موفق ---
+    const handleSuccessfulLogin = () => {
+        const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+        sessionStorage.removeItem('redirectAfterLogin'); // آدرس را پس از استفاده پاک می‌کنیم
+        
+        // اگر آدرس معتبری ذخیره شده بود به آنجا، در غیر این صورت به صفحه اصلی ریدایرکت شو
+        if (redirectUrl && redirectUrl !== '#/login') {
+            location.hash = redirectUrl;
+        } else {
+            location.hash = '#/'; // ریدایرکت پیش‌فرض به صفحه اصلی
+        }
+    };
 
     let otpTimerInterval = null;
     let otpContext = 'signup';
@@ -313,7 +328,6 @@ export const initializeAuthForm = () => {
         btn.addEventListener('click', () => {
             hideStatus(statusBox);
             showStep(emailStep);
-            // اطمینان از فعال بودن دکمه هنگام بازگشت به این مرحله
             if (emailSubmitBtn) {
                 emailSubmitBtn.disabled = false;
                 emailSubmitBtn.textContent = 'ادامه';
@@ -384,27 +398,24 @@ export const initializeAuthForm = () => {
 
                 if (status === 'exists_and_confirmed') {
                     showStep(passwordStep);
-                    // چون به مرحله بعد می‌رویم، دکمه این مرحله را ریست می‌کنیم
                     submitBtn.textContent = 'ادامه';
                     submitBtn.disabled = false;
                 } else if (status === 'does_not_exist' || status === 'exists_unconfirmed') {
+                    otpContext = 'signup';
                     const { error } = await sendSignupOtp(currentEmail);
                     if (error) {
-                        // فقط در صورت خطای "تعداد درخواست زیاد"، شمارش معکوس را فعال کن
                         if (error.status === 429) {
                             showStatus(statusBox, 'تعداد درخواست‌ها زیاد است. لطفاً پس از اتمام شمارش معکوس دوباره تلاش کنید.');
-                            startEmailCooldown(); // تابع شمارش معکوس
+                            startEmailCooldown();
                         } else {
                             showStatus(statusBox, 'خطا در ارسال کد. لطفاً دوباره تلاش کنید.');
                             submitBtn.textContent = 'ادامه';
                             submitBtn.disabled = false;
                         }
                     } else {
-                        // در صورت موفقیت، بلافاصله به مرحله ورود کد برو
                         showStep(otpStep);
                         startOtpTimer();
                         showStatus(statusBox, 'کد تایید به ایمیل شما ارسال شد.', 'success');
-                        // دکمه مرحله ایمیل را برای استفاده بعدی ریست می‌کنیم
                         submitBtn.textContent = 'ادامه';
                         submitBtn.disabled = false;
                     }
@@ -421,11 +432,11 @@ export const initializeAuthForm = () => {
                 const { error: signInError } = await signInWithPassword(currentEmail, password);
                 if (signInError) {
                     showStatus(statusBox, 'رمز عبور اشتباه است.');
+                    submitBtn.textContent = 'ورود';
+                    submitBtn.disabled = false;
                 } else {
-                    location.hash = '#/';
+                    handleSuccessfulLogin();
                 }
-                submitBtn.textContent = 'ورود';
-                submitBtn.disabled = false;
                 break;
 
             case 'otp-step':
@@ -463,8 +474,7 @@ export const initializeAuthForm = () => {
                     submitBtn.disabled = false;
                 } else {
                     await getProfile();
-                    dom.mainContent.innerHTML = '';
-                    showProfileModal();
+                    handleSuccessfulLogin();
                 }
                 submitBtn.textContent = 'ذخیره و ورود';
                 break;
@@ -505,7 +515,6 @@ export const initializeAuthForm = () => {
 
     form.dataset.listenerAttached = 'true';
 };
-
 
 export const updateUserUI = (user, profile) => {
     const authLink = document.getElementById('login-register-btn');
@@ -1057,6 +1066,17 @@ export const initializeGlobalUI = () => {
         mobileDropdownMenu.addEventListener('click', (e) => {
             if (e.target.closest('a')) {
                 mobileDropdownMenu.classList.remove('is-open');
+            }
+        });
+    }
+
+    // *** کد جدید برای ذخیره آدرس صفحه قبل از ورود ***
+    const loginRegisterBtn = document.getElementById('login-register-btn');
+    if (loginRegisterBtn) {
+        loginRegisterBtn.addEventListener('click', () => {
+            // آدرس فعلی را ذخیره می‌کنیم، به شرطی که خود صفحه لاگین نباشد
+            if (location.hash && location.hash !== '#/login') {
+                sessionStorage.setItem('redirectAfterLogin', location.hash);
             }
         });
     }
