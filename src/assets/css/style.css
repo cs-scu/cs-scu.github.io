@@ -2247,8 +2247,8 @@ body.light-theme .registration-status-details hr { background-color: var(--glass
 @media (max-width: 700px) {
     #generic-modal:not(.wide-modal) .close-modal {
         position: fixed;
-        top: 10.9rem;
-        right: 3.7rem;
+        top: 0rem;
+        right: 0rem;
     }
 }
 
