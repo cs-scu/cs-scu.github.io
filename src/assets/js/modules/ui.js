@@ -618,7 +618,11 @@ export const showEventModal = async (path) => {
 
     const costHTML = event.cost ? `
         <span class="event-meta-item">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
+                <path d="M12 18V6"></path>
+            </svg>
             ${event.cost}
         </span>` : '';
 
@@ -716,7 +720,7 @@ export const showEventModal = async (path) => {
             if (!contactInfo) return;
 
             let contactItemsHTML = '';
-            if (contactInfo.phone) { contactItemsHTML += `<a href="tel:${contactInfo.phone}" class="contact-widget-item"><div class="contact-widget-icon phone-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div><div class="contact-widget-info"><strong>تماس تلفنی</strong><span>${contactInfo.phone}</span></div></a>`; }
+            if (contactInfo.phone) { contactItemsHTML += `<a href="tel:${contactInfo.phone}" class="contact-widget-item"><div class="contact-widget-icon phone-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div><div class="contact-widget-info"><strong>تلفن</strong><span>${contactInfo.phone}</span></div></a>`; }
             if (contactInfo.telegram) { contactItemsHTML += `<a href="${contactInfo.telegram}" target="_blank" rel="noopener noreferrer" class="contact-widget-item"><div class="contact-widget-icon telegram-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 L11 13 L2 9 L22 2 Z M22 2 L15 22 L11 13 L2 9 L22 2 Z"></path></svg></div><div class="contact-widget-info"><strong>تلگرام</strong><span>ارسال پیام</span></div></a>`; }
             if (contactInfo.whatsapp) { contactItemsHTML += `<a href="${contactInfo.whatsapp}" target="_blank" rel="noopener noreferrer" class="contact-widget-item"><div class="contact-widget-icon whatsapp-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></div><div class="contact-widget-info"><strong>واتساپ</strong><span>ارسال پیام</span></div></a>`; }
 
