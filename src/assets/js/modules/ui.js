@@ -621,6 +621,35 @@ export const showEventModal = async (path) => {
     genericModal.classList.add('is-open');
 };
 
+const handleModalClick = (e) => {
+    // Accordion toggle logic
+    const header = e.target.closest('.accordion-header');
+    if (header) {
+        const item = header.parentElement;
+        item.classList.toggle('is-open');
+        return; // Important: stop further execution
+    }
+
+    // Copy button logic
+    const copyBtn = e.target.closest('.btn-copy-schedule-link');
+    if (copyBtn) {
+        const copyBtnSpan = copyBtn.querySelector('span');
+        if (!copyBtnSpan) return;
+        
+        const originalText = copyBtnSpan.textContent;
+        const linkToCopy = copyBtn.dataset.link;
+
+        navigator.clipboard.writeText(linkToCopy).then(() => {
+            copyBtnSpan.textContent = 'کپی شد!';
+            copyBtn.classList.add('btn-success'); 
+            setTimeout(() => {
+                copyBtnSpan.textContent = originalText;
+                copyBtn.classList.remove('btn-success');
+            }, 2000);
+        });
+    }
+};
+
 export const showEventScheduleModal = (eventId) => {
     const event = state.allEvents.find(e => e.id == eventId);
     if (!event) return;
@@ -628,6 +657,10 @@ export const showEventScheduleModal = (eventId) => {
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
     if (!genericModal || !genericModalContent) return;
+    
+    // <<-- کلید اصلی حل مشکل: حذف شنونده‌ی قدیمی قبل از افزودن جدید -->>
+    // First, remove any lingering event listener to prevent duplicates
+    genericModalContent.removeEventListener('click', handleModalClick);
 
     let scheduleData = [];
     try {
@@ -660,7 +693,6 @@ export const showEventScheduleModal = (eventId) => {
 
         if (session.addres) {
             if (session.type === 'online' && isUrl(session.addres)) {
-                // <<-- ساختار HTML برای این بخش کاملاً ساده‌سازی و بازنویسی شده است
                 addresHtml = `
                     <div class="accordion-row accordion-link-row">
                         <div class="accordion-label-actions">
@@ -722,29 +754,8 @@ export const showEventScheduleModal = (eventId) => {
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
 
-    genericModalContent.addEventListener('click', (e) => {
-        const header = e.target.closest('.accordion-header');
-        if (header) {
-            const item = header.parentElement;
-            item.classList.toggle('is-open');
-            return;
-        }
-        const copyBtn = e.target.closest('.btn-copy-schedule-link');
-        if (copyBtn) {
-            const copyBtnSpan = copyBtn.querySelector('span');
-            if (!copyBtnSpan) return;
-            const originalText = copyBtnSpan.textContent;
-            const linkToCopy = copyBtn.dataset.link;
-            navigator.clipboard.writeText(linkToCopy).then(() => {
-                copyBtnSpan.textContent = 'کپی شد!';
-                copyBtn.classList.add('btn-success');
-                setTimeout(() => {
-                    copyBtnSpan.textContent = originalText;
-                    copyBtn.classList.remove('btn-success');
-                }, 2000);
-            });
-        }
-    });
+    // Add the single, clean event listener
+    genericModalContent.addEventListener('click', handleModalClick);
 };
 
 export const initializeGlobalUI = () => {
