@@ -168,6 +168,8 @@ export const handleTelegramAuth = async () => {
     }
 };
 
+// فایل: src/assets/js/modules/ui.js
+
 export const initializeAuthForm = () => {
     const form = dom.mainContent.querySelector('#auth-form');
     if (!form || form.dataset.listenerAttached) return;
@@ -181,7 +183,7 @@ export const initializeAuthForm = () => {
     const setPasswordStep = form.querySelector('#set-password-step');
     
     const statusBox = form.querySelector('.form-status');
-    const emailSubmitBtn = form.querySelector('#email-submit-btn'); // دکمه مرحله ایمیل
+    const emailSubmitBtn = form.querySelector('#email-submit-btn');
     const forgotPasswordBtn = form.querySelector('#forgot-password-btn');
     const editEmailBtns = form.querySelectorAll('.edit-email-btn');
     const resendOtpBtn = form.querySelector('#resend-otp-btn');
@@ -202,6 +204,7 @@ export const initializeAuthForm = () => {
         });
     }
 
+    // --- Social Login Handler ---
     if (googleSignInBtn) {
         googleSignInBtn.addEventListener('click', async () => {
             hideStatus(statusBox);
@@ -212,6 +215,7 @@ export const initializeAuthForm = () => {
         });
     }
 
+    // --- Password Visibility Toggle ---
     form.querySelectorAll('.password-toggle-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const passwordInput = btn.previousElementSibling;
@@ -222,19 +226,55 @@ export const initializeAuthForm = () => {
         });
     });
 
+    // --- Password Strength Indicator ---
     const newPasswordInput = form.querySelector('#new-password');
     const strengthIndicator = form.querySelector('#password-strength-indicator');
     if (newPasswordInput && strengthIndicator) {
-        // ... (Password strength logic remains unchanged)
+        const strengthBar = strengthIndicator.querySelector('.strength-bar');
+        const strengthText = strengthIndicator.querySelector('.strength-text');
+
+        newPasswordInput.addEventListener('input', () => {
+            const password = newPasswordInput.value;
+            let strength = 'none';
+            if (password.length > 0) {
+                strength = 'weak';
+                if (password.length >= 8) {
+                    strength = 'medium';
+                }
+                if (password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
+                    strength = 'strong';
+                }
+            }
+            strengthIndicator.className = `password-strength-indicator ${strength}`;
+        });
     }
 
     const startOtpTimer = () => {
-        // ... (OTP timer logic remains unchanged)
+        clearInterval(otpTimerInterval);
+        let duration = 60;
+        resendOtpBtn.disabled = true;
+        otpTimerSpan.style.display = 'inline';
+
+        const updateTimer = () => {
+            const minutes = String(Math.floor(duration / 60)).padStart(2, '0');
+            const seconds = String(duration % 60).padStart(2, '0');
+            otpTimerSpan.textContent = `(${minutes}:${seconds})`;
+        };
+        updateTimer();
+
+        otpTimerInterval = setInterval(() => {
+            duration--;
+            updateTimer();
+            if (duration <= 0) {
+                clearInterval(otpTimerInterval);
+                resendOtpBtn.disabled = false;
+                otpTimerSpan.style.display = 'none';
+            }
+        }, 1000);
     };
 
-    // *** تابع جدید برای مدیریت شمارش معکوس دکمه ایمیل ***
     const startEmailCooldown = () => {
-        let duration = 60; // 60 ثانیه محدودیت
+        let duration = 60;
         if (!emailSubmitBtn) return;
 
         emailSubmitBtn.disabled = true;
@@ -259,18 +299,51 @@ export const initializeAuthForm = () => {
     };
 
     const showStep = (step) => {
-        // ... (showStep logic remains unchanged)
+        emailStep.style.display = 'none';
+        passwordStep.style.display = 'none';
+        otpStep.style.display = 'none';
+        setPasswordStep.style.display = 'none';
+        step.style.display = 'block';
+        if (step === otpStep) {
+            otpInputs[0]?.focus();
+        }
     };
 
     editEmailBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             hideStatus(statusBox);
             showStep(emailStep);
+            // اطمینان از فعال بودن دکمه هنگام بازگشت به این مرحله
+            if (emailSubmitBtn) {
+                emailSubmitBtn.disabled = false;
+                emailSubmitBtn.textContent = 'ادامه';
+            }
         });
     });
 
     if (otpContainer) {
-        // ... (OTP input logic remains unchanged)
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', () => {
+                if (input.value && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasteData = e.clipboardData.getData('text');
+                if (pasteData.length === otpInputs.length) {
+                    otpInputs.forEach((box, i) => {
+                        box.value = pasteData[i] || '';
+                    });
+                    otpInputs[otpInputs.length - 1].focus();
+                }
+            });
+        });
     }
 
     form.addEventListener('submit', async (e) => {
@@ -285,6 +358,7 @@ export const initializeAuthForm = () => {
         switch (activeStep.id) {
             case 'email-step':
                 submitBtn.textContent = 'در حال بررسی...';
+
                 const turnstileToken = form.querySelector('[name="cf-turnstile-response"]')?.value;
                 if (!turnstileToken) {
                     showStatus(statusBox, 'تایید هویت انجام نشد. لطفاً لحظه‌ای صبر کنید.');
@@ -292,6 +366,7 @@ export const initializeAuthForm = () => {
                     submitBtn.textContent = 'ادامه';
                     return;
                 }
+
                 const verification = await verifyTurnstile(turnstileToken);
                 if (!verification.success) {
                     showStatus(statusBox, 'تایید هویت با خطا مواجه شد. لطفاً صفحه را رفرش کنید.');
@@ -309,19 +384,29 @@ export const initializeAuthForm = () => {
 
                 if (status === 'exists_and_confirmed') {
                     showStep(passwordStep);
+                    // چون به مرحله بعد می‌رویم، دکمه این مرحله را ریست می‌کنیم
                     submitBtn.textContent = 'ادامه';
                     submitBtn.disabled = false;
                 } else if (status === 'does_not_exist' || status === 'exists_unconfirmed') {
-                    // *** اعمال محدودیت زمانی قبل از ارسال درخواست ***
-                    startEmailCooldown(); 
-                    
                     const { error } = await sendSignupOtp(currentEmail);
                     if (error) {
-                        showStatus(statusBox, 'خطا در ارسال کد. لطفاً پس از اتمام شمارش معکوس دوباره تلاش کنید.');
+                        // فقط در صورت خطای "تعداد درخواست زیاد"، شمارش معکوس را فعال کن
+                        if (error.status === 429) {
+                            showStatus(statusBox, 'تعداد درخواست‌ها زیاد است. لطفاً پس از اتمام شمارش معکوس دوباره تلاش کنید.');
+                            startEmailCooldown(); // تابع شمارش معکوس
+                        } else {
+                            showStatus(statusBox, 'خطا در ارسال کد. لطفاً دوباره تلاش کنید.');
+                            submitBtn.textContent = 'ادامه';
+                            submitBtn.disabled = false;
+                        }
                     } else {
+                        // در صورت موفقیت، بلافاصله به مرحله ورود کد برو
                         showStep(otpStep);
                         startOtpTimer();
                         showStatus(statusBox, 'کد تایید به ایمیل شما ارسال شد.', 'success');
+                        // دکمه مرحله ایمیل را برای استفاده بعدی ریست می‌کنیم
+                        submitBtn.textContent = 'ادامه';
+                        submitBtn.disabled = false;
                     }
                 } else {
                     showStatus(statusBox, 'خطا در بررسی وضعیت کاربر.');
@@ -387,15 +472,41 @@ export const initializeAuthForm = () => {
     });
 
     if (forgotPasswordBtn) {
-        // ... (Forgot password logic remains unchanged)
+        forgotPasswordBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            hideStatus(statusBox);
+            otpContext = 'reset';
+            const { error } = await sendPasswordResetOtp(currentEmail);
+            if (error) {
+                showStatus(statusBox, 'خطا در ارسال کد بازنشانی.');
+            } else {
+                showStep(otpStep);
+                startOtpTimer();
+                showStatus(statusBox, 'کد بازنشانی رمز به ایمیل شما ارسال شد.', 'success');
+            }
+        });
     }
 
     if (resendOtpBtn) {
-        // ... (Resend OTP logic remains unchanged)
+        resendOtpBtn.addEventListener('click', async () => {
+            hideStatus(statusBox);
+            resendOtpBtn.disabled = true;
+            const apiCall = otpContext === 'signup' ? sendSignupOtp : sendPasswordResetOtp;
+            const { error } = await apiCall(currentEmail);
+            if (error) {
+                showStatus(statusBox, 'خطا در ارسال مجدد کد.');
+                resendOtpBtn.disabled = false;
+            } else {
+                showStatus(statusBox, 'کد جدید با موفقیت ارسال شد.', 'success');
+                startOtpTimer();
+            }
+        });
     }
 
     form.dataset.listenerAttached = 'true';
 };
+
+
 export const updateUserUI = (user, profile) => {
     const authLink = document.getElementById('login-register-btn');
     const userInfo = document.getElementById('user-info');
