@@ -168,6 +168,12 @@ const renderPage = async (path) => {
     dom.mainContent.classList.remove('is-loading');
 };
 
+
+const handleNavigation = () => {
+    const path = location.hash || '#/';
+    renderPage(path);
+};
+
 export const initializeRouter = () => {
     window.addEventListener('popstate', handleNavigation);
     handleNavigation();
