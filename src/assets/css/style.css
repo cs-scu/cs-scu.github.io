@@ -3064,3 +3064,24 @@ body.light-theme .comment-replies {
     flex-direction: row;
     justify-content: flex-end;
 }
+
+/* ================== Comment Delete Button Style ================== */
+.delete-btn {
+    font-size: 0.85rem;
+    margin-right: 0.5rem;
+    color: #ff8a8a; /* A light red for dark theme */
+}
+
+body.light-theme .delete-btn {
+    color: #dc3545; /* A standard red for light theme */
+}
+
+.delete-btn:hover {
+    text-decoration: underline;
+    opacity: 1;
+}
+
+.comment-actions {
+    /* To align reply and delete button to the right side */
+    margin-right: auto;
+}

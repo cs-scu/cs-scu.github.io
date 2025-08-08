@@ -285,6 +285,20 @@ export const addComment = async (newsId, userId, content, parentId = null) => {
     }
 };
 
+export const deleteComment = async (commentId) => {
+    try {
+        const { error } = await supabaseClient
+            .from('comments')
+            .delete()
+            .eq('id', commentId);
+        if (error) throw error;
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error deleting comment:', error);
+        return { success: false, error };
+    }
+};
+
 export const getLikeStatus = async (newsId, userId) => {
     try {
         const { count: like_count, error: countError } = await supabaseClient

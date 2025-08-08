@@ -1565,6 +1565,12 @@ const buildCommentTree = (comments) => {
 
 const renderComment = (comment) => {
     const userVote = comment.user_vote;
+    // START: دکمه حذف فقط برای نویسنده کامنت نمایش داده می‌شود
+    const deleteButtonHTML = (state.user && state.user.id === comment.user_id)
+        ? `<button class="btn-text delete-btn">حذف</button>`
+        : '';
+    // END: تغییر در این بخش است
+
     return `
         <div class="comment-item" id="comment-${comment.id}" data-comment-id="${comment.id}">
             <img src="${comment.author?.avatar_url || DEFAULT_AVATAR_URL}" alt="${comment.author?.full_name || 'کاربر'}" class="comment-avatar">
@@ -1588,6 +1594,7 @@ const renderComment = (comment) => {
                         </button>
                     </div>
                     <button class="btn-text reply-btn" ${!state.user ? 'disabled' : ''}>پاسخ</button>
+                    ${deleteButtonHTML}
                 </div>
                 <div class="comment-replies">
                     ${comment.replies.map(reply => renderComment(reply)).join('')}
@@ -1753,6 +1760,28 @@ export const initializeInteractions = (newsId) => {
                 const replyContainer = cancelBtn.closest('.reply-form-container');
                 replyContainer.style.display = 'none';
                 replyContainer.innerHTML = '';
+            }
+        
+            const deleteBtn = e.target.closest('.delete-btn');
+            if (deleteBtn) {
+                if (confirm('آیا از حذف این دیدگاه مطمئن هستید؟')) {
+                    const commentItem = deleteBtn.closest('.comment-item');
+                    const commentId = commentItem.dataset.commentId;
+                    
+                    deleteBtn.disabled = true;
+                    const { success, error } = await deleteComment(commentId);
+
+                    if (success) {
+                        commentItem.remove(); // حذف کامنت از صفحه
+                        // به‌روزرسانی تعداد کل کامنت‌ها
+                        const commentCountEl = document.querySelector('.interactions-header h3');
+                        const newCount = (parseInt(commentCountEl.textContent.match(/\d+/)[0]) || 1) - 1;
+                        commentCountEl.textContent = `دیدگاه‌ها (${newCount})`;
+                    } else {
+                        alert('خطا در حذف دیدگاه.');
+                        deleteBtn.disabled = false;
+                    }
+                }
             }
         });
 
