@@ -1564,20 +1564,25 @@ const buildCommentTree = (comments) => {
 };
 
 const renderComment = (comment) => {
-    const userVote = comment.user_vote;
-    // START: دکمه حذف فقط برای نویسنده کامنت نمایش داده می‌شود
+    // This function now expects a simpler comment object
+    const userVote = comment.user_vote || null; // Default values
+    const likes = comment.likes || 0;
+    const dislikes = comment.dislikes || 0;
+
+    // Display user_id as a placeholder for the name for debugging
+    const authorName = `کاربر ${comment.user_id.substring(0, 8)}`; 
+
     const deleteButtonHTML = (state.user && state.user.id === comment.user_id)
         ? `<button class="btn-text delete-btn">حذف</button>`
         : '';
-    // END: تغییر در این بخش است
 
     return `
         <div class="comment-item" id="comment-${comment.id}" data-comment-id="${comment.id}">
-            <img src="${comment.author?.avatar_url || DEFAULT_AVATAR_URL}" alt="${comment.author?.full_name || 'کاربر'}" class="comment-avatar">
+            <img src="${DEFAULT_AVATAR_URL}" alt="${authorName}" class="comment-avatar">
             <div class="comment-main">
                 <div class="comment-content">
                     <div class="comment-header">
-                        <strong>${comment.author?.full_name || 'یک کاربر'}</strong>
+                        <strong>${authorName}</strong>
                         <span class="comment-date">${new Date(comment.created_at).toLocaleDateString('fa-IR')}</span>
                     </div>
                     <p>${comment.content}</p>
@@ -1586,18 +1591,18 @@ const renderComment = (comment) => {
                     <div class="comment-votes">
                         <button class="vote-btn like-comment ${userVote === 1 ? 'active' : ''}" data-vote="1" ${!state.user ? 'disabled' : ''}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="M7.8 19.2c-.3-.3-.4-.6-.4-1V9.8c0-.4.1-.7.4-1 .3-.3.6-.4 1-.4h4.4c.3 0 .5.1.7.2.2.1.4.3.5.5l3.6 7.3c.2.4.3.8.3 1.2 0 .4-.1.8-.3 1.1-.2.3-.5.6-.9.7h-6.2c-.4 0-.7-.1-1-.4zM5.2 8.6H2.8V19h2.4V8.6z"/></svg>
-                            <span class="like-count">${comment.likes || 0}</span>
+                            <span class="like-count">${likes}</span>
                         </button>
                         <button class="vote-btn dislike-comment ${userVote === -1 ? 'active' : ''}" data-vote="-1" ${!state.user ? 'disabled' : ''}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="M16.2 4.8c.3.3.4.6.4 1v8.4c0 .4-.1.7-.4 1-.3.3-.6.4-1 .4h-4.4c-.3 0-.5-.1-.7-.2-.2-.1-.4-.3-.5-.5L5.6 7.9c-.2-.4-.3-.8-.3-1.2 0-.4.1-.8.3-1.1.2-.3.5-.6.9-.7h6.2c.4 0 .7.1 1 .4zM18.8 15.4h2.4V5h-2.4v10.4z"/></svg>
-                            <span class="dislike-count">${comment.dislikes || 0}</span>
+                            <span class="dislike-count">${dislikes}</span>
                         </button>
                     </div>
                     <button class="btn-text reply-btn" ${!state.user ? 'disabled' : ''}>پاسخ</button>
                     ${deleteButtonHTML}
                 </div>
                 <div class="comment-replies">
-                    ${comment.replies.map(reply => renderComment(reply)).join('')}
+                    ${(comment.replies || []).map(reply => renderComment(reply)).join('')}
                 </div>
                 <div class="reply-form-container" style="display: none;"></div>
             </div>
