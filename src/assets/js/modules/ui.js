@@ -1711,12 +1711,28 @@ export const initializeInteractions = (newsId) => {
     const container = document.querySelector('.interactions-section');
     if (!container) return;
 
-    // --- تابع کمکی برای تبدیل اعداد فارسی به انگلیسی ---
     const toEnglishNumber = (str) => {
         return String(str).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
     };
 
-    // --- Like News Post ---
+    // <<-- تابع جدید برای مدیریت نمایش کامنت‌های حذف شده -->>
+    const cleanupDeletedComments = (element) => {
+        let current = element;
+        while (current && current.classList.contains('is-deleted')) {
+            const repliesContainer = current.querySelector('.comment-replies');
+            const hasVisibleChildren = repliesContainer && repliesContainer.querySelector('.comment-item');
+            
+            if (hasVisibleChildren) {
+                break; // اگر فرزند فعال دارد، متوقف شو
+            }
+            
+            const parent = current.parentElement.closest('.comment-item');
+            current.remove();
+            current = parent;
+        }
+    };
+
+    // ... (بخش‌های مربوط به لایک و ارسال کامنت اصلی بدون تغییر باقی می‌مانند) ...
     const likeBtn = document.getElementById('like-btn');
     if (likeBtn) {
         likeBtn.addEventListener('click', async () => {
@@ -1732,7 +1748,6 @@ export const initializeInteractions = (newsId) => {
         });
     }
 
-    // --- Add Root Comment ---
     const commentForm = document.getElementById('comment-form');
     if (commentForm) {
         commentForm.addEventListener('submit', async (e) => {
@@ -1753,17 +1768,7 @@ export const initializeInteractions = (newsId) => {
                 if (error) {
                     showStatus(statusBox, 'خطا در ارسال دیدگاه.');
                 } else {
-                    const newCommentForRender = {
-                        ...newCommentData,
-                        author: {
-                            full_name: state.profile?.full_name || state.user.email.split('@')[0],
-                            avatar_url: state.profile?.avatar_url || state.user.user_metadata?.avatar_url
-                        },
-                        likes: 0,
-                        user_vote: null,
-                        replies: []
-                    };
-
+                    const newCommentForRender = { ...newCommentData, author: { full_name: state.profile?.full_name || state.user.email.split('@')[0], avatar_url: state.profile?.avatar_url || state.user.user_metadata?.avatar_url }, likes: 0, user_vote: null, replies: [] };
                     const commentsList = document.querySelector('.comments-list');
                     const noCommentMessage = commentsList.querySelector('p');
                     if (noCommentMessage) noCommentMessage.remove();
@@ -1782,50 +1787,33 @@ export const initializeInteractions = (newsId) => {
         });
     }
 
-    // --- Handle Clicks within the comments list ---
+
     const commentsList = document.querySelector('.comments-list');
     if (commentsList) {
         commentsList.addEventListener('click', async (e) => {
-            // -- Toggle Comment Vote --
+            // ... (بخش مربوط به لایک کامنت و نمایش فرم پاسخ بدون تغییر) ...
             const voteBtn = e.target.closest('.vote-btn');
             if (voteBtn && state.user) {
                 const commentItem = voteBtn.closest('.comment-item');
                 const commentId = commentItem.dataset.commentId;
                 const voteType = parseInt(voteBtn.dataset.vote, 10);
-                
                 commentItem.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);
-                
                 const { data, error } = await toggleCommentVote(commentId, state.user.id, voteType);
-                
-                if (error) {
-                    console.error("Failed to vote on comment");
-                } else {
+                if (error) { console.error("Failed to vote on comment"); }
+                else {
                     commentItem.querySelector('.like-count').textContent = toPersianNumber(data.likes);
                     const likeButton = commentItem.querySelector('.like-comment');
                     likeButton.classList.toggle('active', data.user_vote === 1);
                 }
-                
                 commentItem.querySelectorAll('.vote-btn').forEach(b => b.disabled = false);
             }
 
-            // -- Show Reply Form --
             const replyBtn = e.target.closest('.reply-btn');
             if (replyBtn) {
                 const commentItem = replyBtn.closest('.comment-item');
                 const replyContainer = commentItem.querySelector('.reply-form-container');
                 if (replyContainer.style.display === 'none') {
-                    replyContainer.innerHTML = `
-                        <form class="reply-form">
-                            <div class="form-group">
-                                <textarea placeholder="پاسخ شما..." required></textarea>
-                            </div>
-                            <div class="form-actions" style="justify-content: flex-end; flex-direction: row;">
-                                <button type="button" class="btn btn-secondary cancel-reply">انصراف</button>
-                                <button type="submit" class="btn btn-primary">ارسال پاسخ</button>
-                            </div>
-                            <div class="form-status"></div>
-                        </form>
-                    `;
+                    replyContainer.innerHTML = `<form class="reply-form"><div class="form-group"><textarea placeholder="پاسخ شما..." required></textarea></div><div class="form-actions" style="justify-content: flex-end; flex-direction: row;"><button type="button" class="btn btn-secondary cancel-reply">انصراف</button><button type="submit" class="btn btn-primary">ارسال پاسخ</button></div><div class="form-status"></div></form>`;
                     replyContainer.style.display = 'block';
                     replyContainer.querySelector('textarea').focus();
                 } else {
@@ -1834,7 +1822,6 @@ export const initializeInteractions = (newsId) => {
                 }
             }
 
-            // -- Cancel Reply --
             const cancelBtn = e.target.closest('.cancel-reply');
             if (cancelBtn) {
                 const replyContainer = cancelBtn.closest('.reply-form-container');
@@ -1842,7 +1829,7 @@ export const initializeInteractions = (newsId) => {
                 replyContainer.innerHTML = '';
             }
 
-            // -- Delete Comment --
+            // <<-- منطق نهایی و جدید برای دکمه حذف -->>
             const deleteBtn = e.target.closest('.delete-btn');
             if (deleteBtn) {
                 if (confirm('آیا از حذف این دیدگاه مطمئن هستید؟')) {
@@ -1850,22 +1837,21 @@ export const initializeInteractions = (newsId) => {
                     const commentId = commentItem.dataset.commentId;
                     
                     deleteBtn.disabled = true;
-                    const { success, data } = await deleteComment(commentId, state.user.id);
+                    const { success } = await deleteComment(commentId, state.user.id);
 
                     if (success) {
-                        if (data.has_children) {
-                            const commentMain = commentItem.querySelector('.comment-main');
-                            if (commentMain) {
-                                commentMain.innerHTML = `
-                                    <div class="comment-content">
-                                        <p><em>[این دیدگاه حذف شده است]</em></p>
-                                    </div>`;
-                                commentItem.classList.add('is-deleted');
-                            }
-                        } else {
-                            commentItem.remove();
+                        const commentMain = commentItem.querySelector('.comment-main');
+                        if (commentMain) {
+                            commentMain.innerHTML = `
+                                <div class="comment-content">
+                                    <p><em>[این دیدگاه حذف شده است]</em></p>
+                                </div>`;
+                            commentItem.classList.add('is-deleted');
                         }
                         
+                        // تابع جدید را برای تمیزکاری فراخوانی می‌کنیم
+                        cleanupDeletedComments(commentItem);
+
                         const commentCountEl = document.querySelector('.interactions-header h3');
                         const countText = toEnglishNumber(commentCountEl.textContent.match(/[۰-۹0-9]+/)?.[0] || '1');
                         const currentCount = parseInt(countText, 10);
@@ -1877,46 +1863,30 @@ export const initializeInteractions = (newsId) => {
                 }
             }
         });
-
-        // -- Submit Reply --
+        
+        // ... (بخش مربوط به ارسال پاسخ بدون تغییر) ...
         commentsList.addEventListener('submit', async (e) => {
             if (!e.target.classList.contains('reply-form')) return;
             e.preventDefault();
-
             const form = e.target;
             const commentItem = form.closest('.comment-item');
             const parentId = commentItem.dataset.commentId;
             const content = form.querySelector('textarea').value;
             if (!content.trim()) return;
-
             const submitBtn = form.querySelector('button[type="submit"]');
             const statusBox = form.querySelector('.form-status');
-            
             submitBtn.disabled = true;
             hideStatus(statusBox);
-
             try {
                 const { data: newReplyData, error } = await addComment(newsId, state.user.id, content, parentId);
-                
                 if (error) {
                     showStatus(statusBox, 'خطا در ارسال پاسخ.');
                 } else {
-                     const newReplyForRender = {
-                        ...newReplyData,
-                        author: {
-                            full_name: state.profile?.full_name || state.user.email.split('@')[0],
-                            avatar_url: state.profile?.avatar_url || state.user.user_metadata?.avatar_url
-                        },
-                        likes: 0,
-                        user_vote: null,
-                        replies: []
-                    };
-
+                     const newReplyForRender = { ...newReplyData, author: { full_name: state.profile?.full_name || state.user.email.split('@')[0], avatar_url: state.profile?.avatar_url || state.user.user_metadata?.avatar_url }, likes: 0, user_vote: null, replies: [] };
                     const repliesContainer = commentItem.querySelector('.comment-replies');
                     repliesContainer.insertAdjacentHTML('beforeend', renderComment(newReplyForRender));
                     form.parentElement.style.display = 'none';
                     form.parentElement.innerHTML = '';
-                    
                     const commentCountEl = document.querySelector('.interactions-header h3');
                     const countText = toEnglishNumber(commentCountEl.textContent.match(/[۰-۹0-9]+/)?.[0] || '0');
                     const currentCount = parseInt(countText, 10);
