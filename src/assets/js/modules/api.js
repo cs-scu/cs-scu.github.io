@@ -58,7 +58,9 @@ export const getProfile = async () => {
     try {
         const { data, error, status } = await supabaseClient
             .from('profiles')
-            .select(`full_name, role, telegram_id, telegram_username, avatar_url`)
+            // START: فقط ستون‌های موجود انتخاب شده‌اند
+            .select(`full_name, role`)
+            // END: تغییر نهایی
             .eq('id', state.user.id)
             .single();
             
