@@ -2807,7 +2807,7 @@ body.dark-theme .event-card.past-event:hover {
 
 /* ================== Member Card Modal Close Button ================== */
 .member-card {
-    position: relative; /* این خط برای جای‌گیری دکمه ضروری است */
+    position: relative;
 }
 
 /* استایل دکمه جدید که درون کارت قرار دارد */
@@ -2821,13 +2821,21 @@ body.dark-theme .event-card.past-event:hover {
     background: rgba(40, 40, 40, 0.7);
     border: 2px solid #1f2121;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     color: #ffffff;
     z-index: 10;
     transition: transform 0.2s ease, background-color 0.2s ease;
     backdrop-filter: blur(5px);
+    
+    /* START: تغییر کلیدی اینجاست */
+    display: none; /* دکمه به صورت پیش‌فرض مخفی است */
+    align-items: center;
+    justify-content: center;
+    /* END: تغییر */
+}
+
+/* دکمه فقط زمانی که کارت در مودال باشد، نمایش داده می‌شود */
+.member-card.in-modal .close-modal-incard {
+    display: flex;
 }
 
 .close-modal-incard:hover {
@@ -2838,24 +2846,6 @@ body.dark-theme .event-card.past-event:hover {
 /* مخفی کردن دکمه بستن عمومی مودال، فقط برای کارت عضو */
 #generic-modal:not(.wide-modal) > .modal-content > .close-modal {
     display: none;
-}
-
-/* ================== User Menu Display Fix ================== */
-.user-menu-item {
-    justify-content: flex-start; /* آیتم‌ها را از ابتدای فلکس باکس می‌چیند */
-}
-
-#user-welcome-message {
-    margin-right: 0.75rem; /* فاصله بین عکس و نام */
-    font-weight: bold;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-#logout-btn {
-    margin-right: auto; /* دکمه خروج را به انتهای سمت چپ منتقل می‌کند */
-    padding-left: 0.5rem;
 }
 
 /* ================== Interactions Section (Likes & Comments) ================== */
