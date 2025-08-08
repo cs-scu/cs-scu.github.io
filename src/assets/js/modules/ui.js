@@ -18,7 +18,7 @@ import {
     getUserProvider,
     addComment,
     toggleLike,
-    toggleCommentVote
+    toggleCommentVote // افزودن تابع جدید به لیست
 } from './api.js';
 // END: Imports corrected
 let currentEmail = '';
