@@ -32,8 +32,12 @@
                         <span id="display-email-password"></span>
                         <button type="button" class="btn-text edit-email-btn">ویرایش</button>
                     </div>
-                    <p>خوش آمدید! رمز عبور خود را وارد کنید.</p>
-                     <div class="form-group password-group">
+                    
+                    <p>حساب شما با این ایمیل وجود دارد. لطفاً رمز عبور خود را وارد کنید.</p>
+                    <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
+                        <strong>راهنمایی:</strong> اگر قبلاً با گوگل وارد شده‌اید و رمزی تعیین نکرده‌اید، می‌توانید از گزینه «رمز عبورم را فراموش کرده‌ام» برای ایجاد یک رمز جدید استفاده کنید.
+                    </p>
+                    <div class="form-group password-group">
                         <label for="auth-password" class="visually-hidden">رمز عبور</label>
                         <input type="password" id="auth-password" name="password" placeholder="رمز عبور">
                         <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility">
@@ -45,7 +49,7 @@
                         <button type="submit" class="btn btn-primary btn-full" id="password-submit-btn">ورود</button>
                         <button type="button" class="btn btn-secondary btn-full" id="forgot-password-btn">رمز عبورم را فراموش کرده‌ام</button>
                     </div>
-                </div>
+                </div>  
 
                 <div id="otp-step" style="display: none;">
                     <div class="email-display-box">
