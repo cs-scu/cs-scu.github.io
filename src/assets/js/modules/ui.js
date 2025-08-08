@@ -25,6 +25,32 @@ import {
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
+const formatTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.round((now - date) / 1000);
+
+    if (seconds < 60) {
+        return "همین الان";
+    }
+
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) {
+        return `${minutes} دقیقه قبل`;
+    }
+
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) {
+        return `${hours} ساعت قبل`;
+    }
+
+    // اگر از ۲۴ ساعت گذشته بود، تاریخ کامل را نمایش بده
+    return date.toLocaleDateString('fa-IR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+};
 // A simple function to sanitize HTML and prevent XSS
 const sanitizeHTML = (str) => {
     const temp = document.createElement('div');
@@ -1582,19 +1608,21 @@ const renderComment = (comment) => {
 
     const sanitizedContent = sanitizeHTML(comment.content);
 
-
     return `
         <div class="comment-item" id="comment-${comment.id}" data-comment-id="${comment.id}">
-            <img src="${authorAvatar}" alt="${authorName}" class="comment-avatar">
             <div class="comment-main">
+                <div class="comment-header">
+                    <img src="${authorAvatar}" alt="${authorName}" class="comment-avatar">
+                    <strong>${authorName}</strong>
+                    {/* START: از تابع جدید برای نمایش زمان استفاده می‌کنیم */}
+                    <span class="comment-date">${formatTimeAgo(comment.created_at)}</span>
+                    {/* END: تغییر کلیدی */}
+                </div>
                 <div class="comment-content">
-                    <div class="comment-header">
-                        <strong>${authorName}</strong>
-                        <span class="comment-date">${new Date(comment.created_at).toLocaleDateString('fa-IR')}</span>
-                    </div>
-                    <p>${comment.content}</p>
+                    <p>${sanitizedContent}</p>
                 </div>
                 <div class="comment-actions">
+                    <button class="btn-text reply-btn" ${!state.user ? 'disabled' : ''}>پاسخ</button>
                     <div class="comment-votes">
                         <button class="vote-btn like-comment ${userVote === 1 ? 'active' : ''}" data-vote="1" ${!state.user ? 'disabled' : ''}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1609,13 +1637,12 @@ const renderComment = (comment) => {
                             <span class="dislike-count">${comment.dislikes || 0}</span>
                         </button>
                     </div>
-                    <button class="btn-text reply-btn" ${!state.user ? 'disabled' : ''}>پاسخ</button>
                     ${deleteButtonHTML}
                 </div>
-                <div class="comment-replies">
-                    ${(comment.replies || []).map(reply => renderComment(reply)).join('')}
-                </div>
                 <div class="reply-form-container" style="display: none;"></div>
+            </div>
+            <div class="comment-replies">
+                ${(comment.replies || []).map(reply => renderComment(reply)).join('')}
             </div>
         </div>
     `;
