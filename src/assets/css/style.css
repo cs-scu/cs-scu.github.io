@@ -3032,8 +3032,7 @@ body.light-theme .login-prompt {
 }
 
 .comment-replies {
-    margin-top: 1.5rem;
-    padding-right: 2rem;
+    padding-right: 0.5rem;
     border-right: 2px solid;
     display: flex;
     flex-direction: column;
@@ -3075,4 +3074,69 @@ body.light-theme .delete-btn {
 .comment-actions {
     /* To align reply and delete button to the right side */
     margin-right: auto;
+}
+
+/* ================== Comment Actions Layout & Style Improvement ================== */
+.comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem; /* افزایش فاصله برای خوانایی بهتر */
+    margin-top: 0.75rem;
+}
+
+.comment-actions .reply-btn {
+    order: 1; /* ۱. دکمه پاسخ اولین آیتم باشد */
+}
+
+.comment-actions .delete-btn {
+    order: 2; /* ۲. دکمه حذف دومین آیتم باشد */
+    margin-right: auto; /* ۳. این خط، فاصله ایجاد کرده و بقیه آیتم‌ها را به چپ هل می‌دهد */
+}
+
+.comment-actions .comment-votes {
+    order: 3; /* ۴. گروه لایک/دیسلایک در انتها (سمت چپ) قرار می‌گیرد */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    /* ۵. ترتیب داخلی لایک (راست) و دیسلایک (چپ) را درست می‌کند */
+}
+
+/* استایل بهتر برای دکمه حذف جهت تاکید بیشتر */
+.delete-btn {
+    color: #ff8a8a; /* رنگ قرمز ملایم برای تم تیره */
+}
+
+body.light-theme .delete-btn {
+    color: #dc3545; /* رنگ قرمز استاندارد برای تم روشن */
+}
+/* ================== Comment Icon Button Styles ================== */
+.comment-actions .btn-text {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem;
+    border-radius: 50%;
+    opacity: 0.7;
+    transition: background-color 0.2s, opacity 0.2s, color 0.2s;
+}
+
+.comment-actions .btn-text:hover:not(:disabled) {
+    opacity: 1;
+}
+
+body.dark-theme .comment-actions .btn-text:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.light-theme .comment-actions .btn-text:hover:not(:disabled) {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.comment-actions .delete-btn:hover:not(:disabled) {
+    color: #ff8a8a; /* رنگ قرمز ملایم برای تم تیره */
+}
+
+body.light-theme .comment-actions .delete-btn:hover:not(:disabled) {
+    color: #dc3545; /* رنگ قرمز استاندارد برای تم روشن */
 }

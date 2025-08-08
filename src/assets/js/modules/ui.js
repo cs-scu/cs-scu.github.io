@@ -1606,8 +1606,11 @@ const renderComment = (comment) => {
     const authorName = comment.author?.full_name || 'یک کاربر';
     const authorAvatar = (state.user?.id === comment.user_id ? state.user.user_metadata?.avatar_url : null) || DEFAULT_AVATAR_URL;
     
+    // <<-- تغییر ۱: آیکون سطل زباله جایگزین متن "حذف" شد -->>
     const deleteButtonHTML = (state.user && state.user.id === comment.user_id)
-        ? `<button class="btn-text delete-btn">حذف</button>`
+        ? `<button class="btn-text delete-btn" title="حذف">
+               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+           </button>`
         : '';
 
     const sanitizedContent = sanitizeHTML(comment.content);
@@ -1624,7 +1627,11 @@ const renderComment = (comment) => {
                     <p>${sanitizedContent}</p>
                 </div>
                 <div class="comment-actions">
-                    <button class="btn-text reply-btn" ${!state.user ? 'disabled' : ''}>پاسخ</button>
+                    {/* <<-- تغییر ۲: آیکون پاسخ جایگزین متن "پاسخ" شد -->> */}
+                    <button class="btn-text reply-btn" title="پاسخ" ${!state.user ? 'disabled' : ''}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
+                    </button>
+                    ${deleteButtonHTML}
                     <div class="comment-votes">
                         <button class="vote-btn like-comment ${userVote === 1 ? 'active' : ''}" data-vote="1" ${!state.user ? 'disabled' : ''}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1639,7 +1646,6 @@ const renderComment = (comment) => {
                             <span class="dislike-count">${comment.dislikes || 0}</span>
                         </button>
                     </div>
-                    ${deleteButtonHTML}
                 </div>
                 <div class="reply-form-container" style="display: none;"></div>
             </div>
