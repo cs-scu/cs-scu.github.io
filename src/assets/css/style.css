@@ -2839,3 +2839,21 @@ body.dark-theme .event-card.past-event:hover {
 #generic-modal:not(.wide-modal) > .modal-content > .close-modal {
     display: none;
 }
+
+/* ================== User Menu Display Fix ================== */
+.user-menu-item {
+    justify-content: flex-start; /* آیتم‌ها را از ابتدای فلکس باکس می‌چیند */
+}
+
+#user-welcome-message {
+    margin-right: 0.75rem; /* فاصله بین عکس و نام */
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#logout-btn {
+    margin-right: auto; /* دکمه خروج را به انتهای سمت چپ منتقل می‌کند */
+    padding-left: 0.5rem;
+}
