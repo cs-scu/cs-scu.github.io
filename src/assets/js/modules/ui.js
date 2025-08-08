@@ -241,14 +241,17 @@ export const initializeAuthForm = () => {
         updateButtonText();
     };
 
-    const showStep = (step) => {
-        emailStep.style.display = 'none';
-        passwordStep.style.display = 'none';
-        otpStep.style.display = 'none';
-        setNameStep.style.display = 'none';
-        setPasswordStep.style.display = 'none';
-        linkingStep.style.display = 'none';
-        step.style.display = 'block';
+const showStep = (step) => {
+        const allSteps = [emailStep, passwordStep, otpStep, setNameStep, setPasswordStep, linkingStep];
+
+        allSteps.forEach(element => {
+            if (element) { 
+                element.style.display = 'none';
+            }
+        });
+        if (step) { 
+            step.style.display = 'block';
+        }
         if (step === otpStep) otpInputs[0]?.focus();
         if (step === setNameStep) form.querySelector('#full-name-signup').focus();
     };
