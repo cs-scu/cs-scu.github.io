@@ -1,6 +1,6 @@
 // src/assets/js/modules/ui.js
 import { state, dom } from './state.js';
-import { supabaseClient, checkUserStatus, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, signInWithGoogle, updateUserPassword, updateProfile, getProfile, connectTelegramAccount, verifyTurnstile, getEventRegistration , deleteEventRegistration } from './api.js';
+import { supabaseClient, checkUserStatus, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, signInWithGoogle, updateUserPassword, updateProfile, getProfile, verifyTurnstile, getEventRegistration , deleteEventRegistration } from './api.js';
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
@@ -29,25 +29,6 @@ export const showProfileModal = async () => {
     state.user = freshUser;
 
     const profile = state.profile;
-    const user = state.user;
-
-    let telegramConnectHTML = '';
-
-    if (profile?.telegram_id) {
-        telegramConnectHTML = `
-            <div class="telegram-connected-info" style="text-align: center; padding: 1rem; margin-top: 1.5rem; border-radius: 8px; background-color: rgba(0, 255, 100, 0.1); color: #96ff6f;">
-                <p style="margin:0;">✅ حساب تلگرام شما با نام کاربری <strong>@${profile.telegram_username}</strong> متصل است.</p>
-            </div>
-        `;
-    } else {
-        telegramConnectHTML = `
-            <h4>اتصال حساب تلگرام</h4>
-            <p>حساب تلگرام خود را برای تکمیل خودکار پروفایل متصل کنید.</p>
-            <div id="telegram-login-widget-container" style="margin-top: 1.5rem;"></div>
-        `;
-    }
-
-    const formattedPhone = user.phone ? `0${user.phone.substring(2)}` : 'هنوز ثبت نشده';
 
     const modalHtml = `
         <div class="content-box" style="padding-top: 4rem;">
@@ -58,19 +39,12 @@ export const showProfileModal = async () => {
                     <label for="full-name">نام و نام خانوادگی</label>
                     <input type="text" id="full-name" name="full-name" value="${profile?.full_name || ''}" required>
                 </div>
-                <div class="form-group">
-                    <label for="phone-display">شماره تلفن (از طریق تلگرام)</label>
-                    <input type="tel" id="phone-display" name="phone-display" value="${formattedPhone}" disabled style="background-color: rgba(128,128,128,0.1); cursor: not-allowed;">
-                </div>
                 <div class="form-status"></div>
                 <br>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
-                    </div>
+                </div>
             </form>
-            <br>
-            <hr style="margin: 2rem 0;">
-            ${telegramConnectHTML}
         </div>
     `;
     
@@ -78,25 +52,6 @@ export const showProfileModal = async () => {
     genericModalContent.innerHTML = modalHtml;
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
-
-    if (!profile?.telegram_id) {
-        const script = document.createElement('script');
-        script.src = 'https://telegram.org/js/telegram-widget.js?22';
-        script.async = true;
-        script.setAttribute('data-telegram-login', 'scu_cs_bot');
-        script.setAttribute('data-size', 'large');
-        script.setAttribute('data-radius', '10');
-        script.setAttribute('data-auth-url', 'https://www.cs-scu.ir/#/telegram-auth'); 
-        script.setAttribute('data-request-access', 'write');
-
-        const container = document.getElementById('telegram-login-widget-container');
-        if (container) {
-            while (container.firstChild) {
-                container.removeChild(container.firstChild);
-            }
-            container.appendChild(script);
-        }
-    }
 
     const profileForm = genericModalContent.querySelector('#profile-form');
     const statusBox = profileForm.querySelector('.form-status');
@@ -121,56 +76,6 @@ export const showProfileModal = async () => {
         }
     });
 };
-
-export const handleTelegramAuth = async () => {
-    const hash = window.location.hash;
-    const queryString = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
-    const urlParams = new URLSearchParams(queryString);
-    const authData = Object.fromEntries(urlParams.entries());
-    const mainContent = dom.mainContent;
-
-    if (!authData.hash) {
-        mainContent.innerHTML = `<div class="container" style="text-align:center; padding: 5rem 0;"><p>خطا: اطلاعات احراز هویت تلگرام ناقص است.</p></div>`;
-        return;
-    }
-
-    mainContent.innerHTML = `
-        <div class="container" style="text-align:center; padding: 5rem 0;">
-            <h2>در حال اتصال حساب تلگرام...</h2>
-            <p>لطفاً منتظر بمانید، در حال تأیید و ذخیره اطلاعات شما هستیم.</p>
-        </div>
-    `;
-
-    const { success, error } = await connectTelegramAccount(authData);
-
-    if (!success) {
-        mainContent.innerHTML = `
-            <div class="container" style="text-align:center; padding: 5rem 0;">
-                <h2>خطا در اتصال</h2>
-                <p>${error || 'یک خطای ناشناخته رخ داد. لطفاً دوباره تلاش کنید.'}</p>
-                <a href="#/" class="btn btn-secondary" style="margin-top: 1rem;">بازگشت به صفحه اصلی</a>
-            </div>
-        `;
-    } else {
-        mainContent.innerHTML = `
-            <div class="container" style="text-align:center; padding: 5rem 0;">
-                <h2>اتصال موفق!</h2>
-                <p>حساب تلگرام شما با موفقیت به پروفایل کاربری‌تان متصل شد.</p>
-                <p>در حال بازگشت...</p>
-            </div>
-        `;
-        await getProfile();
-        updateUserUI(state.user, state.profile);
-        
-        setTimeout(() => {
-            location.hash = '#/profile-updated';
-        }, 1500);
-    }
-};
-
-// فایل: src/assets/js/modules/ui.js
-
-// فایل: src/assets/js/modules/ui.js
 
 export const initializeAuthForm = () => {
     const form = dom.mainContent.querySelector('#auth-form');

@@ -1,6 +1,6 @@
 // src/assets/js/modules/router.js
 import { state, dom } from './state.js';
-import { initializeAuthForm, initializeContactForm, showEventModal, handleTelegramAuth, showProfileModal } from './ui.js';
+import { initializeAuthForm, initializeContactForm, showEventModal, showProfileModal } from './ui.js';
 import * as components from './components.js';
 import { supabaseClient, loadEvents, loadJournal, loadChartData } from './api.js';
 
@@ -63,12 +63,6 @@ const renderPage = async (path) => {
     cleanupPageSpecifics(cleanPath);
     updateActiveLink(cleanPath);
     
-    if (cleanPath.startsWith('/telegram-auth')) {
-        await handleTelegramAuth();
-        dom.mainContent.classList.remove('is-loading');
-        return;
-    }
-
     if (cleanPath.startsWith('/news/')) {
         window.scrollTo(0, 0);
         const newsLink = `#${cleanPath}`;

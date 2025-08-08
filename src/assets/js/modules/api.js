@@ -110,27 +110,6 @@ export const checkUserStatus = async (email) => {
     return data;
 };
 
-export const connectTelegramAccount = async (telegramData) => {
-    try {
-        const { data: result, error } = await supabaseClient.functions.invoke('verify-telegram-auth', {
-            body: telegramData,
-        });
-
-        if (error) throw error;
-        if (!result.success) {
-            throw new Error(result.error || 'خطا در پردازش اطلاعات تلگرام.');
-        }
-        
-        await getProfile();
-        
-        return { success: true, error: null };
-
-    } catch (error) {
-        console.error('Error during Telegram connection process:', error);
-        return { success: false, error: error.message };
-    }
-};
-
 /**
  * Verifies a Cloudflare Turnstile token by calling a server-side Edge Function.
  * @param {string} token The cf-turnstile-response token from the widget.
