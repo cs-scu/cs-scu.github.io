@@ -500,6 +500,13 @@ const showMemberModal = (memberId) => {
     if (!template || !genericModal || !genericModalContent) return;
 
     const cardClone = template.content.cloneNode(true);
+    const closeBtnInCard = cardClone.querySelector('.close-modal-incard');
+    if (closeBtnInCard) {
+        closeBtnInCard.addEventListener('click', () => {
+            dom.body.classList.remove('modal-is-open');
+            genericModal.classList.remove('is-open');
+        });
+    }
     cardClone.querySelector('.member-card').classList.add('in-modal');
     cardClone.querySelector('.member-photo').src = member.imageUrl || DEFAULT_AVATAR_URL;
     cardClone.querySelector('.member-photo').alt = member.name;

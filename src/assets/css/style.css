@@ -533,8 +533,8 @@ body.light-theme #generic-modal.wide-modal .modal-content {
 /* 2. استایل جدید و اصولی برای خود دکمه بستن */
 .close-modal {
     position: absolute; /* همیشه نسبت به والدِ relative خود جای می‌گیرد */
-    top: 1rem;       /* فاصله از بالا */
-    right: 1rem;      /* فاصله از راست */
+    top: 0.2rem;       /* فاصله از بالا */
+    right: 0.2rem;      /* فاصله از راست */
     
     /* بهبود ظاهر برای کلیک راحت‌تر و زیبایی */
     width: 36px;
@@ -767,7 +767,7 @@ body.light-theme .content-box {
     border: 1px solid #e0e0e0;
 }
 .content-box h2 {
-    margin: 2rem 0 1rem;
+    margin: -2rem 0 1rem;
     border-bottom: 2px solid;
     padding-bottom: 0.5rem;
 }
@@ -2236,19 +2236,6 @@ body.light-theme .registration-status-details hr { background-color: var(--glass
 
 /* ================== Special Close Button for Member Card Modal ================== */
 
-/* این قانون فقط زمانی اعمال می‌شود که مودال، کلاس .wide-modal را "نداشته باشد"،
-  یعنی دقیقاً برای مودال کارت عضو.
-*/
-#generic-modal:not(.wide-modal) .close-modal {
-    /* موقعیت دکمه را در گوشه بالا-راست صفحه با فاصله مناسب تنظیم می‌کند */
-    top: 0.8rem;
-    right: 3.7rem;
-
-    /* برای دید بهتر روی پس‌زمینه تیره و روشن، یک پس‌زمینه ملایم به آن می‌دهد */
-    background-color: rgba(0, 0, 0, 0.3);
-    color: #ffffff; /* رنگ آیکون ضربدر همیشه سفید باشد */
-}
-
 @media (max-width: 700px) {
     #generic-modal:not(.wide-modal) .close-modal {
         position: fixed;
@@ -2816,4 +2803,39 @@ body.dark-theme .event-card.past-event:hover {
 
 .event-card.past-event .btn {
     pointer-events: none;
+}
+
+/* ================== Member Card Modal Close Button ================== */
+.member-card {
+    position: relative; /* این خط برای جای‌گیری دکمه ضروری است */
+}
+
+/* استایل دکمه جدید که درون کارت قرار دارد */
+.close-modal-incard {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(40, 40, 40, 0.7);
+    border: 2px solid #1f2121;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    z-index: 10;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    backdrop-filter: blur(5px);
+}
+
+.close-modal-incard:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+    transform: scale(1.1);
+}
+
+/* مخفی کردن دکمه بستن عمومی مودال، فقط برای کارت عضو */
+#generic-modal:not(.wide-modal) > .modal-content > .close-modal {
+    display: none;
 }
