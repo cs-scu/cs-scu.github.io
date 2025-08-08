@@ -461,19 +461,13 @@ case 'email-step':
 export const updateUserUI = (user, profile) => {
     const authLink = document.getElementById('login-register-btn');
     const userInfo = document.getElementById('user-info');
-    const welcomeMsg = document.getElementById('user-welcome-message');
     const adminLink = document.getElementById('admin-panel-link');
     const userAvatar = document.getElementById('user-avatar');
 
     if (user) {
         if (authLink) authLink.style.display = 'none';
         if (userInfo) userInfo.style.display = 'flex';
-
-        if (welcomeMsg) {
-            const displayName = profile?.full_name || user.email.split('@')[0];
-            welcomeMsg.textContent = `سلام، ${displayName}`;
-        }
-        
+                
         if (userAvatar) {
             userAvatar.src = profile?.avatar_url || user.user_metadata?.avatar_url || DEFAULT_AVATAR_URL;
             userAvatar.style.display = 'block';
@@ -629,7 +623,7 @@ export const showEventModal = async (path) => {
                     </span>
                     ${costHTML}
                 </div>
-                <hr>
+                <br>
                 ${detailHtml}
                 ${actionsHTML}
             </div>
