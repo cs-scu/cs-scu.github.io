@@ -32,12 +32,8 @@
                         <span id="display-email-password"></span>
                         <button type="button" class="btn-text edit-email-btn">ویرایش</button>
                     </div>
-                    
-                    <p>حساب شما با این ایمیل وجود دارد. لطفاً رمز عبور خود را وارد کنید.</p>
-                    <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
-                        <strong>راهنمایی:</strong> اگر قبلاً با گوگل وارد شده‌اید و رمزی تعیین نکرده‌اید، می‌توانید از گزینه «رمز عبورم را فراموش کرده‌ام» برای ایجاد یک رمز جدید استفاده کنید.
-                    </p>
-                    <div class="form-group password-group">
+                    <p>خوش آمدید! رمز عبور خود را وارد کنید.</p>
+                     <div class="form-group password-group">
                         <label for="auth-password" class="visually-hidden">رمز عبور</label>
                         <input type="password" id="auth-password" name="password" placeholder="رمز عبور">
                         <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility">
@@ -49,7 +45,7 @@
                         <button type="submit" class="btn btn-primary btn-full" id="password-submit-btn">ورود</button>
                         <button type="button" class="btn btn-secondary btn-full" id="forgot-password-btn">رمز عبورم را فراموش کرده‌ام</button>
                     </div>
-                </div>  
+                </div>
 
                 <div id="linking-step" style="display: none;">
                     <div class="email-display-box">
@@ -59,14 +55,16 @@
                     <p>این ایمیل به یک حساب گوگل متصل است. می‌توانید با گوگل وارد شوید یا برای حساب خود یک رمز عبور تعیین کنید.</p>
                     <div class="form-actions">
                         <button type="button" class="btn btn-social btn-secondary" id="google-signin-redirect-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="25px" viewBox="0 0 24 24" version="1.1">
-                                </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="25px" viewBox="0 0 24 24" version="1.1">
+                                <g id="surface2_1">
+                                <use xlink:href="#image5" transform="matrix(0.096,0,0,0.09375,0,0)"/>
+                                </g>
+                            </svg>
                             <span>ورود با گوگل</span>
                         </button>
                         <button type="button" class="btn btn-primary btn-full" id="set-password-redirect-btn">ایجاد رمز عبور</button>
                     </div>
                 </div>
-
                 <div id="otp-step" style="display: none;">
                     <div class="email-display-box">
                         <span id="display-email-otp"></span>
