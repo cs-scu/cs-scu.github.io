@@ -237,31 +237,18 @@ export const getUserProvider = async (email) => {
 export const getComments = async (newsId, userId) => {
     if (!newsId) return { data: [], error: 'News ID is missing' };
     try {
-        // Call the new, correct function name
+        // Call the new, simple, and definitive function
         const { data, error } = await supabaseClient
-            .rpc('get_comments_for_news', {
-                p_news_id: newsId,
-                p_user_id: userId
+            .rpc('get_public_comments_for_news', {
+                p_news_id: newsId
             });
 
         if (error) throw error;
         
-        // Add avatar from user metadata to each comment's author
-        if (data) {
-            data.forEach(comment => {
-                if (comment.author && !comment.author.avatar_url) {
-                    // This logic is a placeholder, you might need to fetch the specific user's metadata
-                    // For simplicity, we assume if the current user is the author, we can add their avatar
-                    if (state.user && state.user.id === comment.user_id) {
-                       comment.author.avatar_url = state.user.user_metadata?.avatar_url;
-                    }
-                }
-            });
-        }
-
-        return { data: data || [], error: null }; // Ensure we always return an array
+        // Since this function doesn't return author info, we will handle it in the UI
+        return { data: data || [], error: null };
     } catch (error) {
-        console.error('Error fetching comments:', error);
+        console.error('Error fetching comments with new function:', error);
         return { data: null, error };
     }
 };
