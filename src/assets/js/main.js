@@ -58,10 +58,45 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.getElementById('logout-btn')?.addEventListener('click', signOut);
 
+        // START: کد جدید برای مدیریت بن شدن لحظه‌ای کاربر
+        let profileSubscription = null;
+
+        const subscribeToProfileChanges = (user) => {
+            // ابتدا اشتراک قبلی را لغو می‌کنیم تا از ایجاد چندین شنونده جلوگیری شود
+            if (profileSubscription) {
+                profileSubscription.unsubscribe();
+                profileSubscription = null;
+            }
+            if (!user) return; // اگر کاربری وارد نشده بود، ادامه نمی‌دهیم
+
+            // یک کانال جدید برای گوش دادن به تغییرات پروفایل این کاربر ایجاد می‌کنیم
+            profileSubscription = supabaseClient
+                .channel(`public:profiles:id=eq.${user.id}`)
+                .on(
+                    'postgres_changes', 
+                    { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, 
+                    (payload) => {
+                        console.log('Profile updated:', payload.new);
+                        const newRole = payload.new.role;
+                        
+                        // اگر نقش کاربر به 'banned' تغییر کرد، او را خارج می‌کنیم
+                        if (newRole === 'banned') {
+                            alert('دسترسی شما به سایت توسط مدیر مسدود شده است.');
+                            signOut();
+                        }
+                    }
+                )
+                .subscribe();
+        };
+        // END: کد جدید
+
         const handleAuthChange = async (user) => {
             let profile = null;
             if (user) {
                 profile = await getProfile();
+                subscribeToProfileChanges(user); // <<-- شنونده را پس از ورود فعال می‌کنیم
+            } else {
+                subscribeToProfileChanges(null); // <<-- شنونده را پس از خروج غیرفعال می‌کنیم
             }
             updateUserUI(user, profile); 
         };
