@@ -1,8 +1,8 @@
 // src/assets/js/modules/router.js
 import { state, dom } from './state.js';
-import { initializeAuthForm, initializeContactForm, showEventModal, showProfileModal } from './ui.js';
+import { initializeAuthForm, initializeContactForm, showEventModal, initializeInteractions, renderInteractionsSection, showProfileModal } from './ui.js';
 import * as components from './components.js';
-import { supabaseClient, loadEvents, loadJournal, loadChartData } from './api.js';
+import { supabaseClient, loadEvents, loadJournal, loadChartData, getComments, getLikeStatus } from './api.js';
 
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
@@ -74,6 +74,13 @@ const renderPage = async (path) => {
             updateMetaTags(`${newsItem.title} | اخبار انجمن`, newsItem.summary);
             const author = state.membersMap.get(newsItem.authorId);
             const articleHTML = newsItem.content;
+
+            // Fetch comments and likes with the correct user ID
+            const [{ data: comments }, { data: likeStatus }] = await Promise.all([
+                getComments(newsItem.id, state.user?.id),
+                getLikeStatus(newsItem.id, state.user?.id)
+            ]);
+
             dom.mainContent.innerHTML = `
                 <section class="page-container news-detail-page">
                     <div class="container">
@@ -82,10 +89,16 @@ const renderPage = async (path) => {
                             ${author ? `<div class="news-detail-author clickable-author" data-author-id="${author.id}"><img src="${author.imageUrl || DEFAULT_AVATAR_URL}" alt="${author.name}" loading="lazy"><div><strong>${author.name}</strong><span>${author.role || 'عضو انجمن'}</span></div></div>` : ''}
                             <div class="news-item-meta"><span>${newsItem.date}</span><span class="separator">&bull;</span><span>${newsItem.readingTime}</span></div>
                         </div>
-                        <div class="content-box">${articleHTML}</div>
+                        <div class="content-box">
+                            ${articleHTML}
+                            <hr class="post-divider">
+                            ${renderInteractionsSection(newsItem.id, likeStatus, comments)}
+                        </div>
                     </div>
                 </section>
             `;
+            // Add event listeners for the new section
+            initializeInteractions(newsItem.id);
         }
         dom.mainContent.classList.remove('is-loading');
         return;
@@ -153,11 +166,6 @@ const renderPage = async (path) => {
     }
     
     dom.mainContent.classList.remove('is-loading');
-};
-
-const handleNavigation = () => {
-    const path = location.hash || '#/';
-    renderPage(path);
 };
 
 export const initializeRouter = () => {
