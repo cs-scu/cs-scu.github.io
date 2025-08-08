@@ -1586,11 +1586,15 @@ const renderComment = (comment) => {
                 <div class="comment-actions">
                     <div class="comment-votes">
                         <button class="vote-btn like-comment ${userVote === 1 ? 'active' : ''}" data-vote="1" ${!state.user ? 'disabled' : ''}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="M7.8 19.2c-.3-.3-.4-.6-.4-1V9.8c0-.4.1-.7.4-1 .3-.3.6-.4 1-.4h4.4c.3 0 .5.1.7.2.2.1.4.3.5.5l3.6 7.3c.2.4.3.8.3 1.2 0 .4-.1.8-.3 1.1-.2.3-.5.6-.9.7h-6.2c-.4 0-.7-.1-1-.4zM5.2 8.6H2.8V19h2.4V8.6z"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                            </svg>
                             <span class="like-count">${comment.likes || 0}</span>
                         </button>
                         <button class="vote-btn dislike-comment ${userVote === -1 ? 'active' : ''}" data-vote="-1" ${!state.user ? 'disabled' : ''}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="M16.2 4.8c.3.3.4.6.4 1v8.4c0 .4-.1.7-.4 1-.3.3-.6.4-1 .4h-4.4c-.3 0-.5-.1-.7-.2-.2-.1-.4-.3-.5-.5L5.6 7.9c-.2-.4-.3-.8-.3-1.2 0-.4.1-.8.3-1.1.2-.3.5-.6.9-.7h6.2c.4 0 .7.1 1 .4zM18.8 15.4h2.4V5h-2.4v10.4z"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zM7 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"></path>
+                            </svg>
                             <span class="dislike-count">${comment.dislikes || 0}</span>
                         </button>
                     </div>
