@@ -3140,3 +3140,49 @@ body.light-theme .comment-actions .btn-text:hover:not(:disabled) {
 body.light-theme .comment-actions .delete-btn:hover:not(:disabled) {
     color: #dc3545; /* رنگ قرمز استاندارد برای تم روشن */
 }
+/* ================== Themed Like/Dislike Buttons ================== */
+
+/* --- استایل پایه و هاور برای دکمه‌های رای --- */
+.vote-btn:hover:not(:disabled) {
+    opacity: 1;
+}
+
+body.dark-theme .vote-btn.like-comment:hover:not(:disabled) {
+    color: var(--primary-color);
+}
+body.light-theme .vote-btn.like-comment:hover:not(:disabled) {
+    color: var(--primary-color-light-theme);
+}
+
+body.dark-theme .vote-btn.dislike-comment:hover:not(:disabled),
+body.light-theme .vote-btn.dislike-comment:hover:not(:disabled) {
+    color: #dc3545; /* قرمز */
+}
+
+
+/* --- استایل حالت فعال (Active) --- */
+
+.vote-btn.active {
+    opacity: 1;
+    font-weight: bold;
+}
+
+/* <<-- تغییر اصلی اینجاست -->> */
+/* رنگ دکمه لایک فعال در تم تیره */
+body.dark-theme .vote-btn.like-comment.active {
+    color: var(--primary-color); 
+}
+
+/* رنگ دکمه لایک فعال در تم روشن */
+body.light-theme .vote-btn.like-comment.active {
+    color: var(--primary-color-light-theme);
+}
+
+/* رنگ دکمه دیسلایک فعال (در هر دو تم) */
+.vote-btn.dislike-comment.active {
+    color: #dc3545; /* قرمز */
+}
+/* ================== Themed Heart Icon Fill ================== */
+.vote-btn.like-comment.active svg {
+    fill: currentColor; /* <<-- این خط باعث پر شدن آیکون با رنگ فعال می‌شود */
+}
