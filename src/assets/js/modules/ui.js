@@ -24,6 +24,13 @@ import {
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
+// A simple function to sanitize HTML and prevent XSS
+const sanitizeHTML = (str) => {
+    const temp = document.createElement('div');
+    temp.textContent = str;
+    return temp.innerHTML;
+};
+
 // Helper functions for status messages
 const showStatus = (statusBox, message, type = 'error') => {
     statusBox.textContent = message;
@@ -1571,6 +1578,9 @@ const renderComment = (comment) => {
     const deleteButtonHTML = (state.user && state.user.id === comment.user_id)
         ? `<button class="btn-text delete-btn">حذف</button>`
         : '';
+
+    const sanitizedContent = sanitizeHTML(comment.content);
+
 
     return `
         <div class="comment-item" id="comment-${comment.id}" data-comment-id="${comment.id}">
