@@ -262,14 +262,21 @@ export const addComment = async (newsId, userId, content, parentId = null) => {
                 content,
                 user_id,
                 parent_id,
-                author:profiles ( full_name, avatar_url )
+                author:profiles ( full_name )
             `)
             .single();
         if (error) throw error;
+        
         // Add default vote counts for the new comment
         data.likes = 0;
         data.dislikes = 0;
         data.user_vote = null;
+        
+        // Add avatar from user metadata since it's not in profiles
+        if (state.user && !data.author.avatar_url) {
+            data.author.avatar_url = state.user.user_metadata?.avatar_url;
+        }
+
         return { data, error: null };
     } catch (error) {
         console.error('Error adding comment:', error);
