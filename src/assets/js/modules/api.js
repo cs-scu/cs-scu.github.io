@@ -235,13 +235,17 @@ export const getUserProvider = async (email) => {
 // --- Like and Comment Functions ---
 
 export const getComments = async (newsId, userId) => {
+    if (!newsId) return { data: [], error: 'News ID is missing' };
     try {
+        // Call the final, correct function name
         const { data, error } = await supabaseClient
             .rpc('get_comments_for_news_page', {
                 p_news_id: newsId,
                 p_user_id: userId
             });
+
         if (error) throw error;
+        
         return { data: data || [], error: null };
     } catch (error) {
         console.error('Error fetching comments:', error);
