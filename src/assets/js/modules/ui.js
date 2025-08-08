@@ -25,6 +25,10 @@ import {
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
+const toPersianNumber = (n) => {
+    const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    return String(n).replace(/[0-9]/g, (digit) => persianNumbers[digit]);
+};
 const formatTimeAgo = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -36,12 +40,12 @@ const formatTimeAgo = (dateString) => {
 
     const minutes = Math.round(seconds / 60);
     if (minutes < 60) {
-        return `${minutes} دقیقه قبل`;
+        return `${toPersianNumber(minutes)} دقیقه قبل`;
     }
 
     const hours = Math.round(minutes / 60);
     if (hours < 24) {
-        return `${hours} ساعت قبل`;
+        return `${toPersianNumber(hours)} ساعت قبل`;
     }
 
     // اگر از ۲۴ ساعت گذشته بود، تاریخ کامل را نمایش بده
@@ -1674,10 +1678,10 @@ export const renderInteractionsSection = (newsId, likeStatus, comments) => {
     return `
         <div class="interactions-section">
             <div class="interactions-header">
-                <h3>دیدگاه‌ها (${commentCount})</h3>
+                <h3>دیدگاه‌ها (${toPersianNumber(commentCount)})</h3>
                 <button id="like-btn" class="btn btn-secondary like-btn ${isLiked ? 'liked' : ''}" ${!state.user ? 'disabled' : ''}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                    <span id="like-count">${likeCount}</span>
+                    <span id="like-count">${toPersianNumber(likeCount)}</span>
                 </button>
             </div>
             <div class="comments-list">
