@@ -1679,20 +1679,38 @@ export const initializeInteractions = (newsId) => {
         commentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const contentEl = document.getElementById('comment-content');
-            if (!contentEl.value.trim()) return;
+            const content = contentEl.value;
+            if (!content.trim()) return;
 
             const submitBtn = commentForm.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
-            const { data: newComment, error } = await addComment(newsId, state.user.id, contentEl.value);
+            
+            const { data: newCommentData, error } = await addComment(newsId, state.user.id, content);
             
             if (error) {
                 const statusBox = commentForm.querySelector('.form-status');
                 showStatus(statusBox, 'خطا در ارسال دیدگاه.');
             } else {
+                // START: New logic to build the comment object on the client-side
+                const newCommentForRender = {
+                    ...newCommentData,
+                    author: {
+                        full_name: state.profile?.full_name || state.user.email.split('@')[0],
+                        avatar_url: state.profile?.avatar_url || state.user.user_metadata?.avatar_url
+                    },
+                    likes: 0,
+                    dislikes: 0,
+                    user_vote: null,
+                    replies: []
+                };
+                // END: New logic
+
                 const commentsList = document.querySelector('.comments-list');
                 const noCommentMessage = commentsList.querySelector('p');
                 if (noCommentMessage) noCommentMessage.remove();
-                commentsList.insertAdjacentHTML('beforeend', renderComment(newComment));
+                
+                commentsList.insertAdjacentHTML('beforeend', renderComment(newCommentForRender));
+                
                 contentEl.value = '';
                 const commentCountEl = document.querySelector('.interactions-header h3');
                 const newCount = (parseInt(commentCountEl.textContent.match(/\d+/)[0]) || 0) + 1;
@@ -1709,11 +1727,10 @@ export const initializeInteractions = (newsId) => {
             // -- Toggle Comment Vote --
             const voteBtn = e.target.closest('.vote-btn');
             if (voteBtn && state.user) {
-                const commentItem = voteBtn.closest('.comment-item');
+                 const commentItem = voteBtn.closest('.comment-item');
                 const commentId = commentItem.dataset.commentId;
                 const voteType = parseInt(voteBtn.dataset.vote, 10);
                 
-                // Disable buttons to prevent multi-click
                 commentItem.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);
                 
                 const { data, error } = await toggleCommentVote(commentId, state.user.id, voteType);
@@ -1737,7 +1754,6 @@ export const initializeInteractions = (newsId) => {
             if (replyBtn) {
                 const commentItem = replyBtn.closest('.comment-item');
                 const replyContainer = commentItem.querySelector('.reply-form-container');
-
                 if (replyContainer.style.display === 'none') {
                     replyContainer.innerHTML = `
                         <form class="reply-form">
@@ -1766,7 +1782,8 @@ export const initializeInteractions = (newsId) => {
                 replyContainer.style.display = 'none';
                 replyContainer.innerHTML = '';
             }
-        
+
+            // -- Delete Comment --
             const deleteBtn = e.target.closest('.delete-btn');
             if (deleteBtn) {
                 if (confirm('آیا از حذف این دیدگاه مطمئن هستید؟')) {
@@ -1774,11 +1791,10 @@ export const initializeInteractions = (newsId) => {
                     const commentId = commentItem.dataset.commentId;
                     
                     deleteBtn.disabled = true;
-                    const { success, error } = await deleteComment(commentId);
+                    const { success } = await deleteComment(commentId);
 
                     if (success) {
-                        commentItem.remove(); // حذف کامنت از صفحه
-                        // به‌روزرسانی تعداد کل کامنت‌ها
+                        commentItem.remove();
                         const commentCountEl = document.querySelector('.interactions-header h3');
                         const newCount = (parseInt(commentCountEl.textContent.match(/\d+/)[0]) || 1) - 1;
                         commentCountEl.textContent = `دیدگاه‌ها (${newCount})`;
@@ -1804,14 +1820,26 @@ export const initializeInteractions = (newsId) => {
             const submitBtn = form.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
 
-            const { data: newReply, error } = await addComment(newsId, state.user.id, content, parentId);
+            const { data: newReplyData, error } = await addComment(newsId, state.user.id, content, parentId);
             
             if (error) {
                 const statusBox = form.querySelector('.form-status');
                 showStatus(statusBox, 'خطا در ارسال پاسخ.');
             } else {
+                 const newReplyForRender = {
+                    ...newReplyData,
+                    author: {
+                        full_name: state.profile?.full_name || state.user.email.split('@')[0],
+                        avatar_url: state.profile?.avatar_url || state.user.user_metadata?.avatar_url
+                    },
+                    likes: 0,
+                    dislikes: 0,
+                    user_vote: null,
+                    replies: []
+                };
+
                 const repliesContainer = commentItem.querySelector('.comment-replies');
-                repliesContainer.insertAdjacentHTML('beforeend', renderComment(newReply));
+                repliesContainer.insertAdjacentHTML('beforeend', renderComment(newReplyForRender));
                 form.parentElement.style.display = 'none';
                 form.parentElement.innerHTML = '';
                 const commentCountEl = document.querySelector('.interactions-header h3');

@@ -251,16 +251,14 @@ export const getComments = async (newsId, userId) => {
 
 export const addComment = async (newsId, userId, content, parentId = null) => {
     try {
+        // This function now ONLY inserts the data and returns the inserted row.
         const { data, error } = await supabaseClient
             .from('comments')
             .insert({ news_id: newsId, user_id: userId, content: content, parent_id: parentId })
-            .select(`*, author:profiles(full_name)`)
+            .select() // Select the new comment without any joins
             .single();
+
         if (error) throw error;
-        data.likes = 0;
-        data.dislikes = 0;
-        data.user_vote = null;
-        data.replies = [];
         return { data, error: null };
     } catch (error) {
         console.error('Error adding comment:', error);
