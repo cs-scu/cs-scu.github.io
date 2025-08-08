@@ -1711,6 +1711,11 @@ export const initializeInteractions = (newsId) => {
     const container = document.querySelector('.interactions-section');
     if (!container) return;
 
+    // --- تابع کمکی برای تبدیل اعداد فارسی به انگلیسی ---
+    const toEnglishNumber = (str) => {
+        return String(str).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+    };
+
     // --- Like News Post ---
     const likeBtn = document.getElementById('like-btn');
     if (likeBtn) {
@@ -1721,12 +1726,13 @@ export const initializeInteractions = (newsId) => {
             if (error) { console.error("Failed to toggle like"); }
             else {
                 likeBtn.classList.toggle('liked', data.is_liked);
-                document.getElementById('like-count').textContent = data.like_count;
+                document.getElementById('like-count').textContent = toPersianNumber(data.like_count);
             }
             likeBtn.disabled = false;
         });
     }
 
+    // --- Add Root Comment ---
     const commentForm = document.getElementById('comment-form');
     if (commentForm) {
         commentForm.addEventListener('submit', async (e) => {
@@ -1766,9 +1772,9 @@ export const initializeInteractions = (newsId) => {
                     
                     contentEl.value = '';
                     const commentCountEl = document.querySelector('.interactions-header h3');
-                    const currentCountText = commentCountEl.textContent.match(/\d+/);
-                    const currentCount = currentCountText ? parseInt(currentCountText[0], 10) : 0;
-                    commentCountEl.textContent = `دیدگاه‌ها (${currentCount + 1})`;
+                    const countText = toEnglishNumber(commentCountEl.textContent.match(/[۰-۹0-9]+/)?.[0] || '0');
+                    const currentCount = parseInt(countText, 10);
+                    commentCountEl.textContent = `دیدگاه‌ها (${toPersianNumber(currentCount + 1)})`;
                 }
             } finally {
                 submitBtn.disabled = false;
@@ -1794,24 +1800,9 @@ export const initializeInteractions = (newsId) => {
                 if (error) {
                     console.error("Failed to vote on comment");
                 } else {
-                    // START: منطق جدید و اصلاح‌شده برای به‌روزرسانی UI
-                    commentItem.querySelector('.like-count').textContent = data.likes;
-                    commentItem.querySelector('.dislike-count').textContent = data.dislikes;
-                    
+                    commentItem.querySelector('.like-count').textContent = toPersianNumber(data.likes);
                     const likeButton = commentItem.querySelector('.like-comment');
-                    const dislikeButton = commentItem.querySelector('.dislike-comment');
-
-                    // ابتدا هر دو حالت فعال را حذف می‌کنیم
-                    likeButton.classList.remove('active');
-                    dislikeButton.classList.remove('active');
-
-                    // بر اساس پاسخ سرور، حالت فعال جدید را تنظیم می‌کنیم
-                    if (data.user_vote === 1) {
-                        likeButton.classList.add('active');
-                    } else if (data.user_vote === -1) {
-                        dislikeButton.classList.add('active');
-                    }
-                    // END: منطق جدید
+                    likeButton.classList.toggle('active', data.user_vote === 1);
                 }
                 
                 commentItem.querySelectorAll('.vote-btn').forEach(b => b.disabled = false);
@@ -1828,7 +1819,7 @@ export const initializeInteractions = (newsId) => {
                             <div class="form-group">
                                 <textarea placeholder="پاسخ شما..." required></textarea>
                             </div>
-                            <div class="form-actions">
+                            <div class="form-actions" style="justify-content: flex-end; flex-direction: row;">
                                 <button type="button" class="btn btn-secondary cancel-reply">انصراف</button>
                                 <button type="submit" class="btn btn-primary">ارسال پاسخ</button>
                             </div>
@@ -1859,12 +1850,10 @@ export const initializeInteractions = (newsId) => {
                     const commentId = commentItem.dataset.commentId;
                     
                     deleteBtn.disabled = true;
-                    const { success, data } = await deleteComment(commentId);
+                    const { success, data } = await deleteComment(commentId, state.user.id);
 
                     if (success) {
-                        // <<-- منطق جدید برای به‌روزرسانی UI -->>
                         if (data.has_children) {
-                            // اگر فرزند داشت، کامنت را به حالت حذف شده درمی‌آوریم
                             const commentMain = commentItem.querySelector('.comment-main');
                             if (commentMain) {
                                 commentMain.innerHTML = `
@@ -1874,15 +1863,15 @@ export const initializeInteractions = (newsId) => {
                                 commentItem.classList.add('is-deleted');
                             }
                         } else {
-                            // اگر فرزندی نداشت، کاملاً حذفش می‌کنیم
                             commentItem.remove();
                         }
                         
                         const commentCountEl = document.querySelector('.interactions-header h3');
-                        const newCount = (parseInt(commentCountEl.textContent.match(/\d+/)[0]) || 1) - 1;
-                        commentCountEl.textContent = `دیدگاه‌ها (${newCount})`;
+                        const countText = toEnglishNumber(commentCountEl.textContent.match(/[۰-۹0-9]+/)?.[0] || '1');
+                        const currentCount = parseInt(countText, 10);
+                        commentCountEl.textContent = `دیدگاه‌ها (${toPersianNumber(Math.max(0, currentCount - 1))})`;
                     } else {
-                        alert('خطا در حذف دیدگاه.');
+                        alert('خطا در حذف دیدگاه. شما دسترسی لازم را ندارید.');
                         deleteBtn.disabled = false;
                     }
                 }
@@ -1901,35 +1890,41 @@ export const initializeInteractions = (newsId) => {
             if (!content.trim()) return;
 
             const submitBtn = form.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-
-            const { data: newReplyData, error } = await addComment(newsId, state.user.id, content, parentId);
+            const statusBox = form.querySelector('.form-status');
             
-            if (error) {
-                const statusBox = form.querySelector('.form-status');
-                showStatus(statusBox, 'خطا در ارسال پاسخ.');
-            } else {
-                 const newReplyForRender = {
-                    ...newReplyData,
-                    author: {
-                        full_name: state.profile?.full_name || state.user.email.split('@')[0],
-                        avatar_url: state.profile?.avatar_url || state.user.user_metadata?.avatar_url
-                    },
-                    likes: 0,
-                    dislikes: 0,
-                    user_vote: null,
-                    replies: []
-                };
+            submitBtn.disabled = true;
+            hideStatus(statusBox);
 
-                const repliesContainer = commentItem.querySelector('.comment-replies');
-                repliesContainer.insertAdjacentHTML('beforeend', renderComment(newReplyForRender));
-                form.parentElement.style.display = 'none';
-                form.parentElement.innerHTML = '';
-                const commentCountEl = document.querySelector('.interactions-header h3');
-                const newCount = (parseInt(commentCountEl.textContent.match(/\d+/)[0]) || 0) + 1;
-                commentCountEl.textContent = `دیدگاه‌ها (${newCount})`;
+            try {
+                const { data: newReplyData, error } = await addComment(newsId, state.user.id, content, parentId);
+                
+                if (error) {
+                    showStatus(statusBox, 'خطا در ارسال پاسخ.');
+                } else {
+                     const newReplyForRender = {
+                        ...newReplyData,
+                        author: {
+                            full_name: state.profile?.full_name || state.user.email.split('@')[0],
+                            avatar_url: state.profile?.avatar_url || state.user.user_metadata?.avatar_url
+                        },
+                        likes: 0,
+                        user_vote: null,
+                        replies: []
+                    };
+
+                    const repliesContainer = commentItem.querySelector('.comment-replies');
+                    repliesContainer.insertAdjacentHTML('beforeend', renderComment(newReplyForRender));
+                    form.parentElement.style.display = 'none';
+                    form.parentElement.innerHTML = '';
+                    
+                    const commentCountEl = document.querySelector('.interactions-header h3');
+                    const countText = toEnglishNumber(commentCountEl.textContent.match(/[۰-۹0-9]+/)?.[0] || '0');
+                    const currentCount = parseInt(countText, 10);
+                    commentCountEl.textContent = `دیدگاه‌ها (${toPersianNumber(currentCount + 1)})`;
+                }
+            } finally {
+                submitBtn.disabled = false;
             }
-            submitBtn.disabled = false;
         });
     }
 };

@@ -264,11 +264,12 @@ export const addComment = async (newsId, userId, content, parentId = null) => {
     }
 };
 
-export const deleteComment = async (commentId) => {
+export const deleteComment = async (commentId, deleterUserId) => {
     try {
-        // <<-- فراخوانی تابع جدید RPC -->>
+        // <<-- ارسال ID کاربر حذف‌کننده به تابع RPC -->>
         const { data, error } = await supabaseClient.rpc('soft_delete_comment', {
-            comment_id_to_delete: commentId
+            comment_id_to_delete: commentId,
+            deleter_user_id: deleterUserId
         });
         if (error) throw error;
         return { success: true, data: data, error: null };
