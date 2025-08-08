@@ -1688,7 +1688,6 @@ export const initializeInteractions = (newsId) => {
                 const statusBox = commentForm.querySelector('.form-status');
                 showStatus(statusBox, 'خطا در ارسال دیدگاه.');
             } else {
-                // START: New logic to build the comment object on the client-side
                 const newCommentForRender = {
                     ...newCommentData,
                     author: {
@@ -1700,7 +1699,6 @@ export const initializeInteractions = (newsId) => {
                     user_vote: null,
                     replies: []
                 };
-                // END: New logic
 
                 const commentsList = document.querySelector('.comments-list');
                 const noCommentMessage = commentsList.querySelector('p');
@@ -1724,7 +1722,7 @@ export const initializeInteractions = (newsId) => {
             // -- Toggle Comment Vote --
             const voteBtn = e.target.closest('.vote-btn');
             if (voteBtn && state.user) {
-                 const commentItem = voteBtn.closest('.comment-item');
+                const commentItem = voteBtn.closest('.comment-item');
                 const commentId = commentItem.dataset.commentId;
                 const voteType = parseInt(voteBtn.dataset.vote, 10);
                 
@@ -1735,12 +1733,24 @@ export const initializeInteractions = (newsId) => {
                 if (error) {
                     console.error("Failed to vote on comment");
                 } else {
+                    // START: منطق جدید و اصلاح‌شده برای به‌روزرسانی UI
                     commentItem.querySelector('.like-count').textContent = data.likes;
                     commentItem.querySelector('.dislike-count').textContent = data.dislikes;
-                    commentItem.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('active'));
-                    if (data.user_vote) {
-                        commentItem.querySelector(`.vote-btn[data-vote="${data.user_vote}"]`).classList.add('active');
+                    
+                    const likeButton = commentItem.querySelector('.like-comment');
+                    const dislikeButton = commentItem.querySelector('.dislike-comment');
+
+                    // ابتدا هر دو حالت فعال را حذف می‌کنیم
+                    likeButton.classList.remove('active');
+                    dislikeButton.classList.remove('active');
+
+                    // بر اساس پاسخ سرور، حالت فعال جدید را تنظیم می‌کنیم
+                    if (data.user_vote === 1) {
+                        likeButton.classList.add('active');
+                    } else if (data.user_vote === -1) {
+                        dislikeButton.classList.add('active');
                     }
+                    // END: منطق جدید
                 }
                 
                 commentItem.querySelectorAll('.vote-btn').forEach(b => b.disabled = false);
