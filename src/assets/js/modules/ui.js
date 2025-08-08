@@ -1,6 +1,6 @@
 // src/assets/js/modules/ui.js
 import { state, dom } from './state.js';
-import { supabaseClient, checkUserStatus, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, signInWithGoogle, updateUserPassword, updateProfile, getProfile, verifyTurnstile, getEventRegistration , deleteEventRegistration } from './api.js';
+import { supabaseClient, checkUserStatus, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, signInWithGoogle, updateUserPassword, updateProfile, getProfile, verifyTurnstile, getEventRegistration , deleteEventRegistration , getUserProvider} from './api.js';
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
@@ -130,6 +130,7 @@ export const initializeAuthForm = () => {
     const passwordStep = form.querySelector('#password-step');
     const otpStep = form.querySelector('#otp-step');
     const setPasswordStep = form.querySelector('#set-password-step');
+    const linkingStep = form.querySelector('#linking-step'); // مرحله جدید
     
     const statusBox = form.querySelector('.form-status');
     const emailSubmitBtn = form.querySelector('#email-submit-btn');
@@ -141,6 +142,11 @@ export const initializeAuthForm = () => {
 
     const displayEmailPassword = form.querySelector('#display-email-password');
     const displayEmailOtp = form.querySelector('#display-email-otp');
+    
+    // --- دکمه‌های جدید مرحله اتصال حساب ---
+    const googleSignInRedirectBtn = form.querySelector('#google-signin-redirect-btn');
+    const setPasswordRedirectBtn = form.querySelector('#set-password-redirect-btn');
+    const displayEmailLinking = form.querySelector('#display-email-linking');
 
     const otpContainer = form.querySelector('#otp-container');
     const otpInputs = otpContainer ? Array.from(otpContainer.children) : [];
@@ -240,6 +246,7 @@ export const initializeAuthForm = () => {
         passwordStep.style.display = 'none';
         otpStep.style.display = 'none';
         setPasswordStep.style.display = 'none';
+        linkingStep.style.display = 'none'; // مخفی کردن مرحله جدید
         step.style.display = 'block';
         if (step === otpStep) {
             otpInputs[0]?.focus();
@@ -269,6 +276,26 @@ export const initializeAuthForm = () => {
                     otpInputs[otpInputs.length - 1].focus();
                 }
             });
+        });
+    }
+    
+    // --- رویدادهای کلیک برای دکمه‌های جدید ---
+    if (googleSignInRedirectBtn) {
+        googleSignInRedirectBtn.addEventListener('click', () => signInWithGoogle());
+    }
+
+    if (setPasswordRedirectBtn) {
+        setPasswordRedirectBtn.addEventListener('click', async () => {
+            hideStatus(statusBox);
+            otpContext = 'reset';
+            const { error } = await sendPasswordResetOtp(currentEmail);
+            if (error) {
+                showStatus(statusBox, getFriendlyAuthError(error));
+            } else {
+                showStep(otpStep);
+                startOtpTimer();
+                showStatus(statusBox, 'کد بازنشانی رمز برای ایجاد رمز جدید به ایمیل شما ارسال شد.', 'success');
+            }
         });
     }
 
@@ -301,15 +328,21 @@ export const initializeAuthForm = () => {
                 }
                 
                 currentEmail = form.querySelector('#auth-email').value;
-                if(displayEmailPassword) displayEmailPassword.textContent = currentEmail;
-                if(displayEmailOtp) displayEmailOtp.textContent = currentEmail;
-
+                
                 const status = await checkUserStatus(currentEmail);
 
                 if (status === 'exists_and_confirmed') {
-                    showStep(passwordStep);
+                    const { data: provider } = await getUserProvider(currentEmail);
+                    if (provider === 'google') {
+                        displayEmailLinking.textContent = currentEmail;
+                        showStep(linkingStep);
+                    } else {
+                        displayEmailPassword.textContent = currentEmail;
+                        showStep(passwordStep);
+                    }
                     submitBtn.textContent = 'ادامه';
                     submitBtn.disabled = false;
+
                 } else if (status === 'does_not_exist' || status === 'exists_unconfirmed') {
                     otpContext = 'signup';
                     const { error } = await sendSignupOtp(currentEmail);
@@ -322,6 +355,7 @@ export const initializeAuthForm = () => {
                             submitBtn.disabled = false;
                         }
                     } else {
+                        displayEmailOtp.textContent = currentEmail;
                         showStep(otpStep);
                         startOtpTimer();
                         showStatus(statusBox, 'کد تایید به ایمیل شما ارسال شد.', 'success');

@@ -217,3 +217,12 @@ export const deleteEventRegistration = async (registrationId) => {
         return { success: false, error };
     }
 };
+
+export const getUserProvider = async (email) => {
+    const { data, error } = await supabaseClient.rpc('get_user_provider', { user_email: email });
+    if (error) {
+        console.error("Error checking user provider:", error);
+        return { data: null, error };
+    }
+    return { data, error: null };
+};
