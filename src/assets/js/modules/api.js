@@ -237,31 +237,47 @@ export const getUserProvider = async (email) => {
 export const getComments = async (newsId, userId) => {
     if (!newsId) return { data: [], error: 'News ID is missing' };
     try {
-        // Call the final, correct function name
-        const { data, error } = await supabaseClient
-            .rpc('get_comments_for_news_page', {
-                p_news_id: newsId,
-                p_user_id: userId
-            });
-
-        if (error) throw error;
+        // Fetch comments from our new, reliable VIEW
+        const { data: comments, error: commentsError } = await supabaseClient
+            .from('detailed_comments')
+            .select('*')
+            .eq('news_id', newsId)
+            .order('created_at', { ascending: true });
         
-        return { data: data || [], error: null };
+        if (commentsError) throw commentsError;
+
+        // Fetch the current user's votes separately for efficiency
+        let userVotes = new Map();
+        if (userId) {
+            const { data: votes, error: votesError } = await supabaseClient
+                .from('comment_votes')
+                .select('comment_id, vote_type')
+                .eq('user_id', userId);
+            
+            if (votesError) throw votesError;
+            votes.forEach(vote => userVotes.set(vote.comment_id, vote.vote_type));
+        }
+
+        // Combine the data
+        const finalComments = comments.map(comment => ({
+            ...comment,
+            author: { full_name: comment.full_name },
+            user_vote: userVotes.get(comment.id) || null
+        }));
+
+        return { data: finalComments, error: null };
     } catch (error) {
         console.error('Error fetching comments:', error);
         return { data: null, error };
     }
 };
-
 export const addComment = async (newsId, userId, content, parentId = null) => {
     try {
-        // This function now ONLY inserts the data and returns the inserted row.
         const { data, error } = await supabaseClient
             .from('comments')
             .insert({ news_id: newsId, user_id: userId, content: content, parent_id: parentId })
-            .select() // Select the new comment without any joins
+            .select()
             .single();
-
         if (error) throw error;
         return { data, error: null };
     } catch (error) {
