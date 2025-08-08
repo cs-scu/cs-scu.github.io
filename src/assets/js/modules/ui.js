@@ -81,7 +81,7 @@ export const initializeAuthForm = () => {
     const form = dom.mainContent.querySelector('#auth-form');
     if (!form || form.dataset.listenerAttached) return;
 
-    // --- تابع کمکی جدید برای مدیریت پیام‌های خطا ---
+    // --- تابع کمکی برای مدیریت پیام‌های خطا ---
     const getFriendlyAuthError = (error) => {
         if (!error) return 'یک خطای ناشناخته رخ داد. لطفاً دوباره تلاش کنید.';
         
@@ -111,7 +111,7 @@ export const initializeAuthForm = () => {
         }
     };
 
-    // --- تابع کمکی جدید برای مدیریت ریدایرکت پس از ورود موفق ---
+    // --- تابع کمکی برای مدیریت ریدایرکت پس از ورود موفق ---
     const handleSuccessfulLogin = () => {
         const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
         sessionStorage.removeItem('redirectAfterLogin'); 
@@ -125,12 +125,14 @@ export const initializeAuthForm = () => {
 
     let otpTimerInterval = null;
     let otpContext = 'signup';
+    let tempFullName = ''; // متغیر موقت برای نگهداری نام کاربر
 
     const emailStep = form.querySelector('#email-step');
     const passwordStep = form.querySelector('#password-step');
     const otpStep = form.querySelector('#otp-step');
+    const setNameStep = form.querySelector('#set-name-step'); // مرحله جدید
     const setPasswordStep = form.querySelector('#set-password-step');
-    const linkingStep = form.querySelector('#linking-step'); // مرحله جدید
+    const linkingStep = form.querySelector('#linking-step');
     
     const statusBox = form.querySelector('.form-status');
     const emailSubmitBtn = form.querySelector('#email-submit-btn');
@@ -142,8 +144,6 @@ export const initializeAuthForm = () => {
 
     const displayEmailPassword = form.querySelector('#display-email-password');
     const displayEmailOtp = form.querySelector('#display-email-otp');
-    
-    // --- دکمه‌های جدید مرحله اتصال حساب ---
     const googleSignInRedirectBtn = form.querySelector('#google-signin-redirect-btn');
     const setPasswordRedirectBtn = form.querySelector('#set-password-redirect-btn');
     const displayEmailLinking = form.querySelector('#display-email-linking');
@@ -245,12 +245,12 @@ export const initializeAuthForm = () => {
         emailStep.style.display = 'none';
         passwordStep.style.display = 'none';
         otpStep.style.display = 'none';
+        setNameStep.style.display = 'none';
         setPasswordStep.style.display = 'none';
-        linkingStep.style.display = 'none'; // مخفی کردن مرحله جدید
+        linkingStep.style.display = 'none';
         step.style.display = 'block';
-        if (step === otpStep) {
-            otpInputs[0]?.focus();
-        }
+        if (step === otpStep) otpInputs[0]?.focus();
+        if (step === setNameStep) form.querySelector('#full-name-signup').focus();
     };
 
     editEmailBtns.forEach(btn => {
@@ -278,8 +278,7 @@ export const initializeAuthForm = () => {
             });
         });
     }
-    
-    // --- رویدادهای کلیک برای دکمه‌های جدید ---
+
     if (googleSignInRedirectBtn) {
         googleSignInRedirectBtn.addEventListener('click', () => signInWithGoogle());
     }
@@ -309,7 +308,7 @@ export const initializeAuthForm = () => {
         hideStatus(statusBox);
 
         switch (activeStep.id) {
-case 'email-step':
+            case 'email-step':
                 submitBtn.textContent = 'در حال بررسی...';
                 const turnstileToken = form.querySelector('[name="cf-turnstile-response"]')?.value;
                 if (!turnstileToken) {
@@ -368,6 +367,7 @@ case 'email-step':
                     submitBtn.disabled = false;
                 }
                 break;
+
             case 'password-step':
                 submitBtn.textContent = 'در حال ورود...';
                 const password = form.querySelector('#auth-password').value;
@@ -394,10 +394,22 @@ case 'email-step':
                 if (otpError || !data.session) {
                     showStatus(statusBox, getFriendlyAuthError(otpError || { message: 'Code is invalid' }));
                 } else {
-                    showStep(setPasswordStep);
-                    showStatus(statusBox, 'کد تایید شد. اکنون رمز عبور خود را تعیین کنید.', 'success');
+                    showStep(setNameStep);
+                    showStatus(statusBox, 'کد تایید شد. لطفاً نام خود را وارد کنید.', 'success');
                 }
                 submitBtn.textContent = 'تایید کد';
+                submitBtn.disabled = false;
+                break;
+            
+            case 'set-name-step':
+                tempFullName = form.querySelector('#full-name-signup').value;
+                if (tempFullName.trim().length < 3) {
+                    showStatus(statusBox, 'لطفاً نام معتبری وارد کنید.');
+                    submitBtn.disabled = false;
+                    return;
+                }
+                showStep(setPasswordStep);
+                showStatus(statusBox, 'عالی! اکنون رمز عبور خود را تعیین کنید.', 'success');
                 submitBtn.disabled = false;
                 break;
 
@@ -415,6 +427,9 @@ case 'email-step':
                     showStatus(statusBox, getFriendlyAuthError(updateError));
                     submitBtn.disabled = false;
                 } else {
+                    if (tempFullName) {
+                        await updateProfile({ full_name: tempFullName });
+                    }
                     await getProfile();
                     handleSuccessfulLogin();
                 }
