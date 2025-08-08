@@ -1,6 +1,26 @@
 // src/assets/js/modules/ui.js
 import { state, dom } from './state.js';
-import { supabaseClient, checkUserStatus, sendSignupOtp, sendPasswordResetOtp, verifyOtp, signInWithPassword, signInWithGoogle, updateUserPassword, updateProfile, getProfile, verifyTurnstile, getEventRegistration , deleteEventRegistration , getUserProvider} from './api.js';
+// START: Imports corrected
+import { 
+    supabaseClient, 
+    checkUserStatus, 
+    sendSignupOtp, 
+    sendPasswordResetOtp, 
+    verifyOtp, 
+    signInWithPassword, 
+    signInWithGoogle, 
+    updateUserPassword, 
+    updateProfile, 
+    getProfile, 
+    verifyTurnstile, 
+    getEventRegistration, 
+    deleteEventRegistration, 
+    getUserProvider,
+    addComment,
+    toggleLike,
+    toggleCommentVote
+} from './api.js';
+// END: Imports corrected
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
@@ -81,59 +101,40 @@ export const initializeAuthForm = () => {
     const form = dom.mainContent.querySelector('#auth-form');
     if (!form || form.dataset.listenerAttached) return;
 
-    // --- تابع کمکی برای مدیریت پیام‌های خطا ---
     const getFriendlyAuthError = (error) => {
         if (!error) return 'یک خطای ناشناخته رخ داد. لطفاً دوباره تلاش کنید.';
-        
-        console.error("Auth Error:", error); // برای خطایابی در کنسول
-
-        if (error.message.includes('network')) {
-            return 'مشکل در اتصال به سرور. لطفاً اینترنت خود را بررسی و دوباره تلاش کنید.';
-        }
-
+        console.error("Auth Error:", error);
+        if (error.message.includes('network')) return 'مشکل در اتصال به سرور. لطفاً اینترنت خود را بررسی و دوباره تلاش کنید.';
         switch (error.message) {
-            case 'Invalid login credentials':
-                return 'ایمیل یا رمز عبور وارد شده صحیح نیست.';
+            case 'Invalid login credentials': return 'ایمیل یا رمز عبور وارد شده صحیح نیست.';
             case 'Token has expired or is invalid':
-            case 'Code is invalid':
-                return 'کد تایید وارد شده صحیح نیست یا منقضی شده است.';
-            case 'Unable to validate email address: invalid format':
-                return 'فرمت ایمیل وارد شده صحیح نیست. لطفاً آن را بررسی کنید.';
-            case 'Email rate limit exceeded':
-                return 'تعداد درخواست‌ها برای این ایمیل بیش از حد مجاز است. لطفاً چند دقیقه دیگر صبر کنید.';
-            case 'Password should be at least 6 characters':
-                 return 'رمز عبور باید حداقل ۶ کاراکتر باشد.';
+            case 'Code is invalid': return 'کد تایید وارد شده صحیح نیست یا منقضی شده است.';
+            case 'Unable to validate email address: invalid format': return 'فرمت ایمیل وارد شده صحیح نیست. لطفاً آن را بررسی کنید.';
+            case 'Email rate limit exceeded': return 'تعداد درخواست‌ها برای این ایمیل بیش از حد مجاز است. لطفاً چند دقیقه دیگر صبر کنید.';
+            case 'Password should be at least 6 characters': return 'رمز عبور باید حداقل ۶ کاراکتر باشد.';
             default:
-                if (error.status === 429) {
-                     return 'تعداد درخواست‌ها زیاد است. لطفاً پس از ۱ دقیقه دوباره تلاش کنید.';
-                }
+                if (error.status === 429) return 'تعداد درخواست‌ها زیاد است. لطفاً پس از ۱ دقیقه دوباره تلاش کنید.';
                 return 'یک خطای غیرمنتظره رخ داد. لطفاً بعداً تلاش کنید.';
         }
     };
 
-    // --- تابع کمکی برای مدیریت ریدایرکت پس از ورود موفق ---
     const handleSuccessfulLogin = () => {
         const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
-        sessionStorage.removeItem('redirectAfterLogin'); 
-        
-        if (redirectUrl && redirectUrl !== '#/login') {
-            location.hash = redirectUrl;
-        } else {
-            location.hash = '#/'; 
-        }
+        sessionStorage.removeItem('redirectAfterLogin');
+        if (redirectUrl && redirectUrl !== '#/login') location.hash = redirectUrl;
+        else location.hash = '#/';
     };
 
     let otpTimerInterval = null;
     let otpContext = 'signup';
-    let tempFullName = ''; // متغیر موقت برای نگهداری نام کاربر
+    let tempFullName = '';
 
     const emailStep = form.querySelector('#email-step');
     const passwordStep = form.querySelector('#password-step');
     const otpStep = form.querySelector('#otp-step');
-    const setNameStep = form.querySelector('#set-name-step'); // مرحله جدید
+    const setNameStep = form.querySelector('#set-name-step');
     const setPasswordStep = form.querySelector('#set-password-step');
     const linkingStep = form.querySelector('#linking-step');
-    
     const statusBox = form.querySelector('.form-status');
     const emailSubmitBtn = form.querySelector('#email-submit-btn');
     const forgotPasswordBtn = form.querySelector('#forgot-password-btn');
@@ -141,17 +142,15 @@ export const initializeAuthForm = () => {
     const resendOtpBtn = form.querySelector('#resend-otp-btn');
     const otpTimerSpan = form.querySelector('#otp-timer');
     const googleSignInBtn = form.querySelector('#google-signin-btn');
-
     const displayEmailPassword = form.querySelector('#display-email-password');
     const displayEmailOtp = form.querySelector('#display-email-otp');
     const googleSignInRedirectBtn = form.querySelector('#google-signin-redirect-btn');
     const setPasswordRedirectBtn = form.querySelector('#set-password-redirect-btn');
     const displayEmailLinking = form.querySelector('#display-email-linking');
-
     const otpContainer = form.querySelector('#otp-container');
     const otpInputs = otpContainer ? Array.from(otpContainer.children) : [];
-
     const turnstileWidget = form.querySelector('#turnstile-widget');
+
     if (turnstileWidget && typeof turnstile !== 'undefined') {
         turnstile.render('#turnstile-widget', {
             sitekey: '0x4AAAAAABoNEi1N70S2VODl',
@@ -163,9 +162,7 @@ export const initializeAuthForm = () => {
         googleSignInBtn.addEventListener('click', async () => {
             hideStatus(statusBox);
             const { error } = await signInWithGoogle();
-            if (error) {
-                showStatus(statusBox, getFriendlyAuthError(error));
-            }
+            if (error) showStatus(statusBox, getFriendlyAuthError(error));
         });
     }
 
@@ -187,17 +184,13 @@ export const initializeAuthForm = () => {
             let strength = 'none';
             if (password.length > 0) {
                 strength = 'weak';
-                if (password.length >= 8) {
-                    strength = 'medium';
-                }
-                if (password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
-                    strength = 'strong';
-                }
+                if (password.length >= 8) strength = 'medium';
+                if (password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)) strength = 'strong';
             }
             strengthIndicator.className = `password-strength-indicator ${strength}`;
         });
     }
-
+    
     const startOtpTimer = () => {
         clearInterval(otpTimerInterval);
         let duration = 60;
@@ -241,15 +234,15 @@ export const initializeAuthForm = () => {
         updateButtonText();
     };
 
-const showStep = (step) => {
-        const allSteps = [emailStep, passwordStep, otpStep, setNameStep, setPasswordStep, linkingStep];
 
+    const showStep = (step) => {
+        const allSteps = [emailStep, passwordStep, otpStep, setNameStep, setPasswordStep, linkingStep];
         allSteps.forEach(element => {
-            if (element) { 
+            if (element) {
                 element.style.display = 'none';
             }
         });
-        if (step) { 
+        if (step) {
             step.style.display = 'block';
         }
         if (step === otpStep) otpInputs[0]?.focus();
@@ -282,9 +275,7 @@ const showStep = (step) => {
         });
     }
 
-    if (googleSignInRedirectBtn) {
-        googleSignInRedirectBtn.addEventListener('click', () => signInWithGoogle());
-    }
+    if (googleSignInRedirectBtn) { googleSignInRedirectBtn.addEventListener('click', () => signInWithGoogle()); }
 
     if (setPasswordRedirectBtn) {
         setPasswordRedirectBtn.addEventListener('click', async () => {
@@ -305,11 +296,9 @@ const showStep = (step) => {
         e.preventDefault();
         const activeStep = e.submitter.closest('div[id$="-step"]');
         if (!activeStep) return;
-
         const submitBtn = e.submitter;
         submitBtn.disabled = true;
         hideStatus(statusBox);
-
         switch (activeStep.id) {
             case 'email-step':
                 submitBtn.textContent = 'در حال بررسی...';
@@ -328,11 +317,8 @@ const showStep = (step) => {
                     submitBtn.textContent = 'ادامه';
                     return;
                 }
-                
                 currentEmail = form.querySelector('#auth-email').value;
-                
                 const status = await checkUserStatus(currentEmail);
-
                 if (status === 'exists_and_confirmed') {
                     const { data: provider } = await getUserProvider(currentEmail);
                     if (provider === 'google') {
@@ -344,7 +330,6 @@ const showStep = (step) => {
                     }
                     submitBtn.textContent = 'ادامه';
                     submitBtn.disabled = false;
-
                 } else if (status === 'does_not_exist' || status === 'exists_unconfirmed') {
                     otpContext = 'signup';
                     const { error } = await sendSignupOtp(currentEmail);
@@ -370,7 +355,6 @@ const showStep = (step) => {
                     submitBtn.disabled = false;
                 }
                 break;
-
             case 'password-step':
                 submitBtn.textContent = 'در حال ورود...';
                 const password = form.querySelector('#auth-password').value;
@@ -383,7 +367,6 @@ const showStep = (step) => {
                     handleSuccessfulLogin();
                 }
                 break;
-
             case 'otp-step':
                 submitBtn.textContent = 'در حال تایید...';
                 const otp = otpInputs.map(input => input.value).join('');
@@ -403,7 +386,6 @@ const showStep = (step) => {
                 submitBtn.textContent = 'تایید کد';
                 submitBtn.disabled = false;
                 break;
-            
             case 'set-name-step':
                 tempFullName = form.querySelector('#full-name-signup').value;
                 if (tempFullName.trim().length < 3) {
@@ -415,7 +397,6 @@ const showStep = (step) => {
                 showStatus(statusBox, 'عالی! اکنون رمز عبور خود را تعیین کنید.', 'success');
                 submitBtn.disabled = false;
                 break;
-
             case 'set-password-step':
                 submitBtn.textContent = 'در حال ذخیره...';
                 const newPassword = form.querySelector('#new-password').value;
