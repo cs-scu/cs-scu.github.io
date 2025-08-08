@@ -235,18 +235,38 @@ export const getUserProvider = async (email) => {
 // --- Like and Comment Functions ---
 
 export const getComments = async (newsId, userId) => {
+    console.log("DEBUG: Fetching comments directly for news_id:", newsId);
     if (!newsId) return { data: [], error: 'News ID is missing' };
     try {
         const { data, error } = await supabaseClient
-            .rpc('get_comments_with_votes', {
-                p_news_id: newsId,
-                p_user_id: userId // Can be null if user is not logged in
-            });
+            .from('comments')
+            .select(`
+                id,
+                created_at,
+                content,
+                user_id,
+                parent_id
+            `)
+            .eq('news_id', newsId)
+            .order('created_at', { ascending: false });
 
         if (error) throw error;
-        return { data, error: null };
+        
+        console.log("DEBUG: Raw comments received:", data);
+        
+        // Manually add dummy author info so the UI doesn't break
+        const commentsWithDummyAuthor = data.map(c => ({
+            ...c,
+            author: { full_name: "کاربر تست" },
+            likes: 0,
+            dislikes: 0,
+            user_vote: null,
+            replies: []
+        }));
+
+        return { data: commentsWithDummyAuthor, error: null };
     } catch (error) {
-        console.error('Error fetching comments:', error);
+        console.error('Error fetching comments directly:', error);
         return { data: null, error };
     }
 };
