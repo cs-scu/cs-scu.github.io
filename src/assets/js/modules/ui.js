@@ -1660,7 +1660,6 @@ export const renderInteractionsSection = (newsId, likeStatus, comments) => {
             <div class="form-group">
                 <textarea id="comment-content" placeholder="نظر شما..." required></textarea>
             </div>
-            {/* <<-- تغییر در این خط اعمال شده است -->> */}
             <div class="form-actions" style="justify-content: flex-end; flex-direction: row;">
                 <button type="submit" class="btn btn-primary">ارسال دیدگاه</button>
             </div>
