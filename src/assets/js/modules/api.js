@@ -235,20 +235,16 @@ export const getUserProvider = async (email) => {
 // --- Like and Comment Functions ---
 
 export const getComments = async (newsId, userId) => {
-    if (!newsId) return { data: [], error: 'News ID is missing' };
     try {
-        // Call the new, simple, and definitive function
         const { data, error } = await supabaseClient
-            .rpc('get_public_comments_for_news', {
-                p_news_id: newsId
+            .rpc('get_comments_for_news_page', {
+                p_news_id: newsId,
+                p_user_id: userId
             });
-
         if (error) throw error;
-        
-        // Since this function doesn't return author info, we will handle it in the UI
         return { data: data || [], error: null };
     } catch (error) {
-        console.error('Error fetching comments with new function:', error);
+        console.error('Error fetching comments:', error);
         return { data: null, error };
     }
 };
@@ -258,28 +254,13 @@ export const addComment = async (newsId, userId, content, parentId = null) => {
         const { data, error } = await supabaseClient
             .from('comments')
             .insert({ news_id: newsId, user_id: userId, content: content, parent_id: parentId })
-            .select(`
-                id,
-                created_at,
-                content,
-                user_id,
-                parent_id,
-                author:profiles ( full_name )
-            `)
+            .select(`*, author:profiles(full_name)`)
             .single();
         if (error) throw error;
-        
-        // Add default properties for the new comment
         data.likes = 0;
         data.dislikes = 0;
         data.user_vote = null;
-        data.replies = []; // <<-- START: خط کلیدی اصلاح شده اینجاست
-        
-        // Add avatar from user metadata since it's not in profiles
-        if (state.user && !data.author.avatar_url) {
-            data.author.avatar_url = state.user.user_metadata?.avatar_url;
-        }
-
+        data.replies = [];
         return { data, error: null };
     } catch (error) {
         console.error('Error adding comment:', error);
