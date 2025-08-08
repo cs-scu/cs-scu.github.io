@@ -1133,6 +1133,7 @@ body.light-theme .news-content-area blockquote, body.light-theme .event-content-
     margin: -1.2rem auto 2rem;
 }
 .news-content-area p, .event-content-area p {
+    line-height: 2.5;
     margin-bottom: 1rem;
 }
 .news-content-area pre, .event-content-area pre {
