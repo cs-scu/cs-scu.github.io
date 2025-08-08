@@ -1565,11 +1565,9 @@ const buildCommentTree = (comments) => {
 
 const renderComment = (comment) => {
     const userVote = comment.user_vote;
-    // START: Revert to using the actual author name and avatar from the API
     const authorName = comment.author?.full_name || 'یک کاربر';
-    const authorAvatar = comment.author?.avatar_url || (state.user?.id === comment.user_id ? state.user.user_metadata?.avatar_url : null) || DEFAULT_AVATAR_URL;
-    // END: Revert
-
+    const authorAvatar = (state.user?.id === comment.user_id ? state.user.user_metadata?.avatar_url : null) || DEFAULT_AVATAR_URL;
+    
     const deleteButtonHTML = (state.user && state.user.id === comment.user_id)
         ? `<button class="btn-text delete-btn">حذف</button>`
         : '';
@@ -1650,6 +1648,7 @@ export const renderInteractionsSection = (newsId, likeStatus, comments) => {
         </div>
     `;
 };
+
 
 export const initializeInteractions = (newsId) => {
     const container = document.querySelector('.interactions-section');
