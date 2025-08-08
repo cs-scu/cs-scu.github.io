@@ -2327,7 +2327,7 @@ body.light-theme .time-picker-btn {
 
 .time-picker-btn span {
     flex-grow: 1;
-    text-align: right;
+    text-align: left;
     margin-right: 0.5rem;
 }
 

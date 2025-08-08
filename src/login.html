@@ -7,7 +7,7 @@
                     <p>برای ورود یا ثبت‌نام، ایمیل خود را وارد کنید.</p>
                     <div class="form-group">
                         <label for="auth-email" class="visually-hidden">ایمیل</label>
-                        <input type="email" id="auth-email" name="email" placeholder="ایمیل شما" required>
+                        <input type="email" id="auth-email" name="email" placeholder="ایمیل شما" required dir="ltr">
                     </div>
 
                     <div class="form-actions" style="margin-top: 1rem;">
@@ -28,7 +28,7 @@
                     </div>
 
                 <div id="password-step" style="display: none;">
-                    <div class="email-display-box">
+                    <div class="email-display-box" dir="ltr">
                         <span id="display-email-password"></span>
                         <button type="button" class="btn-text edit-email-btn">ویرایش</button>
                     </div>
@@ -48,11 +48,12 @@
                 </div>
 
                 <div id="linking-step" style="display: none;">
-                    <div class="email-display-box">
+                    <div class="email-display-box" dir="ltr">
                         <span id="display-email-linking"></span>
                         <button type="button" class="btn-text edit-email-btn">ویرایش</button>
                     </div>
-                    <p>این ایمیل به یک حساب گوگل متصل است. می‌توانید با گوگل وارد شوید یا برای حساب خود یک رمز عبور تعیین کنید.</p>
+                    <h3>این ایمیل به یک حساب گوگل متصل است.</h3>
+                    <p>می‌توانید با گوگل وارد شوید یا برای حساب خود یک رمز عبور تعیین کنید</p>
                     <div class="form-actions">
                         <button type="button" class="btn btn-social btn-secondary" id="google-signin-redirect-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="25px" viewBox="0 0 24 24" version="1.1">

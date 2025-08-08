@@ -355,11 +355,6 @@ case 'email-step':
                             submitBtn.disabled = false;
                         }
                     } else {
-                        // START: کدهای دیباگ اینجا اضافه شده‌اند
-                        console.log("مقدار متغیر currentEmail:", currentEmail);
-                        console.log("المان HTML برای نمایش ایمیل:", displayEmailOtp);
-                        // END: کدهای دیباگ
-
                         displayEmailOtp.textContent = currentEmail;
                         showStep(otpStep);
                         startOtpTimer();
@@ -1296,11 +1291,11 @@ export const showEventRegistrationModal = async (eventId) => {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="reg-card-digits">۴ رقم آخر کارت پرداختی</label>
-                        <input type="text" id="reg-card-digits" name="card_digits" inputmode="numeric" pattern="[0-9]{4}" required>
+                        <input type="text" id="reg-card-digits" name="card_digits" inputmode="numeric" pattern="[0-9]{4}" required dir="ltr">
                     </div>
                     <div class="form-group time-picker-container" style="position: relative;">
                         <label for="open-time-picker-btn">ساعت واریز</label>
-                        <button type="button" id="open-time-picker-btn" class="time-picker-btn">
+                        <button type="button" id="open-time-picker-btn" class="time-picker-btn" dir="ltr">
                             <span id="reg-tx-time-display">${transactionTime}</span>
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="time-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                         </button>
@@ -1333,8 +1328,8 @@ export const showEventRegistrationModal = async (eventId) => {
             <div class="content-box">
                 <h2>ثبت‌نام در: ${event.title}</h2><hr>${paymentSectionHTML}
                 <form id="event-registration-form" style="margin-top: ${isPaidEvent ? '2rem' : '1rem'};">
-                    <div class="form-row"><div class="form-group"><label for="reg-name">نام و نام خانوادگی</label><input type="text" id="reg-name" name="name" value="${profile?.full_name || ''}" required></div><div class="form-group"><label for="reg-email">ایمیل</label><input type="email" id="reg-email" name="email" value="${user?.email || ''}" required disabled style="background-color: rgba(128,128,128,0.1);"></div></div>
-                    <div class="form-row"><div class="form-group"><label for="reg-student-id">کد دانشجویی</label><input type="text" id="reg-student-id" name="student_id" inputmode="numeric" required></div><div class="form-group"><label for="reg-phone">شماره تلفن</label><input type="tel" id="reg-phone" name="phone_number" placeholder="مثال: 09123456789" inputmode="tel" required></div></div>
+                    <div class="form-row"><div class="form-group"><label for="reg-name">نام و نام خانوادگی</label><input type="text" id="reg-name" name="name" value="${profile?.full_name || ''}" required></div><div class="form-group"><label for="reg-email">ایمیل</label><input type="email" id="reg-email" name="email" value="${user?.email || ''}" required disabled style="background-color: rgba(128,128,128,0.1);" dir="ltr"></div></div>
+                    <div class="form-row"><div class="form-group"><label for="reg-student-id">کد دانشجویی</label><input type="text" id="reg-student-id" name="student_id" inputmode="numeric" required dir="ltr"></div><div class="form-group"><label for="reg-phone">شماره تلفن</label><input type="tel" id="reg-phone" name="phone_number" inputmode="tel" required></div></div>
                     ${paymentFieldsHTML}
                     <div class="form-group" style="margin-top: 1.5rem;"><label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="reg-confirm" name="confirm" required style="width: auto; margin-left: 0.5rem;"><span>اطلاعات وارد شده را تایید می‌کنم ${isPaidEvent ? ' و پرداخت را انجام داده‌ام.' : '.'}</span></label></div>
                     <div class="form-status"></div><br>
