@@ -309,7 +309,7 @@ export const initializeAuthForm = () => {
         hideStatus(statusBox);
 
         switch (activeStep.id) {
-            case 'email-step':
+case 'email-step':
                 submitBtn.textContent = 'در حال بررسی...';
                 const turnstileToken = form.querySelector('[name="cf-turnstile-response"]')?.value;
                 if (!turnstileToken) {
@@ -355,6 +355,11 @@ export const initializeAuthForm = () => {
                             submitBtn.disabled = false;
                         }
                     } else {
+                        // START: کدهای دیباگ اینجا اضافه شده‌اند
+                        console.log("مقدار متغیر currentEmail:", currentEmail);
+                        console.log("المان HTML برای نمایش ایمیل:", displayEmailOtp);
+                        // END: کدهای دیباگ
+
                         displayEmailOtp.textContent = currentEmail;
                         showStep(otpStep);
                         startOtpTimer();
@@ -368,7 +373,6 @@ export const initializeAuthForm = () => {
                     submitBtn.disabled = false;
                 }
                 break;
-
             case 'password-step':
                 submitBtn.textContent = 'در حال ورود...';
                 const password = form.querySelector('#auth-password').value;

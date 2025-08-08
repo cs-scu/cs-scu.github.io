@@ -1994,8 +1994,8 @@ body.light-theme .btn-text {
 }
 .btn.btn-full {
     width: 100%;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
     font-size: 1.1rem;
     transition: all 0.3s ease;
 }
@@ -2178,7 +2178,7 @@ body.light-theme .social-divider { border-color: var(--glass-border-light); }
     color: inherit;
     cursor: pointer;
     margin: 0 !important;
-    border-radius: 0; /* مهم: این خط گوشه‌های دکمه را صاف می‌کند */
+    border-radius: 50px; /* مهم: این خط گوشه‌های دکمه را صاف می‌کند */
 }
 
 .btn-social:last-child {
