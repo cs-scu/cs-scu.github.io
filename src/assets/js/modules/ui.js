@@ -176,16 +176,45 @@ export const initializeAuthForm = () => {
     const form = dom.mainContent.querySelector('#auth-form');
     if (!form || form.dataset.listenerAttached) return;
 
+    // --- تابع کمکی جدید برای مدیریت پیام‌های خطا ---
+    const getFriendlyAuthError = (error) => {
+        if (!error) return 'یک خطای ناشناخته رخ داد. لطفاً دوباره تلاش کنید.';
+        
+        console.error("Auth Error:", error); // برای خطایابی در کنسول
+
+        if (error.message.includes('network')) {
+            return 'مشکل در اتصال به سرور. لطفاً اینترنت خود را بررسی و دوباره تلاش کنید.';
+        }
+
+        switch (error.message) {
+            case 'Invalid login credentials':
+                return 'ایمیل یا رمز عبور وارد شده صحیح نیست.';
+            case 'Token has expired or is invalid':
+            case 'Code is invalid':
+                return 'کد تایید وارد شده صحیح نیست یا منقضی شده است.';
+            case 'Unable to validate email address: invalid format':
+                return 'فرمت ایمیل وارد شده صحیح نیست. لطفاً آن را بررسی کنید.';
+            case 'Email rate limit exceeded':
+                return 'تعداد درخواست‌ها برای این ایمیل بیش از حد مجاز است. لطفاً چند دقیقه دیگر صبر کنید.';
+            case 'Password should be at least 6 characters':
+                 return 'رمز عبور باید حداقل ۶ کاراکتر باشد.';
+            default:
+                if (error.status === 429) {
+                     return 'تعداد درخواست‌ها زیاد است. لطفاً پس از ۱ دقیقه دوباره تلاش کنید.';
+                }
+                return 'یک خطای غیرمنتظره رخ داد. لطفاً بعداً تلاش کنید.';
+        }
+    };
+
     // --- تابع کمکی جدید برای مدیریت ریدایرکت پس از ورود موفق ---
     const handleSuccessfulLogin = () => {
         const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
-        sessionStorage.removeItem('redirectAfterLogin'); // آدرس را پس از استفاده پاک می‌کنیم
+        sessionStorage.removeItem('redirectAfterLogin'); 
         
-        // اگر آدرس معتبری ذخیره شده بود به آنجا، در غیر این صورت به صفحه اصلی ریدایرکت شو
         if (redirectUrl && redirectUrl !== '#/login') {
             location.hash = redirectUrl;
         } else {
-            location.hash = '#/'; // ریدایرکت پیش‌فرض به صفحه اصلی
+            location.hash = '#/'; 
         }
     };
 
@@ -219,18 +248,16 @@ export const initializeAuthForm = () => {
         });
     }
 
-    // --- Social Login Handler ---
     if (googleSignInBtn) {
         googleSignInBtn.addEventListener('click', async () => {
             hideStatus(statusBox);
             const { error } = await signInWithGoogle();
             if (error) {
-                showStatus(statusBox, 'خطا در ورود با گوگل. لطفاً دوباره تلاش کنید.');
+                showStatus(statusBox, getFriendlyAuthError(error));
             }
         });
     }
 
-    // --- Password Visibility Toggle ---
     form.querySelectorAll('.password-toggle-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const passwordInput = btn.previousElementSibling;
@@ -241,13 +268,9 @@ export const initializeAuthForm = () => {
         });
     });
 
-    // --- Password Strength Indicator ---
     const newPasswordInput = form.querySelector('#new-password');
     const strengthIndicator = form.querySelector('#password-strength-indicator');
     if (newPasswordInput && strengthIndicator) {
-        const strengthBar = strengthIndicator.querySelector('.strength-bar');
-        const strengthText = strengthIndicator.querySelector('.strength-text');
-
         newPasswordInput.addEventListener('input', () => {
             const password = newPasswordInput.value;
             let strength = 'none';
@@ -269,14 +292,12 @@ export const initializeAuthForm = () => {
         let duration = 60;
         resendOtpBtn.disabled = true;
         otpTimerSpan.style.display = 'inline';
-
         const updateTimer = () => {
             const minutes = String(Math.floor(duration / 60)).padStart(2, '0');
             const seconds = String(duration % 60).padStart(2, '0');
             otpTimerSpan.textContent = `(${minutes}:${seconds})`;
         };
         updateTimer();
-
         otpTimerInterval = setInterval(() => {
             duration--;
             updateTimer();
@@ -291,10 +312,8 @@ export const initializeAuthForm = () => {
     const startEmailCooldown = () => {
         let duration = 60;
         if (!emailSubmitBtn) return;
-
         emailSubmitBtn.disabled = true;
         const originalText = "ادامه";
-
         const updateButtonText = () => {
             if (duration > 0) {
                 emailSubmitBtn.textContent = `لطفاً ${duration} ثانیه صبر کنید`;
@@ -304,12 +323,10 @@ export const initializeAuthForm = () => {
                 clearInterval(cooldownInterval);
             }
         };
-
         const cooldownInterval = setInterval(() => {
             duration--;
             updateButtonText();
         }, 1000);
-
         updateButtonText();
     };
 
@@ -337,23 +354,13 @@ export const initializeAuthForm = () => {
 
     if (otpContainer) {
         otpInputs.forEach((input, index) => {
-            input.addEventListener('input', () => {
-                if (input.value && index < otpInputs.length - 1) {
-                    otpInputs[index + 1].focus();
-                }
-            });
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace' && !input.value && index > 0) {
-                    otpInputs[index - 1].focus();
-                }
-            });
+            input.addEventListener('input', () => { if (input.value && index < otpInputs.length - 1) otpInputs[index + 1].focus(); });
+            input.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !input.value && index > 0) otpInputs[index - 1].focus(); });
             input.addEventListener('paste', (e) => {
                 e.preventDefault();
                 const pasteData = e.clipboardData.getData('text');
                 if (pasteData.length === otpInputs.length) {
-                    otpInputs.forEach((box, i) => {
-                        box.value = pasteData[i] || '';
-                    });
+                    otpInputs.forEach((box, i) => { box.value = pasteData[i] || ''; });
                     otpInputs[otpInputs.length - 1].focus();
                 }
             });
@@ -372,7 +379,6 @@ export const initializeAuthForm = () => {
         switch (activeStep.id) {
             case 'email-step':
                 submitBtn.textContent = 'در حال بررسی...';
-
                 const turnstileToken = form.querySelector('[name="cf-turnstile-response"]')?.value;
                 if (!turnstileToken) {
                     showStatus(statusBox, 'تایید هویت انجام نشد. لطفاً لحظه‌ای صبر کنید.');
@@ -380,7 +386,6 @@ export const initializeAuthForm = () => {
                     submitBtn.textContent = 'ادامه';
                     return;
                 }
-
                 const verification = await verifyTurnstile(turnstileToken);
                 if (!verification.success) {
                     showStatus(statusBox, 'تایید هویت با خطا مواجه شد. لطفاً صفحه را رفرش کنید.');
@@ -404,11 +409,10 @@ export const initializeAuthForm = () => {
                     otpContext = 'signup';
                     const { error } = await sendSignupOtp(currentEmail);
                     if (error) {
+                        showStatus(statusBox, getFriendlyAuthError(error));
                         if (error.status === 429) {
-                            showStatus(statusBox, 'تعداد درخواست‌ها زیاد است. لطفاً پس از اتمام شمارش معکوس دوباره تلاش کنید.');
                             startEmailCooldown();
                         } else {
-                            showStatus(statusBox, 'خطا در ارسال کد. لطفاً دوباره تلاش کنید.');
                             submitBtn.textContent = 'ادامه';
                             submitBtn.disabled = false;
                         }
@@ -431,7 +435,7 @@ export const initializeAuthForm = () => {
                 const password = form.querySelector('#auth-password').value;
                 const { error: signInError } = await signInWithPassword(currentEmail, password);
                 if (signInError) {
-                    showStatus(statusBox, 'رمز عبور اشتباه است.');
+                    showStatus(statusBox, getFriendlyAuthError(signInError));
                     submitBtn.textContent = 'ورود';
                     submitBtn.disabled = false;
                 } else {
@@ -450,7 +454,7 @@ export const initializeAuthForm = () => {
                 }
                 const { data, error: otpError } = await verifyOtp(currentEmail, otp);
                 if (otpError || !data.session) {
-                    showStatus(statusBox, 'کد وارد شده صحیح نیست.');
+                    showStatus(statusBox, getFriendlyAuthError(otpError || { message: 'Code is invalid' }));
                 } else {
                     showStep(setPasswordStep);
                     showStatus(statusBox, 'کد تایید شد. اکنون رمز عبور خود را تعیین کنید.', 'success');
@@ -470,7 +474,7 @@ export const initializeAuthForm = () => {
                 }
                 const { error: updateError } = await updateUserPassword(newPassword);
                 if (updateError) {
-                    showStatus(statusBox, 'خطا در ذخیره رمز عبور.');
+                    showStatus(statusBox, getFriendlyAuthError(updateError));
                     submitBtn.disabled = false;
                 } else {
                     await getProfile();
@@ -488,7 +492,7 @@ export const initializeAuthForm = () => {
             otpContext = 'reset';
             const { error } = await sendPasswordResetOtp(currentEmail);
             if (error) {
-                showStatus(statusBox, 'خطا در ارسال کد بازنشانی.');
+                showStatus(statusBox, getFriendlyAuthError(error));
             } else {
                 showStep(otpStep);
                 startOtpTimer();
@@ -504,7 +508,7 @@ export const initializeAuthForm = () => {
             const apiCall = otpContext === 'signup' ? sendSignupOtp : sendPasswordResetOtp;
             const { error } = await apiCall(currentEmail);
             if (error) {
-                showStatus(statusBox, 'خطا در ارسال مجدد کد.');
+                showStatus(statusBox, getFriendlyAuthError(error));
                 resendOtpBtn.disabled = false;
             } else {
                 showStatus(statusBox, 'کد جدید با موفقیت ارسال شد.', 'success');
@@ -642,7 +646,7 @@ export const showEventModal = async (path) => {
         const contactButton = (contactInfo && Object.keys(contactInfo).length > 0)
             ? `
                 <div class="contact-widget-trigger-wrapper">
-                    <button id="contact-for-event-btn" class="btn btn-secondary">پرسش درباره رویداد</button>
+                    <button id="contact-for-event-btn" class="btn btn-secondary" ${isPastEvent ? 'disabled' : ''}>پرسش درباره رویداد</button>
                 </div>
             `
             : `
@@ -1102,9 +1106,8 @@ export const initializeGlobalUI = () => {
                 return;
             }
 
-            // *** NEW: Handler for the schedule button ***
             const scheduleBtn = e.target.closest('.btn-view-schedule');
-            if (scheduleBtn) {
+            if (scheduleBtn && !scheduleBtn.disabled) {
                 e.preventDefault();
                 const eventId = scheduleBtn.dataset.eventId;
                 showEventScheduleModal(eventId);
@@ -1112,8 +1115,7 @@ export const initializeGlobalUI = () => {
             }
 
             const eventCard = e.target.closest('.event-card');
-            if (eventCard) {
-                // Ensure the click is not on any button inside the card's action area
+            if (eventCard && !eventCard.classList.contains('past-event')) {
                 if (!e.target.closest('.event-actions button, .event-actions a')) {
                     e.preventDefault();
                     const detailLink = eventCard.querySelector('a[href*="#/events/"]');
@@ -1495,10 +1497,7 @@ export const showEventRegistrationModal = async (eventId) => {
             };
             
             openTimePickerBtn.addEventListener('click', async () => {
-                const btnRect = openTimePickerBtn.getBoundingClientRect();
-                const spaceBelow = window.innerHeight - btnRect.bottom;
-                const widgetHeight = 250; 
-                timePickerWidget.classList.toggle('show-above', spaceBelow < widgetHeight);
+                timePickerWidget.classList.add('show-above');
                 
                 const currentTime = timeDisplaySpan.textContent.split(':');
                 timePickerWidget.style.display = 'block';
@@ -1595,6 +1594,4 @@ export const showEventRegistrationModal = async (eventId) => {
         });
     }
 };
-
-
 

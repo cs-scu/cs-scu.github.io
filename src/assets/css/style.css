@@ -2780,3 +2780,35 @@ body.light-theme .contact-widget-item:hover {
     direction: ltr;
     text-align: right;
 }
+
+/* ================== Past Event Card Styles ================== */
+.event-card.past-event {
+    filter: grayscale(1);
+    opacity: 0.7;
+    cursor: default;
+}
+
+.event-card.past-event .event-card-image-link,
+.event-card.past-event .event-card-title-link {
+    pointer-events: none; /* Disables the links */
+}
+
+.event-card.past-event:hover {
+    transform: none;
+    border-color: inherit;
+    box-shadow: none;
+}
+
+body.light-theme .event-card.past-event:hover {
+    border-color: #ddd;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+body.dark-theme .event-card.past-event:hover {
+    border-color: var(--glass-border-dark);
+    box-shadow: none;
+}
+
+.event-card.past-event .btn {
+    pointer-events: none;
+}

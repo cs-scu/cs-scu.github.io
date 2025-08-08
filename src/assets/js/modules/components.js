@@ -253,15 +253,21 @@ export const renderEventsPage = () => {
         highlighter.style.transform = `translateX(${activeTab.offsetLeft}px)`;
     };
     
-    // این تابع داخلی، اکنون شامل منطق نمایش مدرس است
-    const populateGrid = (grid, events) => {
+    // This internal function now includes logic for displaying the instructor
+    const populateGrid = (grid, events, isPast = false) => {
         grid.innerHTML = '';
         if (events.length === 0) {
             grid.innerHTML = '<p class="no-events-message">در حال حاضر رویدادی در این دسته وجود ندارد.</p>';
             return;
         }
         events.forEach(event => {
-            const card = template.content.cloneNode(true);
+            const cardElement = template.content.cloneNode(true);
+            const card = cardElement.querySelector('.event-card');
+            
+            if (isPast) {
+                card.classList.add('past-event');
+            }
+
             card.querySelector('.event-card-image-link').href = event.detailPage;
             
             const img = card.querySelector('.event-card-image');
@@ -299,7 +305,6 @@ export const renderEventsPage = () => {
     
             const metaContainer = card.querySelector('.event-meta');
             
-            // *** کد جدید و نهایی برای نمایش اطلاعات رویداد ***
             const instructorHTML = event.instructor_name 
                 ? `
                 <span class="event-meta-item">
@@ -334,7 +339,6 @@ export const renderEventsPage = () => {
             const actionsContainer = card.querySelector('.event-actions');
             actionsContainer.innerHTML = '';
 
-            // *** NEW: Add schedule button if schedule data exists ***
             let scheduleData = [];
             if (event.schedule) {
                 try {
@@ -348,6 +352,9 @@ export const renderEventsPage = () => {
                 scheduleButton.className = 'btn btn-secondary btn-view-schedule';
                 scheduleButton.textContent = 'برنامه زمانی';
                 scheduleButton.dataset.eventId = event.id;
+                if (isPast) {
+                    scheduleButton.disabled = true;
+                }
                 actionsContainer.appendChild(scheduleButton);
             }
             
@@ -357,7 +364,7 @@ export const renderEventsPage = () => {
                 mainButton.className = 'btn btn-primary btn-event-register';
                 mainButton.dataset.eventId = event.id;
                 
-                if (new Date(event.endDate) < today) {
+                if (isPast) {
                     mainButton.textContent = 'پایان یافته';
                     mainButton.classList.add('disabled');
                     mainButton.disabled = true;
@@ -369,15 +376,18 @@ export const renderEventsPage = () => {
                 mainButton.href = event.detailPage;
                 mainButton.className = 'btn btn-secondary';
                 mainButton.textContent = 'اطلاعات بیشتر';
+                 if (isPast) {
+                    mainButton.classList.add('disabled'); // Make it look disabled
+                }
             }
             actionsContainer.appendChild(mainButton);
     
-            grid.appendChild(card);
+            grid.appendChild(cardElement);
         });
     };
     
-    populateGrid(upcomingGrid, upcomingEvents);
-    populateGrid(pastGrid, pastEvents);
+    populateGrid(upcomingGrid, upcomingEvents, false);
+    populateGrid(pastGrid, pastEvents, true);
 
     dom.mainContent.querySelectorAll('.tab-link').forEach(button => {
         button.addEventListener('click', () => {
