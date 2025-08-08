@@ -27,6 +27,9 @@ body {
     /* مرحله ۱: ابتدا فونت سیستمی (Arial یا هر فونت sans-serif دیگر) نمایش داده می‌شود */
     font-family: Arial, sans-serif;
     transition: background-color 0.4s, color 0.4s;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 html.fonts-loaded body {
     font-family: 'Vazirmatn', sans-serif;
@@ -224,6 +227,8 @@ body.light-theme #theme-toggle:hover svg { color: var(--primary-color-light-them
 main {
     padding-top: 2rem;
     transition: opacity 0.3s ease-in-out;
+    flex-grow: 1;
+
 }
 main.is-loading {
     opacity: 0;
