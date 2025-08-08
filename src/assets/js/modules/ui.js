@@ -1602,6 +1602,21 @@ const buildCommentTree = (comments) => {
 };
 
 const renderComment = (comment) => {
+    if (comment.user_id === null) {
+        return `
+        <div class="comment-item is-deleted" id="comment-${comment.id}" data-comment-id="${comment.id}">
+            <div class="comment-main">
+                <div class="comment-content">
+                    <p><em>${sanitizeHTML(comment.content)}</em></p>
+                </div>
+            </div>
+            <div class="comment-replies">
+                ${(comment.replies || []).map(reply => renderComment(reply)).join('')}
+            </div>
+        </div>
+    `;
+    }
+
     const userVote = comment.user_vote;
     const authorName = comment.author?.full_name || 'یک کاربر';
     const authorAvatar = (state.user?.id === comment.user_id ? state.user.user_metadata?.avatar_url : null) || DEFAULT_AVATAR_URL;
@@ -1844,10 +1859,25 @@ export const initializeInteractions = (newsId) => {
                     const commentId = commentItem.dataset.commentId;
                     
                     deleteBtn.disabled = true;
-                    const { success } = await deleteComment(commentId);
+                    const { success, data } = await deleteComment(commentId);
 
                     if (success) {
-                        commentItem.remove();
+                        // <<-- منطق جدید برای به‌روزرسانی UI -->>
+                        if (data.has_children) {
+                            // اگر فرزند داشت، کامنت را به حالت حذف شده درمی‌آوریم
+                            const commentMain = commentItem.querySelector('.comment-main');
+                            if (commentMain) {
+                                commentMain.innerHTML = `
+                                    <div class="comment-content">
+                                        <p><em>[این دیدگاه حذف شده است]</em></p>
+                                    </div>`;
+                                commentItem.classList.add('is-deleted');
+                            }
+                        } else {
+                            // اگر فرزندی نداشت، کاملاً حذفش می‌کنیم
+                            commentItem.remove();
+                        }
+                        
                         const commentCountEl = document.querySelector('.interactions-header h3');
                         const newCount = (parseInt(commentCountEl.textContent.match(/\d+/)[0]) || 1) - 1;
                         commentCountEl.textContent = `دیدگاه‌ها (${newCount})`;

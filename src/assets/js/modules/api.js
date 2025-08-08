@@ -266,15 +266,15 @@ export const addComment = async (newsId, userId, content, parentId = null) => {
 
 export const deleteComment = async (commentId) => {
     try {
-        const { error } = await supabaseClient
-            .from('comments')
-            .delete()
-            .eq('id', commentId);
+        // <<-- فراخوانی تابع جدید RPC -->>
+        const { data, error } = await supabaseClient.rpc('soft_delete_comment', {
+            comment_id_to_delete: commentId
+        });
         if (error) throw error;
-        return { success: true, error: null };
+        return { success: true, data: data, error: null };
     } catch (error) {
         console.error('Error deleting comment:', error);
-        return { success: false, error };
+        return { success: false, data: null, error };
     }
 };
 
