@@ -3186,3 +3186,10 @@ body.light-theme .vote-btn.like-comment.active {
 .vote-btn.like-comment.active svg {
     fill: currentColor; /* <<-- این خط باعث پر شدن آیکون با رنگ فعال می‌شود */
 }
+
+.comment-content p {
+    /* این ویژگی‌ها از بیرون زدن متن‌های طولانی از کادر جلوگیری می‌کنند */
+    overflow-wrap: break-word;
+    word-wrap: break-word; /* برای مرورگرهای قدیمی‌تر */
+    word-break: break-word;
+}

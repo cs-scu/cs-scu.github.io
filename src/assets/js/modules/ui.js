@@ -1660,7 +1660,8 @@ export const renderInteractionsSection = (newsId, likeStatus, comments) => {
             <div class="form-group">
                 <textarea id="comment-content" placeholder="نظر شما..." required></textarea>
             </div>
-            <div class="form-actions" style="align-items: flex-end;">
+            {/* <<-- تغییر در این خط اعمال شده است -->> */}
+            <div class="form-actions" style="justify-content: flex-end; flex-direction: row;">
                 <button type="submit" class="btn btn-primary">ارسال دیدگاه</button>
             </div>
             <div class="form-status"></div>
@@ -1712,7 +1713,6 @@ export const initializeInteractions = (newsId) => {
         });
     }
 
-    // --- Add Root Comment ---
     const commentForm = document.getElementById('comment-form');
     if (commentForm) {
         commentForm.addEventListener('submit', async (e) => {
@@ -1722,38 +1722,43 @@ export const initializeInteractions = (newsId) => {
             if (!content.trim()) return;
 
             const submitBtn = commentForm.querySelector('button[type="submit"]');
+            const statusBox = commentForm.querySelector('.form-status');
+            
             submitBtn.disabled = true;
-            
-            const { data: newCommentData, error } = await addComment(newsId, state.user.id, content);
-            
-            if (error) {
-                const statusBox = commentForm.querySelector('.form-status');
-                showStatus(statusBox, 'خطا در ارسال دیدگاه.');
-            } else {
-                const newCommentForRender = {
-                    ...newCommentData,
-                    author: {
-                        full_name: state.profile?.full_name || state.user.email.split('@')[0],
-                        avatar_url: state.profile?.avatar_url || state.user.user_metadata?.avatar_url
-                    },
-                    likes: 0,
-                    dislikes: 0,
-                    user_vote: null,
-                    replies: []
-                };
+            hideStatus(statusBox);
 
-                const commentsList = document.querySelector('.comments-list');
-                const noCommentMessage = commentsList.querySelector('p');
-                if (noCommentMessage) noCommentMessage.remove();
+            try {
+                const { data: newCommentData, error } = await addComment(newsId, state.user.id, content);
                 
-                commentsList.insertAdjacentHTML('beforeend', renderComment(newCommentForRender));
-                
-                contentEl.value = '';
-                const commentCountEl = document.querySelector('.interactions-header h3');
-                const newCount = (parseInt(commentCountEl.textContent.match(/\d+/)[0]) || 0) + 1;
-                commentCountEl.textContent = `دیدگاه‌ها (${newCount})`;
+                if (error) {
+                    showStatus(statusBox, 'خطا در ارسال دیدگاه.');
+                } else {
+                    const newCommentForRender = {
+                        ...newCommentData,
+                        author: {
+                            full_name: state.profile?.full_name || state.user.email.split('@')[0],
+                            avatar_url: state.profile?.avatar_url || state.user.user_metadata?.avatar_url
+                        },
+                        likes: 0,
+                        user_vote: null,
+                        replies: []
+                    };
+
+                    const commentsList = document.querySelector('.comments-list');
+                    const noCommentMessage = commentsList.querySelector('p');
+                    if (noCommentMessage) noCommentMessage.remove();
+                    
+                    commentsList.insertAdjacentHTML('beforeend', renderComment(newCommentForRender));
+                    
+                    contentEl.value = '';
+                    const commentCountEl = document.querySelector('.interactions-header h3');
+                    const currentCountText = commentCountEl.textContent.match(/\d+/);
+                    const currentCount = currentCountText ? parseInt(currentCountText[0], 10) : 0;
+                    commentCountEl.textContent = `دیدگاه‌ها (${currentCount + 1})`;
+                }
+            } finally {
+                submitBtn.disabled = false;
             }
-            submitBtn.disabled = false;
         });
     }
 
