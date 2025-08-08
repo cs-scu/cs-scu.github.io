@@ -228,3 +228,96 @@ export const getUserProvider = async (email) => {
     }
     return { data, error: null };
 };
+
+
+
+
+// --- Like and Comment Functions ---
+
+export const getComments = async (newsId) => {
+    if (!newsId) return { data: [], error: 'News ID is missing' };
+    try {
+        const { data, error } = await supabaseClient
+            .from('comments')
+            .select(`
+                id,
+                created_at,
+                content,
+                user_id,
+                author:profiles ( full_name, avatar_url )
+            `)
+            .eq('news_id', newsId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        return { data: null, error };
+    }
+};
+
+export const addComment = async (newsId, userId, content) => {
+    try {
+        const { data, error } = await supabaseClient
+            .from('comments')
+            .insert({ news_id: newsId, user_id: userId, content: content })
+            .select(`
+                id,
+                created_at,
+                content,
+                user_id,
+                author:profiles ( full_name, avatar_url )
+            `)
+            .single();
+        if (error) throw error;
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        return { data: null, error };
+    }
+};
+
+export const getLikeStatus = async (newsId, userId) => {
+    try {
+        // Get total likes
+        const { count: like_count, error: countError } = await supabaseClient
+            .from('likes')
+            .select('*', { count: 'exact', head: true })
+            .eq('news_id', newsId);
+
+        if (countError) throw countError;
+
+        let is_liked = false;
+        if (userId) {
+            const { data: likeData, error: likeError } = await supabaseClient
+                .from('likes')
+                .select('user_id')
+                .eq('news_id', newsId)
+                .eq('user_id', userId)
+                .single();
+            
+            if (likeError && likeError.code !== 'PGRST116') throw likeError;
+            if (likeData) is_liked = true;
+        }
+
+        return { data: { like_count, is_liked }, error: null };
+    } catch (error) {
+        console.error('Error getting like status:', error);
+        return { data: null, error };
+    }
+};
+
+export const toggleLike = async (newsId, userId) => {
+    try {
+        const { data, error } = await supabaseClient.rpc('toggle_like', {
+            p_news_id: newsId,
+            p_user_id: userId
+        });
+        if (error) throw error;
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error toggling like:', error);
+        return { data: null, error };
+    }
+};

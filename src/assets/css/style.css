@@ -767,7 +767,7 @@ body.light-theme .content-box {
     border: 1px solid #e0e0e0;
 }
 .content-box h2 {
-    margin: -2rem 0 1rem;
+    margin: 0rem 0 1rem;
     border-bottom: 2px solid;
     padding-bottom: 0.5rem;
 }
@@ -2856,4 +2856,211 @@ body.dark-theme .event-card.past-event:hover {
 #logout-btn {
     margin-right: auto; /* دکمه خروج را به انتهای سمت چپ منتقل می‌کند */
     padding-left: 0.5rem;
+}
+
+/* ================== Interactions Section (Likes & Comments) ================== */
+.post-divider {
+    border: none;
+    height: 1px;
+    background-color: var(--glass-border-dark);
+    margin: 2rem 0;
+}
+
+body.light-theme .post-divider {
+    background-color: var(--glass-border-light);
+}
+
+.interactions-section {
+    margin-top: 2rem;
+}
+
+.interactions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.interactions-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.like-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+
+.like-btn svg {
+    transition: all 0.2s ease;
+    fill: none;
+}
+
+.like-btn.liked svg {
+    fill: #dc3545;
+    stroke: #dc3545;
+}
+
+.like-btn:not(.liked):hover svg {
+    stroke: var(--primary-color);
+}
+
+body.light-theme .like-btn:not(.liked):hover svg {
+    stroke: var(--primary-color-light-theme);
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.comment-item {
+    display: flex;
+    gap: 1rem;
+}
+
+.comment-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.comment-content {
+    flex-grow: 1;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.comment-header strong {
+    font-size: 1rem;
+}
+
+.comment-header .comment-date {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.comment-content p {
+    margin: 0;
+    line-height: 1.7;
+}
+
+#comment-form {
+    margin-top: 2rem;
+}
+
+#comment-form h4 {
+    margin-bottom: 1rem;
+}
+
+#comment-form textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.login-prompt {
+    text-align: center;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 2rem;
+}
+
+body.dark-theme .login-prompt {
+    background-color: rgba(0,0,0,0.2);
+}
+
+body.light-theme .login-prompt {
+    background-color: rgba(0,0,0,0.04);
+}
+/* ================== Nested Comments & Votes Styles ================== */
+.comment-main {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.75rem;
+}
+
+.comment-votes {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.vote-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: inherit;
+    opacity: 0.6;
+    transition: opacity 0.2s, color 0.2s;
+    padding: 0.25rem;
+}
+
+.vote-btn:hover:not(:disabled) {
+    opacity: 1;
+}
+
+.vote-btn.active {
+    opacity: 1;
+    font-weight: bold;
+}
+.vote-btn.like-comment.active { color: #28a745; }
+.vote-btn.dislike-comment.active { color: #dc3545; }
+
+.vote-btn svg {
+    fill: currentColor;
+}
+
+.vote-btn:disabled {
+    cursor: not-allowed;
+}
+
+.reply-btn {
+    font-size: 0.85rem;
+    margin-right: auto;
+}
+
+.comment-replies {
+    margin-top: 1.5rem;
+    padding-right: 2rem;
+    border-right: 2px solid;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+body.dark-theme .comment-replies {
+    border-color: var(--glass-border-dark);
+}
+body.light-theme .comment-replies {
+    border-color: var(--glass-border-light);
+}
+
+.reply-form-container {
+    margin-top: 1rem;
+    padding-left: 2rem; /* Indent the reply form */
+}
+
+.reply-form .form-actions {
+    flex-direction: row;
+    justify-content: flex-end;
 }

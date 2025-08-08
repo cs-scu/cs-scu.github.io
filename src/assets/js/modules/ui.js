@@ -1559,3 +1559,251 @@ export const showEventRegistrationModal = async (eventId) => {
     }
 };
 
+
+// این دو تابع را در انتهای فایل ui.js جایگزین کنید
+
+const buildCommentTree = (comments) => {
+    const commentMap = new Map();
+    const rootComments = [];
+    if (!comments) return rootComments;
+
+    comments.forEach(comment => {
+        comment.replies = [];
+        commentMap.set(comment.id, comment);
+    });
+
+    comments.forEach(comment => {
+        if (comment.parent_id && commentMap.has(comment.parent_id)) {
+            commentMap.get(comment.parent_id).replies.push(comment);
+        } else {
+            rootComments.push(comment);
+        }
+    });
+    return rootComments;
+};
+
+const renderComment = (comment) => {
+    const userVote = comment.user_vote;
+    return `
+        <div class="comment-item" id="comment-${comment.id}" data-comment-id="${comment.id}">
+            <img src="${comment.author?.avatar_url || DEFAULT_AVATAR_URL}" alt="${comment.author?.full_name || 'کاربر'}" class="comment-avatar">
+            <div class="comment-main">
+                <div class="comment-content">
+                    <div class="comment-header">
+                        <strong>${comment.author?.full_name || 'یک کاربر'}</strong>
+                        <span class="comment-date">${new Date(comment.created_at).toLocaleDateString('fa-IR')}</span>
+                    </div>
+                    <p>${comment.content}</p>
+                </div>
+                <div class="comment-actions">
+                    <div class="comment-votes">
+                        <button class="vote-btn like-comment ${userVote === 1 ? 'active' : ''}" data-vote="1" ${!state.user ? 'disabled' : ''}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="M7.8 19.2c-.3-.3-.4-.6-.4-1V9.8c0-.4.1-.7.4-1 .3-.3.6-.4 1-.4h4.4c.3 0 .5.1.7.2.2.1.4.3.5.5l3.6 7.3c.2.4.3.8.3 1.2 0 .4-.1.8-.3 1.1-.2.3-.5.6-.9.7h-6.2c-.4 0-.7-.1-1-.4zM5.2 8.6H2.8V19h2.4V8.6z"/></svg>
+                            <span class="like-count">${comment.likes || 0}</span>
+                        </button>
+                        <button class="vote-btn dislike-comment ${userVote === -1 ? 'active' : ''}" data-vote="-1" ${!state.user ? 'disabled' : ''}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="M16.2 4.8c.3.3.4.6.4 1v8.4c0 .4-.1.7-.4 1-.3.3-.6.4-1 .4h-4.4c-.3 0-.5-.1-.7-.2-.2-.1-.4-.3-.5-.5L5.6 7.9c-.2-.4-.3-.8-.3-1.2 0-.4.1-.8.3-1.1.2-.3.5-.6.9-.7h6.2c.4 0 .7.1 1 .4zM18.8 15.4h2.4V5h-2.4v10.4z"/></svg>
+                            <span class="dislike-count">${comment.dislikes || 0}</span>
+                        </button>
+                    </div>
+                    <button class="btn-text reply-btn" ${!state.user ? 'disabled' : ''}>پاسخ</button>
+                </div>
+                <div class="comment-replies">
+                    ${comment.replies.map(reply => renderComment(reply)).join('')}
+                </div>
+                <div class="reply-form-container" style="display: none;"></div>
+            </div>
+        </div>
+    `;
+};
+
+export const renderInteractionsSection = (newsId, likeStatus, comments) => {
+    const commentTree = buildCommentTree(comments);
+    const commentCount = comments?.length || 0;
+    const isLiked = likeStatus?.is_liked || false;
+    const likeCount = likeStatus?.like_count || 0;
+
+    const commentFormHTML = state.user ? `
+        <form id="comment-form" data-news-id="${newsId}">
+            <h4>دیدگاه خود را بنویسید</h4>
+            <div class="form-group">
+                <textarea id="comment-content" placeholder="نظر شما..." required></textarea>
+            </div>
+            <div class="form-actions" style="align-items: flex-end;">
+                <button type="submit" class="btn btn-primary">ارسال دیدگاه</button>
+            </div>
+            <div class="form-status"></div>
+        </form>
+    ` : `
+        <div class="login-prompt">
+            <p>برای ثبت دیدگاه یا پسندیدن این مطلب، لطفاً <a href="#/login">وارد شوید</a>.</p>
+        </div>
+    `;
+
+    const commentsHTML = commentTree.length > 0 ? commentTree.map(comment => renderComment(comment)).join('') : '<p>هنوز دیدگاهی برای این مطلب ثبت نشده است.</p>';
+
+    return `
+        <div class="interactions-section">
+            <div class="interactions-header">
+                <h3>دیدگاه‌ها (${commentCount})</h3>
+                <button id="like-btn" class="btn btn-secondary like-btn ${isLiked ? 'liked' : ''}" ${!state.user ? 'disabled' : ''}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    <span id="like-count">${likeCount}</span>
+                </button>
+            </div>
+            <div class="comments-list">
+                ${commentsHTML}
+            </div>
+            <hr class="post-divider">
+            ${commentFormHTML}
+        </div>
+    `;
+};
+
+export const initializeInteractions = (newsId) => {
+    const container = document.querySelector('.interactions-section');
+    if (!container) return;
+
+    // --- Like News Post ---
+    const likeBtn = document.getElementById('like-btn');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', async () => {
+            if (!state.user) return;
+            likeBtn.disabled = true;
+            const { data, error } = await toggleLike(newsId, state.user.id);
+            if (error) { console.error("Failed to toggle like"); }
+            else {
+                likeBtn.classList.toggle('liked', data.is_liked);
+                document.getElementById('like-count').textContent = data.like_count;
+            }
+            likeBtn.disabled = false;
+        });
+    }
+
+    // --- Add Root Comment ---
+    const commentForm = document.getElementById('comment-form');
+    if (commentForm) {
+        commentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const contentEl = document.getElementById('comment-content');
+            if (!contentEl.value.trim()) return;
+
+            const submitBtn = commentForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            const { data: newComment, error } = await addComment(newsId, state.user.id, contentEl.value);
+            
+            if (error) {
+                const statusBox = commentForm.querySelector('.form-status');
+                showStatus(statusBox, 'خطا در ارسال دیدگاه.');
+            } else {
+                const commentsList = document.querySelector('.comments-list');
+                const noCommentMessage = commentsList.querySelector('p');
+                if (noCommentMessage) noCommentMessage.remove();
+                commentsList.insertAdjacentHTML('beforeend', renderComment(newComment));
+                contentEl.value = '';
+                const commentCountEl = document.querySelector('.interactions-header h3');
+                const newCount = (parseInt(commentCountEl.textContent.match(/\d+/)[0]) || 0) + 1;
+                commentCountEl.textContent = `دیدگاه‌ها (${newCount})`;
+            }
+            submitBtn.disabled = false;
+        });
+    }
+
+    // --- Handle Clicks within the comments list ---
+    const commentsList = document.querySelector('.comments-list');
+    if (commentsList) {
+        commentsList.addEventListener('click', async (e) => {
+            // -- Toggle Comment Vote --
+            const voteBtn = e.target.closest('.vote-btn');
+            if (voteBtn && state.user) {
+                const commentItem = voteBtn.closest('.comment-item');
+                const commentId = commentItem.dataset.commentId;
+                const voteType = parseInt(voteBtn.dataset.vote, 10);
+                
+                // Disable buttons to prevent multi-click
+                commentItem.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);
+                
+                const { data, error } = await toggleCommentVote(commentId, state.user.id, voteType);
+                
+                if (error) {
+                    console.error("Failed to vote on comment");
+                } else {
+                    commentItem.querySelector('.like-count').textContent = data.likes;
+                    commentItem.querySelector('.dislike-count').textContent = data.dislikes;
+                    commentItem.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('active'));
+                    if (data.user_vote) {
+                        commentItem.querySelector(`.vote-btn[data-vote="${data.user_vote}"]`).classList.add('active');
+                    }
+                }
+                
+                commentItem.querySelectorAll('.vote-btn').forEach(b => b.disabled = false);
+            }
+
+            // -- Show Reply Form --
+            const replyBtn = e.target.closest('.reply-btn');
+            if (replyBtn) {
+                const commentItem = replyBtn.closest('.comment-item');
+                const replyContainer = commentItem.querySelector('.reply-form-container');
+
+                if (replyContainer.style.display === 'none') {
+                    replyContainer.innerHTML = `
+                        <form class="reply-form">
+                            <div class="form-group">
+                                <textarea placeholder="پاسخ شما..." required></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary cancel-reply">انصراف</button>
+                                <button type="submit" class="btn btn-primary">ارسال پاسخ</button>
+                            </div>
+                            <div class="form-status"></div>
+                        </form>
+                    `;
+                    replyContainer.style.display = 'block';
+                    replyContainer.querySelector('textarea').focus();
+                } else {
+                    replyContainer.style.display = 'none';
+                    replyContainer.innerHTML = '';
+                }
+            }
+
+            // -- Cancel Reply --
+            const cancelBtn = e.target.closest('.cancel-reply');
+            if (cancelBtn) {
+                const replyContainer = cancelBtn.closest('.reply-form-container');
+                replyContainer.style.display = 'none';
+                replyContainer.innerHTML = '';
+            }
+        });
+
+        // -- Submit Reply --
+        commentsList.addEventListener('submit', async (e) => {
+            if (!e.target.classList.contains('reply-form')) return;
+            e.preventDefault();
+
+            const form = e.target;
+            const commentItem = form.closest('.comment-item');
+            const parentId = commentItem.dataset.commentId;
+            const content = form.querySelector('textarea').value;
+            if (!content.trim()) return;
+
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+
+            const { data: newReply, error } = await addComment(newsId, state.user.id, content, parentId);
+            
+            if (error) {
+                const statusBox = form.querySelector('.form-status');
+                showStatus(statusBox, 'خطا در ارسال پاسخ.');
+            } else {
+                const repliesContainer = commentItem.querySelector('.comment-replies');
+                repliesContainer.insertAdjacentHTML('beforeend', renderComment(newReply));
+                form.parentElement.style.display = 'none';
+                form.parentElement.innerHTML = '';
+                const commentCountEl = document.querySelector('.interactions-header h3');
+                const newCount = (parseInt(commentCountEl.textContent.match(/\d+/)[0]) || 0) + 1;
+                commentCountEl.textContent = `دیدگاه‌ها (${newCount})`;
+            }
+            submitBtn.disabled = false;
+        });
+    }
+};
