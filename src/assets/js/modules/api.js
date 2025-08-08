@@ -235,38 +235,33 @@ export const getUserProvider = async (email) => {
 // --- Like and Comment Functions ---
 
 export const getComments = async (newsId, userId) => {
-    console.log("DEBUG: Fetching comments directly for news_id:", newsId);
     if (!newsId) return { data: [], error: 'News ID is missing' };
     try {
+        // Call the new, correct function name
         const { data, error } = await supabaseClient
-            .from('comments')
-            .select(`
-                id,
-                created_at,
-                content,
-                user_id,
-                parent_id
-            `)
-            .eq('news_id', newsId)
-            .order('created_at', { ascending: false });
+            .rpc('get_comments_for_news', {
+                p_news_id: newsId,
+                p_user_id: userId
+            });
 
         if (error) throw error;
         
-        console.log("DEBUG: Raw comments received:", data);
-        
-        // Manually add dummy author info so the UI doesn't break
-        const commentsWithDummyAuthor = data.map(c => ({
-            ...c,
-            author: { full_name: "کاربر تست" },
-            likes: 0,
-            dislikes: 0,
-            user_vote: null,
-            replies: []
-        }));
+        // Add avatar from user metadata to each comment's author
+        if (data) {
+            data.forEach(comment => {
+                if (comment.author && !comment.author.avatar_url) {
+                    // This logic is a placeholder, you might need to fetch the specific user's metadata
+                    // For simplicity, we assume if the current user is the author, we can add their avatar
+                    if (state.user && state.user.id === comment.user_id) {
+                       comment.author.avatar_url = state.user.user_metadata?.avatar_url;
+                    }
+                }
+            });
+        }
 
-        return { data: commentsWithDummyAuthor, error: null };
+        return { data: data || [], error: null }; // Ensure we always return an array
     } catch (error) {
-        console.error('Error fetching comments directly:', error);
+        console.error('Error fetching comments:', error);
         return { data: null, error };
     }
 };
