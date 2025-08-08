@@ -267,10 +267,11 @@ export const addComment = async (newsId, userId, content, parentId = null) => {
             .single();
         if (error) throw error;
         
-        // Add default vote counts for the new comment
+        // Add default properties for the new comment
         data.likes = 0;
         data.dislikes = 0;
         data.user_vote = null;
+        data.replies = []; // <<-- START: خط کلیدی اصلاح شده اینجاست
         
         // Add avatar from user metadata since it's not in profiles
         if (state.user && !data.author.avatar_url) {
