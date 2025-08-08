@@ -1084,11 +1084,10 @@ body.light-theme .news-detail-meta-header { background: #fff; border: 1px solid 
 }
 .event-content-area { padding: 1rem; }
 .news-content-area h1, .event-content-area h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
     line-height: 1.3;
-    text-align: right;
-    font-size: clamp(3vw, 4vw, 5vw);
+    text-align: center;
+    font-size: 3vw;
 }
 body.dark-theme .news-content-area h1, body.dark-theme .event-content-area h1 { color: var(--primary-color); }
 body.light-theme .news-content-area h1, body.light-theme .event-content-area h1 { color: var(--primary-color-light-theme); }
