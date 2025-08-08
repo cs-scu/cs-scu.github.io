@@ -2911,6 +2911,7 @@ body.light-theme .like-btn:not(.liked):hover svg {
 .comment-item {
     display: flex;
     gap: 1rem;
+    flex-direction: column; /* <<-- این خط اضافه شود */
 }
 
 .comment-avatar {
