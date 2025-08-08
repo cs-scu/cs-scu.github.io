@@ -1614,9 +1614,7 @@ const renderComment = (comment) => {
                 <div class="comment-header">
                     <img src="${authorAvatar}" alt="${authorName}" class="comment-avatar">
                     <strong>${authorName}</strong>
-                    {/* START: از تابع جدید برای نمایش زمان استفاده می‌کنیم */}
                     <span class="comment-date">${formatTimeAgo(comment.created_at)}</span>
-                    {/* END: تغییر کلیدی */}
                 </div>
                 <div class="comment-content">
                     <p>${sanitizedContent}</p>
