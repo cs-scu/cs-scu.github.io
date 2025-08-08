@@ -1288,6 +1288,7 @@ export const showEventRegistrationModal = async (eventId) => {
             paymentFieldsHTML = `
                 <br>
                 <hr>
+                <br>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="reg-card-digits">۴ رقم آخر کارت پرداختی</label>
@@ -1326,7 +1327,7 @@ export const showEventRegistrationModal = async (eventId) => {
 
         const modalHtml = `
             <div class="content-box">
-                <h2>ثبت‌نام در: ${event.title}</h2><hr>${paymentSectionHTML}
+                <h2>ثبت‌نام در: ${event.title}</h2>${paymentSectionHTML}
                 <form id="event-registration-form" style="margin-top: ${isPaidEvent ? '2rem' : '1rem'};">
                     <div class="form-row"><div class="form-group"><label for="reg-name">نام و نام خانوادگی</label><input type="text" id="reg-name" name="name" value="${profile?.full_name || ''}" required></div><div class="form-group"><label for="reg-email">ایمیل</label><input type="email" id="reg-email" name="email" value="${user?.email || ''}" required disabled style="background-color: rgba(128,128,128,0.1);" dir="ltr"></div></div>
                     <div class="form-row"><div class="form-group"><label for="reg-student-id">کد دانشجویی</label><input type="text" id="reg-student-id" name="student_id" inputmode="numeric" required dir="ltr"></div><div class="form-group"><label for="reg-phone">شماره تلفن</label><input type="tel" id="reg-phone" name="phone_number" inputmode="tel" required></div></div>
