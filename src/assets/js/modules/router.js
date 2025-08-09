@@ -147,7 +147,7 @@ const renderPage = async (path) => {
                         const youtubeIdMatch = block.data.YoutubeUrl.match(/(?:v=|\/embed\/|youtu\.be\/)([\w-]{11})/);
                         if (youtubeIdMatch) {
                             const embedUrl = `https://www.youtube-nocookie.com/embed/${youtubeIdMatch[1]}`;
-                            tabsHTML += `<button class="platform-btn ${isFirstPlatform ? 'active' : ''}" data-platform="youtube" title="پخش از یوتیوب"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.897 3.43.1 6.27.1 12s.797 8.57 3.485 8.816c3.6.245 11.626.246 15.23 0C21.103 20.57 22.1 17.73 22.1 12s-.997-8.57-2.485-8.816zM9.925 15.5V8.5l6.5 3.5-6.5 3.5z"></path></svg></button>`;
+                            tabsHTML += `<button class="platform-btn ${isFirstPlatform ? 'active' : ''}" data-platform="youtube" title="پخش از یوتیوب"><svg fill="#000000" width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21.593 7.203a2.506 2.506 0 0 0-1.762-1.766C18.265 5.007 12 5 12 5s-6.264-.007-7.831.404a2.56 2.56 0 0 0-1.766 1.778c-.413 1.566-.417 4.814-.417 4.814s-.004 3.264.406 4.814c.23.857.905 1.534 1.763 1.765 1.582.43 7.83.437 7.83.437s6.265.007 7.831-.403a2.515 2.515 0 0 0 1.767-1.763c.414-1.565.417-4.812.417-4.812s.02-3.265-.407-4.831zM9.996 15.005l.005-6 5.207 3.005-5.212 2.995z"/></svg></button>`;
                             playersHTML += `<div class="video-wrapper ${isFirstPlatform ? 'active' : ''}" data-platform="youtube"><iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe></div>`;
                         }
                     }
