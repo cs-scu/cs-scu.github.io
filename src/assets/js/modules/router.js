@@ -58,17 +58,40 @@ const renderPage = async (path) => {
 
         let html = '';
         blocks.forEach(block => {
+            // با توجه به نوع هر بلوک، تگ HTML مناسب را ایجاد می‌کند
             switch (block.type) {
                 case 'header':
                     html += `<h${block.data.level}>${block.data.text}</h${block.data.level}>`;
                     break;
                 case 'paragraph':
+                    // استفاده از innerHTML برای نمایش صحیح لینک‌ها و تگ‌های ساده
                     html += `<p>${block.data.text}</p>`;
                     break;
                 case 'list':
                     const listItems = block.data.items.map(item => `<li>${item}</li>`).join('');
                     const listType = block.data.style === 'ordered' ? 'ol' : 'ul';
                     html += `<${listType}>${listItems}</${listType}>`;
+                    break;
+                
+                // <<-- بلوک‌های جدید از اینجا اضافه شده‌اند -->>
+                case 'image':
+                    html += `
+                        <figure>
+                            <img src="${block.data.url}" alt="${block.data.caption || 'Image'}">
+                            ${block.data.caption ? `<figcaption>${block.data.caption}</figcaption>` : ''}
+                        </figure>`;
+                    break;
+                case 'quote':
+                    html += `
+                        <blockquote>
+                            <p>${block.data.text}</p>
+                            ${block.data.caption ? `<cite>${block.data.caption}</cite>` : ''}
+                        </blockquote>`;
+                    break;
+                case 'code':
+                    // برای امنیت، محتوای کد را escape می‌کنیم
+                    const escapedCode = block.data.code.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    html += `<pre><code>${escapedCode}</code></pre>`;
                     break;
                 case 'table':
                     const headers = block.data.withHeadings 
@@ -80,6 +103,7 @@ const renderPage = async (path) => {
 
                     html += `<div class="table-wrapper"><table class="content-table">${headers}${body}</table></div>`;
                     break;
+
                 default:
                     console.warn('Unknown block type:', block.type);
             }
