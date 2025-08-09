@@ -3415,13 +3415,13 @@ body.light-theme .code-block-wrapper pre {
     border: 0;
 }
 
-/* ================== Final Video Player with Description v6.0 ================== */
+/* ================== Final Animated Video Player Controls v5.0 ================== */
 .video-container {
     margin: 2.5rem auto;
 }
 
 .video-player-area .video-wrapper {
-    margin: 0 0 0.75rem 0;
+    margin: 0 0 0.75rem 0; /* فاصله از دکمه‌های پایین */
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     border: 1px solid var(--glass-border-dark);
@@ -3439,7 +3439,7 @@ body.light-theme .video-player-area .video-wrapper {
 /* کانتینر اصلی برای دکمه‌ها و توضیحات */
 .video-controls-container {
     display: flex;
-    justify-content: space-between; /* برای قرار دادن آیتم‌ها در دو طرف */
+    justify-content: space-between; /* <<-- برای قرار دادن آیتم‌ها در دو طرف */
     align-items: center;
     gap: 1rem;
     padding: 0 0.5rem;
@@ -3466,7 +3466,7 @@ body.light-theme .video-player-area .video-wrapper {
 }
 
 .platform-btn {
-    display: flex;
+    display: flex; /* برای وسط‌چین کردن آیکون */
     align-items: center;
     justify-content: center;
     border: none;

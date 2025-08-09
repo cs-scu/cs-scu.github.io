@@ -146,7 +146,6 @@ const renderPage = async (path) => {
                     if(hasYoutube) {
                         const youtubeIdMatch = block.data.YoutubeUrl.match(/(?:v=|\/embed\/|youtu\.be\/)([\w-]{11})/);
                         if (youtubeIdMatch) {
-                            // <<-- تغییر اصلی: SVG یوتیوب با نسخه اصلاح شده و استاندارد جایگزین شد -->>
                             tabsHTML += `<button class="platform-btn ${isFirstPlatform ? 'active' : ''}" data-platform="youtube" title="پخش از یوتیوب"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.897 3.43.1 6.27.1 12s.797 8.57 3.485 8.816c3.6.245 11.626.246 15.23 0C21.103 20.57 22.1 17.73 22.1 12s-.997-8.57-2.485-8.816zM9.925 15.5V8.5l6.5 3.5-6.5 3.5z"></path></svg></button>`;
                             playersHTML += `<div class="video-wrapper ${isFirstPlatform ? 'active' : ''}" data-platform="youtube"><iframe src="https://www.youtube.com/embed/${youtubeIdMatch[1]}" frameborder="0" allowfullscreen></iframe></div>`;
                         }
