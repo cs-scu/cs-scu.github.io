@@ -3415,7 +3415,7 @@ body.light-theme .code-block-wrapper pre {
     border: 0;
 }
 
-/* ================== Animated Video Player Controls v4.0 ================== */
+/* ================== Final Animated Video Player Controls v5.0 ================== */
 .video-container {
     margin: 2.5rem auto;
 }
@@ -3436,57 +3436,52 @@ body.light-theme .video-player-area .video-wrapper {
     display: block;
 }
 
-/* کانتینر جدید برای دکمه‌ها و انیمیشن */
+/* کانتینر اصلی برای دکمه‌ها و انیمیشن */
 .video-tabs-container {
     position: relative;
     display: flex;
     justify-content: center;
-    padding: 0.3rem;
-    border-radius: 50px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     width: fit-content;
     margin: 0 auto;
-}
-body.dark-theme .video-tabs-container {
-    background-color: rgba(30, 30, 30, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-body.light-theme .video-tabs-container {
-    background-color: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: rgba(128, 128, 128, 0.1);
+    border-radius: 50px;
+    padding: 0.3rem;
 }
 
 .platform-btn {
+    display: flex; /* برای وسط‌چین کردن آیکون */
+    align-items: center;
+    justify-content: center;
     border: none;
     background-color: transparent;
     color: inherit;
-    padding: 0.4rem 1rem;
-    border-radius: 50px;
+    padding: 0.4rem;
+    width: 40px; /* <<-- عرض ثابت برای هر دکمه */
+    height: 40px; /* <<-- ارتفاع ثابت برای هر دکمه */
+    border-radius: 50%;
     cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: bold;
     z-index: 2; /* دکمه‌ها باید روی هایلایتر باشند */
-    transition: color 0.3s ease;
 }
 
-.platform-btn.active {
-    transition-delay: 0.1s; /* کمی تاخیر برای تغییر رنگ متن */
+.platform-btn svg {
+    height: 22px;
+    width: 22px;
+    fill: currentColor;
+    opacity: 0.7;
+    transition: opacity 0.2s;
 }
 
-body.dark-theme .platform-btn.active {
-    color: var(--background-color-dark);
-}
-body.light-theme .platform-btn.active {
-    color: #fff;
+.platform-btn:hover svg,
+.platform-btn.active svg {
+    opacity: 1;
 }
 
-/* <<-- عنصر جدید برای انیمیشن -->> */
+/* <<-- عنصر متحرک برای انیمیشن -->> */
 .video-tab-highlighter {
     position: absolute;
     top: 0.3rem;
     bottom: 0.3rem;
-    border-radius: 50px;
+    border-radius: 50%; /* <<-- گرد کردن هایلایتر */
     z-index: 1;
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -3497,6 +3492,10 @@ body.light-theme .video-tab-highlighter {
     background-color: var(--primary-color-light-theme);
 }
 
+/* مخفی کردن متن داخل دکمه‌ها */
+.platform-btn span {
+    display: none;
+}
 /* ================== Video Player Logo Buttons ================== */
 .video-tab-btn {
     display: flex;
