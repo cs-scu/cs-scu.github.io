@@ -3355,3 +3355,24 @@ body.dark-theme .copy-code-btn:hover {
 body.light-theme .copy-code-btn:hover {
     background-color: rgba(0, 0, 0, 0.05);
 }
+/* ================== Code Block Style Integration Fix ================== */
+.code-block-wrapper pre {
+    /* حذف استایل‌های اضافی از خود تگ pre */
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+
+    /* انتقال padding به داخل برای هم‌ترازی بهتر */
+    padding: 1.5rem;
+    border-top: 1px solid var(--glass-border-dark);
+}
+
+body.light-theme .code-block-wrapper pre {
+    border-top-color: var(--glass-border-light);
+}
+
+/* حذف padding اضافه از تگ code */
+.code-block-wrapper pre code {
+    padding: 0;
+}

@@ -8,21 +8,26 @@ const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/
 
 const initializeCopyButtons = () => {
     dom.mainContent.querySelectorAll('.copy-code-btn').forEach(btn => {
+        if (btn.dataset.listenerAttached) return;
+
         btn.addEventListener('click', () => {
             const wrapper = btn.closest('.code-block-wrapper');
             const code = wrapper.querySelector('pre code');
             if (code) {
                 navigator.clipboard.writeText(code.textContent).then(() => {
                     const originalIcon = btn.innerHTML;
-                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    
                     setTimeout(() => {
                         btn.innerHTML = originalIcon;
                     }, 2000);
                 });
             }
         });
+        btn.dataset.listenerAttached = 'true';
     });
 };
+
 // --- Helper Functions ---
 const debounce = (func, delay = 250) => {
     let timeoutId;
