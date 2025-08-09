@@ -76,6 +76,25 @@ const cleanupPageSpecifics = (newPath) => {
 const renderPage = async (path) => {
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
     
+    // <<-- تابع کمکی جدید برای پردازش Markdown -->>
+    const parseInlineMarkdown = (text) => {
+        if (!text) return '';
+        
+        // Sanitize to prevent XSS
+        const sanitizer = document.createElement('div');
+        sanitizer.textContent = text;
+        let sanitizedText = sanitizer.innerHTML;
+
+        // **Bold** -> <strong>Bold</strong>
+        sanitizedText = sanitizedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // *Italic* -> <em>Italic</em>
+        sanitizedText = sanitizedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        // [Link Text](URL) -> <a href="URL">Link Text</a>
+        sanitizedText = sanitizedText.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+        
+        return sanitizedText;
+    };
+
     const renderJsonContent = (blocks) => {
         if (!Array.isArray(blocks)) {
             console.error("Content is not a valid block array:", blocks);
@@ -89,10 +108,12 @@ const renderPage = async (path) => {
                     html += `<h${block.data.level}>${block.data.text}</h${block.data.level}>`;
                     break;
                 case 'paragraph':
-                    html += `<p>${block.data.text}</p>`;
+                    // <<-- تغییر اصلی: استفاده از مترجم جدید -->>
+                    html += `<p>${parseInlineMarkdown(block.data.text)}</p>`;
                     break;
                 case 'list':
-                    const listItems = block.data.items.map(item => `<li>${item}</li>`).join('');
+                    // <<-- تغییر اصلی: استفاده از مترجم جدید برای آیتم‌های لیست -->>
+                    const listItems = block.data.items.map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('');
                     const listType = block.data.style === 'ordered' ? 'ol' : 'ul';
                     html += `<${listType}>${listItems}</${listType}>`;
                     break;
@@ -247,7 +268,6 @@ const renderPage = async (path) => {
     dom.mainContent.classList.remove('is-loading');
     initializeCopyButtons();
 };
-
 
 const handleNavigation = () => {
     const path = location.hash || '#/';
