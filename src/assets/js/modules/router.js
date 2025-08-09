@@ -243,6 +243,9 @@ const renderPage = async (path) => {
         await pageRenderers[cleanPath]();
     }
     
+    if (pageRenderers[cleanPath]) {
+        await pageRenderers[cleanPath]();
+    }
     dom.mainContent.classList.remove('is-loading');
     initializeCopyButtons();
 
