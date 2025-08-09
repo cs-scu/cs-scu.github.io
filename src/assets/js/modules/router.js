@@ -136,14 +136,20 @@ const renderPage = async (path) => {
                     const hasAparat = block.data.AparatUrl && block.data.AparatUrl.trim() !== '';
                     
                     if(hasYoutube) {
-                        const videoId = new URL(block.data.YoutubeUrl).searchParams.get('v') || block.data.YoutubeUrl.split('youtu.be/')[1];
-                        tabsHTML += `<button class="video-tab-btn active" data-platform="youtube">یوتیوب</button>`;
-                        playersHTML += `<div class="video-wrapper active" data-platform="youtube"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`;
+                        const youtubeIdMatch = block.data.YoutubeUrl.match(/(?:v=|\/embed\/|youtu\.be\/)([\w-]{11})/);
+                        if (youtubeIdMatch) {
+                            tabsHTML += `<button class="video-tab-btn active" data-platform="youtube">یوتیوب</button>`;
+                            playersHTML += `<div class="video-wrapper active" data-platform="youtube"><iframe src="https://www.youtube.com/embed/${youtubeIdMatch[1]}" frameborder="0" allowfullscreen></iframe></div>`;
+                        }
                     }
                     if(hasAparat) {
-                        const videoId = block.data.AparatUrl.split('/v/')[1];
-                        tabsHTML += `<button class="video-tab-btn ${!hasYoutube ? 'active' : ''}" data-platform="aparat">آپارات</button>`;
-                        playersHTML += `<div class="video-wrapper ${!hasYoutube ? 'active' : ''}" data-platform="aparat"><iframe src="https://www.aparat.com/video/video/embed/videohash/${videoId}/vt/frame" frameborder="0" allowfullscreen></iframe></div>`;
+                        // <<-- تغییر اصلی اینجاست: استخراج شناسه‌ی ویدیو به روش صحیح -->>
+                        const aparatIdMatch = block.data.AparatUrl.match(/(?:\/v\/|\/embed\/)([a-zA-Z0-9]+)/);
+                        if (aparatIdMatch) {
+                            const videoId = aparatIdMatch[1];
+                            tabsHTML += `<button class="video-tab-btn ${!hasYoutube ? 'active' : ''}" data-platform="aparat">آپارات</button>`;
+                            playersHTML += `<div class="video-wrapper ${!hasYoutube ? 'active' : ''}" data-platform="aparat"><iframe src="https://www.aparat.com/video/video/embed/videohash/${videoId}/vt/frame" frameborder="0" allowfullscreen></iframe></div>`;
+                        }
                     }
 
                     if(tabsHTML) {
@@ -156,9 +162,17 @@ const renderPage = async (path) => {
         return html;
     };
 
-    if (cleanPath === '/profile-updated') { /* ... */ }
+    // ... (بقیه کدهای تابع renderPage بدون تغییر باقی می‌مانند) ...
+    if (cleanPath === '/profile-updated') {
+        await renderPage('/');
+        showProfileModal();
+        history.replaceState(null, '', location.pathname + '#/');
+        return;
+    }
+
     dom.mainContent.classList.add('is-loading');
     await new Promise(resolve => setTimeout(resolve, 200)); 
+
     cleanupPageSpecifics(cleanPath);
     updateActiveLink(cleanPath);
     
@@ -223,7 +237,7 @@ const renderPage = async (path) => {
     
     dom.mainContent.classList.remove('is-loading');
     initializeCopyButtons();
-    initializeVideoPlayers(); // <<-- فعال‌سازی دکمه‌های ویدیو
+    initializeVideoPlayers();
 };
 
 const handleNavigation = () => { const path = location.hash || '#/'; renderPage(path); };
