@@ -50,6 +50,37 @@ const cleanupPageSpecifics = (newPath) => {
 const renderPage = async (path) => {
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
     
+    // <<-- تابع جدید برای تبدیل JSON به HTML -->>
+    const renderJsonContent = (blocks) => {
+        if (!Array.isArray(blocks)) {
+            // اگر محتوا به فرمت مورد انتظار نبود، یک پیام خطا نمایش بده
+            console.error("Content is not a valid block array:", blocks);
+            return '<p>محتوای این خبر به درستی بارگذاری نشد.</p>';
+        }
+
+        let html = '';
+        blocks.forEach(block => {
+            // با توجه به نوع هر بلوک، تگ HTML مناسب را ایجاد می‌کند
+            switch (block.type) {
+                case 'header':
+                    html += `<h${block.data.level}>${block.data.text}</h${block.data.level}>`;
+                    break;
+                case 'paragraph':
+                    html += `<p>${block.data.text}</p>`;
+                    break;
+                case 'list':
+                    const listItems = block.data.items.map(item => `<li>${item}</li>`).join('');
+                    const listType = block.data.style === 'ordered' ? 'ol' : 'ul';
+                    html += `<${listType}>${listItems}</${listType}>`;
+                    break;
+                // در آینده می‌توانید انواع بلوک‌های دیگر مثل تصویر، نقل‌قول و... را اینجا اضافه کنید
+                default:
+                    console.warn('Unknown block type:', block.type);
+            }
+        });
+        return html;
+    };
+
     if (cleanPath === '/profile-updated') {
         await renderPage('/');
         showProfileModal();
@@ -73,9 +104,10 @@ const renderPage = async (path) => {
         } else {
             updateMetaTags(`${newsItem.title} | اخبار انجمن`, newsItem.summary);
             const author = state.membersMap.get(newsItem.authorId);
-            const articleHTML = newsItem.content;
+            
+            // <<-- تغییر اصلی اینجاست: فراخوانی تابع جدید برای رندر محتوا -->>
+            const articleHTML = renderJsonContent(newsItem.content);
 
-            // Fetch comments and likes with the correct user ID
             const [{ data: comments }, { data: likeStatus }] = await Promise.all([
                 getComments(newsItem.id, state.user?.id),
                 getLikeStatus(newsItem.id, state.user?.id)
@@ -90,14 +122,13 @@ const renderPage = async (path) => {
                             <div class="news-item-meta"><span>${newsItem.date}</span><span class="separator">&bull;</span><span>${newsItem.readingTime}</span></div>
                         </div>
                         <div class="content-box">
-                            ${articleHTML}
+                            <article class="news-content-area">${articleHTML}</article> {/* <<-- محتوای رندر شده اینجا قرار گرفت -->> */}
                             <hr class="post-divider">
                             ${renderInteractionsSection(newsItem.id, likeStatus, comments)}
                         </div>
                     </div>
                 </section>
             `;
-            // Add event listeners for the new section
             initializeInteractions(newsItem.id);
         }
         dom.mainContent.classList.remove('is-loading');
