@@ -122,7 +122,7 @@ const renderPage = async (path) => {
                             <div class="news-item-meta"><span>${newsItem.date}</span><span class="separator">&bull;</span><span>${newsItem.readingTime}</span></div>
                         </div>
                         <div class="content-box">
-                            <article class="news-content-area">${articleHTML}</article> {/* <<-- محتوای رندر شده اینجا قرار گرفت -->> */}
+                            <article class="news-content-area">${articleHTML}</article>
                             <hr class="post-divider">
                             ${renderInteractionsSection(newsItem.id, likeStatus, comments)}
                         </div>
