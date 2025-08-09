@@ -137,7 +137,7 @@ const renderPage = async (path) => {
                     if (hasAparat) {
                         const aparatIdMatch = block.data.AparatUrl.match(/(?:\/v\/|\/embed\/)([a-zA-Z0-9]+)/);
                         if (aparatIdMatch) {
-                            const embedUrl = `https://www.aparat.com/embed/${aparatIdMatch[1]}`;
+                            const embedUrl = `https://www.aparat.com/video/video/embed/videohash/${aparatIdMatch[1]}/vt/frame`;
                             tabsHTML += `<button class="platform-btn active" data-platform="aparat" title="پخش از آپارات"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M14.412 12.022l-.414 1.832c-.16.712-.597 1.33-1.214 1.72-.555.351-1.215.49-1.86.397l-.215-.04-1.817-.41c2.326-.274 4.328-1.605 5.52-3.499zM8 1.262c3.72 0 6.737 3.017 6.737 6.738 0 3.72-3.016 6.737-6.737 6.737S1.263 11.72 1.263 8 4.279 1.263 8 1.263zM.478 8.893c.263 2.23 1.497 4.16 3.266 5.367l.233.153-1.832-.414c-.712-.16-1.33-.597-1.72-1.214-.35-.555-.49-1.215-.397-1.86l.04-.215.41-1.817zm9.206.371c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.685 1.684 1.685.93 0 1.684-.755 1.684-1.685s-.754-1.684-1.684-1.684zM5.052 8c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.684 1.684 1.684.93 0 1.685-.754 1.685-1.684C6.737 8.754 5.982 8 5.052 8zm3.374-.746c-.263-.154-.59-.154-.853 0-.263.155-.422.44-.415.746.01.457.384.823.842.823.458 0 .831-.366.841-.824.007-.305-.152-.59-.415-.745zm2.521-2.623c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.685 1.684 1.685.93 0 1.685-.754 1.685-1.685 0-.93-.755-1.684-1.685-1.684zm1.075-3.044l1.832.414c1.427.322 2.343 1.7 2.11 3.125l-.032.164-.41 1.817c-.275-2.325-1.606-4.327-3.5-5.52zM6.315 3.368c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.685 1.684 1.685.93 0 1.685-.755 1.685-1.685s-.754-1.684-1.685-1.684zM5.076.028l.215.04 1.817.41C4.878.74 2.948 1.975 1.74 3.744l-.153.233.414-1.832c.16-.712.598-1.33 1.215-1.72.555-.35 1.215-.49 1.86-.397z"></path></svg></button>`;
                             playersHTML += `<div class="video-wrapper active" data-platform="aparat"><iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe></div>`;
                             isFirstPlatform = false;
@@ -146,9 +146,8 @@ const renderPage = async (path) => {
                     if(hasYoutube) {
                         const youtubeIdMatch = block.data.YoutubeUrl.match(/(?:v=|\/embed\/|youtu\.be\/)([\w-]{11})/);
                         if (youtubeIdMatch) {
-                            // <<-- تغییر اصلی: SVG جدید یوتیوب جایگزین شد -->>
                             const embedUrl = `https://www.youtube-nocookie.com/embed/${youtubeIdMatch[1]}`;
-                            tabsHTML += `<button class="platform-btn ${isFirstPlatform ? 'active' : ''}" data-platform="youtube" title="پخش از یوتیوب"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M21.593 7.203a2.506 2.506 0 0 0-1.762-1.766C18.265 5.007 12 5 12 5s-6.264-.007-7.831.404a2.56 2.56 0 0 0-1.766 1.778c-.413 1.566-.417 4.814-.417 4.814s-.004 3.264.406 4.814c.23.857.905 1.534 1.763 1.765 1.582.43 7.83.437 7.83.437s6.265.007 7.831-.403a2.515 2.515 0 0 0 1.767-1.763c.414-1.565.417-4.812.417-4.812s.02-3.265-.407-4.831zM9.996 15.005l.005-6 5.207 3.005-5.212 2.995z"/></svg></button>`;
+                            tabsHTML += `<button class="platform-btn ${isFirstPlatform ? 'active' : ''}" data-platform="youtube" title="پخش از یوتیوب"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.897 3.43.1 6.27.1 12s.797 8.57 3.485 8.816c3.6.245 11.626.246 15.23 0C21.103 20.57 22.1 17.73 22.1 12s-.997-8.57-2.485-8.816zM9.925 15.5V8.5l6.5 3.5-6.5 3.5z"></path></svg></button>`;
                             playersHTML += `<div class="video-wrapper ${isFirstPlatform ? 'active' : ''}" data-platform="youtube"><iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe></div>`;
                         }
                     }
@@ -165,6 +164,7 @@ const renderPage = async (path) => {
         });
         return html;
     };
+    
     if (cleanPath === '/profile-updated') {
         await renderPage('/');
         showProfileModal();
