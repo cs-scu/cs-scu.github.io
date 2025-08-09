@@ -590,7 +590,6 @@ const showMemberModal = (memberId) => {
 };
 
 
-// تابع اصلی نمایش مودال رویداد (اصلاح‌شده)
 export const showEventModal = async (path) => {
     const eventLink = `#${path}`;
     const event = state.allEvents.find(e => e.detailPage === eventLink);
@@ -599,8 +598,43 @@ export const showEventModal = async (path) => {
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
     if (!genericModal || !genericModalContent) return;
+    
+    const parseInlineMarkdown = (text) => {
+        if (!text) return '';
+        const sanitizer = document.createElement('div');
+        sanitizer.textContent = text;
+        let sanitizedText = sanitizer.innerHTML;
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>');
+        sanitizedText = sanitizedText.replace(/\[(.*?)\]\((.*?)\)/g, (match, linkText, url) => {
+            if (url.startsWith('javascript:')) return `[${linkText}]()`;
+            if (url.startsWith('@')) return `<a href="#/${url.substring(1)}">${linkText}</a>`;
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
+        });
+        sanitizedText = sanitizedText.replace(/\\(\*)/g, '$1');
+        return sanitizedText;
+    };
 
-    const detailHtml = event.content || '<p>محتوای جزئیات برای این رویداد یافت نشد.</p>';
+    const renderJsonContent = (blocks) => {
+        if (!Array.isArray(blocks)) return '<p>محتوای این رویداد به درستی بارگذاری نشد.</p>';
+        let html = '';
+        blocks.forEach(block => {
+            switch (block.type) {
+                case 'header': html += `<h${block.data.level}>${block.data.text}</h${block.data.level}>`; break;
+                case 'paragraph': html += `<p>${parseInlineMarkdown(block.data.text)}</p>`; break;
+                case 'list':
+                    const listItems = block.data.items.map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('');
+                    html += `<${block.data.style === 'ordered' ? 'ol' : 'ul'}>${listItems}</${block.data.style === 'ordered' ? 'ol' : 'ul'}>`;
+                    break;
+                case 'image': html += `<figure><img src="${block.data.url}" alt="${block.data.caption || 'Image'}">${block.data.caption ? `<figcaption>${block.data.caption}</figcaption>` : ''}</figure>`; break;
+                case 'quote': html += `<blockquote><p>${block.data.text}</p>${block.data.caption ? `<cite>${block.data.caption}</cite>` : ''}</blockquote>`; break;
+                default: console.warn('Unknown block type:', block.type);
+            }
+        });
+        return html;
+    };
+    
+    const detailHtml = renderJsonContent(event.content);
 
     const costHTML = event.cost ? `
         <span class="event-meta-item">
@@ -1714,6 +1748,7 @@ export const initializeInteractions = (newsId) => {
     const toEnglishNumber = (str) => {
         return String(str).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
     };
+    
 
     // <<-- تابع جدید برای مدیریت نمایش کامنت‌های حذف شده -->>
     const cleanupDeletedComments = (element) => {
