@@ -3392,3 +3392,25 @@ body.light-theme .code-block-wrapper pre {
 .code-block-wrapper pre code {
     padding: 0;
 }
+
+/* ================== Responsive Video Embed ================== */
+.video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* نسبت تصویر 16:9 */
+    height: 0;
+    overflow: hidden;
+    max-width: 100%;
+    background: #000;
+    border-radius: 15px;
+    margin: 2.5rem auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}

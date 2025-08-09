@@ -141,16 +141,7 @@ const renderPage = async (path) => {
                 case 'code':
                     const language = block.data.language || '';
                     const escapedCode = block.data.code.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    html += `
-                        <div class="code-block-wrapper">
-                            <div class="code-block-header">
-                                <span class="language-name">${language}</span>
-                                <button class="copy-code-btn" title="کپی کردن کد">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                </button>
-                            </div>
-                            <pre><code>${escapedCode}</code></pre>
-                        </div>`;
+                    html += `<div class="code-block-wrapper"><div class="code-block-header"><span class="language-name">${language}</span><button class="copy-code-btn" title="کپی کردن کد"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button></div><pre><code>${escapedCode}</code></pre></div>`;
                     break;
                 case 'table':
                     const headers = block.data.withHeadings ? `<thead><tr>${block.data.content[0].map(cell => `<th>${cell}</th>`).join('')}</tr></thead>` : '';
@@ -158,6 +149,19 @@ const renderPage = async (path) => {
                     const body = `<tbody>${bodyRows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>`;
                     html += `<div class="table-wrapper"><table class="content-table">${headers}${body}</table></div>`;
                     break;
+                
+                case 'video':
+                    html += `
+                        <div class="video-wrapper">
+                            <iframe 
+                                src="${block.data.url}" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                            </iframe>
+                        </div>`;
+                    break;
+
                 default:
                     console.warn('Unknown block type:', block.type);
             }
