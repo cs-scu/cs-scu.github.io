@@ -76,31 +76,38 @@ const cleanupPageSpecifics = (newPath) => {
 const renderPage = async (path) => {
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
     
-    // <<-- تابع کمکی جدید با سازوکار اختصاصی لینک -->>
-    const parseCustomFormatting = (text) => {
+    // <<-- تابع کمکی نهایی با سازوکار لینک‌دهی استاندارد -->>
+    const parseInlineMarkdown = (text) => {
         if (!text) return '';
         
         const sanitizer = document.createElement('div');
         sanitizer.textContent = text;
         let sanitizedText = sanitizer.innerHTML;
 
-        // **Bold** -> <strong>Bold</strong>
-        sanitizedText = sanitizedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        // *Italic* -> <em>Italic</em>
-        sanitizedText = sanitizedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        // **Bold**: Handles **text** but ignores \**text**
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // *Italic*: Handles *text* but ignores \*text*
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>');
         
-        // سازوکار جدید لینک داخلی: [[page|text]] or [[page]]
-        sanitizedText = sanitizedText.replace(/\[\[(.*?)(?:\|(.*?))?\]\]/g, (match, path, text) => {
-            const linkText = text || path;
-            const internalPath = path.trim();
-            return `<a href="#/${internalPath}">${linkText}</a>`;
+        // سازوکار نهایی لینک‌دهی: [Link Text](URL)
+        sanitizedText = sanitizedText.replace(/\[(.*?)\]\((.*?)\)/g, (match, linkText, url) => {
+            // جلوگیری از حملات XSS
+            if (url.startsWith('javascript:')) {
+                return `[${linkText}]()`; 
+            }
+            
+            // لینک‌های داخلی با @ شروع می‌شوند و در همان صفحه باز می‌شوند
+            if (url.startsWith('@')) {
+                const internalPath = url.substring(1);
+                return `<a href="#/${internalPath}">${linkText}</a>`;
+            }
+            
+            // لینک‌های خارجی در تب جدید باز می‌شوند
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
         });
 
-        // سازوکار جدید لینک خودکار برای URL ها
-        const urlRegex = /(?<!href="|">|\]\()https?:\/\/[^\s<]+/g;
-        sanitizedText = sanitizedText.replace(urlRegex, (url) => {
-            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-        });
+        // در نهایت، کاراکتر escape را حذف می‌کند
+        sanitizedText = sanitizedText.replace(/\\(\*)/g, '$1');
         
         return sanitizedText;
     };
@@ -118,10 +125,10 @@ const renderPage = async (path) => {
                     html += `<h${block.data.level}>${block.data.text}</h${block.data.level}>`;
                     break;
                 case 'paragraph':
-                    html += `<p>${parseCustomFormatting(block.data.text)}</p>`;
+                    html += `<p>${parseInlineMarkdown(block.data.text)}</p>`;
                     break;
                 case 'list':
-                    const listItems = block.data.items.map(item => `<li>${parseCustomFormatting(item)}</li>`).join('');
+                    const listItems = block.data.items.map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('');
                     const listType = block.data.style === 'ordered' ? 'ol' : 'ul';
                     html += `<${listType}>${listItems}</${listType}>`;
                     break;
@@ -158,7 +165,7 @@ const renderPage = async (path) => {
         return html;
     };
 
-    // ... بقیه کدهای تابع renderPage بدون تغییر باقی می‌مانند ...
+    // ... (بقیه کدهای تابع renderPage بدون تغییر باقی می‌مانند) ...
     if (cleanPath === '/profile-updated') {
         await renderPage('/');
         showProfileModal();
