@@ -1,3 +1,93 @@
+// src/assets/js/modules/router.js
+import { state, dom } from './state.js';
+import { initializeAuthForm, initializeContactForm, showEventModal, initializeInteractions, renderInteractionsSection, showProfileModal } from './ui.js';
+import * as components from './components.js';
+import { supabaseClient, loadEvents, loadJournal, loadChartData, getComments, getLikeStatus } from './api.js';
+
+const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
+
+const initializeCopyButtons = () => {
+    dom.mainContent.querySelectorAll('.copy-code-btn').forEach(btn => {
+        if (btn.dataset.listenerAttached) return;
+        btn.addEventListener('click', () => {
+            const wrapper = btn.closest('.code-block-wrapper');
+            const code = wrapper.querySelector('pre code');
+            if (code) {
+                navigator.clipboard.writeText(code.textContent).then(() => {
+                    const originalIcon = btn.innerHTML;
+                    const themeColor = document.body.classList.contains('dark-theme') ? '#e8c38e' : '#1a5c5d';
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${themeColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    setTimeout(() => { btn.innerHTML = originalIcon; }, 2000);
+                });
+            }
+        });
+        btn.dataset.listenerAttached = 'true';
+    });
+};
+
+const initializeVideoPlayers = () => {
+    dom.mainContent.querySelectorAll('.video-container').forEach(container => {
+        const tabs = container.querySelectorAll('.platform-btn');
+        const players = container.querySelectorAll('.video-wrapper');
+        const highlighter = container.querySelector('.video-tab-highlighter');
+
+        const moveHighlighter = (targetTab) => {
+            if (!highlighter || !targetTab) return;
+            highlighter.style.width = `${targetTab.offsetWidth}px`;
+            highlighter.style.transform = `translateX(${targetTab.offsetLeft}px)`;
+        };
+
+        const activeTab = container.querySelector('.platform-btn.active');
+        if (activeTab) {
+            requestAnimationFrame(() => moveHighlighter(activeTab));
+        }
+
+        tabs.forEach(tab => {
+            if (tab.dataset.listenerAttached) return;
+            tab.addEventListener('click', () => {
+                const targetPlatform = tab.dataset.platform;
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                players.forEach(player => {
+                    player.classList.toggle('active', player.dataset.platform === targetPlatform);
+                });
+                moveHighlighter(tab);
+            });
+            tab.dataset.listenerAttached = 'true';
+        });
+    });
+};
+
+const debounce = (func, delay = 250) => {
+    let timeoutId;
+    return (...args) => { clearTimeout(timeoutId); timeoutId = setTimeout(() => { func.apply(this, args); }, delay); };
+};
+
+const updateMetaTags = (title, description) => {
+    document.title = title;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', description);
+};
+
+const updateActiveLink = (path) => {
+    const currentBase = path.split('/')[1] || 'home';
+    document.querySelectorAll('a[data-page]').forEach(link => {
+        const linkPage = link.getAttribute('data-page');
+        link.setAttribute('aria-current', linkPage === currentBase ? 'page' : '');
+    });
+};
+
+const cleanupPageSpecifics = (newPath) => {
+    if (state.newsScrollHandler) {
+        window.removeEventListener('scroll', state.newsScrollHandler);
+        state.newsScrollHandler = null;
+    }
+    if (!newPath.startsWith('/news')) {
+        state.loadedNewsCount = 0;
+        state.isLoadingNews = false;
+    }
+};
+
 const renderPage = async (path) => {
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
     
@@ -24,33 +114,46 @@ const renderPage = async (path) => {
             switch (block.type) {
                 case 'header': html += `<h${block.data.level}>${block.data.text}</h${block.data.level}>`; break;
                 case 'paragraph': html += `<p>${parseInlineMarkdown(block.data.text)}</p>`; break;
-                // ... (کیس‌های دیگر بدون تغییر) ...
+                case 'list': html += `<${block.data.style === 'ordered' ? 'ol' : 'ul'}>${block.data.items.map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('')}</${block.data.style === 'ordered' ? 'ol' : 'ul'}>`; break;
+                case 'image': html += `<figure><img src="${block.data.url}" alt="${block.data.caption || 'Image'}">${block.data.caption ? `<figcaption>${block.data.caption}</figcaption>` : ''}</figure>`; break;
+                case 'quote': html += `<blockquote><p>${block.data.text}</p>${block.data.caption ? `<cite>${block.data.caption}</cite>` : ''}</blockquote>`; break;
+                case 'code':
+                    const lang = block.data.language || '';
+                    const code = block.data.code.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    html += `<div class="code-block-wrapper"><div class="code-block-header"><span class="language-name">${lang}</span><button class="copy-code-btn" title="کپی"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button></div><pre><code>${code}</code></pre></div>`;
+                    break;
+                case 'table':
+                    const headers = block.data.withHeadings ? `<thead><tr>${block.data.content[0].map(c => `<th>${c}</th>`).join('')}</tr></thead>` : '';
+                    const rows = block.data.withHeadings ? block.data.content.slice(1) : block.data.content;
+                    const body = `<tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>`;
+                    html += `<div class="table-wrapper"><table class="content-table">${headers}${body}</table></div>`;
+                    break;
                 case 'video':
                     let tabsHTML = '', playersHTML = '';
                     const hasYoutube = block.data.YoutubeUrl && block.data.YoutubeUrl.trim() !== '';
                     const hasAparat = block.data.AparatUrl && block.data.AparatUrl.trim() !== '';
-                    
-                    // <<-- تغییر اصلی اینجاست: اولویت با آپارات است -->>
-                    if(hasAparat) {
+                    let isFirstPlatform = true;
+
+                    if (hasAparat) {
                         const aparatIdMatch = block.data.AparatUrl.match(/(?:\/v\/|\/embed\/)([a-zA-Z0-9]+)/);
                         if (aparatIdMatch) {
                             tabsHTML += `<button class="platform-btn active" data-platform="aparat" title="پخش از آپارات"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M14.412 12.022l-.414 1.832c-.16.712-.597 1.33-1.214 1.72-.555.351-1.215.49-1.86.397l-.215-.04-1.817-.41c2.326-.274 4.328-1.605 5.52-3.499zM8 1.262c3.72 0 6.737 3.017 6.737 6.738 0 3.72-3.016 6.737-6.737 6.737S1.263 11.72 1.263 8 4.279 1.263 8 1.263zM.478 8.893c.263 2.23 1.497 4.16 3.266 5.367l.233.153-1.832-.414c-.712-.16-1.33-.597-1.72-1.214-.35-.555-.49-1.215-.397-1.86l.04-.215.41-1.817zm9.206.371c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.685 1.684 1.685.93 0 1.684-.755 1.684-1.685s-.754-1.684-1.684-1.684zM5.052 8c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.684 1.684 1.684.93 0 1.685-.754 1.685-1.684C6.737 8.754 5.982 8 5.052 8zm3.374-.746c-.263-.154-.59-.154-.853 0-.263.155-.422.44-.415.746.01.457.384.823.842.823.458 0 .831-.366.841-.824.007-.305-.152-.59-.415-.745zm2.521-2.623c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.685 1.684 1.685.93 0 1.685-.754 1.685-1.685 0-.93-.755-1.684-1.685-1.684zm1.075-3.044l1.832.414c1.427.322 2.343 1.7 2.11 3.125l-.032.164-.41 1.817c-.275-2.325-1.606-4.327-3.5-5.52zM6.315 3.368c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.685 1.684 1.685.93 0 1.685-.755 1.685-1.685s-.754-1.684-1.685-1.684zM5.076.028l.215.04 1.817.41C4.878.74 2.948 1.975 1.74 3.744l-.153.233.414-1.832c.16-.712.598-1.33 1.215-1.72.555-.35 1.215-.49 1.86-.397z"></path></svg></button>`;
                             playersHTML += `<div class="video-wrapper active" data-platform="aparat"><iframe src="https://www.aparat.com/video/video/embed/videohash/${aparatIdMatch[1]}/vt/frame" frameborder="0" allowfullscreen></iframe></div>`;
+                            isFirstPlatform = false;
                         }
                     }
-
                     if(hasYoutube) {
                         const youtubeIdMatch = block.data.YoutubeUrl.match(/(?:v=|\/embed\/|youtu\.be\/)([\w-]{11})/);
                         if (youtubeIdMatch) {
-                            tabsHTML += `<button class="platform-btn ${!hasAparat ? 'active' : ''}" data-platform="youtube" title="پخش از یوتیوب"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M170.49,117.91l-56-36A12,12,0,0,0,96,92v72a12,12,0,0,0,18.49,10.09l56-36a12,12,0,0,0,0-20.18ZM120,142V114l21.81,14Zm118.21-73.5a28.05,28.05,0,0,0-16.93-19.14C186.4,35.91,131.29,36,128,36s-58.4-.09-93.28,13.38A28.05,28.05,0,0,0,17.79,68.52C15.15,78.72,12,97.32,12,128s3.15,49.28,5.79,59.48a28.05,28.05,0,0,0,16.93,19.14C68.21,219.55,120.36,220,127.37,220h1.26c7,0,59.16-.45,92.65-13.38a28.05,28.05,0,0,0,16.93-19.14c2.64-10.2,5.79-28.8,5.79-59.48S240.85,78.72,238.21,68.52ZM215,181.46a4,4,0,0,1-2.34,2.77C182.78,195.76,132.27,196,128.32,196h-.39c-.53,0-53.64.17-84.56-11.77A4,4,0,0,1,41,181.46c-1.88-7.24-5-23.82-5-53.46s3.15-46.22,5-53.46a4,4,0,0,1,2.34-2.77C74.29,59.83,127.39,60,127.92,60h.15c.54,0,53.64-.17,84.56,11.77A4,4,0,0,1,215,74.54c1.88,7.24,5,23.82,5,53.46S216.85,174.22,215,181.46Z"></path></svg></button>`;
-                            playersHTML += `<div class="video-wrapper ${!hasAparat ? 'active' : ''}" data-platform="youtube"><iframe src="https://www.youtube.com/embed/${youtubeIdMatch[1]}" frameborder="0" allowfullscreen></iframe></div>`;
+                            tabsHTML += `<button class="platform-btn ${isFirstPlatform ? 'active' : ''}" data-platform="youtube" title="پخش از یوتیوب"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M170.49,117.91l-56-36A12,12,0,0,0,96,92v72a12,12,0,0,0,18.49,10.09l56-36a12,12,0,0,0,0-20.18ZM120,142V114l21.81,14Zm118.21-73.5a28.05,28.05,0,0,0-16.93-19.14C186.4,35.91,131.29,36,128,36s-58.4-.09-93.28,13.38A28.05,28.05,0,0,0,17.79,68.52C15.15,78.72,12,97.32,12,128s3.15,49.28,5.79,59.48a28.05,28.05,0,0,0,16.93,19.14C68.21,219.55,120.36,220,127.37,220h1.26c7,0,59.16-.45,92.65-13.38a28.05,28.05,0,0,0,16.93-19.14c2.64-10.2,5.79-28.8,5.79-59.48S240.85,78.72,238.21,68.52ZM215,181.46a4,4,0,0,1-2.34,2.77C182.78,195.76,132.27,196,128.32,196h-.39c-.53,0-53.64.17-84.56-11.77A4,4,0,0,1,41,181.46c-1.88-7.24-5-23.82-5-53.46s3.15-46.22,5-53.46a4,4,0,0,1,2.34-2.77C74.29,59.83,127.39,60,127.92,60h.15c.54,0,53.64-.17,84.56,11.77A4,4,0,0,1,215,74.54c1.88,7.24,5,23.82,5,53.46S216.85,174.22,215,181.46Z"></path></svg></button>`;
+                            playersHTML += `<div class="video-wrapper ${isFirstPlatform ? 'active' : ''}" data-platform="youtube"><iframe src="https://www.youtube.com/embed/${youtubeIdMatch[1]}" frameborder="0" allowfullscreen></iframe></div>`;
                         }
                     }
 
                     if(tabsHTML) {
                         const videoTitle = block.data.title ? `<h3 class="video-title">${block.data.title}</h3>` : '';
                         const videoDesc = block.data.description ? `<p class="video-description">${parseInlineMarkdown(block.data.description)}</p>` : '';
-                        const tabsContainer = `<div class="video-tabs-container"><div class="video-tab-highlighter"></div>${tabsHTML}</div>`;
+                        const tabsContainer = (hasAparat && hasYoutube) ? `<div class="video-tabs-container">${tabsHTML}<div class="video-tab-highlighter"></div></div>` : '';
                         html += `<div class="video-container">${videoTitle}<div class="video-player-area">${playersHTML}</div><div class="video-controls-container">${videoDesc}${tabsContainer}</div></div>`;
                     }
                     break;
