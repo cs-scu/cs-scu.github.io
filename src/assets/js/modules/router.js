@@ -6,8 +6,10 @@ import { supabaseClient, loadEvents, loadJournal, loadChartData, getComments, ge
 
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
+// <<-- تابع جدید برای فعال‌سازی دکمه‌های کپی -->>
 const initializeCopyButtons = () => {
     dom.mainContent.querySelectorAll('.copy-code-btn').forEach(btn => {
+        // جلوگیری از ثبت مجدد event listener
         if (btn.dataset.listenerAttached) return;
 
         btn.addEventListener('click', () => {
@@ -16,6 +18,7 @@ const initializeCopyButtons = () => {
             if (code) {
                 navigator.clipboard.writeText(code.textContent).then(() => {
                     const originalIcon = btn.innerHTML;
+                    // نمایش آیکون تیک به نشانه موفقیت
                     btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
                     
                     setTimeout(() => {
@@ -27,6 +30,7 @@ const initializeCopyButtons = () => {
         btn.dataset.listenerAttached = 'true';
     });
 };
+
 
 // --- Helper Functions ---
 const debounce = (func, delay = 250) => {
@@ -98,23 +102,20 @@ const renderPage = async (path) => {
                 case 'quote':
                     html += `<blockquote><p>${block.data.text}</p>${block.data.caption ? `<cite>${block.data.caption}</cite>` : ''}</blockquote>`;
                     break;
-                
-                // <<-- بلوک کد با هدر جدید جایگزین شد -->>
                 case 'code':
                     const language = block.data.language || '';
                     const escapedCode = block.data.code.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     html += `
                         <div class="code-block-wrapper">
                             <div class="code-block-header">
+                                <span class="language-name">${language}</span>
                                 <button class="copy-code-btn" title="کپی کردن کد">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                 </button>
-                                <span class="language-name">${language}</span>
                             </div>
                             <pre><code>${escapedCode}</code></pre>
                         </div>`;
                     break;
-
                 case 'table':
                     const headers = block.data.withHeadings ? `<thead><tr>${block.data.content[0].map(cell => `<th>${cell}</th>`).join('')}</tr></thead>` : '';
                     const bodyRows = block.data.withHeadings ? block.data.content.slice(1) : block.data.content;
@@ -151,8 +152,6 @@ const renderPage = async (path) => {
         } else {
             updateMetaTags(`${newsItem.title} | اخبار انجمن`, newsItem.summary);
             const author = state.membersMap.get(newsItem.authorId);
-            
-            // <<-- تغییر اصلی اینجاست: فراخوانی تابع جدید برای رندر محتوا -->>
             const articleHTML = renderJsonContent(newsItem.content);
 
             const [{ data: comments }, { data: likeStatus }] = await Promise.all([
@@ -179,6 +178,7 @@ const renderPage = async (path) => {
             initializeInteractions(newsItem.id);
         }
         dom.mainContent.classList.remove('is-loading');
+        initializeCopyButtons();
         return;
     }
 
@@ -192,6 +192,7 @@ const renderPage = async (path) => {
         components.renderEventsPage();
         showEventModal(cleanPath);
         dom.mainContent.classList.remove('is-loading');
+        initializeCopyButtons();
         return;
     }
 
@@ -243,12 +244,8 @@ const renderPage = async (path) => {
         await pageRenderers[cleanPath]();
     }
     
-    if (pageRenderers[cleanPath]) {
-        await pageRenderers[cleanPath]();
-    }
     dom.mainContent.classList.remove('is-loading');
     initializeCopyButtons();
-
 };
 
 
