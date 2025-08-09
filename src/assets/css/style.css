@@ -3415,14 +3415,13 @@ body.light-theme .code-block-wrapper pre {
     border: 0;
 }
 
-/* ================== Minimalist Video Player Controls v3.0 ================== */
+/* ================== Animated Video Player Controls v4.0 ================== */
 .video-container {
-    position: relative; /* برای قرارگیری نوار کنترل روی ویدیو */
     margin: 2.5rem auto;
 }
 
 .video-player-area .video-wrapper {
-    margin: 0;
+    margin: 0 0 0.75rem 0; /* فاصله از دکمه‌های پایین */
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     border: 1px solid var(--glass-border-dark);
@@ -3437,22 +3436,23 @@ body.light-theme .video-player-area .video-wrapper {
     display: block;
 }
 
-.video-platform-toggle {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    z-index: 10;
+/* کانتینر جدید برای دکمه‌ها و انیمیشن */
+.video-tabs-container {
+    position: relative;
     display: flex;
+    justify-content: center;
     padding: 0.3rem;
-    border-radius: 50px; /* ایجاد ظاهر کپسولی */
+    border-radius: 50px;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    width: fit-content;
+    margin: 0 auto;
 }
-body.dark-theme .video-platform-toggle {
+body.dark-theme .video-tabs-container {
     background-color: rgba(30, 30, 30, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
-body.light-theme .video-platform-toggle {
+body.light-theme .video-tabs-container {
     background-color: rgba(255, 255, 255, 0.5);
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
@@ -3466,17 +3466,37 @@ body.light-theme .video-platform-toggle {
     cursor: pointer;
     font-size: 0.85rem;
     font-weight: bold;
-    transition: all 0.2s ease-in-out;
+    z-index: 2; /* دکمه‌ها باید روی هایلایتر باشند */
+    transition: color 0.3s ease;
 }
 
 .platform-btn.active {
+    transition-delay: 0.1s; /* کمی تاخیر برای تغییر رنگ متن */
+}
+
+body.dark-theme .platform-btn.active {
     color: var(--background-color-dark);
-    background-color: var(--primary-color);
 }
 body.light-theme .platform-btn.active {
     color: #fff;
+}
+
+/* <<-- عنصر جدید برای انیمیشن -->> */
+.video-tab-highlighter {
+    position: absolute;
+    top: 0.3rem;
+    bottom: 0.3rem;
+    border-radius: 50px;
+    z-index: 1;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+body.dark-theme .video-tab-highlighter {
+    background-color: var(--primary-color);
+}
+body.light-theme .video-tab-highlighter {
     background-color: var(--primary-color-light-theme);
 }
+
 /* ================== Video Player Logo Buttons ================== */
 .video-tab-btn {
     display: flex;
