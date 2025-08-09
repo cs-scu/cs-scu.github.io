@@ -76,11 +76,10 @@ const cleanupPageSpecifics = (newPath) => {
 const renderPage = async (path) => {
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
     
-    // <<-- تابع کمکی جدید برای پردازش Markdown -->>
-    const parseInlineMarkdown = (text) => {
+    // <<-- تابع کمکی جدید با سازوکار اختصاصی لینک -->>
+    const parseCustomFormatting = (text) => {
         if (!text) return '';
         
-        // Sanitize to prevent XSS
         const sanitizer = document.createElement('div');
         sanitizer.textContent = text;
         let sanitizedText = sanitizer.innerHTML;
@@ -89,8 +88,19 @@ const renderPage = async (path) => {
         sanitizedText = sanitizedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         // *Italic* -> <em>Italic</em>
         sanitizedText = sanitizedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
-        // [Link Text](URL) -> <a href="URL">Link Text</a>
-        sanitizedText = sanitizedText.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+        
+        // سازوکار جدید لینک داخلی: [[page|text]] or [[page]]
+        sanitizedText = sanitizedText.replace(/\[\[(.*?)(?:\|(.*?))?\]\]/g, (match, path, text) => {
+            const linkText = text || path;
+            const internalPath = path.trim();
+            return `<a href="#/${internalPath}">${linkText}</a>`;
+        });
+
+        // سازوکار جدید لینک خودکار برای URL ها
+        const urlRegex = /(?<!href="|">|\]\()https?:\/\/[^\s<]+/g;
+        sanitizedText = sanitizedText.replace(urlRegex, (url) => {
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+        });
         
         return sanitizedText;
     };
@@ -108,12 +118,10 @@ const renderPage = async (path) => {
                     html += `<h${block.data.level}>${block.data.text}</h${block.data.level}>`;
                     break;
                 case 'paragraph':
-                    // <<-- تغییر اصلی: استفاده از مترجم جدید -->>
-                    html += `<p>${parseInlineMarkdown(block.data.text)}</p>`;
+                    html += `<p>${parseCustomFormatting(block.data.text)}</p>`;
                     break;
                 case 'list':
-                    // <<-- تغییر اصلی: استفاده از مترجم جدید برای آیتم‌های لیست -->>
-                    const listItems = block.data.items.map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('');
+                    const listItems = block.data.items.map(item => `<li>${parseCustomFormatting(item)}</li>`).join('');
                     const listType = block.data.style === 'ordered' ? 'ol' : 'ul';
                     html += `<${listType}>${listItems}</${listType}>`;
                     break;
@@ -150,6 +158,7 @@ const renderPage = async (path) => {
         return html;
     };
 
+    // ... بقیه کدهای تابع renderPage بدون تغییر باقی می‌مانند ...
     if (cleanPath === '/profile-updated') {
         await renderPage('/');
         showProfileModal();
