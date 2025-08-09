@@ -17,6 +17,23 @@
     padding: 0;
     box-sizing: border-box;
 }
+/* ================== Modern Themed Link Styles ================== */
+a {
+    color: var(--primary-color); 
+    text-decoration: none; 
+    transition: filter 0.2s ease-in-out;
+}
+body.light-theme a {
+    color: var(--primary-color-light-theme);
+}
+a:hover,
+a:focus {
+    filter: brightness(1.2);
+}
+.news-content-area a {
+    color: inherit; 
+    filter: none;
+}
 button,
 input,
 select,
