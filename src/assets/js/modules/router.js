@@ -149,7 +149,9 @@ const renderPage = async (path) => {
                     }
 
                     if(tabsHTML) {
-                        html += `<div class="video-container"><div class="video-player-area">${playersHTML}</div><div class="video-tabs-container">${tabsHTML}<div class="video-tab-highlighter"></div></div></div>`;
+                        // <<-- تغییر اصلی: افزودن عنوان ویدیو -->>
+                        const videoTitle = block.data.title ? `<h3 class="video-title">${block.data.title}</h3>` : '';
+                        html += `<div class="video-container">${videoTitle}<div class="video-player-area">${playersHTML}</div><div class="video-tabs-container">${tabsHTML}<div class="video-tab-highlighter"></div></div></div>`;
                     }
                     break;
                 default: console.warn('Unknown block type:', block.type);

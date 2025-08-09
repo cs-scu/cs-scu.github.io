@@ -3520,3 +3520,11 @@ body.light-theme .video-tab-highlighter {
 body.light-theme .video-tab-btn:not(.active) img {
     filter: grayscale(1) brightness(0.5);
 }
+/* ================== Video Title Style ================== */
+.video-title {
+    text-align: right;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    padding-right: 0.5rem;
+}
