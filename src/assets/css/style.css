@@ -3415,18 +3415,18 @@ body.light-theme .code-block-wrapper pre {
     border: 0;
 }
 
-/* ================== Multi-Platform Video Player v2.0 (Bottom Controls) ================== */
+/* ================== Minimalist Video Player Controls v3.0 ================== */
 .video-container {
+    position: relative; /* برای قرارگیری نوار کنترل روی ویدیو */
     margin: 2.5rem auto;
-    /* کانتینر اصلی دیگر کادر ندارد */
 }
 
 .video-player-area .video-wrapper {
     margin: 0;
-    border-radius: 15px; /* گوشه‌های گرد فقط برای خود پلیر */
+    border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     border: 1px solid var(--glass-border-dark);
-    overflow: hidden; /* اطمینان از گرد بودن گوشه‌های ویدیو */
+    overflow: hidden;
     display: none;
 }
 body.light-theme .video-player-area .video-wrapper {
@@ -3437,48 +3437,45 @@ body.light-theme .video-player-area .video-wrapper {
     display: block;
 }
 
-.video-tabs {
+.video-platform-toggle {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 10;
     display: flex;
-    justify-content: center;
-    gap: 0.75rem;
-    margin-top: 0.75rem; /* <<-- قرار گرفتن تب‌ها در پایین ویدیو */
+    padding: 0.3rem;
+    border-radius: 50px; /* ایجاد ظاهر کپسولی */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+body.dark-theme .video-platform-toggle {
+    background-color: rgba(30, 30, 30, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+body.light-theme .video-platform-toggle {
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.video-tab-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.4rem; /* <<-- کوچک‌تر کردن دکمه‌ها */
+.platform-btn {
     border: none;
-    border-radius: 8px; /* گوشه‌های گردتر */
+    background-color: transparent;
+    color: inherit;
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
     cursor: pointer;
-    background-color: rgba(128, 128, 128, 0.1);
-    transition: background-color 0.2s;
+    font-size: 0.85rem;
+    font-weight: bold;
+    transition: all 0.2s ease-in-out;
 }
 
-.video-tab-btn.active {
-    /* استایل برجسته‌تر برای دکمه فعال */
-    background-color: rgba(128, 128, 128, 0.2);
+.platform-btn.active {
+    color: var(--background-color-dark);
+    background-color: var(--primary-color);
 }
-
-.video-tab-btn svg {
-    height: 20px;
-    width: 20px;
-    fill: currentColor;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.video-tab-btn:hover svg,
-.video-tab-btn.active svg {
-    opacity: 1;
-}
-
-body.dark-theme .video-tab-btn.active {
-    color: var(--primary-color);
-}
-body.light-theme .video-tab-btn.active {
-    color: var(--primary-color-light-theme);
+body.light-theme .platform-btn.active {
+    color: #fff;
+    background-color: var(--primary-color-light-theme);
 }
 /* ================== Video Player Logo Buttons ================== */
 .video-tab-btn {
