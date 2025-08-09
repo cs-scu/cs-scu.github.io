@@ -50,17 +50,14 @@ const cleanupPageSpecifics = (newPath) => {
 const renderPage = async (path) => {
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
     
-    // <<-- تابع جدید برای تبدیل JSON به HTML -->>
     const renderJsonContent = (blocks) => {
         if (!Array.isArray(blocks)) {
-            // اگر محتوا به فرمت مورد انتظار نبود، یک پیام خطا نمایش بده
             console.error("Content is not a valid block array:", blocks);
             return '<p>محتوای این خبر به درستی بارگذاری نشد.</p>';
         }
 
         let html = '';
         blocks.forEach(block => {
-            // با توجه به نوع هر بلوک، تگ HTML مناسب را ایجاد می‌کند
             switch (block.type) {
                 case 'header':
                     html += `<h${block.data.level}>${block.data.text}</h${block.data.level}>`;
@@ -73,7 +70,16 @@ const renderPage = async (path) => {
                     const listType = block.data.style === 'ordered' ? 'ol' : 'ul';
                     html += `<${listType}>${listItems}</${listType}>`;
                     break;
-                // در آینده می‌توانید انواع بلوک‌های دیگر مثل تصویر، نقل‌قول و... را اینجا اضافه کنید
+                case 'table':
+                    const headers = block.data.withHeadings 
+                        ? `<thead><tr>${block.data.content[0].map(cell => `<th>${cell}</th>`).join('')}</tr></thead>` 
+                        : '';
+                    
+                    const bodyRows = block.data.withHeadings ? block.data.content.slice(1) : block.data.content;
+                    const body = `<tbody>${bodyRows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>`;
+
+                    html += `<div class="table-wrapper"><table class="content-table">${headers}${body}</table></div>`;
+                    break;
                 default:
                     console.warn('Unknown block type:', block.type);
             }

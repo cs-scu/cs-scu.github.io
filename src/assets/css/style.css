@@ -1075,78 +1075,137 @@ body.light-theme .news-detail-meta-header { background: #fff; border: 1px solid 
 .news-detail-author strong { font-size: 1.1rem; font-weight: bold; }
 .news-detail-author span { font-size: 0.9rem; opacity: 0.8; }
 
-/* ================== Article Content (News & Events) ================== */
+/* ================== Article Content (News & Events) - ENHANCED v2.0 ================== */
+
+/* --- کانتینر اصلی و تنظیمات خوانایی --- */
 .news-content-area, .event-content-area {
-    padding: 2rem;
-    line-height: 1.6;
-    font-size: 0.9rem;
+    line-height: 1.8; /* افزایش فاصله بین خطوط برای خوانایی بهتر */
+    font-size: 1.1rem; /* کمی بزرگ‌تر کردن فونت پایه متن */
     text-align: justify;
+    color: var(--text-color);
+    max-width: 800px; /* <<-- مهم: محدود کردن عرض محتوا برای جلوگیری از طولانی شدن خطوط */
+    margin: 0 auto; /* وسط‌چین کردن کانتینر محتوا */
 }
-.event-content-area { padding: 1rem; }
+
+/* --- استایل تیترها برای ایجاد سلسله‌مراتب بصری --- */
 .news-content-area h1, .event-content-area h1 {
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
     margin-bottom: 1rem;
     line-height: 1.3;
-    text-align: center;
-    font-size: 3vw;
+    text-align: right;
 }
 body.dark-theme .news-content-area h1, body.dark-theme .event-content-area h1 { color: var(--primary-color); }
 body.light-theme .news-content-area h1, body.light-theme .event-content-area h1 { color: var(--primary-color-light-theme); }
 
 .news-content-area h2, .event-content-area h2 {
-    font-size: 1.8rem;
-    font-size: clamp(0.5rem, 8vw, 1.5rem);
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 2px solid;
     text-align: right;
-
 }
 body.dark-theme .news-content-area h2, body.dark-theme .event-content-area h2 { border-bottom-color: var(--primary-color); }
 body.light-theme .news-content-area h2, body.light-theme .event-content-area h2 { border-bottom-color: var(--primary-color-light-theme); }
 
-.news-content-area blockquote, .event-content-area blockquote {
-    margin: 2rem 1rem;
-    padding: 1rem 1.5rem;
-    border-right: 5px solid;
-    font-style: italic;
-    font-size: 1.1rem;
+.news-content-area h3, .event-content-area h3 {
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
 }
-body.dark-theme .news-content-area blockquote, body.dark-theme .event-content-area blockquote {
-    border-right-color: var(--primary-color);
-    background-color: rgba(0, 0, 0, 0.1);
+
+/* --- استایل پاراگراف و لینک‌ها --- */
+.news-content-area p, .event-content-area p {
+    margin-bottom: 1.5rem;
 }
-body.light-theme .news-content-area blockquote, body.light-theme .event-content-area blockquote {
-    border-right-color: var(--primary-color-light-theme);
-    background-color: rgba(0, 0, 0, 0.05);
+
+.news-content-area a {
+    text-decoration: none;
+    font-weight: bold;
+    background-image: linear-gradient(var(--primary-color), var(--primary-color));
+    background-position: 0% 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 2px;
+    transition: background-size .3s;
 }
+body.light-theme .news-content-area a {
+    background-image: linear-gradient(var(--primary-color-light-theme), var(--primary-color-light-theme));
+}
+
+.news-content-area a:hover,
+.news-content-area a:focus {
+    background-size: 100% 2px;
+}
+
+
+/* --- استایل پیشرفته برای تصاویر و کپشن --- */
 .news-content-area img, .event-content-area img {
     max-width: 100%;
     height: auto;
     display: block;
-    margin: 2rem auto;
+    margin: 2.5rem auto;
     border-radius: 15px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border-dark);
 }
+body.light-theme .news-content-area img, 
+body.light-theme .event-content-area img {
+    border: 1px solid var(--glass-border-light);
+}
+
 .news-content-area figcaption, .event-content-area figcaption {
     text-align: center;
     font-size: 0.9rem;
-    color: #888;
-    margin: -1.2rem auto 2rem;
+    opacity: 0.8;
+    margin: -1.8rem auto 2.5rem;
 }
-.news-content-area p, .event-content-area p {
-    line-height: 2.5;
-    margin-bottom: 1rem;
+
+/* --- طراحی جدید برای نقل‌قول‌ها --- */
+.news-content-area blockquote, .event-content-area blockquote {
+    margin: 2.5rem 1rem;
+    padding: 1.5rem 2rem;
+    border-right: 5px solid;
+    font-style: italic;
+    font-size: 1.2rem;
+    border-radius: 0 8px 8px 0;
 }
+body.dark-theme .news-content-area blockquote, body.dark-theme .event-content-area blockquote {
+    border-right-color: var(--primary-color);
+    background-color: rgba(232, 195, 142, 0.05);
+}
+body.light-theme .news-content-area blockquote, body.light-theme .event-content-area blockquote {
+    border-right-color: var(--primary-color-light-theme);
+    background-color: rgba(26, 92, 93, 0.05);
+}
+.news-content-area blockquote p {
+    margin-bottom: 0;
+}
+
+/* --- ظاهر حرفه‌ای برای بلوک‌های کد --- */
 .news-content-area pre, .event-content-area pre {
-    padding: 1rem;
-    border-radius: 8px;
+    padding: 1.5rem;
+    border-radius: 12px;
     overflow-x: auto;
     text-align: left;
     direction: ltr;
     font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 2rem 0;
 }
-body.dark-theme .news-content-area pre, body.dark-theme .event-content-area pre { background-color: #2d2d2d; color: #f1f1f1; }
-body.light-theme .news-content-area pre, body.light-theme .event-content-area pre { background-color: #f0f0f0; color: #333; }
-
+body.dark-theme .news-content-area pre, body.dark-theme .event-content-area pre { 
+    background-color: #0d1117; 
+    border: 1px solid var(--glass-border-dark);
+}
+body.light-theme .news-content-area pre, body.light-theme .event-content-area pre { 
+    background-color: #f6f8fa; 
+    border: 1px solid var(--glass-border-light);
+}
+.news-content-area pre code {
+    padding: 0;
+    background: none;
+    border-radius: 0;
+}
 /* ================== Events Page ================== */
 .events-page .page-description, .journal-page .page-description, .chart-page-container .page-description {
     text-align: center;
@@ -3192,4 +3251,55 @@ body.light-theme .vote-btn.like-comment.active {
     overflow-wrap: break-word;
     word-wrap: break-word; /* برای مرورگرهای قدیمی‌تر */
     word-break: break-word;
+}
+
+/* ================== Advanced Table Styles for Articles ================== */
+.table-wrapper {
+    max-width: 100%;
+    overflow-x: auto; /* فعال کردن اسکرول افقی در صورت نیاز */
+    border: 1px solid var(--glass-border-dark);
+    border-radius: 12px;
+    margin: 2rem 0;
+}
+body.light-theme .table-wrapper {
+    border-color: var(--glass-border-light);
+}
+
+.content-table {
+    width: 100%;
+    border-collapse: collapse; /* حذف فاصله بین سلول‌ها */
+}
+
+.content-table th,
+.content-table td {
+    padding: 0.8rem 1rem;
+    text-align: right;
+    border-bottom: 1px solid var(--glass-border-dark);
+    white-space: nowrap; /* <<-- مهم: جلوگیری از شکستن خطوط و new line */
+}
+body.light-theme .content-table th,
+body.light-theme .content-table td {
+    border-bottom-color: var(--glass-border-light);
+}
+
+.content-table tbody tr:last-child td {
+    border-bottom: none; /* حذف خط زیرین برای آخرین ردیف */
+}
+
+.content-table thead {
+    font-weight: bold;
+}
+
+body.dark-theme .content-table thead {
+    background-color: rgba(232, 195, 142, 0.1);
+}
+body.light-theme .content-table thead {
+    background-color: rgba(26, 92, 93, 0.05);
+}
+
+body.dark-theme .content-table tbody tr:hover {
+    background-color: rgba(232, 195, 142, 0.05);
+}
+body.light-theme .content-table tbody tr:hover {
+    background-color: rgba(26, 92, 93, 0.03);
 }
