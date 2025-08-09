@@ -31,7 +31,6 @@ a:focus {
     filter: brightness(1.2);
 }
 .news-content-area a {
-    color: inherit; 
     filter: none;
 }
 button,

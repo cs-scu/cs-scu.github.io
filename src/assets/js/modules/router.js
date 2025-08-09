@@ -6,10 +6,8 @@ import { supabaseClient, loadEvents, loadJournal, loadChartData, getComments, ge
 
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
-// <<-- تابع جدید برای فعال‌سازی دکمه‌های کپی -->>
 const initializeCopyButtons = () => {
     dom.mainContent.querySelectorAll('.copy-code-btn').forEach(btn => {
-        // جلوگیری از ثبت مجدد event listener
         if (btn.dataset.listenerAttached) return;
 
         btn.addEventListener('click', () => {
@@ -18,8 +16,10 @@ const initializeCopyButtons = () => {
             if (code) {
                 navigator.clipboard.writeText(code.textContent).then(() => {
                     const originalIcon = btn.innerHTML;
-                    // نمایش آیکون تیک به نشانه موفقیت
-                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    
+                    const themeColor = document.body.classList.contains('dark-theme') ? '#e8c38e' : '#1a5c5d';
+                    
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${themeColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
                     
                     setTimeout(() => {
                         btn.innerHTML = originalIcon;
