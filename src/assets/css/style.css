@@ -3501,6 +3501,7 @@ body.light-theme .video-player-area .video-wrapper {
     border-radius: 50%;
     z-index: 1;
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    left: 0;
 }
 body.dark-theme .video-tab-highlighter {
     background-color: var(--primary-color);
