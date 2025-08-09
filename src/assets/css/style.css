@@ -3303,3 +3303,55 @@ body.dark-theme .content-table tbody tr:hover {
 body.light-theme .content-table tbody tr:hover {
     background-color: rgba(26, 92, 93, 0.03);
 }
+
+/* ================== Advanced Code Block Header ================== */
+.code-block-wrapper {
+    margin: 2.5rem 0;
+    border-radius: 12px;
+    overflow: hidden; /* برای اینکه گوشه‌های هدر با کادر اصلی هماهنگ باشد */
+    border: 1px solid var(--glass-border-dark);
+}
+body.light-theme .code-block-wrapper {
+    border-color: var(--glass-border-light);
+}
+
+.code-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1rem;
+}
+body.dark-theme .code-block-header {
+    background-color: #0d1117;
+}
+body.light-theme .code-block-header {
+    background-color: #f6f8fa;
+}
+
+.language-name {
+    font-size: 0.9rem;
+    font-family: 'Courier New', Courier, monospace;
+    opacity: 0.7;
+}
+
+.copy-code-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: 0.3rem;
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+    transition: opacity 0.2s, background-color 0.2s;
+}
+.copy-code-btn:hover {
+    opacity: 1;
+}
+body.dark-theme .copy-code-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+body.light-theme .copy-code-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}

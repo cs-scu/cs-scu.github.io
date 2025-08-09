@@ -6,6 +6,23 @@ import { supabaseClient, loadEvents, loadJournal, loadChartData, getComments, ge
 
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
+const initializeCopyButtons = () => {
+    dom.mainContent.querySelectorAll('.copy-code-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const wrapper = btn.closest('.code-block-wrapper');
+            const code = wrapper.querySelector('pre code');
+            if (code) {
+                navigator.clipboard.writeText(code.textContent).then(() => {
+                    const originalIcon = btn.innerHTML;
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    setTimeout(() => {
+                        btn.innerHTML = originalIcon;
+                    }, 2000);
+                });
+            }
+        });
+    });
+};
 // --- Helper Functions ---
 const debounce = (func, delay = 250) => {
     let timeoutId;
@@ -58,13 +75,11 @@ const renderPage = async (path) => {
 
         let html = '';
         blocks.forEach(block => {
-            // با توجه به نوع هر بلوک، تگ HTML مناسب را ایجاد می‌کند
             switch (block.type) {
                 case 'header':
                     html += `<h${block.data.level}>${block.data.text}</h${block.data.level}>`;
                     break;
                 case 'paragraph':
-                    // استفاده از innerHTML برای نمایش صحیح لینک‌ها و تگ‌های ساده
                     html += `<p>${block.data.text}</p>`;
                     break;
                 case 'list':
@@ -72,38 +87,35 @@ const renderPage = async (path) => {
                     const listType = block.data.style === 'ordered' ? 'ol' : 'ul';
                     html += `<${listType}>${listItems}</${listType}>`;
                     break;
-                
-                // <<-- بلوک‌های جدید از اینجا اضافه شده‌اند -->>
                 case 'image':
-                    html += `
-                        <figure>
-                            <img src="${block.data.url}" alt="${block.data.caption || 'Image'}">
-                            ${block.data.caption ? `<figcaption>${block.data.caption}</figcaption>` : ''}
-                        </figure>`;
+                    html += `<figure><img src="${block.data.url}" alt="${block.data.caption || 'Image'}">${block.data.caption ? `<figcaption>${block.data.caption}</figcaption>` : ''}</figure>`;
                     break;
                 case 'quote':
-                    html += `
-                        <blockquote>
-                            <p>${block.data.text}</p>
-                            ${block.data.caption ? `<cite>${block.data.caption}</cite>` : ''}
-                        </blockquote>`;
+                    html += `<blockquote><p>${block.data.text}</p>${block.data.caption ? `<cite>${block.data.caption}</cite>` : ''}</blockquote>`;
                     break;
+                
+                // <<-- بلوک کد با هدر جدید جایگزین شد -->>
                 case 'code':
-                    // برای امنیت، محتوای کد را escape می‌کنیم
+                    const language = block.data.language || '';
                     const escapedCode = block.data.code.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    html += `<pre><code>${escapedCode}</code></pre>`;
+                    html += `
+                        <div class="code-block-wrapper">
+                            <div class="code-block-header">
+                                <button class="copy-code-btn" title="کپی کردن کد">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                                <span class="language-name">${language}</span>
+                            </div>
+                            <pre><code>${escapedCode}</code></pre>
+                        </div>`;
                     break;
+
                 case 'table':
-                    const headers = block.data.withHeadings 
-                        ? `<thead><tr>${block.data.content[0].map(cell => `<th>${cell}</th>`).join('')}</tr></thead>` 
-                        : '';
-                    
+                    const headers = block.data.withHeadings ? `<thead><tr>${block.data.content[0].map(cell => `<th>${cell}</th>`).join('')}</tr></thead>` : '';
                     const bodyRows = block.data.withHeadings ? block.data.content.slice(1) : block.data.content;
                     const body = `<tbody>${bodyRows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>`;
-
                     html += `<div class="table-wrapper"><table class="content-table">${headers}${body}</table></div>`;
                     break;
-
                 default:
                     console.warn('Unknown block type:', block.type);
             }
@@ -227,6 +239,8 @@ const renderPage = async (path) => {
     }
     
     dom.mainContent.classList.remove('is-loading');
+    initializeCopyButtons();
+
 };
 
 
