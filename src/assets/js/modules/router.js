@@ -138,16 +138,17 @@ const renderPage = async (path) => {
                     if(hasYoutube) {
                         const youtubeIdMatch = block.data.YoutubeUrl.match(/(?:v=|\/embed\/|youtu\.be\/)([\w-]{11})/);
                         if (youtubeIdMatch) {
-                            tabsHTML += `<button class="video-tab-btn active" data-platform="youtube">یوتیوب</button>`;
+                            // <<-- تغییر اصلی: استفاده از تگ img برای لوگوی یوتیوب -->>
+                            tabsHTML += `<button class="video-tab-btn active" data-platform="youtube"><img src="https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/ui/icons/youtube-logo.png" alt="YouTube Logo"> یوتیوب</button>`;
                             playersHTML += `<div class="video-wrapper active" data-platform="youtube"><iframe src="https://www.youtube.com/embed/${youtubeIdMatch[1]}" frameborder="0" allowfullscreen></iframe></div>`;
                         }
                     }
                     if(hasAparat) {
-                        // <<-- تغییر اصلی اینجاست: استخراج شناسه‌ی ویدیو به روش صحیح -->>
                         const aparatIdMatch = block.data.AparatUrl.match(/(?:\/v\/|\/embed\/)([a-zA-Z0-9]+)/);
                         if (aparatIdMatch) {
                             const videoId = aparatIdMatch[1];
-                            tabsHTML += `<button class="video-tab-btn ${!hasYoutube ? 'active' : ''}" data-platform="aparat">آپارات</button>`;
+                            // <<-- تغییر اصلی: استفاده از تگ img برای لوگوی آپارات -->>
+                            tabsHTML += `<button class="video-tab-btn ${!hasYoutube ? 'active' : ''}" data-platform="aparat"><img src="https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/ui/icons/aparat-logo.png" alt="Aparat Logo"> آپارات</button>`;
                             playersHTML += `<div class="video-wrapper ${!hasYoutube ? 'active' : ''}" data-platform="aparat"><iframe src="https://www.aparat.com/video/video/embed/videohash/${videoId}/vt/frame" frameborder="0" allowfullscreen></iframe></div>`;
                         }
                     }
@@ -161,8 +162,6 @@ const renderPage = async (path) => {
         });
         return html;
     };
-
-    // ... (بقیه کدهای تابع renderPage بدون تغییر باقی می‌مانند) ...
     if (cleanPath === '/profile-updated') {
         await renderPage('/');
         showProfileModal();
@@ -239,6 +238,7 @@ const renderPage = async (path) => {
     initializeCopyButtons();
     initializeVideoPlayers();
 };
+
 
 const handleNavigation = () => { const path = location.hash || '#/'; renderPage(path); };
 export const initializeRouter = () => { window.addEventListener('popstate', handleNavigation); handleNavigation(); };

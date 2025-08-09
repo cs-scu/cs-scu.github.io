@@ -3474,3 +3474,27 @@ body.light-theme .video-tab-btn.active {
 .video-player-area .video-wrapper.active {
     display: block; /* فقط پلیر فعال نمایش داده می‌شود */
 }
+/* ================== Video Player Logo Buttons ================== */
+.video-tab-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem; /* فاصله بین لوگو و متن (در صورت وجود) */
+}
+
+.video-tab-btn img {
+    height: 20px; /* تنظیم ارتفاع لوگو */
+    width: auto;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.video-tab-btn:hover img,
+.video-tab-btn.active img {
+    opacity: 1;
+}
+
+/* در تم روشن، لوگوها کمی تیره‌تر می‌شوند تا بهتر دیده شوند */
+body.light-theme .video-tab-btn:not(.active) img {
+    filter: grayscale(1) brightness(0.5);
+}
