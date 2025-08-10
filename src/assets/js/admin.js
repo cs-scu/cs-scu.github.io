@@ -1,9 +1,9 @@
-// src/assets/js/admin.js
+// src/assets/js/modules/admin.js
 
 // --- وارد کردن ماژول‌های ضروری ---
-// ما از همان فایل‌های state و api سایت اصلی استفاده می‌کنیم
-import { state } from './modules/state.js';
-import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry } from './modules/api.js';
+import { state } from './state.js';
+import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry } from './api.js';
+import { initializeAdminTheme } from './admin-theme.js'; // <-- ماژول جدید وارد شد
 
 // --- توابع کمکی برای نمایش پیام ---
 const hideStatus = (statusBox) => {
@@ -184,21 +184,18 @@ const loadAdminPage = async (path) => {
     const mainContent = document.getElementById('admin-main-content');
     const route = adminRoutes[path];
     if (!route) {
-        mainContent.innerHTML = '<h2>صفحه یافت نشد</h2>';
+        location.hash = '/admin/messages';
         return;
     }
 
     mainContent.innerHTML = '<p class="loading-message">در حال بارگذاری...</p>';
     
-    // ۱. واکشی HTML
     const response = await fetch(route.html);
     mainContent.innerHTML = await response.text();
 
-    // ۲. واکشی داده‌ها و رندر کردن
     await route.loader();
     route.renderer(path === '/admin/messages' ? state.allContacts : state.allJournalIssues);
     
-    // ۳. فعال‌سازی event listener ها
     if (route.initializer) {
         route.initializer();
     }
@@ -206,31 +203,30 @@ const loadAdminPage = async (path) => {
 
 // --- تابع اصلی اجرا ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // بررسی دسترسی کاربر
+    initializeAdminTheme(); // <-- تابع جدید در ابتدای اجرا فراخوانی می‌شود
+
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
-        window.location.href = '/#/login';
+        window.location.href = 'index.html#/login';
         return;
     }
     state.user = session.user;
     await getProfile();
     if (state.profile?.role !== 'admin') {
         alert('شما دسترسی لازم برای ورود به این بخش را ندارید.');
-        window.location.href = '/#/';
+        window.location.href = 'index.html#/';
         return;
     }
 
-    // مدیریت ناوبری
     const handleAdminNavigation = () => {
         const path = location.hash.substring(1) || '/admin/messages';
         loadAdminPage(path);
 
-        // فعال کردن لینک فعال در نوار کناری
         document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
             link.classList.toggle('active', link.getAttribute('href') === `#${path}`);
         });
     };
 
     window.addEventListener('hashchange', handleAdminNavigation);
-    handleAdminNavigation(); // بارگذاری اولیه
+    handleAdminNavigation();
 });
