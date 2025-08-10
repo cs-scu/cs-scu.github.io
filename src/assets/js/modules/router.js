@@ -248,7 +248,6 @@ const renderPage = async (path) => {
     const pageRenderers = {
         '/login': initializeAuthForm,
         
-        // START: این بخش به طور کامل جایگزین شود
         '/admin': async () => {
             const wrapper = dom.mainContent.querySelector('#admin-content-wrapper');
 
@@ -293,10 +292,19 @@ const renderPage = async (path) => {
                     }
                 } catch (error) {
                     console.error("Failed to refresh contacts:", error);
+                    let errorMessage = 'خطای سرور';
+                    if (error && error.message && (error.message.toLowerCase().includes('network') || error.message.toLowerCase().includes('failed to fetch'))) {
+                        errorMessage = 'خطای اتصال';
+                    }
+                    
+                    if (wrapper) {
+                        wrapper.innerHTML = `<p style="text-align: center; color: #dc3545;">${errorMessage}. لطفاً اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.</p>`;
+                    }
+                    
                     if (refreshBtn) {
                         refreshBtn.classList.remove('loading');
                         refreshBtn.classList.add('error');
-                        if (btnSpan) btnSpan.textContent = 'خطا';
+                        if (btnSpan) btnSpan.textContent = errorMessage;
                     }
                 } finally {
                     setTimeout(() => {
@@ -304,13 +312,13 @@ const renderPage = async (path) => {
                             refreshBtn.disabled = false;
                             refreshBtn.classList.remove('success', 'error');
                             if (btnSpan) btnSpan.textContent = 'بارگذاری مجدد';
-                            if (btnIcon) btnIcon.outerHTML = originalIconHTML; // آیکون اصلی را بازمی‌گردانیم
+                            if (btnIcon) btnIcon.outerHTML = originalIconHTML;
                         }
-                    }, 2000);
+                    }, 2500); 
                 }
             };
 
-            await loadAndRenderContacts(); // بارگذاری اولیه
+            await loadAndRenderContacts(); 
 
             if (refreshBtn && !refreshBtn.dataset.listenerAttached) {
                 refreshBtn.addEventListener('click', loadAndRenderContacts);
