@@ -1180,16 +1180,12 @@ export const initializeContactForm = () => {
     const nameInput = contactForm.querySelector('#contact-name');
     const emailInput = contactForm.querySelector('#contact-email');
 
-    // اگر کاربر وارد شده باشد، فیلدها را پر کرده و فقط-خواندنی می‌کند
     if (state.user) {
         const displayName = state.profile?.full_name || state.user.email.split('@')[0];
         nameInput.value = displayName;
         emailInput.value = state.user.email;
-        
-        // *** تغییر کلیدی: استفاده از readonly به جای disabled ***
         nameInput.readOnly = true;
         emailInput.readOnly = true;
-        // افزودن کلاس برای استایل‌دهی
         nameInput.classList.add('prefilled');
         emailInput.classList.add('prefilled');
     }
@@ -1227,10 +1223,20 @@ export const initializeContactForm = () => {
 
 export const initializeAdminForms = () => {
     const journalForm = document.getElementById('add-journal-form');
-    if (!journalForm || journalForm.dataset.listenerAttached) return;
+    
+    // Step 1: Add a console log for debugging
+    if (!journalForm) {
+        console.error('Admin journal form not found!');
+        return;
+    }
+    if (journalForm.dataset.listenerAttached) return;
+    
+    console.log('Attaching listener to Admin Journal Form...'); // این پیام باید در کنسول نمایش داده شود
 
-    journalForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    const handleJournalSubmit = async (event) => {
+        // Step 2: Ensure preventDefault is the very first thing that happens
+        event.preventDefault(); 
+        
         const submitBtn = journalForm.querySelector('button[type="submit"]');
         const statusBox = journalForm.querySelector('.form-status');
         
@@ -1252,7 +1258,6 @@ export const initializeAdminForms = () => {
             await addJournalEntry(entryData);
             showStatus(statusBox, 'نشریه با موفقیت افزوده شد.', 'success');
             journalForm.reset();
-            // کش نشریه‌ها را خالی می‌کنیم تا در مراجعه بعدی به صفحه نشریه، لیست جدید بارگذاری شود
             state.allJournalIssues = [];
         } catch (error) {
             console.error("Error in journal form submission:", error);
@@ -1264,8 +1269,9 @@ export const initializeAdminForms = () => {
             submitBtn.disabled = false;
             submitBtn.textContent = 'افزودن نشریه';
         }
-    });
+    };
 
+    journalForm.addEventListener('submit', handleJournalSubmit);
     journalForm.dataset.listenerAttached = 'true';
 };
 
