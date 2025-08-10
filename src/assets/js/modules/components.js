@@ -87,17 +87,21 @@ export const loadLatestNews = () => {
     })();
 };
 
+const toPersianNumber = (n) => {
+    const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    return String(n).replace(/[0-9]/g, (digit) => persianNumbers[digit]);
+};
+
+
 const renderNewsItems = (items) => {
     const newsList = dom.mainContent.querySelector('.news-list');
     const template = document.getElementById('news-item-template');
     if (!newsList || !template) return;
 
-    // Remove skeletons before adding real content
     newsList.querySelectorAll('.is-skeleton').forEach(el => el.remove());
 
     items.forEach(item => {
         const cardClone = template.content.cloneNode(true);
-        const author = state.membersMap.get(item.authorId);
 
         const img = cardClone.querySelector('.news-item-image');
         img.src = item.image;
@@ -110,6 +114,12 @@ const renderNewsItems = (items) => {
         cardClone.querySelector('.news-item-summary').textContent = item.summary;
         cardClone.querySelector('.news-item-date').textContent = item.date;
         cardClone.querySelector('.news-item-author').innerHTML = createAuthorHTML(item.authorId);
+        
+        const commentsCount = item.comments[0]?.count || 0;
+        const likesCount = item.likes[0]?.count || 0;
+        
+        cardClone.querySelector('.news-item-comments .count').textContent = toPersianNumber(commentsCount);
+        cardClone.querySelector('.news-item-likes .count').textContent = toPersianNumber(likesCount);
 
         const tagsContainer = cardClone.querySelector('.news-item-tags');
         if (tagsContainer && item.tags && Array.isArray(item.tags)) {
@@ -147,7 +157,7 @@ export const loadMoreNews = async () => {
 
     const { data: newsToLoad, error } = await supabaseClient
         .from('news')
-        .select('*')
+        .select('*, likes(count), comments(count)')
         .order('id', { ascending: false })
         .range(from, to);
 
@@ -177,6 +187,7 @@ export const loadMoreNews = async () => {
         }
     }
 };
+
 
 export const renderMembersPage = () => {
     const membersGrid = dom.mainContent.querySelector('.members-grid');
