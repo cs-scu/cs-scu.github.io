@@ -71,15 +71,13 @@ const renderJournalList = (issues) => {
         </div>`;
 };
 
+// --- تابع عمومی برای مدیریت دکمه‌های رفرش واکنش‌گرا ---
 const initializeGlobalRefreshButton = () => {
     const refreshBtn = document.getElementById('admin-global-refresh-btn');
     if (!refreshBtn) return;
-
-    // آیکون‌های جدید را تعریف می‌کنیم
     const checkIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
     const errorIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
-    
-    const originalBtnHTML = refreshBtn.innerHTML; // محتوای کامل دکمه را ذخیره می‌کنیم
+    const originalBtnHTML = refreshBtn.innerHTML;
 
     refreshBtn.addEventListener('click', async () => {
         const currentPath = location.hash.substring(1) || '/admin/messages';
@@ -88,7 +86,6 @@ const initializeGlobalRefreshButton = () => {
 
         refreshBtn.disabled = true;
         refreshBtn.classList.add('loading');
-        // در حالت لودینگ، فقط آیکون چرخان نمایش داده می‌شود
         refreshBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>`;
 
         try {
@@ -97,17 +94,17 @@ const initializeGlobalRefreshButton = () => {
             
             refreshBtn.classList.remove('loading');
             refreshBtn.classList.add('success');
-            refreshBtn.innerHTML = checkIconSVG; // نمایش تیک سبز
+            refreshBtn.innerHTML = checkIconSVG;
 
         } catch (error) {
             refreshBtn.classList.remove('loading');
             refreshBtn.classList.add('error');
-            refreshBtn.innerHTML = errorIconSVG; // نمایش ضربدر قرمز
+            refreshBtn.innerHTML = errorIconSVG;
         } finally {
             setTimeout(() => {
                 refreshBtn.disabled = false;
                 refreshBtn.classList.remove('success', 'error');
-                refreshBtn.innerHTML = originalBtnHTML; // بازگرداندن محتوای اصلی دکمه
+                refreshBtn.innerHTML = originalBtnHTML;
             }, 2000);
         }
     });
@@ -118,21 +115,18 @@ const initializeJournalModule = () => {
     const journalForm = document.getElementById('add-journal-form');
     if (!journalForm) return;
 
-    // --- انتخاب تمام المان‌های لازم از DOM ---
     const formTitle = document.getElementById('journal-form-title');
     const submitBtn = document.getElementById('journal-submit-btn');
     const cancelBtn = document.getElementById('cancel-edit-btn');
     const hiddenIdInput = document.getElementById('journal-id');
     const adminListContainer = document.getElementById('journal-admin-list');
     
-    // --- منطق پیشرفته برای هر دو فیلد آپلود ---
     ['cover', 'pdf'].forEach(type => {
         const wrapper = document.getElementById(`${type === 'pdf' ? 'pdf' : 'cover'}-upload-wrapper`);
         const input = wrapper.querySelector('input[type="file"]');
         const nameDisplay = wrapper.querySelector('.file-name-display');
         const clearBtn = wrapper.querySelector('.file-clear-btn');
 
-        // تابع برای به‌روزرسانی نمایش نام فایل
         const updateFileName = () => {
             if (input.files && input.files[0]) {
                 nameDisplay.textContent = input.files[0].name;
@@ -145,22 +139,19 @@ const initializeJournalModule = () => {
             }
         };
 
-        // مدیریت انتخاب فایل
         input.addEventListener('change', () => {
             if (type === 'pdf' && input.files[0] && input.files[0].type !== 'application/pdf') {
                 alert('خطا: فقط فایل با فرمت PDF مجاز است.');
-                input.value = ''; // پاک کردن انتخاب اشتباه
+                input.value = '';
             }
             updateFileName();
         });
 
-        // مدیریت دکمه حذف
         clearBtn.addEventListener('click', () => {
-            input.value = ''; // مهم‌ترین بخش: مقدار input را پاک می‌کند
+            input.value = '';
             updateFileName();
         });
 
-        // مدیریت افکت‌های Drag & Drop
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             wrapper.addEventListener(eventName, e => {
                 e.preventDefault();
@@ -175,7 +166,6 @@ const initializeJournalModule = () => {
         });
     });
 
-    // --- بقیه منطق فرم ---
     const coverFileInput = document.getElementById('journal-cover');
     const journalFileInput = document.getElementById('journal-file');
 
@@ -392,9 +382,14 @@ const loadAdminPage = async (path) => {
     const data = await route.loader();
     route.renderer(data);
     
+    // START: تغییر اصلی اینجاست
     if (route.initializer) {
-        route.initializer();
+        // اجرای initializer را به انتهای صف اجرای مرورگر منتقل می‌کنیم
+        setTimeout(() => {
+            route.initializer();
+        }, 0);
     }
+    // END: تغییر
 };
 
 // --- تابع اصلی اجرا ---
