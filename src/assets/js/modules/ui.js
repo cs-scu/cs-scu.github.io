@@ -1,8 +1,8 @@
 // src/assets/js/modules/ui.js
 import { state, dom } from './state.js';
-// START: Imports corrected
+// START: اطمینان از اینکه addJournalEntry به درستی import شده است
 import { 
-    supabaseClient,
+    supabaseClient, 
     checkUserStatus, 
     sendSignupOtp, 
     sendPasswordResetOtp, 
@@ -20,12 +20,27 @@ import {
     toggleLike,
     toggleCommentVote,
     deleteComment,
-    addJournalEntry
+    addJournalEntry 
 } from './api.js';
-// END: Imports corrected
+// END: تغییر
+
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
+// Helper function to hide status messages
+const hideStatus = (statusBox) => {
+    if (!statusBox) return;
+    statusBox.style.display = 'none';
+    statusBox.textContent = '';
+};
+
+// Helper function to show status messages
+const showStatus = (statusBox, message, type = 'error') => {
+    if (!statusBox) return;
+    statusBox.textContent = message;
+    statusBox.className = `form-status ${type}`;
+    statusBox.style.display = 'block';
+};
 const toPersianNumber = (n) => {
     const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
     return String(n).replace(/[0-9]/g, (digit) => persianNumbers[digit]);
@@ -61,18 +76,6 @@ const sanitizeHTML = (str) => {
     const temp = document.createElement('div');
     temp.textContent = str;
     return temp.innerHTML;
-};
-
-// Helper functions for status messages
-const showStatus = (statusBox, message, type = 'error') => {
-    statusBox.textContent = message;
-    statusBox.className = `form-status ${type}`;
-    statusBox.style.display = 'block';
-};
-
-const hideStatus = (statusBox) => {
-    statusBox.style.display = 'none';
-    statusBox.textContent = '';
 };
 
 export const showProfileModal = async () => {
@@ -1249,12 +1252,13 @@ export const initializeAdminForms = () => {
             await addJournalEntry(entryData);
             showStatus(statusBox, 'نشریه با موفقیت افزوده شد.', 'success');
             journalForm.reset();
-            // Clear the journal cache so the public page shows the new entry on next visit
+            // کش نشریه‌ها را خالی می‌کنیم تا در مراجعه بعدی به صفحه نشریه، لیست جدید بارگذاری شود
             state.allJournalIssues = [];
         } catch (error) {
-            const errorMessage = error.message.includes('network') 
+            console.error("Error in journal form submission:", error);
+            const errorMessage = error.message.toLowerCase().includes('network') 
                 ? 'خطا در اتصال. اینترنت خود را بررسی کنید.'
-                : 'خطا در افزودن نشریه.';
+                : 'خطا در افزودن نشریه. ممکن است دسترسی لازم را نداشته باشید.';
             showStatus(statusBox, errorMessage, 'error');
         } finally {
             submitBtn.disabled = false;
