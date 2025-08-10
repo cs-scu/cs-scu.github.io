@@ -1180,15 +1180,20 @@ export const initializeContactForm = () => {
     const nameInput = contactForm.querySelector('#contact-name');
     const emailInput = contactForm.querySelector('#contact-email');
 
-    if (state.user) {
-        const displayName = state.profile?.full_name || state.user.email.split('@')[0];
-        nameInput.value = displayName;
-        emailInput.value = state.user.email;
-        nameInput.readOnly = true;
-        emailInput.readOnly = true;
-        nameInput.classList.add('prefilled');
-        emailInput.classList.add('prefilled');
-    }
+    // تابعی برای پر کردن خودکار اطلاعات کاربر
+    const prefillUserInfo = () => {
+        if (state.user) {
+            const displayName = state.profile?.full_name || state.user.email.split('@')[0];
+            nameInput.value = displayName;
+            emailInput.value = state.user.email;
+            nameInput.readOnly = true;
+            emailInput.readOnly = true;
+            nameInput.classList.add('prefilled');
+            emailInput.classList.add('prefilled');
+        }
+    };
+
+    prefillUserInfo(); // اجرای اولیه هنگام بارگذاری صفحه
 
     contactForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -1216,6 +1221,9 @@ export const initializeContactForm = () => {
         } else {
             showStatus(statusBox, 'پیام شما با موفقیت ارسال شد.', 'success');
             contactForm.reset();
+            // **تغییر اصلی اینجاست**
+            // پس از ریست کردن فرم، اطلاعات کاربر لاگین شده را دوباره پر می‌کنیم.
+            prefillUserInfo();
         }
     });
     contactForm.dataset.listenerAttached = 'true';
