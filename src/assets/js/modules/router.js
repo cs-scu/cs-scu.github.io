@@ -2,7 +2,7 @@
 import { state, dom } from './state.js';
 import { initializeAuthForm, initializeContactForm, showEventModal, initializeInteractions, renderInteractionsSection, showProfileModal } from './ui.js';
 import * as components from './components.js';
-import { supabaseClient, loadEvents, loadJournal, loadChartData, getComments, getLikeStatus, loadContacts } from './api.js';
+import { supabaseClient, loadEvents, loadJournal, loadChartData, getComments, getLikeStatus, loadContacts, getProfile } from './api.js';
 
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
@@ -247,10 +247,37 @@ const renderPage = async (path) => {
     
     const pageRenderers = {
         '/login': initializeAuthForm,
-        '/admin': () => {
-            if (state.profile?.role !== 'admin') {
-                location.hash = '#/';
+        '/admin': async () => {
+            const wrapper = dom.mainContent.querySelector('#admin-content-wrapper');
+
+            if (!state.user) {
+                await new Promise(resolve => setTimeout(resolve, 250));
+                if (!state.user) {
+                    sessionStorage.setItem('redirectAfterLogin', '#/admin');
+                    location.hash = '#/login';
+                    return;
+                }
             }
+
+            if (!state.profile) {
+                await getProfile();
+            }
+
+            if (state.profile?.role !== 'admin') {
+                if (wrapper) {
+                    wrapper.innerHTML = '<p style="color: red; text-align: center;">شما دسترسی لازم برای مشاهده این صفحه را ندارید.</p>';
+                }
+                setTimeout(() => {
+                    if (location.hash === '#/admin') {
+                        location.hash = '#/';
+                    }
+                }, 2000);
+                return;
+            }
+
+            if (wrapper) wrapper.innerHTML = '<p class="loading-message" style="text-align: center; opacity: 0.8;">در حال بارگذاری پیام‌ها...</p>';
+            await loadContacts();
+            components.renderAdminPage();
         },
         '/contact': initializeContactForm,
         '/events': async () => { await loadEvents(); components.renderEventsPage(); },

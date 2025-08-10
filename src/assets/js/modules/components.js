@@ -509,9 +509,8 @@ export const renderChartPage = () => {
     });
 };
 
-// *** START: تابع جدید برای رندر کردن پنل ادمین ***
 export const renderAdminPage = () => {
-    const wrapper = dom.mainContent.querySelector('#admin-contacts-wrapper');
+    const wrapper = dom.mainContent.querySelector('#admin-content-wrapper');
     if (!wrapper) return;
 
     if (!state.allContacts || state.allContacts.length === 0) {
@@ -520,16 +519,17 @@ export const renderAdminPage = () => {
     }
 
     let tableHTML = `
-        <table class="custom-table">
-            <thead>
-                <tr>
-                    <th>نام</th>
-                    <th>ایمیل</th>
-                    <th>پیام</th>
-                    <th>تاریخ ارسال</th>
-                </tr>
-            </thead>
-            <tbody>
+        <div class="custom-table-wrapper">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>نام</th>
+                        <th>ایمیل</th>
+                        <th>پیام</th>
+                        <th>تاریخ ارسال</th>
+                    </tr>
+                </thead>
+                <tbody>
     `;
 
     state.allContacts.forEach(contact => {
@@ -540,7 +540,6 @@ export const renderAdminPage = () => {
             hour: '2-digit',
             minute: '2-digit'
         });
-        // Sanitize content before rendering
         const safeName = (contact.name || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
         const safeEmail = (contact.email || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
         const safeMessage = (contact.message || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -555,7 +554,6 @@ export const renderAdminPage = () => {
         `;
     });
 
-    tableHTML += '</tbody></table>';
+    tableHTML += '</tbody></table></div>';
     wrapper.innerHTML = tableHTML;
 };
-// *** END: تابع جدید ***
