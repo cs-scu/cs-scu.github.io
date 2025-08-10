@@ -3828,3 +3828,82 @@ body.light-theme .admin-main-header { background-color: #fff; border-bottom: 1px
         z-index: 2999;
     }
 }
+/* ================== Admin Panel Mobile Menu & Header Fix ================== */
+.admin-main-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1.5rem;
+    display: none; /* در حالت دسکتاپ مخفی است */
+}
+
+.admin-header-title {
+    flex-grow: 1; /* عنوان، فضای خالی را پر می‌کند */
+    margin: 0;
+    font-size: 1.2rem;
+    text-align: right;
+}
+
+/* دکمه رفرش فقط آیکون، بدون متن */
+.btn-icon-only {
+    padding: 0.5rem;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-icon-only span {
+    display: none; /* مخفی کردن متن به صورت پیش‌فرض */
+}
+
+@media (min-width: 769px) {
+    /* در دسکتاپ، متن دکمه نمایش داده می‌شود */
+    .btn-icon-only {
+        width: auto;
+        padding: 0.5rem 1rem;
+    }
+    .btn-icon-only span.desktop-only {
+        display: inline;
+        margin-right: 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-main-header {
+        display: flex; /* فقط در موبایل نمایش داده می‌شود */
+    }
+    .admin-sidebar {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        height: 100%;
+        width: 250px;
+        z-index: 3000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease-in-out;
+        border-left: 1px solid var(--glass-border-dark);
+        border-right: none;
+    }
+    body.dark-theme .admin-sidebar {
+        background-color: var(--background-color-dark);
+    }
+    .admin-sidebar.is-open {
+        transform: translateX(0);
+    }
+    .admin-main-content {
+        padding-top: 1rem;
+    }
+    /* لایه نیمه‌شفاف برای پشت منو */
+    body.admin-sidebar-is-open::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 2999;
+    }
+}
