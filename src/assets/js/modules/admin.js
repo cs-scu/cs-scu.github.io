@@ -1,9 +1,7 @@
 // src/assets/js/modules/admin.js
 
 import { state } from './state.js';
-// --- START: IMPORT UPDATE ---
 import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles } from './api.js';
-// --- END: IMPORT UPDATE ---
 import { initializeAdminTheme } from './admin-theme.js';
 
 // --- توابع کمکی ---
@@ -204,19 +202,19 @@ const initializeJournalModule = () => {
             const journalFile = formData.get('journalFile');
             const title = formData.get('title');
 
-            let coverUrl = isEditing ? state.allJournalIssues.find(j => j.id == isEditing)?.coverUrl : null;
-            let fileUrl = isEditing ? state.allJournalIssues.find(j => j.id == isEditing)?.fileUrl : null;
+            const originalIssue = isEditing ? state.allJournalIssues.find(j => j.id == isEditing) : null;
+            const oldFilesToDelete = [];
+
+            let coverUrl = originalIssue ? originalIssue.coverUrl : null;
+            let fileUrl = originalIssue ? originalIssue.fileUrl : null;
 
             const uploadFile = async (file, folder) => {
                 if (!file || file.size === 0) return null;
 
                 const issueNumber = formData.get('issueNumber') || 'NA';
-                
                 const now = new Date();
                 const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
-                
                 const extension = file.name.split('.').pop();
-                
                 const fileName = `${folder}/ju-${issueNumber}-${timestamp}.${extension}`;
 
                 const { error: uploadError } = await supabaseClient.storage
@@ -232,16 +230,21 @@ const initializeJournalModule = () => {
                 return data.publicUrl;
             };
             
+            // --- START: UPDATED FILE HANDLING LOGIC ---
             if (coverFile && coverFile.size > 0) {
+                if (originalIssue && originalIssue.coverUrl) {
+                    oldFilesToDelete.push(originalIssue.coverUrl);
+                }
                 coverUrl = await uploadFile(coverFile, 'covers');
             }
+
             if (journalFile && journalFile.size > 0) {
+                if (originalIssue && originalIssue.fileUrl) {
+                    oldFilesToDelete.push(originalIssue.fileUrl);
+                }
                 fileUrl = await uploadFile(journalFile, 'files');
             }
-
-            if (!coverUrl || !fileUrl) {
-                throw new Error("آپلود فایل‌ها با مشکل مواجه شد.");
-            }
+            // --- END: UPDATED FILE HANDLING LOGIC ---
 
             const entryData = {
                 title: title,
@@ -258,6 +261,11 @@ const initializeJournalModule = () => {
             } else {
                 await addJournalEntry(entryData);
                 showStatus(statusBox, 'نشریه با موفقیت افزوده شد.', 'success');
+            }
+            
+            // Delete old files only after the database update is successful
+            if (oldFilesToDelete.length > 0) {
+                await deleteJournalFiles(oldFilesToDelete);
             }
 
             const { data } = await supabaseClient.from('journal').select('*');
@@ -300,7 +308,6 @@ const initializeJournalModule = () => {
             journalForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // --- START: UPDATED DELETE LOGIC ---
         if (deleteBtn) {
             const id = deleteBtn.dataset.id;
             const issueToDelete = state.allJournalIssues.find(j => j.id == id);
@@ -311,14 +318,11 @@ const initializeJournalModule = () => {
                     deleteBtn.textContent = '...';
                     deleteBtn.disabled = true;
 
-                    // Step 1: Delete the database record first
                     await deleteJournalEntry(id);
 
-                    // Step 2: If successful, delete the associated files from Storage
                     const filesToDelete = [issueToDelete.coverUrl, issueToDelete.fileUrl];
                     await deleteJournalFiles(filesToDelete);
 
-                    // Step 3: Update the UI
                     state.allJournalIssues = state.allJournalIssues.filter(j => j.id != id);
                     renderJournalList(state.allJournalIssues);
 
@@ -330,7 +334,6 @@ const initializeJournalModule = () => {
                 }
             }
         }
-        // --- END: UPDATED DELETE LOGIC ---
     });
 };
 
