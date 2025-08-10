@@ -3796,14 +3796,23 @@ body.light-theme .custom-file-upload.is-dragging {
     opacity: 1;
 }
 
-/* === Table Scroll Fix === */
+/* === Table Scroll Fix (Revised) === */
+
+/* The wrapper enables horizontal scrolling */
 .custom-table-wrapper {
-    overflow-x: auto; 
-    -webkit-overflow-scrolling: touch; 
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
+
+/* Apply nowrap to ALL cells in the table to prevent any wrapping */
+.custom-table th,
+.custom-table td {
+    white-space: nowrap;
+}
+
+/* Keep the ellipsis specifically for the long message cell for aesthetics */
 .custom-table .message-cell {
-    white-space: nowrap; 
-    max-width: 400px; 
+    max-width: 400px; /* Optional: keeps the column from getting excessively wide */
     overflow: hidden;
-    text-overflow: ellipsis; 
+    text-overflow: ellipsis;
 }
