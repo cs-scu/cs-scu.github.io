@@ -3809,3 +3809,16 @@ body.light-theme .custom-file-upload.is-dragging {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+/* === Table Scroll Fix === */
+.custom-table-wrapper {
+    overflow-x: auto; /* این خط اصلی‌ترین کار یعنی فعال کردن اسکرول افقی را انجام می‌دهد */
+    -webkit-overflow-scrolling: touch; /* این خط اسکرول را در دستگاه‌های لمسی (موبایل) روان‌تر می‌کند */
+}
+/* این کلاس باعث می‌شود متن طولانی پیام‌ها به خط بعدی نرود و جدول را مجبور به اسکرول افقی کند */
+.custom-table .message-cell {
+    white-space: nowrap; /* از شکسته‌شدن متن و رفتن به خط بعد جلوگیری می‌کند */
+    max-width: 400px; /* یک عرض حداکثری برای خوانایی بهتر، می‌توانید این عدد را تغییر دهید */
+    overflow: hidden; /* محتوای اضافی را پنهان می‌کند */
+    text-overflow: ellipsis; /* به جای محتوای اضافی، سه نقطه (...) نمایش می‌دهد */
+}
