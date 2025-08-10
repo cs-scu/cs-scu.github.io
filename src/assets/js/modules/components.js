@@ -424,8 +424,10 @@ export const renderAdminPage = () => {
     const wrapper = dom.mainContent.querySelector('#admin-contacts-wrapper');
     if (!wrapper) return;
 
-    if (state.allContacts.length === 0) {
-        wrapper.innerHTML = '<p>پیام جدیدی یافت نشد.</p>';
+    // این شرط برای زمانی است که هنوز در حال لود شدن است
+    // و state.allContacts خالی است
+    if (!state.allContacts || state.allContacts.length === 0) {
+        wrapper.innerHTML = '<p style="text-align: center; opacity: 0.8;">پیام جدیدی برای نمایش وجود ندارد.</p>';
         return;
     }
 
@@ -451,16 +453,16 @@ export const renderAdminPage = () => {
             minute: '2-digit'
         });
         // Sanitize content before rendering
-        const safeName = contact.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const safeEmail = contact.email.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const safeMessage = contact.message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeName = (contact.name || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeEmail = (contact.email || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeMessage = (contact.message || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
         tableHTML += `
             <tr>
-                <td>${safeName}</td>
+                <td style="white-space: nowrap;">${safeName}</td>
                 <td><a href="mailto:${safeEmail}">${safeEmail}</a></td>
-                <td style="white-space: pre-wrap; text-align: right;">${safeMessage}</td>
-                <td>${messageDate}</td>
+                <td>${safeMessage}</td>
+                <td style="white-space: nowrap;">${messageDate}</td>
             </tr>
         `;
     });
