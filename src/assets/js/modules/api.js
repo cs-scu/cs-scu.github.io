@@ -376,3 +376,35 @@ export const deleteJournalEntry = async (id) => {
         throw error;
     }
 };
+
+// --- START: NEW FUNCTION ---
+export const deleteJournalFiles = async (fileUrls) => {
+    const validUrls = fileUrls.filter(url => !!url);
+    if (validUrls.length === 0) {
+        return; // No files to delete
+    }
+    try {
+        // Extract the path from the full URL, e.g., "covers/ju-1-timestamp.jpg"
+        const filePaths = validUrls.map(url => {
+            const urlParts = url.split('/journal-assets/');
+            return urlParts.length > 1 ? urlParts[1] : null;
+        }).filter(path => path);
+
+        if (filePaths.length > 0) {
+            const { data, error } = await supabaseClient
+                .storage
+                .from('journal-assets')
+                .remove(filePaths);
+
+            if (error) {
+                // Log the error but don't stop the process
+                console.error("Error deleting storage files:", error);
+            } else {
+                console.log("Associated files deleted successfully from storage:", data);
+            }
+        }
+    } catch (e) {
+        console.error("An exception occurred while trying to delete files from storage:", e);
+    }
+};
+// --- END: NEW FUNCTION ---
