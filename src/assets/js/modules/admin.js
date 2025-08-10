@@ -4,7 +4,7 @@ import { state } from './state.js';
 import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
 
-// ... (توابع کمکی hideStatus و showStatus بدون تغییر) ...
+// --- توابع کمکی برای نمایش پیام ---
 const hideStatus = (statusBox) => {
     if (!statusBox) return;
     statusBox.style.display = 'none';
@@ -18,7 +18,7 @@ const showStatus = (statusBox, message, type = 'error') => {
     statusBox.style.display = 'block';
 };
 
-// ... (توابع رندرکننده renderMessages و renderJournalList بدون تغییر) ...
+// --- توابع رندرکننده (مخصوص پنل ادمین) ---
 const renderMessages = (contacts) => {
     const wrapper = document.getElementById('admin-content-wrapper');
     if (!wrapper) return;
@@ -71,29 +71,32 @@ const renderJournalList = (issues) => {
         </div>`;
 };
 
-
 // --- تابع عمومی برای مدیریت دکمه‌های رفرش واکنش‌گرا ---
-const initializeReactiveButton = async (buttonId, dataLoader, renderer) => {
-    const refreshBtn = document.getElementById(buttonId);
+const initializeGlobalRefreshButton = () => {
+    const refreshBtn = document.getElementById('admin-global-refresh-btn');
     if (!refreshBtn) return;
 
     const btnSpan = refreshBtn.querySelector('span');
     const btnIcon = refreshBtn.querySelector('svg');
     const originalIconHTML = btnIcon ? btnIcon.outerHTML : '';
 
-    const refreshData = async () => {
+    refreshBtn.addEventListener('click', async () => {
+        const currentPath = location.hash.substring(1) || '/admin/messages';
+        const route = adminRoutes[currentPath];
+        if (!route) return;
+
         refreshBtn.disabled = true;
         refreshBtn.classList.add('loading');
         if (btnSpan) btnSpan.textContent = 'در حال بارگذاری...';
-        
+
         try {
-            const data = await dataLoader();
-            renderer(data);
+            const data = await route.loader();
+            route.renderer(data);
+            
             refreshBtn.classList.remove('loading');
             refreshBtn.classList.add('success');
             if (btnSpan) btnSpan.textContent = 'موفق';
         } catch (error) {
-            console.error(`Failed to refresh data for ${buttonId}:`, error);
             const errorMessage = (error.message.toLowerCase().includes('network')) ? 'خطای اتصال' : 'خطای سرور';
             refreshBtn.classList.remove('loading');
             refreshBtn.classList.add('error');
@@ -106,13 +109,11 @@ const initializeReactiveButton = async (buttonId, dataLoader, renderer) => {
                 if (btnIcon) btnIcon.outerHTML = originalIconHTML;
             }, 2500);
         }
-    };
-    refreshBtn.addEventListener('click', refreshData);
+    });
 };
 
-
+// --- توابع مدیریت فرم‌ها و رویدادها ---
 const initializeJournalModule = () => {
-    // ... (منطق فرم نشریه بدون تغییر باقی می‌ماند) ...
     const journalForm = document.getElementById('add-journal-form');
     if (!journalForm) return;
     const formTitle = document.getElementById('journal-form-title');
@@ -185,25 +186,12 @@ const initializeJournalModule = () => {
             }
         }
     });
-
-    // فعال‌سازی دکمه رفرش برای این ماژول
-    initializeReactiveButton('refresh-journal-btn', async () => {
-        state.allJournalIssues = []; // Clear cache
-        await loadJournal();
-        return state.allJournalIssues;
-    }, renderJournalList);
 };
 
 const initializeMessagesModule = () => {
-    // فعال‌سازی دکمه رفرش برای این ماژول
-    initializeReactiveButton('refresh-contacts-btn', async () => {
-        state.allContacts = []; // Clear cache
-        await loadContacts();
-        return state.allContacts;
-    }, renderMessages);
+    // No specific JS needed for this module anymore
 };
 
-// ... (بقیه کدهای فایل admin.js شامل روتر و تابع اجرا، بدون تغییر باقی می‌مانند) ...
 const initializeAdminLayout = () => {
     const sidebar = document.getElementById('admin-sidebar');
     const menuToggle = document.getElementById('mobile-admin-menu-toggle');
@@ -241,16 +229,19 @@ const initializeAdminLayout = () => {
     });
 };
 
+// --- روتر داخلی پنل ادمین ---
 const adminRoutes = {
     '/admin/messages': {
+        title: 'پیام‌ها',
         html: 'admin-messages.html',
-        loader: loadContacts,
+        loader: async () => { state.allContacts = []; await loadContacts(); return state.allContacts; },
         renderer: renderMessages,
         initializer: initializeMessagesModule
     },
     '/admin/journal': {
+        title: 'مدیریت نشریه',
         html: 'admin-journal.html',
-        loader: loadJournal,
+        loader: async () => { state.allJournalIssues = []; await loadJournal(); return state.allJournalIssues; },
         renderer: renderJournalList,
         initializer: initializeJournalModule
     }
@@ -258,28 +249,33 @@ const adminRoutes = {
 
 const loadAdminPage = async (path) => {
     const mainContent = document.getElementById('admin-main-content');
+    const headerTitle = document.querySelector('.admin-header-title');
     const route = adminRoutes[path];
     if (!route) {
         location.hash = '/admin/messages';
         return;
     }
+    
+    if (headerTitle) headerTitle.textContent = route.title;
 
     mainContent.innerHTML = '<p class="loading-message">در حال بارگذاری...</p>';
     
     const response = await fetch(route.html);
     mainContent.innerHTML = await response.text();
 
-    await route.loader();
-    route.renderer(path === '/admin/messages' ? state.allContacts : state.allJournalIssues);
+    const data = await route.loader();
+    route.renderer(data);
     
     if (route.initializer) {
         route.initializer();
     }
 };
 
+// --- تابع اصلی اجرا ---
 document.addEventListener('DOMContentLoaded', async () => {
     initializeAdminTheme();
     initializeAdminLayout();
+    initializeGlobalRefreshButton();
 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
