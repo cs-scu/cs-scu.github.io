@@ -3662,3 +3662,110 @@ body.light-theme .admin-section-subtitle {
 body.light-theme .admin-divider {
     background-color: var(--glass-border-light);
 }
+
+/* ================== Real Admin Panel Layout ================== */
+.admin-panel-body {
+    background-color: var(--background-color-light);
+    color: var(--text-color-light);
+}
+body.dark-theme.admin-panel-body {
+    background-color: #001f20;
+    color: var(--text-color-dark);
+}
+
+.admin-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border-left: 1px solid var(--glass-border-light);
+}
+body.dark-theme .admin-sidebar {
+    background-color: var(--background-color-dark);
+    border-color: var(--glass-border-dark);
+}
+
+.sidebar-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.sidebar-header .logo {
+    font-size: 1.5rem;
+}
+.sidebar-header p {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin-top: 0.5rem;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex-grow: 1;
+}
+.sidebar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.2s, color 0.2s;
+}
+.sidebar-nav .nav-link:hover {
+    background-color: rgba(128, 128, 128, 0.1);
+}
+.sidebar-nav .nav-link.active {
+    color: #fff;
+}
+body.dark-theme .sidebar-nav .nav-link.active { background-color: var(--primary-color-light-theme); }
+body.light-theme .sidebar-nav .nav-link.active { background-color: var(--primary-color-light-theme); }
+
+.sidebar-footer {
+    margin-top: auto;
+}
+.sidebar-footer .btn {
+    width: 100%;
+}
+
+.admin-main-content {
+    flex-grow: 1;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.admin-module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+.admin-module-header h2 {
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .admin-container {
+        flex-direction: column;
+    }
+    .admin-sidebar {
+        width: 100%;
+        height: auto;
+        border-left: none;
+        border-bottom: 1px solid var(--glass-border-light);
+    }
+    body.dark-theme .admin-sidebar {
+        border-color: var(--glass-border-dark);
+    }
+    .admin-main-content {
+        padding: 1.5rem;
+    }
+}

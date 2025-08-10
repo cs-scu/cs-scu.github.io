@@ -1,0 +1,31 @@
+<div class="admin-module-header">
+    <h2>مدیریت نشریه‌ها</h2>
+</div>
+
+<div class="content-box">
+    <h3 id="journal-form-title" class="admin-section-subtitle">درج یا ویرایش نشریه</h3>
+    <form id="add-journal-form">
+        <input type="hidden" id="journal-id" name="id">
+        <div class="form-row">
+            <div class="form-group"><label for="journal-title">عنوان</label><input type="text" id="journal-title" name="title" required></div>
+            <div class="form-group"><label for="journal-issue">شماره</label><input type="number" id="journal-issue" name="issueNumber"></div>
+            <div class="form-group"><label for="journal-date">تاریخ</label><input type="text" id="journal-date" name="date" required></div>
+        </div>
+        <div class="form-group"><label for="journal-summary">خلاصه</label><textarea id="journal-summary" name="summary" rows="3"></textarea></div>
+        <div class="form-row">
+            <div class="form-group"><label for="journal-cover">لینک کاور</label><input type="url" id="journal-cover" name="coverUrl" required dir="ltr"></div>
+            <div class="form-group"><label for="journal-file">لینک فایل</label><input type="url" id="journal-file" name="fileUrl" required dir="ltr"></div>
+        </div>
+        <div class="form-status"></div>
+        <div class="form-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-primary" id="journal-submit-btn">افزودن نشریه</button>
+            <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;">انصراف</button>
+        </div>
+    </form>
+</div>
+
+<div class="content-box" style="margin-top: 2rem;">
+    <h3 class="admin-section-subtitle">لیست نشریه‌ها</h3>
+    <div id="journal-admin-list">
+        </div>
+</div>

@@ -1,8 +1,8 @@
 // src/assets/js/modules/router.js
-import { state, dom } from './state.js';
-import { initializeAuthForm, initializeContactForm, showEventModal, initializeInteractions, renderInteractionsSection, showProfileModal, initializeAdminForms } from './ui.js';
+import { state, dom } from './modules/state.js';
+import { initializeAuthForm, initializeContactForm, showEventModal, initializeInteractions, renderInteractionsSection, showProfileModal } from './ui.js';
 import * as components from './components.js';
-import { supabaseClient, loadEvents, loadJournal, loadChartData, getComments, getLikeStatus, loadContacts, getProfile } from './api.js';
+import { supabaseClient, loadEvents, loadJournal, loadChartData, getComments, getLikeStatus } from './api.js';
 
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
@@ -91,7 +91,12 @@ const cleanupPageSpecifics = (newPath) => {
 const renderPage = async (path) => {
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
     
-    // ... (تمام توابع داخلی renderPage مانند parseInlineMarkdown و renderJsonContent بدون تغییر باقی می‌مانند) ...
+    // ** تغییر اصلی اینجاست: اگر کاربر به مسیر ادمین رفت، بلافاصله او را هدایت می‌کنیم **
+    if (cleanPath.startsWith('/admin')) {
+        window.location.href = `admin.html#${cleanPath}`;
+        return; // اجرای ادامه کد را متوقف می‌کنیم
+    }
+    
     const parseInlineMarkdown = (text) => {
         if (!text) return '';
         const sanitizer = document.createElement('div');
@@ -226,118 +231,25 @@ const renderPage = async (path) => {
         window.scrollTo(0, 0);
         const pageKey = cleanPath === '/' || cleanPath === '' ? 'home' : cleanPath.substring(1);
         
-        // *** START: تغییر اصلی برای جلوگیری از کش شدن صفحه ادمین ***
-        if (cleanPath === '/admin') {
-            delete state.pageCache['/admin'];
-        }
-        // *** END: تغییر ***
-
-        if (pageKey === 'home') {
-            dom.mainContent.innerHTML = state.pageCache['/'] || ' ';
-            components.loadLatestNews();
+        if (state.pageCache[cleanPath] && cleanPath !== '/admin') { // ادمین را کش نمی‌کنیم
+            dom.mainContent.innerHTML = state.pageCache[cleanPath];
         } else {
-            if (state.pageCache[cleanPath]) {
-                dom.mainContent.innerHTML = state.pageCache[cleanPath];
-            } else {
-                try {
-                    const response = await fetch(`${pageKey}.html`);
-                    if (!response.ok) throw new Error(`Page not found: ${pageKey}.html`);
-                    const pageHTML = await response.text();
+            try {
+                const response = await fetch(`${pageKey}.html`);
+                if (!response.ok) throw new Error(`Page not found: ${pageKey}.html`);
+                const pageHTML = await response.text();
+                if (cleanPath !== '/admin') {
                     state.pageCache[cleanPath] = pageHTML;
-                    dom.mainContent.innerHTML = pageHTML;
-                } catch (error) {
-                    location.hash = '#/';
                 }
+                dom.mainContent.innerHTML = pageHTML;
+            } catch (error) {
+                location.hash = '#/';
             }
         }
     }
     
     const pageRenderers = {
         '/login': initializeAuthForm,
-        
-        '/admin': async () => {
-            const wrapper = dom.mainContent.querySelector('#admin-content-wrapper');
-
-            if (!state.user) {
-                await new Promise(resolve => setTimeout(resolve, 250));
-                if (!state.user) {
-                    sessionStorage.setItem('redirectAfterLogin', '#/admin');
-                    location.hash = '#/login';
-                    return;
-                }
-            }
-            if (!state.profile) await getProfile();
-
-            if (state.profile?.role !== 'admin') {
-                if (wrapper) wrapper.innerHTML = '<p style="color: red; text-align: center;">شما دسترسی لازم برای مشاهده این صفحه را ندارید.</p>';
-                setTimeout(() => { if (location.hash === '#/admin') location.hash = '#/'; }, 2000);
-                return;
-            }
-
-            const refreshBtn = document.getElementById('refresh-contacts-btn');
-            const btnSpan = refreshBtn ? refreshBtn.querySelector('span') : null;
-            const btnIcon = refreshBtn ? refreshBtn.querySelector('svg') : null;
-            const originalIconHTML = btnIcon ? btnIcon.outerHTML : '';
-
-            const loadAdminData = async () => {
-                if (refreshBtn) {
-                    refreshBtn.disabled = true;
-                    refreshBtn.classList.add('loading');
-                    if (btnSpan) btnSpan.textContent = 'در حال بارگذاری...';
-                }
-                
-                try {
-                    state.allContacts = [];
-                    state.allJournalIssues = [];
-                    await Promise.all([
-                        loadContacts(),
-                        loadJournal() 
-                    ]);
-                    
-                    components.renderAdminPage();
-                    components.renderJournalAdminList();
-
-                    if (refreshBtn) {
-                        refreshBtn.classList.remove('loading');
-                        refreshBtn.classList.add('success');
-                        if (btnSpan) btnSpan.textContent = 'موفق';
-                    }
-                } catch (error) {
-                    console.error("Failed to refresh admin data:", error);
-                    let errorMessage = 'خطای سرور';
-                    if (error && error.message && (error.message.toLowerCase().includes('network') || error.message.toLowerCase().includes('failed to fetch'))) {
-                        errorMessage = 'خطای اتصال';
-                    }
-                    if (wrapper) wrapper.innerHTML = `<p style="text-align: center; color: #dc3545;">${errorMessage}. لطفاً اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.</p>`;
-                    if (refreshBtn) {
-                        refreshBtn.classList.remove('loading');
-                        refreshBtn.classList.add('error');
-                        if (btnSpan) btnSpan.textContent = errorMessage;
-                    }
-                } finally {
-                    setTimeout(() => {
-                        if (refreshBtn) {
-                            refreshBtn.disabled = false;
-                            refreshBtn.classList.remove('success', 'error');
-                            if (btnSpan) btnSpan.textContent = 'بارگذاری مجدد';
-                            if (btnIcon) btnIcon.outerHTML = originalIconHTML;
-                        }
-                    }, 2500);
-                }
-            };
-
-            await loadAdminData();
-
-            if (refreshBtn && !refreshBtn.dataset.listenerAttached) {
-                refreshBtn.addEventListener('click', loadAdminData);
-                refreshBtn.dataset.listenerAttached = 'true';
-            }
-            
-            setTimeout(() => {
-                initializeAdminForms();
-            }, 0);
-        },
-        
         '/contact': initializeContactForm,
         '/events': async () => { await loadEvents(); components.renderEventsPage(); },
         '/members': components.renderMembersPage,
@@ -361,7 +273,6 @@ const renderPage = async (path) => {
     initializeCopyButtons();
     initializeVideoPlayers();
 };
-
 
 const handleNavigation = () => {
     const path = location.hash || '#/';
