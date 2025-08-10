@@ -3637,3 +3637,28 @@ body.light-theme .video-tab-btn:not(.active) img {
         transform: rotate(360deg);
     }
 }
+/* ================== Admin Panel Enhancements ================== */
+.admin-section-subtitle {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid;
+    padding-bottom: 0.5rem;
+}
+
+body.dark-theme .admin-section-subtitle {
+    border-color: var(--glass-border-dark);
+}
+body.light-theme .admin-section-subtitle {
+    border-color: var(--glass-border-light);
+}
+
+.admin-divider {
+    border: none;
+    height: 1px;
+    background-color: var(--glass-border-dark);
+    margin: 2.5rem 0;
+}
+
+body.light-theme .admin-divider {
+    background-color: var(--glass-border-light);
+}

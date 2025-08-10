@@ -2,60 +2,66 @@
     <div class="container">
         <div class="admin-header">
             <h1>پنل مدیریت</h1>
-            <button id="refresh-contacts-btn" class="btn btn-secondary" title="بارگذاری مجدد پیام‌ها">
+            <button id="refresh-contacts-btn" class="btn btn-secondary" title="بارگذاری مجدد داده‌ها">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
                 <span>بارگذاری مجدد</span>
             </button>
         </div>
 
-        <div class="content-box">
-            <h2 id="journal-form-title">درج نشریه جدید</h2>
-            <form id="add-journal-form">
-                <input type="hidden" id="journal-id" name="id"> <div class="form-row">
-                    <div class="form-group">
-                        <label for="journal-title">عنوان نشریه</label>
-                        <input type="text" id="journal-title" name="title" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="journal-issue">شماره نسخه</label>
-                        <input type="number" id="journal-issue" name="issueNumber">
-                    </div>
-                    <div class="form-group">
-                        <label for="journal-date">تاریخ انتشار</label>
-                        <input type="text" id="journal-date" name="date" placeholder="مثال: پاییز ۱۴۰۴" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="journal-summary">خلاصه توضیحات</label>
-                    <textarea id="journal-summary" name="summary" rows="3"></textarea>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="journal-cover">آدرس URL کاور</label>
-                        <input type="url" id="journal-cover" name="coverUrl" required placeholder="https://..." dir="ltr">
-                    </div>
-                    <div class="form-group">
-                        <label for="journal-file">آدرس URL فایل PDF</label>
-                        <input type="url" id="journal-file" name="fileUrl" required placeholder="https://..." dir="ltr">
-                    </div>
-                </div>
-                <div class="form-status"></div>
-                <div class="form-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
-                    <button type="submit" class="btn btn-primary" id="journal-submit-btn">افزودن نشریه</button>
-                    <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;">انصراف از ویرایش</button>
-                </div>
-            </form>
-        </div>
-        <div class="content-box" style="margin-top: 2rem;">
+        <div id="admin-journal-section" class="content-box">
             <h2>مدیریت نشریه‌ها</h2>
-            <div id="journal-admin-list">
-                </div>
+            <div id="journal-form-container">
+                <h3 id="journal-form-title" class="admin-section-subtitle">درج نشریه جدید</h3>
+                <form id="add-journal-form">
+                    <input type="hidden" id="journal-id" name="id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="journal-title">عنوان نشریه</label>
+                            <input type="text" id="journal-title" name="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="journal-issue">شماره نسخه</label>
+                            <input type="number" id="journal-issue" name="issueNumber">
+                        </div>
+                        <div class="form-group">
+                            <label for="journal-date">تاریخ انتشار</label>
+                            <input type="text" id="journal-date" name="date" placeholder="مثال: پاییز ۱۴۰۴" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="journal-summary">خلاصه توضیحات</label>
+                        <textarea id="journal-summary" name="summary" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="journal-cover">آدرس URL کاور</label>
+                            <input type="url" id="journal-cover" name="coverUrl" required placeholder="https://..." dir="ltr">
+                        </div>
+                        <div class="form-group">
+                            <label for="journal-file">آدرس URL فایل PDF</label>
+                            <input type="url" id="journal-file" name="fileUrl" required placeholder="https://..." dir="ltr">
+                        </div>
+                    </div>
+                    <div class="form-status"></div>
+                    <div class="form-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
+                        <button type="submit" class="btn btn-primary" id="journal-submit-btn">افزودن نشریه</button>
+                        <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;">انصراف از ویرایش</button>
+                    </div>
+                </form>
+            </div>
+            <hr class="admin-divider">
+            <div id="journal-list-container">
+                <h3 class="admin-section-subtitle">لیست نشریه‌های موجود</h3>
+                <div id="journal-admin-list">
+                    </div>
+            </div>
         </div>
-        <div class="content-box" style="margin-top: 2rem;">
+        <div id="admin-contacts-section" class="content-box" style="margin-top: 2rem;">
             <h2>پیام‌های دریافتی</h2>
+            <p>در این بخش می‌توانید پیام‌های ارسال شده از طریق فرم تماس با ما را مشاهده کنید.</p>
             <div id="admin-content-wrapper">
                 <p class="loading-message" style="text-align: center; opacity: 0.8;">در حال بارگذاری و بررسی دسترسی...</p>
             </div>
         </div>
-    </div>
+        </div>
 </section>
