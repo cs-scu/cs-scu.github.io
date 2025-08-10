@@ -1,6 +1,6 @@
 // src/assets/js/modules/router.js
 import { state, dom } from './state.js';
-import { initializeAuthForm, initializeContactForm, showEventModal, initializeInteractions, renderInteractionsSection, showProfileModal } from './ui.js';
+import { initializeAuthForm, initializeContactForm, showEventModal, initializeInteractions, renderInteractionsSection, showProfileModal , initializeAdminForms } from './ui.js';
 import * as components from './components.js';
 import { supabaseClient, loadEvents, loadJournal, loadChartData, getComments, getLikeStatus, loadContacts, getProfile } from './api.js';
 

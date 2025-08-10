@@ -332,3 +332,17 @@ export const toggleCommentVote = async (commentId, userId, voteType) => {
         return { data: null, error };
     }
 };
+
+export const addJournalEntry = async (entryData) => {
+    try {
+        const { data, error } = await supabaseClient
+            .from('journal')
+            .insert([entryData]); // داده‌ها باید به صورت آرایه ارسال شوند
+        
+        if (error) throw error;
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error adding journal entry:', error);
+        throw error;
+    }
+};

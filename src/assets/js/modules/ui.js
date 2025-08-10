@@ -2,7 +2,7 @@
 import { state, dom } from './state.js';
 // START: Imports corrected
 import { 
-    supabaseClient, 
+    supabaseClient,
     checkUserStatus, 
     sendSignupOtp, 
     sendPasswordResetOtp, 
@@ -19,7 +19,8 @@ import {
     addComment,
     toggleLike,
     toggleCommentVote,
-    deleteComment
+    deleteComment,
+    addJournalEntry
 } from './api.js';
 // END: Imports corrected
 let currentEmail = '';
@@ -1219,6 +1220,49 @@ export const initializeContactForm = () => {
         }
     });
     contactForm.dataset.listenerAttached = 'true';
+};
+
+export const initializeAdminForms = () => {
+    const journalForm = document.getElementById('add-journal-form');
+    if (!journalForm || journalForm.dataset.listenerAttached) return;
+
+    journalForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = journalForm.querySelector('button[type="submit"]');
+        const statusBox = journalForm.querySelector('.form-status');
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'در حال افزودن...';
+        hideStatus(statusBox);
+
+        const formData = new FormData(journalForm);
+        const entryData = {
+            title: formData.get('title'),
+            issueNumber: formData.get('issueNumber') ? parseInt(formData.get('issueNumber'), 10) : null,
+            date: formData.get('date'),
+            summary: formData.get('summary'),
+            coverUrl: formData.get('coverUrl'),
+            fileUrl: formData.get('fileUrl')
+        };
+
+        try {
+            await addJournalEntry(entryData);
+            showStatus(statusBox, 'نشریه با موفقیت افزوده شد.', 'success');
+            journalForm.reset();
+            // Clear the journal cache so the public page shows the new entry on next visit
+            state.allJournalIssues = [];
+        } catch (error) {
+            const errorMessage = error.message.includes('network') 
+                ? 'خطا در اتصال. اینترنت خود را بررسی کنید.'
+                : 'خطا در افزودن نشریه.';
+            showStatus(statusBox, errorMessage, 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'افزودن نشریه';
+        }
+    });
+
+    journalForm.dataset.listenerAttached = 'true';
 };
 
 const showTimePickerModal = (callback) => {

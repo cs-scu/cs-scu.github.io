@@ -7,7 +7,43 @@
                 <span>بارگذاری مجدد</span>
             </button>
         </div>
+
         <div class="content-box">
+            <h2>درج نشریه جدید</h2>
+            <form id="add-journal-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="journal-title">عنوان نشریه</label>
+                        <input type="text" id="journal-title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="journal-issue">شماره نسخه</label>
+                        <input type="number" id="journal-issue" name="issueNumber">
+                    </div>
+                    <div class="form-group">
+                        <label for="journal-date">تاریخ انتشار</label>
+                        <input type="text" id="journal-date" name="date" placeholder="مثال: پاییز ۱۴۰۴" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="journal-summary">خلاصه توضیحات</label>
+                    <textarea id="journal-summary" name="summary" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="journal-cover">آدرس URL کاور</label>
+                        <input type="url" id="journal-cover" name="coverUrl" required placeholder="https://..." dir="ltr">
+                    </div>
+                    <div class="form-group">
+                        <label for="journal-file">آدرس URL فایل PDF</label>
+                        <input type="url" id="journal-file" name="fileUrl" required placeholder="https://..." dir="ltr">
+                    </div>
+                </div>
+                <div class="form-status"></div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">افزودن نشریه</button>
+            </form>
+        </div>
+        <div class="content-box" style="margin-top: 2rem;">
             <h2>پیام‌های دریافتی</h2>
             <p>در این بخش می‌توانید پیام‌های ارسال شده از طریق فرم تماس با ما را مشاهده کنید.</p>
             <div id="admin-content-wrapper">
