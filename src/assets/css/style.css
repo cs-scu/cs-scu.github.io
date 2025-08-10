@@ -1769,7 +1769,8 @@ body.light-theme .custom-table-wrapper {
 .custom-table td {
     padding: 1rem 1.2rem;
     line-height: 1.6;
-    white-space: nowrap; /* <<-- این خط اضافه شده است */
+    white-space: normal;
+    word-break: break-word;
 }
 
 .custom-table thead th {

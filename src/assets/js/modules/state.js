@@ -12,6 +12,7 @@ export const state = {
     allJournalIssues: [],
     allCourses: [],
     coursePrerequisites: [],
+    allContacts: [], // <-- این خط اضافه شود
 
     // Page cache
     pageCache: {},

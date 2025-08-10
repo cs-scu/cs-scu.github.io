@@ -2,7 +2,7 @@
 import { state, dom } from './state.js';
 import { initializeAuthForm, initializeContactForm, showEventModal, initializeInteractions, renderInteractionsSection, showProfileModal } from './ui.js';
 import * as components from './components.js';
-import { supabaseClient, loadEvents, loadJournal, loadChartData, getComments, getLikeStatus } from './api.js';
+import { supabaseClient, loadEvents, loadJournal, loadChartData, getComments, getLikeStatus, loadContacts } from './api.js';
 
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 

@@ -420,6 +420,55 @@ export const renderEventsPage = () => {
     }
 };
 
+export const renderAdminPage = () => {
+    const wrapper = dom.mainContent.querySelector('#admin-contacts-wrapper');
+    if (!wrapper) return;
+
+    if (state.allContacts.length === 0) {
+        wrapper.innerHTML = '<p>پیام جدیدی یافت نشد.</p>';
+        return;
+    }
+
+    let tableHTML = `
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>نام</th>
+                    <th>ایمیل</th>
+                    <th>پیام</th>
+                    <th>تاریخ ارسال</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    state.allContacts.forEach(contact => {
+        const messageDate = new Date(contact.created_at).toLocaleDateString('fa-IR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        // Sanitize content before rendering
+        const safeName = contact.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeEmail = contact.email.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeMessage = contact.message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+        tableHTML += `
+            <tr>
+                <td>${safeName}</td>
+                <td><a href="mailto:${safeEmail}">${safeEmail}</a></td>
+                <td style="white-space: pre-wrap; text-align: right;">${safeMessage}</td>
+                <td>${messageDate}</td>
+            </tr>
+        `;
+    });
+
+    tableHTML += '</tbody></table>';
+    wrapper.innerHTML = tableHTML;
+};
+
 export const renderJournalPage = () => {
     const journalGrid = dom.mainContent.querySelector('.journal-grid');
     if (!journalGrid) return;
