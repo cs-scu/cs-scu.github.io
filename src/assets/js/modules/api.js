@@ -175,9 +175,8 @@ export const loadChartData = async () => {
     }
 };
 
-// *** START: تابع جدید برای خواندن پیام‌ها ***
+// *** START: تابع اصلاح شده ***
 export const loadContacts = async () => {
-    if (state.allContacts.length > 0) return;
     try {
         const { data, error } = await supabaseClient
             .from('contacts')
@@ -186,10 +185,11 @@ export const loadContacts = async () => {
         if (error) throw error;
         state.allContacts = data || [];
     } catch (error) {
-        console.error("Failed to load contacts:", error);
+        console.error("Failed to load contacts (api.js):", error);
+        throw error; // <-- این خط مهم‌ترین تغییر است و خطا را به بیرون پرتاب می‌کند
     }
 };
-// *** END: تابع جدید ***
+// *** END: تغییر ***
 
 export const getEventRegistration = async (eventId, userId) => {
     if (!eventId || !userId) return { data: null, error: 'Event ID or User ID is missing' };
