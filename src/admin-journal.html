@@ -12,10 +12,20 @@
             <div class="form-group"><label for="journal-date">تاریخ</label><input type="text" id="journal-date" name="date" placeholder="مثال: پاییز ۱۴۰۴" required></div>
         </div>
         <div class="form-group"><label for="journal-summary">خلاصه</label><textarea id="journal-summary" name="summary" rows="3"></textarea></div>
+        
         <div class="form-row">
-            <div class="form-group"><label for="journal-cover">لینک کاور</label><input type="url" id="journal-cover" name="coverUrl" required placeholder="https://..." dir="ltr"></div>
-            <div class="form-group"><label for="journal-file">لینک فایل</label><input type="url" id="journal-file" name="fileUrl" required placeholder="https://..." dir="ltr"></div>
+            <div class="form-group">
+                <label for="journal-cover">فایل کاور (تصویر)</label>
+                <input type="file" id="journal-cover" name="coverFile" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label for="journal-file">فایل نشریه (PDF)</label>
+                <input type="file" id="journal-file" name="journalFile" accept=".pdf" required>
+            </div>
         </div>
+        <small class="form-note" style="display: block; margin-top: -0.5rem; margin-bottom: 1rem; opacity: 0.8;">
+            توجه: در حالت ویرایش، فقط در صورتی فایل جدید انتخاب کنید که قصد تغییر آن را دارید.
+        </small>
         <div class="form-status"></div>
         <div class="form-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
             <button type="submit" class="btn btn-primary" id="journal-submit-btn">افزودن نشریه</button>
