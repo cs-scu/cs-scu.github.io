@@ -114,19 +114,22 @@ const initializeJournalModule = () => {
     const journalForm = document.getElementById('add-journal-form');
     if (!journalForm) return;
 
+    // --- انتخاب تمام المان‌های لازم از DOM ---
     const formTitle = document.getElementById('journal-form-title');
     const submitBtn = document.getElementById('journal-submit-btn');
     const cancelBtn = document.getElementById('cancel-edit-btn');
     const hiddenIdInput = document.getElementById('journal-id');
     const adminListContainer = document.getElementById('journal-admin-list');
     
+    // --- منطق پیشرفته برای هر دو فیلد آپلود ---
     ['cover', 'pdf'].forEach(type => {
         const wrapper = document.getElementById(`${type === 'pdf' ? 'pdf' : 'cover'}-upload-wrapper`);
-        if (!wrapper) return; // <-- اضافه کردن یک گارد برای اطمینان
+        if (!wrapper) return; // اطمینان از وجود المان
         const input = wrapper.querySelector('input[type="file"]');
         const nameDisplay = wrapper.querySelector('.file-name-display');
         const clearBtn = wrapper.querySelector('.file-clear-btn');
 
+        // تابع برای به‌روزرسانی نمایش نام فایل
         const updateFileName = () => {
             if (input.files && input.files[0]) {
                 nameDisplay.textContent = input.files[0].name;
@@ -139,19 +142,22 @@ const initializeJournalModule = () => {
             }
         };
 
+        // مدیریت انتخاب فایل
         input.addEventListener('change', () => {
             if (type === 'pdf' && input.files[0] && input.files[0].type !== 'application/pdf') {
                 alert('خطا: فقط فایل با فرمت PDF مجاز است.');
-                input.value = '';
+                input.value = ''; // پاک کردن انتخاب اشتباه
             }
             updateFileName();
         });
 
+        // مدیریت دکمه حذف
         clearBtn.addEventListener('click', () => {
-            input.value = '';
+            input.value = ''; // مهم‌ترین بخش: مقدار input را پاک می‌کند
             updateFileName();
         });
 
+        // مدیریت افکت‌های Drag & Drop
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             wrapper.addEventListener(eventName, e => {
                 e.preventDefault();
@@ -166,6 +172,7 @@ const initializeJournalModule = () => {
         });
     });
 
+    // --- بقیه منطق فرم ---
     const coverFileInput = document.getElementById('journal-cover');
     const journalFileInput = document.getElementById('journal-file');
 
