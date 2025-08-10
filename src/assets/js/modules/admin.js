@@ -4,45 +4,7 @@ import { state } from './state.js';
 import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
 
-const initializeAdminLayout = () => {
-    const sidebar = document.getElementById('admin-sidebar');
-    const menuToggle = document.getElementById('mobile-admin-menu-toggle');
-    const body = document.body;
-
-    if (!sidebar || !menuToggle) return;
-
-    const closeMenu = () => {
-        sidebar.classList.remove('is-open');
-        body.classList.remove('admin-sidebar-is-open');
-        body.removeEventListener('click', closeMenuOnBodyClick);
-    };
-
-    const closeMenuOnBodyClick = (e) => {
-        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-            closeMenu();
-        }
-    };
-
-    menuToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isOpen = sidebar.classList.toggle('is-open');
-        body.classList.toggle('admin-sidebar-is-open', isOpen);
-        if (isOpen) {
-            setTimeout(() => body.addEventListener('click', closeMenuOnBodyClick), 0);
-        } else {
-            body.removeEventListener('click', closeMenuOnBodyClick);
-        }
-    });
-
-    // بستن منو با کلیک روی لینک‌ها
-    sidebar.addEventListener('click', (e) => {
-        if (e.target.closest('a')) {
-            closeMenu();
-        }
-    });
-};
-
-// --- توابع کمکی برای نمایش پیام ---
+// ... (توابع کمکی hideStatus و showStatus بدون تغییر) ...
 const hideStatus = (statusBox) => {
     if (!statusBox) return;
     statusBox.style.display = 'none';
@@ -56,9 +18,7 @@ const showStatus = (statusBox, message, type = 'error') => {
     statusBox.style.display = 'block';
 };
 
-// --- توابع رندرکننده (مخصوص پنل ادمین) ---
-
-// رندر کردن لیست پیام‌ها
+// ... (توابع renderMessages و renderJournalList بدون تغییر) ...
 const renderMessages = (contacts) => {
     const wrapper = document.getElementById('admin-content-wrapper');
     if (!wrapper) return;
@@ -84,7 +44,6 @@ const renderMessages = (contacts) => {
     wrapper.innerHTML = tableHTML;
 };
 
-// رندر کردن لیست نشریه‌ها
 const renderJournalList = (issues) => {
     const container = document.getElementById('journal-admin-list');
     if (!container) return;
@@ -112,8 +71,7 @@ const renderJournalList = (issues) => {
         </div>`;
 };
 
-// --- توابع مدیریت فرم‌ها و رویدادها ---
-
+// ... (تابع initializeJournalModule بدون تغییر) ...
 const initializeJournalModule = () => {
     const journalForm = document.getElementById('add-journal-form');
     if (!journalForm) return;
@@ -189,19 +147,88 @@ const initializeJournalModule = () => {
     });
 };
 
+// *** START: تابع مدیریت پیام‌ها با منطق دکمه اصلاح شد ***
 const initializeMessagesModule = () => {
     const refreshBtn = document.getElementById('refresh-contacts-btn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', async () => {
-            refreshBtn.disabled = true;
+    if (!refreshBtn) return;
+    
+    const btnSpan = refreshBtn.querySelector('span');
+    const btnIcon = refreshBtn.querySelector('svg');
+    const originalIconHTML = btnIcon ? btnIcon.outerHTML : '';
+
+    refreshBtn.addEventListener('click', async () => {
+        refreshBtn.disabled = true;
+        refreshBtn.classList.add('loading');
+        if (btnSpan) btnSpan.textContent = 'در حال بارگذاری...';
+        
+        try {
+            state.allContacts = []; // پاک کردن کش برای دریافت اطلاعات جدید
             await loadContacts();
             renderMessages(state.allContacts);
-            refreshBtn.disabled = false;
-        });
-    }
+
+            refreshBtn.classList.remove('loading');
+            refreshBtn.classList.add('success');
+            if (btnSpan) btnSpan.textContent = 'موفق';
+
+        } catch (error) {
+            console.error("Failed to refresh contacts:", error);
+            const errorMessage = (error.message.toLowerCase().includes('network') || error.message.toLowerCase().includes('failed to fetch'))
+                ? 'خطای اتصال'
+                : 'خطای سرور';
+            
+            refreshBtn.classList.remove('loading');
+            refreshBtn.classList.add('error');
+            if (btnSpan) btnSpan.textContent = errorMessage;
+        } finally {
+            setTimeout(() => {
+                refreshBtn.disabled = false;
+                refreshBtn.classList.remove('success', 'error');
+                if (btnSpan) btnSpan.textContent = 'بارگذاری مجدد';
+                if (btnIcon) btnIcon.outerHTML = originalIconHTML;
+            }, 2500);
+        }
+    });
+};
+// *** END: تغییر ***
+
+// ... (بقیه کدهای فایل admin.js بدون تغییر باقی می‌مانند) ...
+const initializeAdminLayout = () => {
+    const sidebar = document.getElementById('admin-sidebar');
+    const menuToggle = document.getElementById('mobile-admin-menu-toggle');
+    const body = document.body;
+
+    if (!sidebar || !menuToggle) return;
+
+    const closeMenu = () => {
+        sidebar.classList.remove('is-open');
+        body.classList.remove('admin-sidebar-is-open');
+        body.removeEventListener('click', closeMenuOnBodyClick);
+    };
+
+    const closeMenuOnBodyClick = (e) => {
+        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+            closeMenu();
+        }
+    };
+
+    menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = sidebar.classList.toggle('is-open');
+        body.classList.toggle('admin-sidebar-is-open', isOpen);
+        if (isOpen) {
+            setTimeout(() => body.addEventListener('click', closeMenuOnBodyClick), 0);
+        } else {
+            body.removeEventListener('click', closeMenuOnBodyClick);
+        }
+    });
+
+    sidebar.addEventListener('click', (e) => {
+        if (e.target.closest('a')) {
+            closeMenu();
+        }
+    });
 };
 
-// --- روتر داخلی پنل ادمین ---
 const adminRoutes = {
     '/admin/messages': {
         html: 'admin-messages.html',
@@ -238,11 +265,9 @@ const loadAdminPage = async (path) => {
     }
 };
 
-// --- تابع اصلی اجرا ---
 document.addEventListener('DOMContentLoaded', async () => {
     initializeAdminTheme();
     initializeAdminLayout();
-
 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
