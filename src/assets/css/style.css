@@ -3778,13 +3778,17 @@ body.light-theme .sidebar-nav .nav-link.active { background-color: var(--primary
 }
 
 .admin-main-header {
-    display: none; /* فقط در موبایل نمایش داده می‌شود */
-    padding: 0.8rem 1.5rem;
+    display: flex; /* <<-- این خط از مدیا کوئری خارج شد تا در دسکتاپ هم اعمال شود */
     align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1.5rem;
 }
 body.dark-theme .admin-main-header { background-color: var(--background-color-dark); border-bottom: 1px solid var(--glass-border-dark); }
 body.light-theme .admin-main-header { background-color: #fff; border-bottom: 1px solid var(--glass-border-light); }
-
+#admin-global-refresh-btn.success svg,
+#admin-global-refresh-btn.error svg {
+    stroke: #fff !important; /* رنگ آیکون‌ها در حالت موفقیت و خطا سفید می‌شود */
+}
 
 .mobile-admin-menu-toggle {
     background: none;

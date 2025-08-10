@@ -71,14 +71,15 @@ const renderJournalList = (issues) => {
         </div>`;
 };
 
-// --- تابع عمومی برای مدیریت دکمه‌های رفرش واکنش‌گرا ---
 const initializeGlobalRefreshButton = () => {
     const refreshBtn = document.getElementById('admin-global-refresh-btn');
     if (!refreshBtn) return;
 
-    const btnSpan = refreshBtn.querySelector('span');
-    const btnIcon = refreshBtn.querySelector('svg');
-    const originalIconHTML = btnIcon ? btnIcon.outerHTML : '';
+    // آیکون‌های جدید را تعریف می‌کنیم
+    const checkIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+    const errorIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+    
+    const originalBtnHTML = refreshBtn.innerHTML; // محتوای کامل دکمه را ذخیره می‌کنیم
 
     refreshBtn.addEventListener('click', async () => {
         const currentPath = location.hash.substring(1) || '/admin/messages';
@@ -87,7 +88,8 @@ const initializeGlobalRefreshButton = () => {
 
         refreshBtn.disabled = true;
         refreshBtn.classList.add('loading');
-        if (btnSpan) btnSpan.textContent = 'در حال بارگذاری...';
+        // در حالت لودینگ، فقط آیکون چرخان نمایش داده می‌شود
+        refreshBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>`;
 
         try {
             const data = await route.loader();
@@ -95,19 +97,18 @@ const initializeGlobalRefreshButton = () => {
             
             refreshBtn.classList.remove('loading');
             refreshBtn.classList.add('success');
-            if (btnSpan) btnSpan.textContent = 'موفق';
+            refreshBtn.innerHTML = checkIconSVG; // نمایش تیک سبز
+
         } catch (error) {
-            const errorMessage = (error.message.toLowerCase().includes('network')) ? 'خطای اتصال' : 'خطای سرور';
             refreshBtn.classList.remove('loading');
             refreshBtn.classList.add('error');
-            if (btnSpan) btnSpan.textContent = errorMessage;
+            refreshBtn.innerHTML = errorIconSVG; // نمایش ضربدر قرمز
         } finally {
             setTimeout(() => {
                 refreshBtn.disabled = false;
                 refreshBtn.classList.remove('success', 'error');
-                if (btnSpan) btnSpan.textContent = 'بارگذاری مجدد';
-                if (btnIcon) btnIcon.outerHTML = originalIconHTML;
-            }, 2500);
+                refreshBtn.innerHTML = originalBtnHTML; // بازگرداندن محتوای اصلی دکمه
+            }, 2000);
         }
     });
 };
