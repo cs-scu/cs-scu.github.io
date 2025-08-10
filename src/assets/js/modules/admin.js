@@ -207,8 +207,13 @@ const initializeJournalModule = () => {
 
             const uploadFile = async (file, folder) => {
                 if (!file || file.size === 0) return null;
-                const fileName = `${folder}/${title.replace(/ /g, '-')}-${Date.now()}.${file.name.split('.').pop()}`;
                 
+                // --- START: FIX ---
+                // پاکسازی عنوان برای استفاده در نام فایل جهت جلوگیری از خطا
+                const sanitizedTitle = (title.replace(/[^a-zA-Z0-9\s-]/g, '').trim() || 'journal-file');
+                const fileName = `${folder}/${sanitizedTitle.replace(/\s+/g, '-')}-${Date.now()}.${file.name.split('.').pop()}`;
+                // --- END: FIX ---
+
                 const { error: uploadError } = await supabaseClient.storage
                     .from('journal-assets')
                     .upload(fileName, file, { upsert: true });
@@ -257,7 +262,7 @@ const initializeJournalModule = () => {
 
         } catch (error) {
             console.error("Error during journal submission:", error);
-            showStatus(statusBox, 'عملیات با خطا مواجه شد. لطفاً کنسول را بررسی کنید.', 'error');
+            showStatus(statusBox, `عملیات با خطا مواجه شد: ${error.message}`, 'error');
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = isEditing ? 'ذخیره تغییرات' : 'افزودن نشریه';
