@@ -3601,3 +3601,39 @@ body.light-theme .video-tab-btn:not(.active) img {
     white-space: pre-wrap;
     min-width: 350px; /* یک حداقل عرض برای ستون پیام */
 }
+/* ================== Admin Refresh Button States ================== */
+#refresh-contacts-btn {
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+}
+
+#refresh-contacts-btn.loading {
+    cursor: wait;
+}
+
+/* حالت موفقیت‌آمیز (سبز) */
+#refresh-contacts-btn.success {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    color: #fff !important;
+}
+
+/* حالت خطا (قرمز) */
+#refresh-contacts-btn.error {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+/* انیمیشن چرخش برای آیکون در حالت لودینگ */
+#refresh-contacts-btn.loading svg {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

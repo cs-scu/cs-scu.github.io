@@ -247,6 +247,8 @@ const renderPage = async (path) => {
     
     const pageRenderers = {
         '/login': initializeAuthForm,
+        
+        // START: این بخش به طور کامل جایگزین شود
         '/admin': async () => {
             const wrapper = dom.mainContent.querySelector('#admin-content-wrapper');
 
@@ -258,26 +260,62 @@ const renderPage = async (path) => {
                     return;
                 }
             }
-
-            if (!state.profile) {
-                await getProfile();
-            }
+            if (!state.profile) await getProfile();
 
             if (state.profile?.role !== 'admin') {
-                if (wrapper) {
-                    wrapper.innerHTML = '<p style="color: red; text-align: center;">شما دسترسی لازم برای مشاهده این صفحه را ندارید.</p>';
-                }
-                setTimeout(() => {
-                    if (location.hash === '#/admin') {
-                        location.hash = '#/';
-                    }
-                }, 2000);
+                if (wrapper) wrapper.innerHTML = '<p style="color: red; text-align: center;">شما دسترسی لازم برای مشاهده این صفحه را ندارید.</p>';
+                setTimeout(() => { if (location.hash === '#/admin') location.hash = '#/'; }, 2000);
                 return;
             }
 
-            if (wrapper) wrapper.innerHTML = '<p class="loading-message" style="text-align: center; opacity: 0.8;">در حال بارگذاری پیام‌ها...</p>';
-            await loadContacts();
-            components.renderAdminPage();
+            const refreshBtn = document.getElementById('refresh-contacts-btn');
+            const btnSpan = refreshBtn ? refreshBtn.querySelector('span') : null;
+            const btnIcon = refreshBtn ? refreshBtn.querySelector('svg') : null;
+            const originalIconHTML = btnIcon ? btnIcon.outerHTML : '';
+
+            const loadAndRenderContacts = async () => {
+                if (refreshBtn) {
+                    refreshBtn.disabled = true;
+                    refreshBtn.classList.add('loading');
+                    if (btnSpan) btnSpan.textContent = 'در حال بارگذاری...';
+                }
+
+                try {
+                    if (wrapper) wrapper.innerHTML = '<p class="loading-message" style="text-align: center; opacity: 0.8;">در حال بارگذاری پیام‌ها...</p>';
+                    state.allContacts = [];
+                    await loadContacts();
+                    components.renderAdminPage();
+
+                    if (refreshBtn) {
+                        refreshBtn.classList.remove('loading');
+                        refreshBtn.classList.add('success');
+                        if (btnSpan) btnSpan.textContent = 'موفق';
+                    }
+                } catch (error) {
+                    console.error("Failed to refresh contacts:", error);
+                    if (refreshBtn) {
+                        refreshBtn.classList.remove('loading');
+                        refreshBtn.classList.add('error');
+                        if (btnSpan) btnSpan.textContent = 'خطا';
+                    }
+                } finally {
+                    setTimeout(() => {
+                        if (refreshBtn) {
+                            refreshBtn.disabled = false;
+                            refreshBtn.classList.remove('success', 'error');
+                            if (btnSpan) btnSpan.textContent = 'بارگذاری مجدد';
+                            if (btnIcon) btnIcon.outerHTML = originalIconHTML; // آیکون اصلی را بازمی‌گردانیم
+                        }
+                    }, 2000);
+                }
+            };
+
+            await loadAndRenderContacts(); // بارگذاری اولیه
+
+            if (refreshBtn && !refreshBtn.dataset.listenerAttached) {
+                refreshBtn.addEventListener('click', loadAndRenderContacts);
+                refreshBtn.dataset.listenerAttached = 'true';
+            }
         },
         '/contact': initializeContactForm,
         '/events': async () => { await loadEvents(); components.renderEventsPage(); },
@@ -294,6 +332,7 @@ const renderPage = async (path) => {
             window.addEventListener('scroll', state.newsScrollHandler);
         }
     };
+    
     if (pageRenderers[cleanPath]) {
         await pageRenderers[cleanPath]();
     }
