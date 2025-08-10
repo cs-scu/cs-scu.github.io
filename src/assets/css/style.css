@@ -3563,106 +3563,6 @@ body.light-theme .video-tab-btn:not(.active) img {
     padding-right: 0.5rem;
 }
 
-/* ================== Admin Panel Styles ================== */
-.admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.admin-header h1 {
-    margin-bottom: 0;
-}
-
-#refresh-contacts-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-}
-
-/* --- Styles for Horizontally Scrolling Table --- */
-.custom-table-wrapper {
-    overflow-x: auto; /* مهم‌ترین بخش: اسکرول افقی را فعال می‌کند */
-    -webkit-overflow-scrolling: touch; /* اسکرول نرم در موبایل */
-}
-
-.custom-table th,
-.custom-table td {
-    white-space: nowrap; /* از شکستن خطوط در سلول‌ها جلوگیری می‌کند */
-}
-
-/* ستون پیام می‌تواند در چند خط نمایش داده شود تا خواناتر باشد */
-.custom-table td.message-cell {
-    white-space: pre-wrap;
-    min-width: 350px; /* یک حداقل عرض برای ستون پیام */
-}
-/* ================== Admin Refresh Button States ================== */
-#refresh-contacts-btn {
-    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-}
-
-#refresh-contacts-btn.loading {
-    cursor: wait;
-}
-
-/* حالت موفقیت‌آمیز (سبز) */
-#refresh-contacts-btn.success {
-    background-color: #28a745 !important;
-    border-color: #28a745 !important;
-    color: #fff !important;
-}
-
-/* حالت خطا (قرمز) */
-#refresh-contacts-btn.error {
-    background-color: #dc3545 !important;
-    border-color: #dc3545 !important;
-    color: #fff !important;
-}
-
-/* انیمیشن چرخش برای آیکون در حالت لودینگ */
-#refresh-contacts-btn.loading svg {
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-/* ================== Admin Panel Enhancements ================== */
-.admin-section-subtitle {
-    font-size: 1.3rem;
-    margin-bottom: 1.5rem;
-    border-bottom: 2px solid;
-    padding-bottom: 0.5rem;
-}
-
-body.dark-theme .admin-section-subtitle {
-    border-color: var(--glass-border-dark);
-}
-body.light-theme .admin-section-subtitle {
-    border-color: var(--glass-border-light);
-}
-
-.admin-divider {
-    border: none;
-    height: 1px;
-    background-color: var(--glass-border-dark);
-    margin: 2.5rem 0;
-}
-
-body.light-theme .admin-divider {
-    background-color: var(--glass-border-light);
-}
-
 /* ================== Real Admin Panel Layout ================== */
 .admin-panel-body {
     background-color: var(--background-color-light);
@@ -3736,6 +3636,24 @@ body.light-theme .sidebar-nav .nav-link.active { background-color: var(--primary
     width: 100%;
 }
 
+.admin-main-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    width: 100%;
+}
+
+.admin-main-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1.5rem;
+    flex-shrink: 0;
+}
+body.dark-theme .admin-main-header { background-color: var(--background-color-dark); border-bottom: 1px solid var(--glass-border-dark); }
+body.light-theme .admin-main-header { background-color: #fff; border-bottom: 1px solid var(--glass-border-light); }
+
+
 .admin-main-content {
     flex-grow: 1;
     padding: 2rem;
@@ -3752,43 +3670,7 @@ body.light-theme .sidebar-nav .nav-link.active { background-color: var(--primary
     margin: 0;
 }
 
-@media (max-width: 768px) {
-    .admin-container {
-        flex-direction: column;
-    }
-    .admin-sidebar {
-        width: 100%;
-        height: auto;
-        border-left: none;
-        border-bottom: 1px solid var(--glass-border-light);
-    }
-    body.dark-theme .admin-sidebar {
-        border-color: var(--glass-border-dark);
-    }
-    .admin-main-content {
-        padding: 1.5rem;
-    }
-}
-/* ================== Admin Panel Mobile Menu ================== */
-.admin-main-wrapper {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    width: 100%;
-}
-
-.admin-main-header {
-    display: flex; /* <<-- این خط از مدیا کوئری خارج شد تا در دسکتاپ هم اعمال شود */
-    align-items: center;
-    gap: 1rem;
-    padding: 0.8rem 1.5rem;
-}
-body.dark-theme .admin-main-header { background-color: var(--background-color-dark); border-bottom: 1px solid var(--glass-border-dark); }
-body.light-theme .admin-main-header { background-color: #fff; border-bottom: 1px solid var(--glass-border-light); }
-#admin-global-refresh-btn.success svg,
-#admin-global-refresh-btn.error svg {
-    stroke: #fff !important; /* رنگ آیکون‌ها در حالت موفقیت و خطا سفید می‌شود */
-}
+/* ================== Admin Panel Mobile & Header Fix ================== */
 
 .mobile-admin-menu-toggle {
     background: none;
@@ -3796,59 +3678,21 @@ body.light-theme .admin-main-header { background-color: #fff; border-bottom: 1px
     color: inherit;
     cursor: pointer;
     padding: 0.5rem;
-}
-
-@media (max-width: 768px) {
-    .admin-main-header {
-        display: flex;
-    }
-    .admin-sidebar {
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        height: 100%;
-        width: 250px;
-        z-index: 3000;
-        transform: translateX(100%);
-        transition: transform 0.3s ease-in-out;
-        border-left: 1px solid var(--glass-border-dark);
-        border-right: none;
-    }
-    .admin-sidebar.is-open {
-        transform: translateX(0);
-    }
-    .admin-main-content {
-        padding-top: 1rem;
-    }
-    body.admin-sidebar-is-open::after {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 2999;
-    }
-}
-/* ================== Admin Panel Mobile Menu & Header Fix ================== */
-.admin-main-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.8rem 1.5rem;
-    display: none; /* در حالت دسکتاپ مخفی است */
+    display: none; /* در دسکتاپ مخفی است */
 }
 
 .admin-header-title {
-    flex-grow: 1; /* عنوان، فضای خالی را پر می‌کند */
+    flex-grow: 1;
     margin: 0;
     font-size: 1.2rem;
     text-align: right;
 }
 
-/* دکمه رفرش فقط آیکون، بدون متن */
+#admin-global-refresh-btn.success svg,
+#admin-global-refresh-btn.error svg {
+    stroke: #fff !important;
+}
+
 .btn-icon-only {
     padding: 0.5rem;
     width: 38px;
@@ -3858,11 +3702,10 @@ body.light-theme .admin-main-header { background-color: #fff; border-bottom: 1px
     justify-content: center;
 }
 .btn-icon-only span {
-    display: none; /* مخفی کردن متن به صورت پیش‌فرض */
+    display: none;
 }
 
 @media (min-width: 769px) {
-    /* در دسکتاپ، متن دکمه نمایش داده می‌شود */
     .btn-icon-only {
         width: auto;
         padding: 0.5rem 1rem;
@@ -3875,7 +3718,13 @@ body.light-theme .admin-main-header { background-color: #fff; border-bottom: 1px
 
 @media (max-width: 768px) {
     .admin-main-header {
-        display: flex; /* فقط در موبایل نمایش داده می‌شود */
+        justify-content: space-between;
+    }
+    .admin-header-title {
+        display: none; /* در موبایل عنوان را مخفی می‌کنیم تا فضا باز شود */
+    }
+    .mobile-admin-menu-toggle {
+        display: block; /* در موبایل نمایش داده می‌شود */
     }
     .admin-sidebar {
         position: fixed;
@@ -3897,9 +3746,9 @@ body.light-theme .admin-main-header { background-color: #fff; border-bottom: 1px
         transform: translateX(0);
     }
     .admin-main-content {
+        padding: 1.5rem;
         padding-top: 1rem;
     }
-    /* لایه نیمه‌شفاف برای پشت منو */
     body.admin-sidebar-is-open::after {
         content: '';
         position: fixed;
