@@ -207,12 +207,20 @@ const initializeJournalModule = () => {
 
             const uploadFile = async (file, folder) => {
                 if (!file || file.size === 0) return null;
+
+                // --- START: NEW FILENAME LOGIC ---
+                const issueNumber = formData.get('issueNumber') || 'NA';
+                const dateStr = formData.get('date') || '';
+
+                const toEnglishNumbers = (str) => (str || '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
                 
-                // --- START: FIX ---
-                // پاکسازی عنوان برای استفاده در نام فایل جهت جلوگیری از خطا
-                const sanitizedTitle = (title.replace(/[^a-zA-Z0-9\s-]/g, '').trim() || 'journal-file');
-                const fileName = `${folder}/${sanitizedTitle.replace(/\s+/g, '-')}-${Date.now()}.${file.name.split('.').pop()}`;
-                // --- END: FIX ---
+                const year = toEnglishNumbers(dateStr.replace(/[^۰-۹0-9]/g, '')) || new Date().getFullYear();
+                const month = String(new Date().getMonth() + 1).padStart(2, '0');
+                const extension = file.name.split('.').pop();
+                const fileType = folder === 'covers' ? 'cover' : 'pdf';
+
+                const fileName = `${folder}/journal-${issueNumber}-${year}-${month}-${fileType}.${extension}`;
+                // --- END: NEW FILENAME LOGIC ---
 
                 const { error: uploadError } = await supabaseClient.storage
                     .from('journal-assets')
