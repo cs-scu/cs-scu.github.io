@@ -1,9 +1,10 @@
 // src/assets/js/modules/admin.js
 
-// --- وارد کردن ماژول‌های ضروری ---
+// START: تغییر اصلی: مسیرهای import اصلاح شدند
 import { state } from './state.js';
 import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry } from './api.js';
-import { initializeAdminTheme } from './admin-theme.js'; // <-- ماژول جدید وارد شد
+import { initializeAdminTheme } from './admin-theme.js';
+// END: تغییر
 
 // --- توابع کمکی برای نمایش پیام ---
 const hideStatus = (statusBox) => {
@@ -203,7 +204,7 @@ const loadAdminPage = async (path) => {
 
 // --- تابع اصلی اجرا ---
 document.addEventListener('DOMContentLoaded', async () => {
-    initializeAdminTheme(); // <-- تابع جدید در ابتدای اجرا فراخوانی می‌شود
+    initializeAdminTheme();
 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
