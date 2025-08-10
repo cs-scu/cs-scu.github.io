@@ -16,7 +16,7 @@ const initializeCopyButtons = () => {
                 navigator.clipboard.writeText(code.textContent).then(() => {
                     const originalIcon = btn.innerHTML;
                     const themeColor = document.body.classList.contains('dark-theme') ? '#e8c38e' : '#1a5c5d';
-                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${themeColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    btn.innerHTML = `<svg xmlns="http://www.w.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${themeColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
                     setTimeout(() => { btn.innerHTML = originalIcon; }, 2000);
                 });
             }
@@ -91,7 +91,6 @@ const cleanupPageSpecifics = (newPath) => {
 const renderPage = async (path) => {
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
     
-    // اگر کاربر به مسیری رفت که با /admin شروع می‌شود، او را به فایل صحیح هدایت می‌کنیم
     if (cleanPath.startsWith('/admin')) {
         window.location.href = `admin.html#${cleanPath}`;
         return; 
@@ -228,22 +227,31 @@ const renderPage = async (path) => {
         components.renderEventsPage();
         showEventModal(cleanPath);
     } else {
+        // *** START: منطق اصلاح شده برای صفحه اصلی و دیگر صفحات ***
         window.scrollTo(0, 0);
         const pageKey = cleanPath === '/' || cleanPath === '' ? 'home' : cleanPath.substring(1);
         
-        if (state.pageCache[cleanPath]) { 
-            dom.mainContent.innerHTML = state.pageCache[cleanPath];
+        if (pageKey === 'home') {
+            // منطق مخصوص صفحه اصلی
+            dom.mainContent.innerHTML = state.pageCache['/'] || ' ';
+            components.loadLatestNews(); // <-- فراخوانی تابع گمشده
         } else {
-            try {
-                const response = await fetch(`${pageKey}.html`);
-                if (!response.ok) throw new Error(`Page not found: ${pageKey}.html`);
-                const pageHTML = await response.text();
-                state.pageCache[cleanPath] = pageHTML;
-                dom.mainContent.innerHTML = pageHTML;
-            } catch (error) {
-                location.hash = '#/';
+            // منطق برای دیگر صفحات (about, contact, etc.)
+            if (state.pageCache[cleanPath]) {
+                dom.mainContent.innerHTML = state.pageCache[cleanPath];
+            } else {
+                try {
+                    const response = await fetch(`${pageKey}.html`);
+                    if (!response.ok) throw new Error(`Page not found: ${pageKey}.html`);
+                    const pageHTML = await response.text();
+                    state.pageCache[cleanPath] = pageHTML;
+                    dom.mainContent.innerHTML = pageHTML;
+                } catch (error) {
+                    location.hash = '#/';
+                }
             }
         }
+        // *** END: تغییر ***
     }
     
     const pageRenderers = {
