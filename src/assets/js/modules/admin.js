@@ -122,6 +122,7 @@ const initializeJournalModule = () => {
     
     ['cover', 'pdf'].forEach(type => {
         const wrapper = document.getElementById(`${type === 'pdf' ? 'pdf' : 'cover'}-upload-wrapper`);
+        if (!wrapper) return; // <-- اضافه کردن یک گارد برای اطمینان
         const input = wrapper.querySelector('input[type="file"]');
         const nameDisplay = wrapper.querySelector('.file-name-display');
         const clearBtn = wrapper.querySelector('.file-clear-btn');
@@ -383,11 +384,11 @@ const loadAdminPage = async (path) => {
     
     // START: تغییر اصلی اینجاست
     // ما مطمئن می‌شویم که این تابع فقط بعد از اینکه تمام به‌روزرسانی‌های DOM انجام شد، اجرا می‌شود.
-    requestAnimationFrame(() => {
-        if (route.initializer) {
+    if (route.initializer) {
+        requestAnimationFrame(() => {
             route.initializer();
-        }
-    });
+        });
+    }
     // END: تغییر
 };
 
