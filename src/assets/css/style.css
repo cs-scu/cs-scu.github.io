@@ -3833,3 +3833,34 @@ body.light-theme .custom-file-upload.is-dragging {
         transform: rotate(360deg);
     }
 }
+
+/* === Admin Form Guidance Layout === */
+.form-and-guidance-wrapper {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* Form takes 2/3, guidance takes 1/3 */
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.guidance-content ul {
+    list-style-position: inside;
+    padding-right: 1rem;
+    margin-top: 1rem;
+    line-height: 2;
+}
+
+.guidance-content ul li {
+    margin-bottom: 0.5rem;
+}
+
+.guidance-content a {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 992px) {
+    .form-and-guidance-wrapper {
+        grid-template-columns: 1fr; /* Stack on top of each other */
+    }
+}

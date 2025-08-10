@@ -2,46 +2,69 @@
     <h2>مدیریت نشریه‌ها</h2>
 </div>
 
-<div class="content-box">
-    <h3 id="journal-form-title" class="admin-section-subtitle">درج یا ویرایش نشریه</h3>
-    <form id="add-journal-form">
-        <input type="hidden" id="journal-id" name="id">
-        <div class="form-row">
-            <div class="form-group"><label for="journal-title">عنوان</label><input type="text" id="journal-title" name="title" required></div>
-            <div class="form-group"><label for="journal-issue">شماره</label><input type="number" id="journal-issue" name="issueNumber"></div>
-            <div class="form-group"><label for="journal-date">تاریخ</label><input type="text" id="journal-date" name="date" placeholder="مثال: پاییز ۱۴۰۴" required></div>
-        </div>
-        <div class="form-group"><label for="journal-summary">خلاصه</label><textarea id="journal-summary" name="summary" rows="3"></textarea></div>
+<div class="form-and-guidance-wrapper">
 
-        <div class="form-row">
-            <div class="form-group">
-                <label for="journal-cover">فایل کاور (تصویر)</label>
-                <div id="cover-upload-wrapper" class="custom-file-upload">
-                    <input type="file" id="journal-cover" name="coverFile" accept="image/*" required>
-                    <button type="button" class="btn btn-secondary file-select-btn">انتخاب فایل</button>
-                    <span class="file-name-display">هیچ فایلی انتخاب نشده</span>
-                    <button type="button" class="file-clear-btn" title="حذف فایل">&times;</button>
+    <div class="form-container">
+        <div class="content-box">
+            <h3 id="journal-form-title" class="admin-section-subtitle">درج یا ویرایش نشریه</h3>
+            <form id="add-journal-form">
+                <input type="hidden" id="journal-id" name="id">
+                <div class="form-row">
+                    <div class="form-group"><label for="journal-title">عنوان</label><input type="text" id="journal-title" name="title" required></div>
+                    <div class="form-group"><label for="journal-issue">شماره</label><input type="number" id="journal-issue" name="issueNumber"></div>
+                    <div class="form-group"><label for="journal-date">تاریخ</label><input type="text" id="journal-date" name="date" placeholder="مثال: پاییز ۱۴۰۴" required></div>
                 </div>
-            </div>
-            <div class="form-group">
-                <label for="journal-file">فایل نشریه (PDF)</label>
-                <div id="pdf-upload-wrapper" class="custom-file-upload">
-                    <input type="file" id="journal-file" name="journalFile" accept=".pdf" required>
-                    <button type="button" class="btn btn-secondary file-select-btn">انتخاب فایل</button>
-                    <span class="file-name-display">هیچ فایلی انتخاب نشده</span>
-                    <button type="button" class="file-clear-btn" title="حذف فایل">&times;</button>
+                <div class="form-group"><label for="journal-summary">خلاصه</label><textarea id="journal-summary" name="summary" rows="3"></textarea></div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="journal-cover">فایل کاور (تصویر)</label>
+                        <div id="cover-upload-wrapper" class="custom-file-upload">
+                            <input type="file" id="journal-cover" name="coverFile" accept="image/*,.webp" required>
+                            <button type="button" class="btn btn-secondary file-select-btn">انتخاب فایل</button>
+                            <span class="file-name-display">هیچ فایلی انتخاب نشده</span>
+                            <button type="button" class="file-clear-btn" title="حذف فایل">&times;</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="journal-file">فایل نشریه (PDF)</label>
+                        <div id="pdf-upload-wrapper" class="custom-file-upload">
+                            <input type="file" id="journal-file" name="journalFile" accept=".pdf" required>
+                            <button type="button" class="btn btn-secondary file-select-btn">انتخاب فایل</button>
+                            <span class="file-name-display">هیچ فایلی انتخاب نشده</span>
+                            <button type="button" class="file-clear-btn" title="حذف فایل">&times;</button>
+                        </div>
+                    </div>
                 </div>
+                <small class="form-note" style="display: block; margin-top: -0.5rem; margin-bottom: 1rem; opacity: 0.8;">
+                    توجه: در حالت ویرایش، فقط در صورتی فایل جدید انتخاب کنید که قصد تغییر آن را دارید.
+                </small>
+                <div class="form-status"></div>
+                <div class="form-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary" id="journal-submit-btn">افزودن نشریه</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;">انصراف</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="guidance-container">
+        <div class="content-box">
+            <h3 class="admin-section-subtitle">راهنمای آپلود</h3>
+            <div class="guidance-content">
+                <h4>تصویر کاور نشریه</h4>
+                <p>برای بهترین نمایش، لطفاً مشخصات زیر را برای تصویر کاور رعایت کنید:</p>
+                <ul>
+                    <li><strong>ابعاد پیشنهادی:</strong> ۶۰۰ (عرض) در ۸۰۰ (ارتفاع) پیکسل.</li>
+                    <li><strong>نسبت تصویر:</strong> ۳ به ۴ (عمودی).</li>
+                    <li><strong>فرمت بهینه:</strong> WebP (برای حجم کمتر و سرعت بارگذاری بالاتر).</li>
+                    <li><strong>حجم ایده‌آل:</strong> کمتر از ۱۵۰ کیلوبایت.</li>
+                </ul>
+                <p>می‌توانید از ابزارهای آنلاین مانند <a href="https://tinypng.com/" target="_blank">TinyPNG</a> برای فشرده‌سازی تصویر قبل از آپلود استفاده کنید.</p>
             </div>
         </div>
-        <small class="form-note" style="display: block; margin-top: -0.5rem; margin-bottom: 1rem; opacity: 0.8;">
-            توجه: در حالت ویرایش، فقط در صورتی فایل جدید انتخاب کنید که قصد تغییر آن را دارید.
-        </small>
-        <div class="form-status"></div>
-        <div class="form-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
-            <button type="submit" class="btn btn-primary" id="journal-submit-btn">افزودن نشریه</button>
-            <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;">انصراف</button>
-        </div>
-    </form>
+    </div>
+
 </div>
 
 <div class="content-box" style="margin-top: 2rem;">
