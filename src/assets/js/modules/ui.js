@@ -1,6 +1,4 @@
-// src/assets/js/modules/ui.js
 import { state, dom } from './state.js';
-// START: اطمینان از اینکه addJournalEntry به درستی import شده است
 import { 
     supabaseClient, 
     checkUserStatus, 
@@ -20,9 +18,9 @@ import {
     toggleLike,
     toggleCommentVote,
     deleteComment,
-    addJournalEntry 
+    addJournalEntry
 } from './api.js';
-// END: تغییر
+
 
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
@@ -1224,18 +1222,20 @@ export const initializeContactForm = () => {
 export const initializeAdminForms = () => {
     const journalForm = document.getElementById('add-journal-form');
     
-    // Step 1: Add a console log for debugging
     if (!journalForm) {
-        console.error('Admin journal form not found!');
+        console.error('UI Error: فرم افزودن نشریه با آیدی "add-journal-form" در صفحه پیدا نشد.');
         return;
     }
-    if (journalForm.dataset.listenerAttached) return;
+    if (journalForm.dataset.listenerAttached) {
+        console.log('UI Info: Listener already attached to journal form.');
+        return;
+    }
     
-    console.log('Attaching listener to Admin Journal Form...'); // این پیام باید در کنسول نمایش داده شود
+    console.log('UI Success: فرم پیدا شد و listener در حال اتصال است...');
 
     const handleJournalSubmit = async (event) => {
-        // Step 2: Ensure preventDefault is the very first thing that happens
         event.preventDefault(); 
+        console.log('UI Action: دکمه افزودن نشریه کلیک شد و رفرش صفحه متوقف گردید.');
         
         const submitBtn = journalForm.querySelector('button[type="submit"]');
         const statusBox = journalForm.querySelector('.form-status');
@@ -1273,6 +1273,7 @@ export const initializeAdminForms = () => {
 
     journalForm.addEventListener('submit', handleJournalSubmit);
     journalForm.dataset.listenerAttached = 'true';
+    console.log('UI Success: Listener با موفقیت به فرم متصل شد.');
 };
 
 const showTimePickerModal = (callback) => {

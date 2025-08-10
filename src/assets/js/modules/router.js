@@ -1,6 +1,6 @@
 // src/assets/js/modules/router.js
 import { state, dom } from './state.js';
-import { initializeAuthForm, initializeContactForm, showEventModal, initializeInteractions, renderInteractionsSection, showProfileModal , initializeAdminForms } from './ui.js';
+import { initializeAuthForm, initializeContactForm, showEventModal, initializeInteractions, renderInteractionsSection, showProfileModal, initializeAdminForms } from './ui.js';
 import * as components from './components.js';
 import { supabaseClient, loadEvents, loadJournal, loadChartData, getComments, getLikeStatus, loadContacts, getProfile } from './api.js';
 
@@ -248,7 +248,10 @@ const renderPage = async (path) => {
     const pageRenderers = {
         '/login': initializeAuthForm,
         
+        // START: این بخش به طور کامل جایگزین شود
         '/admin': async () => {
+            console.log('Router: Admin route entered.'); // لاگ برای بررسی ورود به مسیر
+
             const wrapper = dom.mainContent.querySelector('#admin-content-wrapper');
 
             if (!state.user) {
@@ -278,13 +281,11 @@ const renderPage = async (path) => {
                     refreshBtn.classList.add('loading');
                     if (btnSpan) btnSpan.textContent = 'در حال بارگذاری...';
                 }
-
                 try {
                     if (wrapper) wrapper.innerHTML = '<p class="loading-message" style="text-align: center; opacity: 0.8;">در حال بارگذاری پیام‌ها...</p>';
                     state.allContacts = [];
                     await loadContacts();
                     components.renderAdminPage();
-
                     if (refreshBtn) {
                         refreshBtn.classList.remove('loading');
                         refreshBtn.classList.add('success');
@@ -296,11 +297,7 @@ const renderPage = async (path) => {
                     if (error && error.message && (error.message.toLowerCase().includes('network') || error.message.toLowerCase().includes('failed to fetch'))) {
                         errorMessage = 'خطای اتصال';
                     }
-                    
-                    if (wrapper) {
-                        wrapper.innerHTML = `<p style="text-align: center; color: #dc3545;">${errorMessage}. لطفاً اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.</p>`;
-                    }
-                    
+                    if (wrapper) wrapper.innerHTML = `<p style="text-align: center; color: #dc3545;">${errorMessage}. لطفاً اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.</p>`;
                     if (refreshBtn) {
                         refreshBtn.classList.remove('loading');
                         refreshBtn.classList.add('error');
@@ -314,16 +311,24 @@ const renderPage = async (path) => {
                             if (btnSpan) btnSpan.textContent = 'بارگذاری مجدد';
                             if (btnIcon) btnIcon.outerHTML = originalIconHTML;
                         }
-                    }, 2500); 
+                    }, 2500);
                 }
             };
 
-            await loadAndRenderContacts(); 
+            await loadAndRenderContacts(); // بارگذاری اولیه
 
             if (refreshBtn && !refreshBtn.dataset.listenerAttached) {
                 refreshBtn.addEventListener('click', loadAndRenderContacts);
                 refreshBtn.dataset.listenerAttached = 'true';
             }
+
+            // **تغییر اصلی اینجاست**
+            // ما اجرای تابع را به انتهای صف اجرای مرورگر منتقل می‌کنیم
+            // تا مطمئن شویم DOM به طور کامل به‌روز شده است.
+            setTimeout(() => {
+                console.log('Router: Calling initializeAdminForms after a short delay.');
+                initializeAdminForms();
+            }, 0);
         },
         '/contact': initializeContactForm,
         '/events': async () => { await loadEvents(); components.renderEventsPage(); },
