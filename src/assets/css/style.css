@@ -3562,3 +3562,42 @@ body.light-theme .video-tab-btn:not(.active) img {
     margin-bottom: 0.75rem;
     padding-right: 0.5rem;
 }
+
+/* ================== Admin Panel Styles ================== */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-header h1 {
+    margin-bottom: 0;
+}
+
+#refresh-contacts-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* --- Styles for Horizontally Scrolling Table --- */
+.custom-table-wrapper {
+    overflow-x: auto; /* مهم‌ترین بخش: اسکرول افقی را فعال می‌کند */
+    -webkit-overflow-scrolling: touch; /* اسکرول نرم در موبایل */
+}
+
+.custom-table th,
+.custom-table td {
+    white-space: nowrap; /* از شکستن خطوط در سلول‌ها جلوگیری می‌کند */
+}
+
+/* ستون پیام می‌تواند در چند خط نمایش داده شود تا خواناتر باشد */
+.custom-table td.message-cell {
+    white-space: pre-wrap;
+    min-width: 350px; /* یک حداقل عرض برای ستون پیام */
+}
