@@ -4,14 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>پنل مدیریت</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" media="print" onload="this.media='all'; document.documentElement.classList.add('fonts-loaded');">
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap">
+    </noscript>
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="admin-panel-body">
 
     <div class="admin-container">
-        <aside class="admin-sidebar">
+        <aside class="admin-sidebar" id="admin-sidebar">
             <div class="sidebar-header">
-                <a href="index.html" class="logo">انجمن علمی</a> <p>پنل مدیریت</p>
+                <a href="index.html" class="logo">انجمن علمی</a>
+                <p>پنل مدیریت</p>
             </div>
             <nav class="sidebar-nav">
                 <a href="#/admin/messages" class="nav-link" data-admin-page="messages">
@@ -22,17 +30,25 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                     <span>نشریه</span>
                 </a>
-                </nav>
+            </nav>
             <div class="sidebar-footer">
-                <a href="index.html" class="btn btn-secondary">بازگشت به سایت</a> </div>
+                <a href="index.html" class="btn btn-secondary">بازگشت به سایت</a>
+            </div>
         </aside>
 
-        <main id="admin-main-content" class="admin-main-content">
-            <p class="loading-message">در حال بارگذاری...</p>
-        </main>
-    </div>
-
+        <div class="admin-main-wrapper">
+            <header class="admin-main-header">
+                <button id="mobile-admin-menu-toggle" class="mobile-admin-menu-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+            </header>
+            <main id="admin-main-content" class="admin-main-content">
+                <p class="loading-message">در حال بارگذاری...</p>
+            </main>
+        </div>
+        </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="assets/js/modules/admin.js"></script>
-    </body>
+</body>
 </html>

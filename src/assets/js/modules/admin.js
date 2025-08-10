@@ -1,10 +1,46 @@
 // src/assets/js/modules/admin.js
 
-// START: تغییر اصلی: مسیرهای import اصلاح شدند
 import { state } from './state.js';
 import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
-// END: تغییر
+
+const initializeAdminLayout = () => {
+    const sidebar = document.getElementById('admin-sidebar');
+    const menuToggle = document.getElementById('mobile-admin-menu-toggle');
+    const body = document.body;
+
+    if (!sidebar || !menuToggle) return;
+
+    const closeMenu = () => {
+        sidebar.classList.remove('is-open');
+        body.classList.remove('admin-sidebar-is-open');
+        body.removeEventListener('click', closeMenuOnBodyClick);
+    };
+
+    const closeMenuOnBodyClick = (e) => {
+        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+            closeMenu();
+        }
+    };
+
+    menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = sidebar.classList.toggle('is-open');
+        body.classList.toggle('admin-sidebar-is-open', isOpen);
+        if (isOpen) {
+            setTimeout(() => body.addEventListener('click', closeMenuOnBodyClick), 0);
+        } else {
+            body.removeEventListener('click', closeMenuOnBodyClick);
+        }
+    });
+
+    // بستن منو با کلیک روی لینک‌ها
+    sidebar.addEventListener('click', (e) => {
+        if (e.target.closest('a')) {
+            closeMenu();
+        }
+    });
+};
 
 // --- توابع کمکی برای نمایش پیام ---
 const hideStatus = (statusBox) => {
@@ -205,6 +241,8 @@ const loadAdminPage = async (path) => {
 // --- تابع اصلی اجرا ---
 document.addEventListener('DOMContentLoaded', async () => {
     initializeAdminTheme();
+    initializeAdminLayout();
+
 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
