@@ -119,9 +119,10 @@ const initializeJournalModule = () => {
     const cancelBtn = document.getElementById('cancel-edit-btn');
     const hiddenIdInput = document.getElementById('journal-id');
     const adminListContainer = document.getElementById('journal-admin-list');
-    
+
+    // --- کد جدید برای مدیریت کامپوننت آپلود سفارشی ---
     ['cover', 'pdf'].forEach(type => {
-        const wrapper = document.getElementById(`${type === 'pdf' ? 'pdf' : 'cover'}-upload-wrapper`);
+        const wrapper = document.getElementById(`${type}-upload-wrapper`);
         if (!wrapper) return;
         const input = wrapper.querySelector('input[type="file"]');
         const nameDisplay = wrapper.querySelector('.file-name-display');
@@ -139,19 +140,14 @@ const initializeJournalModule = () => {
             }
         };
 
-        input.addEventListener('change', () => {
-            if (type === 'pdf' && input.files[0] && input.files[0].type !== 'application/pdf') {
-                alert('خطا: فقط فایل با فرمت PDF مجاز است.');
-                input.value = '';
-            }
-            updateFileName();
-        });
+        input.addEventListener('change', updateFileName);
 
         clearBtn.addEventListener('click', () => {
-            input.value = '';
+            input.value = ''; // این کار باعث اجرای رویداد 'change' هم می‌شود
             updateFileName();
         });
 
+        // افزودن قابلیت Drag and Drop
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             wrapper.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
         });
@@ -161,13 +157,23 @@ const initializeJournalModule = () => {
         ['dragleave', 'drop'].forEach(eventName => {
             wrapper.addEventListener(eventName, () => wrapper.classList.remove('is-dragging'));
         });
+        wrapper.addEventListener('drop', (e) => {
+            input.files = e.dataTransfer.files;
+            // اطمینان از اینکه فایل PDF است
+            if (type === 'pdf' && input.files[0] && input.files[0].type !== 'application/pdf') {
+                alert('خطا: فقط فایل با فرمت PDF مجاز است.');
+                input.value = '';
+            }
+            updateFileName();
+        });
     });
 
     const coverFileInput = document.getElementById('journal-cover');
     const journalFileInput = document.getElementById('journal-file');
-
+    
     const resetForm = () => {
         journalForm.reset();
+        // فراخوانی رویداد change برای ریست کردن نمایشگر نام فایل
         coverFileInput.dispatchEvent(new Event('change'));
         journalFileInput.dispatchEvent(new Event('change'));
         hiddenIdInput.value = '';
@@ -179,6 +185,7 @@ const initializeJournalModule = () => {
         journalForm.scrollIntoView({ behavior: 'smooth' });
     };
 
+    // ... (بقیه کدهای تابع بدون تغییر باقی می‌ماند) ...
     journalForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const statusBox = journalForm.querySelector('.form-status');

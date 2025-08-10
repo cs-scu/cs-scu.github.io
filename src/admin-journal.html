@@ -12,15 +12,25 @@
             <div class="form-group"><label for="journal-date">تاریخ</label><input type="text" id="journal-date" name="date" placeholder="مثال: پاییز ۱۴۰۴" required></div>
         </div>
         <div class="form-group"><label for="journal-summary">خلاصه</label><textarea id="journal-summary" name="summary" rows="3"></textarea></div>
-        
+
         <div class="form-row">
             <div class="form-group">
                 <label for="journal-cover">فایل کاور (تصویر)</label>
-                <input type="file" id="journal-cover" name="coverFile" accept="image/*" required>
+                <div id="cover-upload-wrapper" class="custom-file-upload">
+                    <input type="file" id="journal-cover" name="coverFile" accept="image/*" required>
+                    <button type="button" class="btn btn-secondary file-select-btn">انتخاب فایل</button>
+                    <span class="file-name-display">هیچ فایلی انتخاب نشده</span>
+                    <button type="button" class="file-clear-btn" title="حذف فایل">&times;</button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="journal-file">فایل نشریه (PDF)</label>
-                <input type="file" id="journal-file" name="journalFile" accept=".pdf" required>
+                <div id="pdf-upload-wrapper" class="custom-file-upload">
+                    <input type="file" id="journal-file" name="journalFile" accept=".pdf" required>
+                    <button type="button" class="btn btn-secondary file-select-btn">انتخاب فایل</button>
+                    <span class="file-name-display">هیچ فایلی انتخاب نشده</span>
+                    <button type="button" class="file-clear-btn" title="حذف فایل">&times;</button>
+                </div>
             </div>
         </div>
         <small class="form-note" style="display: block; margin-top: -0.5rem; margin-bottom: 1rem; opacity: 0.8;">
