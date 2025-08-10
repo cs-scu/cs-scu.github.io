@@ -210,16 +210,13 @@ const initializeJournalModule = () => {
 
                 // --- START: NEW FILENAME LOGIC ---
                 const issueNumber = formData.get('issueNumber') || 'NA';
-                const dateStr = formData.get('date') || '';
-
-                const toEnglishNumbers = (str) => (str || '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
                 
-                const year = toEnglishNumbers(dateStr.replace(/[^۰-۹0-9]/g, '')) || new Date().getFullYear();
-                const month = String(new Date().getMonth() + 1).padStart(2, '0');
+                const now = new Date();
+                const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+                
                 const extension = file.name.split('.').pop();
-                const fileType = folder === 'covers' ? 'cover' : 'pdf';
-
-                const fileName = `${folder}/journal-${issueNumber}-${year}-${month}-${fileType}.${extension}`;
+                
+                const fileName = `${folder}/ju-${issueNumber}-${timestamp}.${extension}`;
                 // --- END: NEW FILENAME LOGIC ---
 
                 const { error: uploadError } = await supabaseClient.storage
