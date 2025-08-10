@@ -119,8 +119,7 @@ const initializeJournalModule = () => {
     const cancelBtn = document.getElementById('cancel-edit-btn');
     const hiddenIdInput = document.getElementById('journal-id');
     const adminListContainer = document.getElementById('journal-admin-list');
-
-    // --- کد جدید برای مدیریت کامپوننت آپلود سفارشی ---
+    
     ['cover', 'pdf'].forEach(type => {
         const wrapper = document.getElementById(`${type}-upload-wrapper`);
         if (!wrapper) return;
@@ -140,14 +139,19 @@ const initializeJournalModule = () => {
             }
         };
 
-        input.addEventListener('change', updateFileName);
-
-        clearBtn.addEventListener('click', () => {
-            input.value = ''; // این کار باعث اجرای رویداد 'change' هم می‌شود
+        input.addEventListener('change', () => {
+            if (type === 'pdf' && input.files[0] && input.files[0].type !== 'application/pdf') {
+                alert('خطا: فقط فایل با فرمت PDF مجاز است.');
+                input.value = '';
+            }
             updateFileName();
         });
 
-        // افزودن قابلیت Drag and Drop
+        clearBtn.addEventListener('click', () => {
+            input.value = '';
+            updateFileName();
+        });
+
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             wrapper.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
         });
@@ -159,7 +163,6 @@ const initializeJournalModule = () => {
         });
         wrapper.addEventListener('drop', (e) => {
             input.files = e.dataTransfer.files;
-            // اطمینان از اینکه فایل PDF است
             if (type === 'pdf' && input.files[0] && input.files[0].type !== 'application/pdf') {
                 alert('خطا: فقط فایل با فرمت PDF مجاز است.');
                 input.value = '';
@@ -170,10 +173,9 @@ const initializeJournalModule = () => {
 
     const coverFileInput = document.getElementById('journal-cover');
     const journalFileInput = document.getElementById('journal-file');
-    
+
     const resetForm = () => {
         journalForm.reset();
-        // فراخوانی رویداد change برای ریست کردن نمایشگر نام فایل
         coverFileInput.dispatchEvent(new Event('change'));
         journalFileInput.dispatchEvent(new Event('change'));
         hiddenIdInput.value = '';
@@ -185,7 +187,6 @@ const initializeJournalModule = () => {
         journalForm.scrollIntoView({ behavior: 'smooth' });
     };
 
-    // ... (بقیه کدهای تابع بدون تغییر باقی می‌ماند) ...
     journalForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const statusBox = journalForm.querySelector('.form-status');
@@ -384,18 +385,13 @@ const loadAdminPage = async (path) => {
     
     const data = await route.loader();
     
-    // START: **تغییر اصلی و راه‌حل نهایی**
-    // ابتدا HTML را تزریق می‌کنیم و بلافاصله بعد، تابع initializer را فراخوانی می‌کنیم.
     mainContent.innerHTML = pageHtml;
 
-    // سپس داده‌ها را در ساختار جدید رندر می‌کنیم.
     route.renderer(data);
     
-    // حالا با اطمینان می‌توانیم initializer را اجرا کنیم چون DOM آماده است.
     if (route.initializer) {
         route.initializer();
     }
-    // END: تغییر
 };
 
 // --- تابع اصلی اجرا ---
