@@ -18,7 +18,7 @@ const showStatus = (statusBox, message, type = 'error') => {
     statusBox.style.display = 'block';
 };
 
-// ... (توابع renderMessages و renderJournalList بدون تغییر) ...
+// ... (توابع رندرکننده renderMessages و renderJournalList بدون تغییر) ...
 const renderMessages = (contacts) => {
     const wrapper = document.getElementById('admin-content-wrapper');
     if (!wrapper) return;
@@ -71,8 +71,48 @@ const renderJournalList = (issues) => {
         </div>`;
 };
 
-// ... (تابع initializeJournalModule بدون تغییر) ...
+
+// --- تابع عمومی برای مدیریت دکمه‌های رفرش واکنش‌گرا ---
+const initializeReactiveButton = async (buttonId, dataLoader, renderer) => {
+    const refreshBtn = document.getElementById(buttonId);
+    if (!refreshBtn) return;
+
+    const btnSpan = refreshBtn.querySelector('span');
+    const btnIcon = refreshBtn.querySelector('svg');
+    const originalIconHTML = btnIcon ? btnIcon.outerHTML : '';
+
+    const refreshData = async () => {
+        refreshBtn.disabled = true;
+        refreshBtn.classList.add('loading');
+        if (btnSpan) btnSpan.textContent = 'در حال بارگذاری...';
+        
+        try {
+            const data = await dataLoader();
+            renderer(data);
+            refreshBtn.classList.remove('loading');
+            refreshBtn.classList.add('success');
+            if (btnSpan) btnSpan.textContent = 'موفق';
+        } catch (error) {
+            console.error(`Failed to refresh data for ${buttonId}:`, error);
+            const errorMessage = (error.message.toLowerCase().includes('network')) ? 'خطای اتصال' : 'خطای سرور';
+            refreshBtn.classList.remove('loading');
+            refreshBtn.classList.add('error');
+            if (btnSpan) btnSpan.textContent = errorMessage;
+        } finally {
+            setTimeout(() => {
+                refreshBtn.disabled = false;
+                refreshBtn.classList.remove('success', 'error');
+                if (btnSpan) btnSpan.textContent = 'بارگذاری مجدد';
+                if (btnIcon) btnIcon.outerHTML = originalIconHTML;
+            }, 2500);
+        }
+    };
+    refreshBtn.addEventListener('click', refreshData);
+};
+
+
 const initializeJournalModule = () => {
+    // ... (منطق فرم نشریه بدون تغییر باقی می‌ماند) ...
     const journalForm = document.getElementById('add-journal-form');
     if (!journalForm) return;
     const formTitle = document.getElementById('journal-form-title');
@@ -145,53 +185,25 @@ const initializeJournalModule = () => {
             }
         }
     });
+
+    // فعال‌سازی دکمه رفرش برای این ماژول
+    initializeReactiveButton('refresh-journal-btn', async () => {
+        state.allJournalIssues = []; // Clear cache
+        await loadJournal();
+        return state.allJournalIssues;
+    }, renderJournalList);
 };
 
-// *** START: تابع مدیریت پیام‌ها با منطق دکمه اصلاح شد ***
 const initializeMessagesModule = () => {
-    const refreshBtn = document.getElementById('refresh-contacts-btn');
-    if (!refreshBtn) return;
-    
-    const btnSpan = refreshBtn.querySelector('span');
-    const btnIcon = refreshBtn.querySelector('svg');
-    const originalIconHTML = btnIcon ? btnIcon.outerHTML : '';
-
-    refreshBtn.addEventListener('click', async () => {
-        refreshBtn.disabled = true;
-        refreshBtn.classList.add('loading');
-        if (btnSpan) btnSpan.textContent = 'در حال بارگذاری...';
-        
-        try {
-            state.allContacts = []; // پاک کردن کش برای دریافت اطلاعات جدید
-            await loadContacts();
-            renderMessages(state.allContacts);
-
-            refreshBtn.classList.remove('loading');
-            refreshBtn.classList.add('success');
-            if (btnSpan) btnSpan.textContent = 'موفق';
-
-        } catch (error) {
-            console.error("Failed to refresh contacts:", error);
-            const errorMessage = (error.message.toLowerCase().includes('network') || error.message.toLowerCase().includes('failed to fetch'))
-                ? 'خطای اتصال'
-                : 'خطای سرور';
-            
-            refreshBtn.classList.remove('loading');
-            refreshBtn.classList.add('error');
-            if (btnSpan) btnSpan.textContent = errorMessage;
-        } finally {
-            setTimeout(() => {
-                refreshBtn.disabled = false;
-                refreshBtn.classList.remove('success', 'error');
-                if (btnSpan) btnSpan.textContent = 'بارگذاری مجدد';
-                if (btnIcon) btnIcon.outerHTML = originalIconHTML;
-            }, 2500);
-        }
-    });
+    // فعال‌سازی دکمه رفرش برای این ماژول
+    initializeReactiveButton('refresh-contacts-btn', async () => {
+        state.allContacts = []; // Clear cache
+        await loadContacts();
+        return state.allContacts;
+    }, renderMessages);
 };
-// *** END: تغییر ***
 
-// ... (بقیه کدهای فایل admin.js بدون تغییر باقی می‌مانند) ...
+// ... (بقیه کدهای فایل admin.js شامل روتر و تابع اجرا، بدون تغییر باقی می‌مانند) ...
 const initializeAdminLayout = () => {
     const sidebar = document.getElementById('admin-sidebar');
     const menuToggle = document.getElementById('mobile-admin-menu-toggle');

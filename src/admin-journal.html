@@ -1,5 +1,9 @@
 <div class="admin-module-header">
     <h2>مدیریت نشریه‌ها</h2>
+    <button id="refresh-journal-btn" class="btn btn-secondary" title="بارگذاری مجدد لیست نشریه‌ها">
+        <svg xmlns="http://www.w.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        <span>بارگذاری مجدد</span>
+    </button>
 </div>
 
 <div class="content-box">
@@ -9,12 +13,12 @@
         <div class="form-row">
             <div class="form-group"><label for="journal-title">عنوان</label><input type="text" id="journal-title" name="title" required></div>
             <div class="form-group"><label for="journal-issue">شماره</label><input type="number" id="journal-issue" name="issueNumber"></div>
-            <div class="form-group"><label for="journal-date">تاریخ</label><input type="text" id="journal-date" name="date" required></div>
+            <div class="form-group"><label for="journal-date">تاریخ</label><input type="text" id="journal-date" name="date" placeholder="مثال: پاییز ۱۴۰۴" required></div>
         </div>
         <div class="form-group"><label for="journal-summary">خلاصه</label><textarea id="journal-summary" name="summary" rows="3"></textarea></div>
         <div class="form-row">
-            <div class="form-group"><label for="journal-cover">لینک کاور</label><input type="url" id="journal-cover" name="coverUrl" required dir="ltr"></div>
-            <div class="form-group"><label for="journal-file">لینک فایل</label><input type="url" id="journal-file" name="fileUrl" required dir="ltr"></div>
+            <div class="form-group"><label for="journal-cover">لینک کاور</label><input type="url" id="journal-cover" name="coverUrl" required placeholder="https://..." dir="ltr"></div>
+            <div class="form-group"><label for="journal-file">لینک فایل</label><input type="url" id="journal-file" name="fileUrl" required placeholder="https://..." dir="ltr"></div>
         </div>
         <div class="form-status"></div>
         <div class="form-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
