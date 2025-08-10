@@ -553,3 +553,42 @@ export const renderAdminPage = () => {
     tableHTML += '</tbody></table></div>';
     wrapper.innerHTML = tableHTML;
 };
+
+export const renderJournalAdminList = () => {
+    const container = dom.mainContent.querySelector('#journal-admin-list');
+    if (!container) return;
+
+    if (!state.allJournalIssues || state.allJournalIssues.length === 0) {
+        container.innerHTML = '<p style="text-align: center; opacity: 0.8;">هنوز هیچ نشریه‌ای ثبت نشده است.</p>';
+        return;
+    }
+
+    // مرتب‌سازی بر اساس جدیدترین
+    const sortedIssues = state.allJournalIssues.sort((a, b) => b.id - a.id);
+
+    container.innerHTML = `
+        <div class="custom-table-wrapper">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>عنوان</th>
+                        <th>تاریخ</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${sortedIssues.map(issue => `
+                        <tr>
+                            <td>${issue.title}</td>
+                            <td style="white-space: nowrap;">${issue.date}</td>
+                            <td style="white-space: nowrap;">
+                                <button class="btn btn-secondary btn-sm edit-journal-btn" data-id="${issue.id}">ویرایش</button>
+                                <button class="btn btn-secondary btn-sm delete-journal-btn" data-id="${issue.id}" style="--bs-btn-bg: #dc3545; --bs-btn-border-color: #dc3545; --bs-btn-hover-bg: #bb2d3b; --bs-btn-hover-border-color: #b02a37; color: white;">حذف</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+};

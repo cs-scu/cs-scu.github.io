@@ -18,7 +18,9 @@ import {
     toggleLike,
     toggleCommentVote,
     deleteComment,
-    addJournalEntry
+    addJournalEntry,
+    updateJournalEntry,
+    deleteJournalEntry
 } from './api.js';
 
 
@@ -1221,27 +1223,30 @@ export const initializeContactForm = () => {
 
 export const initializeAdminForms = () => {
     const journalForm = document.getElementById('add-journal-form');
-    
-    if (!journalForm) {
-        console.error('UI Error: فرم افزودن نشریه با آیدی "add-journal-form" در صفحه پیدا نشد.');
-        return;
-    }
-    if (journalForm.dataset.listenerAttached) {
-        console.log('UI Info: Listener already attached to journal form.');
-        return;
-    }
-    
-    console.log('UI Success: فرم پیدا شد و listener در حال اتصال است...');
+    if (!journalForm || journalForm.dataset.listenerAttached) return;
 
-    const handleJournalSubmit = async (event) => {
-        event.preventDefault(); 
-        console.log('UI Action: دکمه افزودن نشریه کلیک شد و رفرش صفحه متوقف گردید.');
-        
-        const submitBtn = journalForm.querySelector('button[type="submit"]');
+    const formTitle = document.getElementById('journal-form-title');
+    const submitBtn = document.getElementById('journal-submit-btn');
+    const cancelBtn = document.getElementById('cancel-edit-btn');
+    const hiddenIdInput = document.getElementById('journal-id');
+    const adminListContainer = document.getElementById('journal-admin-list');
+
+    const resetForm = () => {
+        journalForm.reset();
+        hiddenIdInput.value = '';
+        formTitle.textContent = 'درج نشریه جدید';
+        submitBtn.textContent = 'افزودن نشریه';
+        cancelBtn.style.display = 'none';
+        journalForm.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const handleFormSubmit = async (event) => {
+        event.preventDefault();
         const statusBox = journalForm.querySelector('.form-status');
-        
+        const isEditing = hiddenIdInput.value;
+
         submitBtn.disabled = true;
-        submitBtn.textContent = 'در حال افزودن...';
+        submitBtn.textContent = isEditing ? 'در حال ویرایش...' : 'در حال افزودن...';
         hideStatus(statusBox);
 
         const formData = new FormData(journalForm);
@@ -1255,25 +1260,73 @@ export const initializeAdminForms = () => {
         };
 
         try {
-            await addJournalEntry(entryData);
-            showStatus(statusBox, 'نشریه با موفقیت افزوده شد.', 'success');
-            journalForm.reset();
-            state.allJournalIssues = [];
+            if (isEditing) {
+                await updateJournalEntry(isEditing, entryData);
+                showStatus(statusBox, 'نشریه با موفقیت ویرایش شد.', 'success');
+            } else {
+                await addJournalEntry(entryData);
+                showStatus(statusBox, 'نشریه با موفقیت افزوده شد.', 'success');
+            }
+            state.allJournalIssues = []; // Clear cache
+            await supabaseClient.from('journal').select('*').then(({ data }) => {
+                state.allJournalIssues = data || [];
+                components.renderJournalAdminList();
+            });
+            resetForm();
         } catch (error) {
-            console.error("Error in journal form submission:", error);
-            const errorMessage = error.message.toLowerCase().includes('network') 
-                ? 'خطا در اتصال. اینترنت خود را بررسی کنید.'
-                : 'خطا در افزودن نشریه. ممکن است دسترسی لازم را نداشته باشید.';
-            showStatus(statusBox, errorMessage, 'error');
+            showStatus(statusBox, 'عملیات با خطا مواجه شد.', 'error');
         } finally {
             submitBtn.disabled = false;
-            submitBtn.textContent = 'افزودن نشریه';
+        }
+    };
+    
+    const handleListClick = async (event) => {
+        const editBtn = event.target.closest('.edit-journal-btn');
+        const deleteBtn = event.target.closest('.delete-journal-btn');
+
+        if (editBtn) {
+            const id = editBtn.dataset.id;
+            const issue = state.allJournalIssues.find(j => j.id == id);
+            if (!issue) return;
+
+            hiddenIdInput.value = issue.id;
+            document.getElementById('journal-title').value = issue.title || '';
+            document.getElementById('journal-issue').value = issue.issueNumber || '';
+            document.getElementById('journal-date').value = issue.date || '';
+            document.getElementById('journal-summary').value = issue.summary || '';
+            document.getElementById('journal-cover').value = issue.coverUrl || '';
+            document.getElementById('journal-file').value = issue.fileUrl || '';
+
+            formTitle.textContent = 'ویرایش نشریه';
+            submitBtn.textContent = 'ذخیره تغییرات';
+            cancelBtn.style.display = 'inline-block';
+            journalForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        if (deleteBtn) {
+            const id = deleteBtn.dataset.id;
+            if (confirm('آیا از حذف این نشریه مطمئن هستید؟ این عملیات غیرقابل بازگشت است.')) {
+                try {
+                    deleteBtn.textContent = '...';
+                    deleteBtn.disabled = true;
+                    await deleteJournalEntry(id);
+                    state.allJournalIssues = state.allJournalIssues.filter(j => j.id != id);
+                    components.renderJournalAdminList();
+                } catch (error) {
+                    alert('خطا در حذف نشریه.');
+                    deleteBtn.textContent = 'حذف';
+                    deleteBtn.disabled = false;
+                }
+            }
         }
     };
 
-    journalForm.addEventListener('submit', handleJournalSubmit);
+    journalForm.addEventListener('submit', handleFormSubmit);
+    cancelBtn.addEventListener('click', resetForm);
+    if (adminListContainer) {
+        adminListContainer.addEventListener('click', handleListClick);
+    }
     journalForm.dataset.listenerAttached = 'true';
-    console.log('UI Success: Listener با موفقیت به فرم متصل شد.');
 };
 
 const showTimePickerModal = (callback) => {

@@ -346,3 +346,33 @@ export const addJournalEntry = async (entryData) => {
         throw error;
     }
 };
+
+export const updateJournalEntry = async (id, entryData) => {
+    try {
+        const { data, error } = await supabaseClient
+            .from('journal')
+            .update(entryData)
+            .eq('id', id);
+        
+        if (error) throw error;
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error updating journal entry:', error);
+        throw error;
+    }
+};
+
+export const deleteJournalEntry = async (id) => {
+    try {
+        const { data, error } = await supabaseClient
+            .from('journal')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error deleting journal entry:', error);
+        throw error;
+    }
+};

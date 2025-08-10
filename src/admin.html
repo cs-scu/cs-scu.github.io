@@ -9,9 +9,9 @@
         </div>
 
         <div class="content-box">
-            <h2>درج نشریه جدید</h2>
+            <h2 id="journal-form-title">درج نشریه جدید</h2>
             <form id="add-journal-form">
-                <div class="form-row">
+                <input type="hidden" id="journal-id" name="id"> <div class="form-row">
                     <div class="form-group">
                         <label for="journal-title">عنوان نشریه</label>
                         <input type="text" id="journal-title" name="title" required>
@@ -40,12 +40,19 @@
                     </div>
                 </div>
                 <div class="form-status"></div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">افزودن نشریه</button>
+                <div class="form-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary" id="journal-submit-btn">افزودن نشریه</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;">انصراف از ویرایش</button>
+                </div>
             </form>
         </div>
         <div class="content-box" style="margin-top: 2rem;">
+            <h2>مدیریت نشریه‌ها</h2>
+            <div id="journal-admin-list">
+                </div>
+        </div>
+        <div class="content-box" style="margin-top: 2rem;">
             <h2>پیام‌های دریافتی</h2>
-            <p>در این بخش می‌توانید پیام‌های ارسال شده از طریق فرم تماس با ما را مشاهده کنید.</p>
             <div id="admin-content-wrapper">
                 <p class="loading-message" style="text-align: center; opacity: 0.8;">در حال بارگذاری و بررسی دسترسی...</p>
             </div>

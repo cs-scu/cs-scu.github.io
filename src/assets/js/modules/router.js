@@ -248,10 +248,7 @@ const renderPage = async (path) => {
     const pageRenderers = {
         '/login': initializeAuthForm,
         
-        // START: این بخش به طور کامل جایگزین شود
         '/admin': async () => {
-            console.log('Router: Admin route entered.'); // لاگ برای بررسی ورود به مسیر
-
             const wrapper = dom.mainContent.querySelector('#admin-content-wrapper');
 
             if (!state.user) {
@@ -275,24 +272,34 @@ const renderPage = async (path) => {
             const btnIcon = refreshBtn ? refreshBtn.querySelector('svg') : null;
             const originalIconHTML = btnIcon ? btnIcon.outerHTML : '';
 
-            const loadAndRenderContacts = async () => {
+            // **تابع اصلی برای بارگذاری تمام داده‌های پنل**
+            const loadAdminData = async () => {
                 if (refreshBtn) {
                     refreshBtn.disabled = true;
                     refreshBtn.classList.add('loading');
                     if (btnSpan) btnSpan.textContent = 'در حال بارگذاری...';
                 }
+                
                 try {
-                    if (wrapper) wrapper.innerHTML = '<p class="loading-message" style="text-align: center; opacity: 0.8;">در حال بارگذاری پیام‌ها...</p>';
+                    // **بارگذاری همزمان تمام داده‌ها**
                     state.allContacts = [];
-                    await loadContacts();
+                    state.allJournalIssues = [];
+                    await Promise.all([
+                        loadContacts(),
+                        loadJournal()
+                    ]);
+                    
+                    // **رندر کردن بخش‌های مختلف**
                     components.renderAdminPage();
+                    components.renderJournalAdminList();
+
                     if (refreshBtn) {
                         refreshBtn.classList.remove('loading');
                         refreshBtn.classList.add('success');
                         if (btnSpan) btnSpan.textContent = 'موفق';
                     }
                 } catch (error) {
-                    console.error("Failed to refresh contacts:", error);
+                    console.error("Failed to refresh admin data:", error);
                     let errorMessage = 'خطای سرور';
                     if (error && error.message && (error.message.toLowerCase().includes('network') || error.message.toLowerCase().includes('failed to fetch'))) {
                         errorMessage = 'خطای اتصال';
@@ -315,21 +322,19 @@ const renderPage = async (path) => {
                 }
             };
 
-            await loadAndRenderContacts(); // بارگذاری اولیه
+            await loadAdminData();
 
             if (refreshBtn && !refreshBtn.dataset.listenerAttached) {
-                refreshBtn.addEventListener('click', loadAndRenderContacts);
+                refreshBtn.addEventListener('click', loadAdminData); // دکمه رفرش، تمام داده‌ها را مجددا بارگذاری می‌کند
                 refreshBtn.dataset.listenerAttached = 'true';
             }
-
-            // **تغییر اصلی اینجاست**
-            // ما اجرای تابع را به انتهای صف اجرای مرورگر منتقل می‌کنیم
-            // تا مطمئن شویم DOM به طور کامل به‌روز شده است.
+            
+            // فعال‌سازی فرم‌ها پس از رندر اولیه
             setTimeout(() => {
-                console.log('Router: Calling initializeAdminForms after a short delay.');
                 initializeAdminForms();
             }, 0);
         },
+        
         '/contact': initializeContactForm,
         '/events': async () => { await loadEvents(); components.renderEventsPage(); },
         '/members': components.renderMembersPage,
@@ -345,7 +350,6 @@ const renderPage = async (path) => {
             window.addEventListener('scroll', state.newsScrollHandler);
         }
     };
-    
     if (pageRenderers[cleanPath]) {
         await pageRenderers[cleanPath]();
     }
