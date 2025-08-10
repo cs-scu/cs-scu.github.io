@@ -91,6 +91,7 @@ const cleanupPageSpecifics = (newPath) => {
 const renderPage = async (path) => {
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
     
+    // ... (تمام توابع داخلی renderPage مانند parseInlineMarkdown و renderJsonContent بدون تغییر باقی می‌مانند) ...
     const parseInlineMarkdown = (text) => {
         if (!text) return '';
         const sanitizer = document.createElement('div');
@@ -225,6 +226,12 @@ const renderPage = async (path) => {
         window.scrollTo(0, 0);
         const pageKey = cleanPath === '/' || cleanPath === '' ? 'home' : cleanPath.substring(1);
         
+        // *** START: تغییر اصلی برای جلوگیری از کش شدن صفحه ادمین ***
+        if (cleanPath === '/admin') {
+            delete state.pageCache['/admin'];
+        }
+        // *** END: تغییر ***
+
         if (pageKey === 'home') {
             dom.mainContent.innerHTML = state.pageCache['/'] || ' ';
             components.loadLatestNews();
@@ -272,7 +279,6 @@ const renderPage = async (path) => {
             const btnIcon = refreshBtn ? refreshBtn.querySelector('svg') : null;
             const originalIconHTML = btnIcon ? btnIcon.outerHTML : '';
 
-            // **تابع اصلی برای بارگذاری تمام داده‌های پنل**
             const loadAdminData = async () => {
                 if (refreshBtn) {
                     refreshBtn.disabled = true;
@@ -281,15 +287,13 @@ const renderPage = async (path) => {
                 }
                 
                 try {
-                    // **بارگذاری همزمان تمام داده‌ها**
                     state.allContacts = [];
                     state.allJournalIssues = [];
                     await Promise.all([
                         loadContacts(),
-                        loadJournal()
+                        loadJournal() 
                     ]);
                     
-                    // **رندر کردن بخش‌های مختلف**
                     components.renderAdminPage();
                     components.renderJournalAdminList();
 
@@ -325,11 +329,10 @@ const renderPage = async (path) => {
             await loadAdminData();
 
             if (refreshBtn && !refreshBtn.dataset.listenerAttached) {
-                refreshBtn.addEventListener('click', loadAdminData); // دکمه رفرش، تمام داده‌ها را مجددا بارگذاری می‌کند
+                refreshBtn.addEventListener('click', loadAdminData);
                 refreshBtn.dataset.listenerAttached = 'true';
             }
             
-            // فعال‌سازی فرم‌ها پس از رندر اولیه
             setTimeout(() => {
                 initializeAdminForms();
             }, 0);
