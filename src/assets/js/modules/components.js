@@ -418,14 +418,24 @@ export const renderEventsPage = () => {
     }
 };
 
+// --- START: UPDATED FUNCTION ---
 export const renderJournalPage = () => {
     const journalGrid = dom.mainContent.querySelector('.journal-grid');
     if (!journalGrid) return;
     journalGrid.innerHTML = '';
 
+    const sanitizeFilename = (title, extension) => {
+        // Replace spaces with hyphens and remove any characters that are not filename-friendly
+        const sanitized = title.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+        return `${sanitized || 'journal'}.${extension}`;
+    };
+
     state.allJournalIssues.forEach(issue => {
+        const fileExtension = issue.fileUrl.split('.').pop() || 'pdf';
+        const downloadFilename = sanitizeFilename(issue.title, fileExtension);
+
         const cardHTML = `
-            <a href="${issue.fileUrl}" target="_blank" class="journal-card">
+            <a href="${issue.fileUrl}" download="${downloadFilename}" class="journal-card">
                 <img src="${issue.coverUrl}" alt="${issue.title}" class="journal-card-cover" loading="lazy">
                 <div class="journal-card-overlay">
                     <h3 class="journal-card-title">${issue.title}</h3>
@@ -440,6 +450,7 @@ export const renderJournalPage = () => {
         journalGrid.insertAdjacentHTML('beforeend', cardHTML);
     });
 };
+// --- END: UPDATED FUNCTION ---
 
 export const renderChartPage = () => {
     const container = dom.mainContent.querySelector('.semesters-container');
