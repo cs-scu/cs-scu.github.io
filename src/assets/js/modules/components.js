@@ -195,7 +195,6 @@ export const renderMembersPage = () => {
     if (!membersGrid || !template) return;
     membersGrid.innerHTML = '';
 
-    // تبدیل Map به آرایه، مرتب‌سازی بر اساس ID و سپس نمایش
     const membersArray = Array.from(state.membersMap.values());
     membersArray.sort((a, b) => a.id - b.id);
 
@@ -265,7 +264,6 @@ export const renderEventsPage = () => {
         highlighter.style.transform = `translateX(${activeTab.offsetLeft}px)`;
     };
     
-    // This internal function now includes logic for displaying the instructor
     const populateGrid = (grid, events, isPast = false) => {
         grid.innerHTML = '';
         if (events.length === 0) {
@@ -389,7 +387,7 @@ export const renderEventsPage = () => {
                 mainButton.className = 'btn btn-secondary';
                 mainButton.textContent = 'اطلاعات بیشتر';
                  if (isPast) {
-                    mainButton.classList.add('disabled'); // Make it look disabled
+                    mainButton.classList.add('disabled');
                 }
             }
             actionsContainer.appendChild(mainButton);
@@ -418,57 +416,6 @@ export const renderEventsPage = () => {
             moveHighlighter(initiallyActiveTab);
         });
     }
-};
-
-export const renderAdminPage = () => {
-    const wrapper = dom.mainContent.querySelector('#admin-contacts-wrapper');
-    if (!wrapper) return;
-
-    // این شرط برای زمانی است که هنوز در حال لود شدن است
-    // و state.allContacts خالی است
-    if (!state.allContacts || state.allContacts.length === 0) {
-        wrapper.innerHTML = '<p style="text-align: center; opacity: 0.8;">پیام جدیدی برای نمایش وجود ندارد.</p>';
-        return;
-    }
-
-    let tableHTML = `
-        <table class="custom-table">
-            <thead>
-                <tr>
-                    <th>نام</th>
-                    <th>ایمیل</th>
-                    <th>پیام</th>
-                    <th>تاریخ ارسال</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    state.allContacts.forEach(contact => {
-        const messageDate = new Date(contact.created_at).toLocaleDateString('fa-IR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-        // Sanitize content before rendering
-        const safeName = (contact.name || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const safeEmail = (contact.email || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const safeMessage = (contact.message || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-        tableHTML += `
-            <tr>
-                <td style="white-space: nowrap;">${safeName}</td>
-                <td><a href="mailto:${safeEmail}">${safeEmail}</a></td>
-                <td>${safeMessage}</td>
-                <td style="white-space: nowrap;">${messageDate}</td>
-            </tr>
-        `;
-    });
-
-    tableHTML += '</tbody></table>';
-    wrapper.innerHTML = tableHTML;
 };
 
 export const renderJournalPage = () => {
@@ -561,3 +508,54 @@ export const renderChartPage = () => {
         container.appendChild(semesterDiv);
     });
 };
+
+// *** START: تابع جدید برای رندر کردن پنل ادمین ***
+export const renderAdminPage = () => {
+    const wrapper = dom.mainContent.querySelector('#admin-contacts-wrapper');
+    if (!wrapper) return;
+
+    if (!state.allContacts || state.allContacts.length === 0) {
+        wrapper.innerHTML = '<p style="text-align: center; opacity: 0.8;">پیام جدیدی برای نمایش وجود ندارد.</p>';
+        return;
+    }
+
+    let tableHTML = `
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>نام</th>
+                    <th>ایمیل</th>
+                    <th>پیام</th>
+                    <th>تاریخ ارسال</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    state.allContacts.forEach(contact => {
+        const messageDate = new Date(contact.created_at).toLocaleDateString('fa-IR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        // Sanitize content before rendering
+        const safeName = (contact.name || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeEmail = (contact.email || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeMessage = (contact.message || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+        tableHTML += `
+            <tr>
+                <td style="white-space: nowrap;">${safeName}</td>
+                <td><a href="mailto:${safeEmail}">${safeEmail}</a></td>
+                <td>${safeMessage}</td>
+                <td style="white-space: nowrap;">${messageDate}</td>
+            </tr>
+        `;
+    });
+
+    tableHTML += '</tbody></table>';
+    wrapper.innerHTML = tableHTML;
+};
+// *** END: تابع جدید ***
