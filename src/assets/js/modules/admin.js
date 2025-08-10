@@ -4,7 +4,7 @@ import { state } from './state.js';
 import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
 
-// --- توابع کمکی برای نمایش پیام ---
+// --- توابع کمکی ---
 const hideStatus = (statusBox) => {
     if (!statusBox) return;
     statusBox.style.display = 'none';
@@ -18,7 +18,7 @@ const showStatus = (statusBox, message, type = 'error') => {
     statusBox.style.display = 'block';
 };
 
-// --- توابع رندرکننده (مخصوص پنل ادمین) ---
+// --- توابع رندرکننده ---
 const renderMessages = (contacts) => {
     const wrapper = document.getElementById('admin-content-wrapper');
     if (!wrapper) return;
@@ -71,7 +71,7 @@ const renderJournalList = (issues) => {
         </div>`;
 };
 
-// --- تابع عمومی برای مدیریت دکمه‌های رفرش واکنش‌گرا ---
+// --- توابع مدیریت رویدادها ---
 const initializeGlobalRefreshButton = () => {
     const refreshBtn = document.getElementById('admin-global-refresh-btn');
     if (!refreshBtn) return;
@@ -110,7 +110,6 @@ const initializeGlobalRefreshButton = () => {
     });
 };
 
-// --- توابع مدیریت فرم‌ها و رویدادها ---
 const initializeJournalModule = () => {
     const journalForm = document.getElementById('add-journal-form');
     if (!journalForm) return;
@@ -383,12 +382,12 @@ const loadAdminPage = async (path) => {
     route.renderer(data);
     
     // START: تغییر اصلی اینجاست
-    if (route.initializer) {
-        // اجرای initializer را به انتهای صف اجرای مرورگر منتقل می‌کنیم
-        setTimeout(() => {
+    // ما مطمئن می‌شویم که این تابع فقط بعد از اینکه تمام به‌روزرسانی‌های DOM انجام شد، اجرا می‌شود.
+    requestAnimationFrame(() => {
+        if (route.initializer) {
             route.initializer();
-        }, 0);
-    }
+        }
+    });
     // END: تغییر
 };
 
