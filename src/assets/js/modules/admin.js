@@ -117,16 +117,72 @@ const initializeGlobalRefreshButton = () => {
 const initializeJournalModule = () => {
     const journalForm = document.getElementById('add-journal-form');
     if (!journalForm) return;
+
+    // --- انتخاب تمام المان‌های لازم از DOM ---
     const formTitle = document.getElementById('journal-form-title');
     const submitBtn = document.getElementById('journal-submit-btn');
     const cancelBtn = document.getElementById('cancel-edit-btn');
     const hiddenIdInput = document.getElementById('journal-id');
     const adminListContainer = document.getElementById('journal-admin-list');
+    
+    // --- منطق پیشرفته برای هر دو فیلد آپلود ---
+    ['cover', 'pdf'].forEach(type => {
+        const wrapper = document.getElementById(`${type === 'pdf' ? 'pdf' : 'cover'}-upload-wrapper`);
+        const input = wrapper.querySelector('input[type="file"]');
+        const nameDisplay = wrapper.querySelector('.file-name-display');
+        const clearBtn = wrapper.querySelector('.file-clear-btn');
+
+        // تابع برای به‌روزرسانی نمایش نام فایل
+        const updateFileName = () => {
+            if (input.files && input.files[0]) {
+                nameDisplay.textContent = input.files[0].name;
+                nameDisplay.style.opacity = 1;
+                clearBtn.style.display = 'block';
+            } else {
+                nameDisplay.textContent = 'هیچ فایلی انتخاب نشده';
+                nameDisplay.style.opacity = 0.8;
+                clearBtn.style.display = 'none';
+            }
+        };
+
+        // مدیریت انتخاب فایل
+        input.addEventListener('change', () => {
+            if (type === 'pdf' && input.files[0] && input.files[0].type !== 'application/pdf') {
+                alert('خطا: فقط فایل با فرمت PDF مجاز است.');
+                input.value = ''; // پاک کردن انتخاب اشتباه
+            }
+            updateFileName();
+        });
+
+        // مدیریت دکمه حذف
+        clearBtn.addEventListener('click', () => {
+            input.value = ''; // مهم‌ترین بخش: مقدار input را پاک می‌کند
+            updateFileName();
+        });
+
+        // مدیریت افکت‌های Drag & Drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            wrapper.addEventListener(eventName, e => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+        ['dragenter', 'dragover'].forEach(eventName => {
+            wrapper.addEventListener(eventName, () => wrapper.classList.add('is-dragging'));
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            wrapper.addEventListener(eventName, () => wrapper.classList.remove('is-dragging'));
+        });
+    });
+
+    // --- بقیه منطق فرم ---
     const coverFileInput = document.getElementById('journal-cover');
     const journalFileInput = document.getElementById('journal-file');
 
     const resetForm = () => {
         journalForm.reset();
+        coverFileInput.dispatchEvent(new Event('change'));
+        journalFileInput.dispatchEvent(new Event('change'));
         hiddenIdInput.value = '';
         formTitle.textContent = 'درج نشریه جدید';
         submitBtn.textContent = 'افزودن نشریه';
@@ -154,15 +210,13 @@ const initializeJournalModule = () => {
             let coverUrl = isEditing ? state.allJournalIssues.find(j => j.id == isEditing)?.coverUrl : null;
             let fileUrl = isEditing ? state.allJournalIssues.find(j => j.id == isEditing)?.fileUrl : null;
 
-            // تابع کمکی برای آپلود فایل و دریافت URL
             const uploadFile = async (file, folder) => {
                 if (!file || file.size === 0) return null;
-                // ساخت نام فایل خودکار و یکتا
                 const fileName = `${folder}/${title.replace(/ /g, '-')}-${Date.now()}.${file.name.split('.').pop()}`;
                 
                 const { error: uploadError } = await supabaseClient.storage
                     .from('journal-assets')
-                    .upload(fileName, file, { upsert: true }); // upsert: true برای جایگزینی فایل در حالت ویرایش
+                    .upload(fileName, file, { upsert: true });
 
                 if (uploadError) throw uploadError;
 
@@ -173,7 +227,6 @@ const initializeJournalModule = () => {
                 return data.publicUrl;
             };
             
-            // فقط در صورتی آپلود کن که فایل جدید انتخاب شده باشد
             if (coverFile && coverFile.size > 0) {
                 coverUrl = await uploadFile(coverFile, 'covers');
             }
@@ -202,7 +255,6 @@ const initializeJournalModule = () => {
                 showStatus(statusBox, 'نشریه با موفقیت افزوده شد.', 'success');
             }
 
-            // به‌روزرسانی لیست
             const { data } = await supabaseClient.from('journal').select('*');
             state.allJournalIssues = data || [];
             renderJournalList(state.allJournalIssues);
@@ -213,6 +265,7 @@ const initializeJournalModule = () => {
             showStatus(statusBox, 'عملیات با خطا مواجه شد. لطفاً کنسول را بررسی کنید.', 'error');
         } finally {
             submitBtn.disabled = false;
+            submitBtn.textContent = isEditing ? 'ذخیره تغییرات' : 'افزودن نشریه';
         }
     });
 
@@ -220,19 +273,19 @@ const initializeJournalModule = () => {
 
     adminListContainer.addEventListener('click', async (event) => {
         const editBtn = event.target.closest('.edit-journal-btn');
+        const deleteBtn = event.target.closest('.delete-journal-btn');
+
         if (editBtn) {
             const id = editBtn.dataset.id;
             const issue = state.allJournalIssues.find(j => j.id == id);
             if (!issue) return;
             
-            // پر کردن فرم با اطلاعات موجود
             hiddenIdInput.value = issue.id;
             document.getElementById('journal-title').value = issue.title || '';
             document.getElementById('journal-issue').value = issue.issueNumber || '';
             document.getElementById('journal-date').value = issue.date || '';
             document.getElementById('journal-summary').value = issue.summary || '';
             
-            // در حالت ویرایش، انتخاب فایل اجباری نیست
             coverFileInput.required = false;
             journalFileInput.required = false;
 
@@ -241,10 +294,22 @@ const initializeJournalModule = () => {
             cancelBtn.style.display = 'inline-block';
             journalForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-        
-        const deleteBtn = event.target.closest('.delete-journal-btn');
+
         if (deleteBtn) {
-            // منطق حذف بدون تغییر باقی می‌ماند
+            const id = deleteBtn.dataset.id;
+            if (confirm('آیا از حذف این نشریه مطمئن هستید؟ این عملیات غیرقابل بازگشت است.')) {
+                try {
+                    deleteBtn.textContent = '...';
+                    deleteBtn.disabled = true;
+                    await deleteJournalEntry(id);
+                    state.allJournalIssues = state.allJournalIssues.filter(j => j.id != id);
+                    renderJournalList(state.allJournalIssues);
+                } catch (error) {
+                    alert('خطا در حذف نشریه.');
+                    deleteBtn.textContent = 'حذف';
+                    deleteBtn.disabled = false;
+                }
+            }
         }
     });
 };
