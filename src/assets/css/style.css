@@ -3760,3 +3760,84 @@ body.light-theme .admin-main-header { background-color: #fff; border-bottom: 1px
         z-index: 2999;
     }
 }
+
+/* ================== Advanced File Upload Input ================== */
+.custom-file-upload {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border: 2px dashed;
+    border-radius: 8px;
+    padding: 0.5rem;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+body.dark-theme .custom-file-upload {
+    border-color: var(--glass-border-dark);
+}
+body.light-theme .custom-file-upload {
+    border-color: var(--glass-border-light);
+}
+
+/* حالت هاور و درگ */
+.custom-file-upload.is-hovered,
+.custom-file-upload.is-dragging {
+    cursor: pointer;
+}
+body.dark-theme .custom-file-upload.is-hovered,
+body.dark-theme .custom-file-upload.is-dragging {
+    border-color: var(--primary-color);
+    background-color: rgba(232, 195, 142, 0.1);
+}
+body.light-theme .custom-file-upload.is-hovered,
+body.light-theme .custom-file-upload.is-dragging {
+    border-color: var(--primary-color-light-theme);
+    background-color: rgba(26, 92, 93, 0.05);
+}
+
+/* مخفی کردن دکمه آپلود پیش‌فرض */
+.custom-file-upload input[type="file"] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.custom-file-upload .file-select-btn {
+    flex-shrink: 0;
+    z-index: 1; /* روی input مخفی قرار می‌گیرد */
+    pointer-events: none; /* کلیک‌ها از روی آن به input زیرین منتقل می‌شود */
+}
+
+.file-name-display {
+    flex-grow: 1;
+    padding: 0 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    direction: ltr;
+    text-align: left;
+}
+
+.file-clear-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 0.8rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    z-index: 5;
+}
+.file-clear-btn:hover {
+    opacity: 1;
+}
+body.dark-theme .file-clear-btn:hover { color: #ff8a8a; }
+body.light-theme .file-clear-btn:hover { color: #dc3545; }
