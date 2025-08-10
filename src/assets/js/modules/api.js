@@ -58,9 +58,7 @@ export const getProfile = async () => {
     try {
         const { data, error, status } = await supabaseClient
             .from('profiles')
-            // START: فقط ستون‌های موجود انتخاب شده‌اند
             .select(`full_name, role`)
-            // END: تغییر نهایی
             .eq('id', state.user.id)
             .single();
             
@@ -106,17 +104,11 @@ export const checkUserStatus = async (email) => {
     const { data, error } = await supabaseClient.rpc('check_user_status', { user_email: email });
     if (error) {
         console.error("Error checking user status:", error);
-        return 'error'; // یک وضعیت برای خطا برمی‌گردانیم
+        return 'error';
     }
-    // مقادیر مورد انتظار: 'does_not_exist', 'exists_unconfirmed', 'exists_and_confirmed'
     return data;
 };
 
-/**
- * Verifies a Cloudflare Turnstile token by calling a server-side Edge Function.
- * @param {string} token The cf-turnstile-response token from the widget.
- * @returns {Promise<{success: boolean, message: string}>} The verification result.
- */
 export const verifyTurnstile = async (token) => {
     try {
         const { data, error } = await supabaseClient.functions.invoke('verify-turnstile', {
@@ -183,6 +175,22 @@ export const loadChartData = async () => {
     }
 };
 
+// *** START: تابع جدید برای خواندن پیام‌ها ***
+export const loadContacts = async () => {
+    if (state.allContacts.length > 0) return;
+    try {
+        const { data, error } = await supabaseClient
+            .from('contacts')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        state.allContacts = data || [];
+    } catch (error) {
+        console.error("Failed to load contacts:", error);
+    }
+};
+// *** END: تابع جدید ***
+
 export const getEventRegistration = async (eventId, userId) => {
     if (!eventId || !userId) return { data: null, error: 'Event ID or User ID is missing' };
     try {
@@ -191,10 +199,9 @@ export const getEventRegistration = async (eventId, userId) => {
             .select('*')
             .eq('event_id', eventId)
             .eq('user_id', userId)
-            .in('status', ['pending', 'confirmed']) // فقط وضعیت‌های در حال بررسی یا تایید شده را چک کن
-            .single(); // انتظار داریم حداکثر یک نتیجه برگردد
+            .in('status', ['pending', 'confirmed'])
+            .single();
 
-        // اگر رکوردی پیدا نشود (کد خطای PGRST116)، این یک خطای واقعی نیست و باید نادیده گرفته شود
         if (error && error.code !== 'PGRST116') {
             throw error;
         }
@@ -229,11 +236,7 @@ export const getUserProvider = async (email) => {
     return { data, error: null };
 };
 
-
-
-
 // --- Like and Comment Functions ---
-
 export const getComments = async (newsId, userId) => {
     try {
         const { data, error } = await supabaseClient
