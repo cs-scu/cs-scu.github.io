@@ -534,11 +534,7 @@ export const renderAdminPage = () => {
 
     state.allContacts.forEach(contact => {
         const messageDate = new Date(contact.created_at).toLocaleDateString('fa-IR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
         const safeName = (contact.name || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
         const safeEmail = (contact.email || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -546,10 +542,10 @@ export const renderAdminPage = () => {
 
         tableHTML += `
             <tr>
-                <td style="white-space: nowrap;">${safeName}</td>
+                <td>${safeName}</td>
                 <td><a href="mailto:${safeEmail}">${safeEmail}</a></td>
-                <td>${safeMessage}</td>
-                <td style="white-space: nowrap;">${messageDate}</td>
+                <td class="message-cell">${safeMessage}</td>
+                <td>${messageDate}</td>
             </tr>
         `;
     });
