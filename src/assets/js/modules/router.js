@@ -91,10 +91,10 @@ const cleanupPageSpecifics = (newPath) => {
 const renderPage = async (path) => {
     const cleanPath = path.startsWith('#') ? path.substring(1) : path;
     
-    // ** تغییر اصلی اینجاست: اگر کاربر به مسیر ادمین رفت، بلافاصله او را هدایت می‌کنیم **
+    // اگر کاربر به مسیری رفت که با /admin شروع می‌شود، او را به فایل صحیح هدایت می‌کنیم
     if (cleanPath.startsWith('/admin')) {
         window.location.href = `admin.html#${cleanPath}`;
-        return; // اجرای ادامه کد را متوقف می‌کنیم
+        return; 
     }
     
     const parseInlineMarkdown = (text) => {
@@ -231,16 +231,14 @@ const renderPage = async (path) => {
         window.scrollTo(0, 0);
         const pageKey = cleanPath === '/' || cleanPath === '' ? 'home' : cleanPath.substring(1);
         
-        if (state.pageCache[cleanPath] && cleanPath !== '/admin') { // ادمین را کش نمی‌کنیم
+        if (state.pageCache[cleanPath]) { 
             dom.mainContent.innerHTML = state.pageCache[cleanPath];
         } else {
             try {
                 const response = await fetch(`${pageKey}.html`);
                 if (!response.ok) throw new Error(`Page not found: ${pageKey}.html`);
                 const pageHTML = await response.text();
-                if (cleanPath !== '/admin') {
-                    state.pageCache[cleanPath] = pageHTML;
-                }
+                state.pageCache[cleanPath] = pageHTML;
                 dom.mainContent.innerHTML = pageHTML;
             } catch (error) {
                 location.hash = '#/';
