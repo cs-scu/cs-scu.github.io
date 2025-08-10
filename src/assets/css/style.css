@@ -3816,3 +3816,20 @@ body.light-theme .custom-file-upload.is-dragging {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+/* === Journal Download Loading Icon === */
+.journal-card-download .icon-loading {
+    animation: spin 1.5s linear infinite;
+}
+
+.journal-card.is-downloading {
+    cursor: wait; /* Show a waiting cursor during download */
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

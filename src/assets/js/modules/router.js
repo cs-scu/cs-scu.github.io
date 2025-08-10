@@ -16,7 +16,7 @@ const initializeCopyButtons = () => {
                 navigator.clipboard.writeText(code.textContent).then(() => {
                     const originalIcon = btn.innerHTML;
                     const themeColor = document.body.classList.contains('dark-theme') ? '#e8c38e' : '#1a5c5d';
-                    btn.innerHTML = `<svg xmlns="http://www.w.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${themeColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${themeColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
                     setTimeout(() => { btn.innerHTML = originalIcon; }, 2000);
                 });
             }
@@ -254,12 +254,17 @@ const renderPage = async (path) => {
         // *** END: تغییر ***
     }
     
+    // --- START: UPDATED ROUTER LOGIC ---
     const pageRenderers = {
         '/login': initializeAuthForm,
         '/contact': initializeContactForm,
         '/events': async () => { await loadEvents(); components.renderEventsPage(); },
         '/members': components.renderMembersPage,
-        '/journal': async () => { await loadJournal(); components.renderJournalPage(); },
+        '/journal': async () => { 
+            await loadJournal(); 
+            components.renderJournalPage(); 
+            components.initializeJournalPageInteractions(); // Call the new interaction handler
+        },
         '/chart': async () => { await loadChartData(); components.renderChartPage(); },
         '/news': () => {
             state.loadedNewsCount = 0;
@@ -271,6 +276,8 @@ const renderPage = async (path) => {
             window.addEventListener('scroll', state.newsScrollHandler);
         }
     };
+    // --- END: UPDATED ROUTER LOGIC ---
+
     if (pageRenderers[cleanPath]) {
         await pageRenderers[cleanPath]();
     }

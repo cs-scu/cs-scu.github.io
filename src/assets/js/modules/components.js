@@ -424,18 +424,18 @@ export const renderJournalPage = () => {
     if (!journalGrid) return;
     journalGrid.innerHTML = '';
 
-    const sanitizeFilename = (title, extension) => {
-        // Replace spaces with hyphens and remove any characters that are not filename-friendly
-        const sanitized = title.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
-        return `${sanitized || 'journal'}.${extension}`;
-    };
-
     state.allJournalIssues.forEach(issue => {
-        const fileExtension = issue.fileUrl.split('.').pop() || 'pdf';
-        const downloadFilename = sanitizeFilename(issue.title, fileExtension);
+        // Sanitize the title to create a safe and valid filename
+        const safeTitle = issue.title.replace(/[^a-zA-Z0-9\s-_\u0600-\u06FF]/g, '').trim() || 'journal';
+        const fileExtension = issue.fileUrl ? issue.fileUrl.split('.').pop() : 'pdf';
 
         const cardHTML = `
-            <a href="${issue.fileUrl}" download="${downloadFilename}" class="journal-card">
+            <div class="journal-card" 
+                 data-file-url="${issue.fileUrl}" 
+                 data-file-title="${safeTitle}.${fileExtension}" 
+                 role="button" 
+                 tabindex="0" 
+                 aria-label="دانلود ${issue.title}">
                 <img src="${issue.coverUrl}" alt="${issue.title}" class="journal-card-cover" loading="lazy">
                 <div class="journal-card-overlay">
                     <h3 class="journal-card-title">${issue.title}</h3>
@@ -443,14 +443,68 @@ export const renderJournalPage = () => {
                     <p class="journal-card-summary">${issue.summary}</p>
                 </div>
                 <div class="journal-card-download">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <svg class="icon-download" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <svg class="icon-loading" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
                 </div>
-            </a>
+            </div>
         `;
         journalGrid.insertAdjacentHTML('beforeend', cardHTML);
     });
 };
-// --- END: UPDATED FUNCTION ---
+
+// --- NEW FUNCTION TO HANDLE DOWNLOADS ---
+export const initializeJournalPageInteractions = () => {
+    const journalGrid = document.querySelector('.journal-grid');
+    if (!journalGrid) return;
+
+    journalGrid.addEventListener('click', async (e) => {
+        const card = e.target.closest('.journal-card');
+        if (!card || card.classList.contains('is-downloading')) return;
+
+        const fileUrl = card.dataset.fileUrl;
+        const fileName = card.dataset.fileTitle;
+
+        if (!fileUrl) return;
+
+        const downloadIcon = card.querySelector('.icon-download');
+        const loadingIcon = card.querySelector('.icon-loading');
+
+        // Show loading state and prevent multiple clicks
+        card.classList.add('is-downloading');
+        if (downloadIcon) downloadIcon.style.display = 'none';
+        if (loadingIcon) loadingIcon.style.display = 'block';
+
+        try {
+            // Fetch the file as a blob
+            const response = await fetch(fileUrl);
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.statusText}`);
+            }
+            const blob = await response.blob();
+
+            // Create a temporary link to trigger the download
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            
+            // Clean up the temporary link
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+
+        } catch (error) {
+            console.error('Download failed:', error);
+            alert('خطا در دانلود فایل. لطفاً دوباره تلاش کنید.');
+        } finally {
+            // Reset to initial state
+            card.classList.remove('is-downloading');
+            if (downloadIcon) downloadIcon.style.display = 'block';
+            if (loadingIcon) loadingIcon.style.display = 'none';
+        }
+    });
+};
+// --- END: NEW FUNCTION & UPDATE ---
 
 export const renderChartPage = () => {
     const container = dom.mainContent.querySelector('.semesters-container');
