@@ -120,7 +120,7 @@ const initializeJournalModule = () => {
     const hiddenIdInput = document.getElementById('journal-id');
     const adminListContainer = document.getElementById('journal-admin-list');
     
-    ['cover', 'file'].forEach(type => { // <-- START: FIX - Changed 'pdf' to 'file'
+    ['cover', 'file'].forEach(type => {
         const input = document.getElementById(`journal-${type}`);
         const wrapperId = type === 'cover' ? 'cover-upload-wrapper' : 'pdf-upload-wrapper';
         const wrapper = document.getElementById(wrapperId);
@@ -132,7 +132,24 @@ const initializeJournalModule = () => {
 
         const updateFileName = () => {
             if (input.files && input.files[0]) {
-                nameDisplay.textContent = input.files[0].name;
+                const fullName = input.files[0].name;
+                const maxChars = 10;
+                let displayName = fullName;
+
+                const lastDotIndex = fullName.lastIndexOf('.');
+                if (lastDotIndex > 0) { // If there is an extension
+                    const nameWithoutExt = fullName.substring(0, lastDotIndex);
+                    const extension = fullName.substring(lastDotIndex); // Keep the dot
+                    if (nameWithoutExt.length > maxChars) {
+                        displayName = nameWithoutExt.substring(0, maxChars) + '...' + extension;
+                    }
+                } else { // If no extension
+                    if (fullName.length > maxChars) {
+                        displayName = fullName.substring(0, maxChars) + '...';
+                    }
+                }
+                
+                nameDisplay.textContent = displayName;
                 nameDisplay.style.opacity = 1;
                 wrapper.classList.add('file-selected');
             } else {
@@ -172,7 +189,7 @@ const initializeJournalModule = () => {
             }
             updateFileName();
         });
-    }); // <-- END: FIX
+    });
 
     const coverFileInput = document.getElementById('journal-cover');
     const journalFileInput = document.getElementById('journal-file');
