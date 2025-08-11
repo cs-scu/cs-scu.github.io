@@ -6,22 +6,51 @@
     <h3 id="event-form-title" class="admin-section-subtitle">درج یا ویرایش رویداد</h3>
     <form id="add-event-form">
         <input type="hidden" id="event-id" name="id">
+        
         <div class="form-row">
-            <div class="form-group"><label for="event-title">عنوان رویداد</label><input type="text" id="event-title" name="title" required></div>
-            <div class="form-group"><label for="event-instructor">نام مدرس</label><input type="text" id="event-instructor" name="instructor_name"></div>
+            <div class="form-group" style="flex: 2;"><label for="event-title">عنوان رویداد</label><input type="text" id="event-title" name="title" required></div>
+            <div class="form-group" style="flex: 1;"><label for="event-instructor">نام مدرس</label><input type="text" id="event-instructor" name="instructor_name"></div>
         </div>
-        <div class="form-group"><label for="event-summary">خلاصه</label><textarea id="event-summary" name="summary" rows="3"></textarea></div>
+
+        <div class="form-group"><label for="event-summary">خلاصه (متن کوتاه)</label><textarea id="event-summary" name="summary" rows="2"></textarea></div>
+
         <div class="form-row">
             <div class="form-group"><label for="event-location">مکان</label><input type="text" id="event-location" name="location"></div>
             <div class="form-group"><label for="event-cost">هزینه</label><input type="text" id="event-cost" name="cost" placeholder="مثال: رایگان یا ۲۰,۰۰۰ تومان"></div>
             <div class="form-group"><label for="event-display-date">تاریخ نمایشی</label><input type="text" id="event-display-date" name="displayDate" placeholder="مثال: ۱۲ تا ۱۴ شهریور ۱۴۰۴" required></div>
         </div>
+        
         <div class="form-row">
             <div class="form-group"><label for="event-start-date">تاریخ شروع (میلادی)</label><input type="date" id="event-start-date" name="startDate" required></div>
             <div class="form-group"><label for="event-end-date">تاریخ پایان (میلادی)</label><input type="date" id="event-end-date" name="endDate" required></div>
         </div>
-        <div class="form-group"><label for="event-image-url">آدرس URL تصویر</label><input type="url" id="event-image-url" name="image" placeholder="https://example.com/image.jpg" required></div>
-        <div class="form-group"><label for="event-detail-page">لینک صفحه جزئیات</label><input type="text" id="event-detail-page" name="detailPage" placeholder="مثال: #/events/my-event-name" required></div>
+
+        <div class="form-row">
+            <div class="form-group" style="flex: 2;"><label for="event-image-url">آدرس URL تصویر</label><input type="url" id="event-image-url" name="image" placeholder="https://example.com/image.jpg" required></div>
+            <div class="form-group" style="flex: 1;"><label for="event-detail-page">شناسه صفحه جزئیات</label><input type="text" id="event-detail-page" name="detailPage" placeholder="مثال: #/events/my-event-name" required></div>
+        </div>
+
+        <div class="form-group"><label for="event-tags">تگ‌ها (فرمت JSON)</label><textarea id="event-tags" name="tags" rows="2" placeholder='[["دوره آموزشی", "#10b981"], ["Linux", "#facc15"]]'></textarea></div>
+        
+        <div class="form-group"><label for="event-content">محتوای کامل صفحه (فرمت JSON)</label><textarea id="event-content" name="content" rows="6" placeholder="محتوای کامل رویداد را در قالب JSON وارد کنید..."></textarea></div>
+
+        <hr style="margin: 1.5rem 0;">
+        <h4 style="margin-bottom: 1rem;">اطلاعات پرداخت (اختیاری)</h4>
+        <div class="form-row">
+            <div class="form-group"><label for="payment-name">نام صاحب حساب</label><input type="text" id="payment-name" name="payment_name"></div>
+            <div class="form-group"><label for="payment-number">شماره کارت</label><input type="text" id="payment-number" name="payment_number" dir="ltr"></div>
+        </div>
+
+        <hr style="margin: 1.5rem 0;">
+        <h4 style="margin-bottom: 1rem;">اطلاعات تماس (اختیاری)</h4>
+        <div class="form-row">
+            <div class="form-group"><label for="contact-phone">تلفن</label><input type="tel" id="contact-phone" name="contact_phone" dir="ltr"></div>
+            <div class="form-group"><label for="contact-telegram">تلگرام (لینک کامل)</label><input type="url" id="contact-telegram" name="contact_telegram"></div>
+            <div class="form-group"><label for="contact-whatsapp">واتساپ (لینک کامل)</label><input type="url" id="contact-whatsapp" name="contact_whatsapp"></div>
+        </div>
+
+        <div class="form-group"><label for="event-schedule">برنامه زمانی (فرمت JSON)</label><textarea id="event-schedule" name="schedule" rows="5" placeholder="برنامه زمانی جلسات را در قالب JSON وارد کنید..."></textarea></div>
+
         <div class="form-status"></div>
         <div class="form-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
             <button type="submit" class="btn btn-primary" id="event-submit-btn">افزودن رویداد</button>

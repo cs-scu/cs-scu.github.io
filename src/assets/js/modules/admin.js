@@ -44,7 +44,6 @@ const renderMessages = (contacts) => {
     wrapper.innerHTML = tableHTML;
 };
 
-// --- START: UPDATED FUNCTION ---
 const renderJournalList = (issues) => {
     const container = document.getElementById('journal-admin-list');
     if (!container) return;
@@ -83,9 +82,7 @@ const renderJournalList = (issues) => {
             </table>
         </div>`;
 };
-// --- END: UPDATED FUNCTION ---
 
-// --- START: NEW FUNCTION ---
 const renderEventsList = (events) => {
     const container = document.getElementById('events-admin-list');
     if (!container) return;
@@ -106,6 +103,8 @@ const renderEventsList = (events) => {
                         <th>عنوان</th>
                         <th>مدرس</th>
                         <th>تاریخ نمایشی</th>
+                        <th>هزینه</th>
+                        <th>مکان</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -122,12 +121,13 @@ const renderEventsList = (events) => {
                             <td>${event.title}</td>
                             <td>${event.instructor_name || '---'}</td>
                             <td>${event.displayDate}</td>
+                            <td>${event.cost || '---'}</td>
+                            <td>${event.location || '---'}</td>
                         </tr>`).join('')}
                 </tbody>
             </table>
         </div>`;
 };
-// --- END: NEW FUNCTION ---
 
 
 // --- توابع مدیریت رویدادها ---
@@ -417,7 +417,6 @@ const initializeMessagesModule = () => {
     // No specific JS needed for this module anymore
 };
 
-// --- START: NEW FUNCTION ---
 const initializeEventsModule = () => {
     const eventForm = document.getElementById('add-event-form');
     if (!eventForm) return;
@@ -427,6 +426,22 @@ const initializeEventsModule = () => {
     const cancelBtn = document.getElementById('cancel-edit-btn');
     const hiddenIdInput = document.getElementById('event-id');
     const adminListContainer = document.getElementById('events-admin-list');
+
+    const safeJsonStringify = (obj, indent = 2) => {
+        try {
+            if (obj === null || obj === undefined) return '';
+            if (typeof obj === 'string') {
+                // Try to parse it first to see if it's a valid JSON string
+                JSON.parse(obj);
+                // If it is, stringify it again with indentation
+                return JSON.stringify(JSON.parse(obj), null, indent);
+            }
+            return JSON.stringify(obj, null, indent);
+        } catch (e) {
+            // If it's not a valid JSON string, return it as is
+            return obj;
+        }
+    };
 
     const resetForm = () => {
         eventForm.reset();
@@ -448,6 +463,27 @@ const initializeEventsModule = () => {
         submitBtn.textContent = isEditing ? 'در حال ویرایش...' : 'در حال افزودن...';
 
         try {
+            const parseJsonField = (fieldName) => {
+                const value = formData.get(fieldName);
+                if (!value) return null;
+                try {
+                    return JSON.parse(value);
+                } catch (e) {
+                    throw new Error(`فرمت JSON در فیلد "${fieldName}" نامعتبر است.`);
+                }
+            };
+            
+            const paymentCardNumber = {
+                name: formData.get('payment_name'),
+                number: formData.get('payment_number')
+            };
+
+            const contactLink = {
+                phone: formData.get('contact_phone'),
+                telegram: formData.get('contact_telegram'),
+                whatsapp: formData.get('contact_whatsapp')
+            };
+
             const eventData = {
                 title: formData.get('title'),
                 summary: formData.get('summary'),
@@ -459,6 +495,11 @@ const initializeEventsModule = () => {
                 endDate: formData.get('endDate'),
                 image: formData.get('image'),
                 detailPage: formData.get('detailPage'),
+                tags: parseJsonField('tags'),
+                content: parseJsonField('content'),
+                schedule: parseJsonField('schedule'),
+                payment_card_number: (paymentCardNumber.name || paymentCardNumber.number) ? paymentCardNumber : null,
+                contact_link: (contactLink.phone || contactLink.telegram || contactLink.whatsapp) ? contactLink : null,
             };
 
             if (isEditing) {
@@ -470,7 +511,7 @@ const initializeEventsModule = () => {
             }
 
             state.allEvents = []; // Invalidate cache
-            const data = await loadEvents();
+            await loadEvents();
             renderEventsList(state.allEvents);
             resetForm();
 
@@ -505,6 +546,18 @@ const initializeEventsModule = () => {
             document.getElementById('event-end-date').value = eventToEdit.endDate || '';
             document.getElementById('event-image-url').value = eventToEdit.image || '';
             document.getElementById('event-detail-page').value = eventToEdit.detailPage || '';
+            
+            // Handle JSON fields
+            document.getElementById('event-tags').value = safeJsonStringify(eventToEdit.tags);
+            document.getElementById('event-content').value = safeJsonStringify(eventToEdit.content);
+            document.getElementById('event-schedule').value = safeJsonStringify(eventToEdit.schedule);
+            
+            document.getElementById('payment-name').value = eventToEdit.payment_card_number?.name || '';
+            document.getElementById('payment-number').value = eventToEdit.payment_card_number?.number || '';
+            
+            document.getElementById('contact-phone').value = eventToEdit.contact_link?.phone || '';
+            document.getElementById('contact-telegram').value = eventToEdit.contact_link?.telegram || '';
+            document.getElementById('contact-whatsapp').value = eventToEdit.contact_link?.whatsapp || '';
 
             formTitle.textContent = 'ویرایش رویداد';
             submitBtn.textContent = 'ذخیره تغییرات';
@@ -529,7 +582,6 @@ const initializeEventsModule = () => {
         }
     });
 };
-// --- END: NEW FUNCTION ---
 
 const initializeAdminLayout = () => {
     const sidebar = document.getElementById('admin-sidebar');
@@ -584,7 +636,6 @@ const adminRoutes = {
         renderer: renderJournalList,
         initializer: initializeJournalModule
     },
-    // --- START: NEW ROUTE ---
     '/admin/events': {
         title: 'مدیریت رویدادها',
         html: 'admin-events.html',
@@ -592,7 +643,6 @@ const adminRoutes = {
         renderer: renderEventsList,
         initializer: initializeEventsModule
     }
-    // --- END: NEW ROUTE ---
 };
 
 const loadAdminPage = async (path) => {
