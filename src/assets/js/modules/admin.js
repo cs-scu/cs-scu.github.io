@@ -101,7 +101,6 @@ const renderEventsList = (events) => {
                     <tr>
                         <th class="actions-header">عملیات</th>
                         <th>عنوان</th>
-                        <th>مدرس</th>
                         <th>تاریخ نمایشی</th>
                         <th>هزینه</th>
                         <th>مکان</th>
@@ -119,7 +118,6 @@ const renderEventsList = (events) => {
                                 </button>
                             </td>
                             <td>${event.title}</td>
-                            <td>${event.instructor_name || '---'}</td>
                             <td>${event.displayDate}</td>
                             <td>${event.cost || '---'}</td>
                             <td>${event.location || '---'}</td>
@@ -426,19 +424,41 @@ const initializeEventsModule = () => {
     const cancelBtn = document.getElementById('cancel-edit-btn');
     const hiddenIdInput = document.getElementById('event-id');
     const adminListContainer = document.getElementById('events-admin-list');
+    
+    // --- START: NEW LOGIC FOR TOGGLE BUTTONS ---
+    const locationInput = document.getElementById('event-location');
+    const locationToggleBtn = document.getElementById('toggle-location-online');
+    const costInput = document.getElementById('event-cost');
+    const costToggleBtn = document.getElementById('toggle-cost-free');
+
+    const setupToggleButton = (input, button, value, defaultText, alternateText) => {
+        button.addEventListener('click', () => {
+            if (input.disabled) {
+                input.disabled = false;
+                input.value = '';
+                button.textContent = defaultText;
+            } else {
+                input.disabled = true;
+                input.value = value;
+                button.textContent = alternateText;
+            }
+        });
+    };
+
+    setupToggleButton(locationInput, locationToggleBtn, 'آنلاین', 'آنلاین', 'ویرایش');
+    setupToggleButton(costInput, costToggleBtn, 'رایگان', 'رایگان', 'ویرایش');
+    // --- END: NEW LOGIC FOR TOGGLE BUTTONS ---
+
 
     const safeJsonStringify = (obj, indent = 2) => {
         try {
             if (obj === null || obj === undefined) return '';
             if (typeof obj === 'string') {
-                // Try to parse it first to see if it's a valid JSON string
                 JSON.parse(obj);
-                // If it is, stringify it again with indentation
                 return JSON.stringify(JSON.parse(obj), null, indent);
             }
             return JSON.stringify(obj, null, indent);
         } catch (e) {
-            // If it's not a valid JSON string, return it as is
             return obj;
         }
     };
@@ -449,6 +469,13 @@ const initializeEventsModule = () => {
         formTitle.textContent = 'درج رویداد جدید';
         submitBtn.textContent = 'افزودن رویداد';
         cancelBtn.style.display = 'none';
+        
+        // Reset toggle buttons
+        locationInput.disabled = false;
+        locationToggleBtn.textContent = 'آنلاین';
+        costInput.disabled = false;
+        costToggleBtn.textContent = 'رایگان';
+
         eventForm.scrollIntoView({ behavior: 'smooth' });
     };
 
@@ -456,8 +483,12 @@ const initializeEventsModule = () => {
         event.preventDefault();
         const statusBox = eventForm.querySelector('.form-status');
         const isEditing = hiddenIdInput.value;
+        
+        // Temporarily enable fields to get their values
+        locationInput.disabled = false;
+        costInput.disabled = false;
         const formData = new FormData(eventForm);
-
+        
         hideStatus(statusBox);
         submitBtn.disabled = true;
         submitBtn.textContent = isEditing ? 'در حال ویرایش...' : 'در حال افزودن...';
@@ -487,7 +518,7 @@ const initializeEventsModule = () => {
             const eventData = {
                 title: formData.get('title'),
                 summary: formData.get('summary'),
-                instructor_name: formData.get('instructor_name'),
+                instructor_name: null, // As requested
                 location: formData.get('location'),
                 cost: formData.get('cost'),
                 displayDate: formData.get('displayDate'),
@@ -534,20 +565,36 @@ const initializeEventsModule = () => {
             const id = editBtn.dataset.id;
             const eventToEdit = state.allEvents.find(e => e.id == id);
             if (!eventToEdit) return;
+            
+            resetForm(); // Reset form before populating
 
             hiddenIdInput.value = eventToEdit.id;
             document.getElementById('event-title').value = eventToEdit.title || '';
-            document.getElementById('event-instructor').value = eventToEdit.instructor_name || '';
             document.getElementById('event-summary').value = eventToEdit.summary || '';
-            document.getElementById('event-location').value = eventToEdit.location || '';
-            document.getElementById('event-cost').value = eventToEdit.cost || '';
             document.getElementById('event-display-date').value = eventToEdit.displayDate || '';
             document.getElementById('event-start-date').value = eventToEdit.startDate || '';
             document.getElementById('event-end-date').value = eventToEdit.endDate || '';
             document.getElementById('event-image-url').value = eventToEdit.image || '';
             document.getElementById('event-detail-page').value = eventToEdit.detailPage || '';
             
-            // Handle JSON fields
+            // Handle location and its button
+            if (eventToEdit.location === 'آنلاین') {
+                locationInput.value = 'آنلاین';
+                locationInput.disabled = true;
+                locationToggleBtn.textContent = 'ویرایش';
+            } else {
+                locationInput.value = eventToEdit.location || '';
+            }
+
+            // Handle cost and its button
+            if (eventToEdit.cost === 'رایگان') {
+                costInput.value = 'رایگان';
+                costInput.disabled = true;
+                costToggleBtn.textContent = 'ویرایش';
+            } else {
+                costInput.value = eventToEdit.cost || '';
+            }
+            
             document.getElementById('event-tags').value = safeJsonStringify(eventToEdit.tags);
             document.getElementById('event-content').value = safeJsonStringify(eventToEdit.content);
             document.getElementById('event-schedule').value = safeJsonStringify(eventToEdit.schedule);
@@ -582,6 +629,7 @@ const initializeEventsModule = () => {
         }
     });
 };
+
 
 const initializeAdminLayout = () => {
     const sidebar = document.getElementById('admin-sidebar');

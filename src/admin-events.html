@@ -7,17 +7,26 @@
     <form id="add-event-form">
         <input type="hidden" id="event-id" name="id">
         
-        <div class="form-row">
-            <div class="form-group" style="flex: 2;"><label for="event-title">عنوان رویداد</label><input type="text" id="event-title" name="title" required></div>
-            <div class="form-group" style="flex: 1;"><label for="event-instructor">نام مدرس</label><input type="text" id="event-instructor" name="instructor_name"></div>
-        </div>
+        <div class="form-group"><label for="event-title">عنوان رویداد</label><input type="text" id="event-title" name="title" required></div>
 
         <div class="form-group"><label for="event-summary">خلاصه (متن کوتاه)</label><textarea id="event-summary" name="summary" rows="2"></textarea></div>
 
         <div class="form-row">
-            <div class="form-group"><label for="event-location">مکان</label><input type="text" id="event-location" name="location"></div>
-            <div class="form-group"><label for="event-cost">هزینه</label><input type="text" id="event-cost" name="cost" placeholder="مثال: رایگان یا ۲۰,۰۰۰ تومان"></div>
-            <div class="form-group"><label for="event-display-date">تاریخ نمایشی</label><input type="text" id="event-display-date" name="displayDate" placeholder="مثال: ۱۲ تا ۱۴ شهریور ۱۴۰۴" required></div>
+            <div class="form-group" style="position: relative; flex: 2;">
+                <label for="event-location">مکان</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="event-location" name="location" style="flex-grow: 1;">
+                    <button type="button" class="btn btn-secondary" id="toggle-location-online" style="flex-shrink: 0;">آنلاین</button>
+                </div>
+            </div>
+            <div class="form-group" style="position: relative; flex: 1;">
+                <label for="event-cost">هزینه</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="event-cost" name="cost" placeholder="مثال: ۲۰,۰۰۰ تومان" style="flex-grow: 1;">
+                    <button type="button" class="btn btn-secondary" id="toggle-cost-free" style="flex-shrink: 0;">رایگان</button>
+                </div>
+            </div>
+            <div class="form-group" style="flex: 2;"><label for="event-display-date">تاریخ نمایشی</label><input type="text" id="event-display-date" name="displayDate" placeholder="مثال: ۱۲ تا ۱۴ شهریور ۱۴۰۴" required></div>
         </div>
         
         <div class="form-row">
