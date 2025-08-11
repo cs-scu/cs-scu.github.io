@@ -3566,7 +3566,7 @@ body.light-theme .video-tab-btn:not(.active) img {
     padding-right: 0.5rem;
 }
 
-/* ================== FINAL ADMIN PANEL STYLES (v1.6 - Bug Fix) ================== */
+/* ================== FINAL ADMIN PANEL STYLES (v1.8 - Final Fix) ================== */
 
 /* --- Layout & Base --- */
 .admin-panel-body { 
@@ -3634,7 +3634,7 @@ body.dark-theme .custom-file-upload.is-dragging { border-color: var(--primary-co
 body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-color-light-theme); background-color: rgba(26, 92, 93, 0.05); }
 .file-select-btn { cursor: pointer; }
 .file-upload-buttons { flex-shrink: 0; }
-.file-name-display { flex-grow: 1; padding: 0 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.8; direction: ltr; text-align: left; }
+.file-name-display { flex-grow: 1; padding: 0 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.8; direction: ltr; text-align: left;min-width: 0; }
 .file-clear-btn { display: none; }
 .file-select-btn { display: inline-block; }
 .custom-file-upload.file-selected .file-clear-btn { display: inline-block; }
