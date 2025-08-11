@@ -3624,23 +3624,54 @@ body.light-theme .admin-section-subtitle { border-color: var(--glass-border-ligh
 .custom-table th, .custom-table td { white-space: nowrap; }
 .custom-table .message-cell { max-width: 400px; overflow: hidden; text-overflow: ellipsis; }
 
-/* === Advanced File Upload Styles (Label Method) === */
-.file-upload-input { display: none; }
-.custom-file-upload { display: flex; align-items: center; justify-content: space-between; border: 2px dashed; border-radius: 8px; padding: 0.5rem; transition: border-color 0.3s, background-color 0.3s; }
+/* === Advanced File Upload Styles (Label Method - Final Fix) === */
+
+/* Hide the actual file input completely */
+.file-upload-input {
+    display: none;
+}
+
+/* The main display box */
+.custom-file-upload {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Add some space between filename and button */
+    border: 2px dashed;
+    border-radius: 8px;
+    padding: 0.5rem;
+    transition: border-color 0.3s, background-color 0.3s;
+}
 body.dark-theme .custom-file-upload { border-color: var(--glass-border-dark); }
 body.light-theme .custom-file-upload { border-color: var(--glass-border-light); }
 .custom-file-upload.is-dragging { cursor: pointer; }
 body.dark-theme .custom-file-upload.is-dragging { border-color: var(--primary-color); background-color: rgba(232, 195, 142, 0.1); }
 body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-color-light-theme); background-color: rgba(26, 92, 93, 0.05); }
-.file-select-btn { cursor: pointer; }
-.file-upload-buttons { flex-shrink: 0; }
-.file-name-display { flex-grow: 1; padding: 0 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.8; direction: ltr; text-align: left;min-width: 0; }
+
+/* The label that acts as a button needs a pointer cursor */
+.file-select-btn {
+    cursor: pointer;
+}
+
+.file-upload-buttons { 
+    flex-shrink: 0; /* Prevents buttons from shrinking */
+}
+
+.file-name-display {
+    flex-grow: 1; /* Takes up available space */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    direction: ltr;
+    text-align: left;
+    opacity: 0.8;
+    min-width: 0; /* This is the key fix that allows the element to shrink */
+}
+
+/* Button Toggle Logic */
 .file-clear-btn { display: none; }
 .file-select-btn { display: inline-block; }
 .custom-file-upload.file-selected .file-clear-btn { display: inline-block; }
 .custom-file-upload.file-selected .file-select-btn { display: none; }
-.file-upload-buttons .btn { padding: 0.5rem 1rem; font-size: 0.9rem; }
-
 /* START: FIX - More specific rule for the red delete button */
 .file-upload-buttons .btn.btn-danger {
     background-color: #dc3545;
