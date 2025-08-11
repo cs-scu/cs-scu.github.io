@@ -120,10 +120,11 @@ const initializeJournalModule = () => {
     const hiddenIdInput = document.getElementById('journal-id');
     const adminListContainer = document.getElementById('journal-admin-list');
     
-    ['cover', 'pdf'].forEach(type => {
-        // Find elements based on the new structure
+    ['cover', 'file'].forEach(type => { // <-- START: FIX - Changed 'pdf' to 'file'
         const input = document.getElementById(`journal-${type}`);
-        const wrapper = document.getElementById(`${type}-upload-wrapper`);
+        const wrapperId = type === 'cover' ? 'cover-upload-wrapper' : 'pdf-upload-wrapper';
+        const wrapper = document.getElementById(wrapperId);
+
         if (!input || !wrapper) return;
         
         const nameDisplay = wrapper.querySelector('.file-name-display');
@@ -142,20 +143,18 @@ const initializeJournalModule = () => {
         };
 
         input.addEventListener('change', () => {
-            if (type === 'pdf' && input.files[0] && input.files[0].type !== 'application/pdf') {
+            if (type === 'file' && input.files[0] && input.files[0].type !== 'application/pdf') {
                 alert('خطا: فقط فایل با فرمت PDF مجاز است.');
                 input.value = '';
             }
             updateFileName();
         });
         
-        // The click listener no longer needs to stop propagation
         clearBtn.addEventListener('click', () => {
             input.value = '';
             updateFileName();
         });
 
-        // Drag and Drop logic still applies to the wrapper
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             wrapper.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
         });
@@ -167,13 +166,13 @@ const initializeJournalModule = () => {
         });
         wrapper.addEventListener('drop', (e) => {
             input.files = e.dataTransfer.files;
-            if (type === 'pdf' && input.files[0] && input.files[0].type !== 'application/pdf') {
+            if (type === 'file' && input.files[0] && input.files[0].type !== 'application/pdf') {
                 alert('خطا: فقط فایل با فرمت PDF مجاز است.');
                 input.value = '';
             }
             updateFileName();
         });
-    });
+    }); // <-- END: FIX
 
     const coverFileInput = document.getElementById('journal-cover');
     const journalFileInput = document.getElementById('journal-file');
