@@ -3958,10 +3958,7 @@ body.dark-theme .toggle-input:checked + .toggle-label {
     transform: translateX(22px);
 }
 
-/* ================== Styles for Final Polished Tags Modal v2.0 ================== */
-.tags-modal-container {
-    padding: 1rem;
-}
+/* ================== Styles for Final Polished Tags Modal v3.0 ================== */
 .tags-modal-container h3 {
     text-align: center;
     margin-bottom: 1.5rem;
@@ -3972,6 +3969,11 @@ body.dark-theme .toggle-input:checked + .toggle-label {
     gap: 0.75rem;
     margin-bottom: 1.5rem;
 }
+/* گوشه‌های گردتر برای فرم افزودن تگ */
+.add-tag-form input,
+.add-tag-form button {
+    border-radius: 50px !important;
+}
 .add-tag-form input {
     flex-grow: 1;
 }
@@ -3979,8 +3981,8 @@ body.dark-theme .toggle-input:checked + .toggle-label {
 .tags-modal-list {
     max-height: 280px;
     overflow-y: auto;
-    border: 1px solid var(--glass-border-dark); /* مرز اصلی لیست */
-    border-radius: 12px; /* گوشه‌های گرد برای کادر اصلی */
+    border: 1px solid var(--glass-border-dark);
+    border-radius: 12px;
     padding: 0.75rem;
     margin-bottom: 1.5rem;
 }
@@ -3993,7 +3995,7 @@ body.light-theme .tags-modal-list {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.6rem 0.4rem; /* پدینگ داخلی آیتم‌ها */
+    padding: 0.8rem 0.4rem; /* پدینگ عمودی بیشتر */
 }
 .tag-checkbox-item:not(:last-child) {
     border-bottom: 1px solid var(--glass-border-dark);
@@ -4002,20 +4004,21 @@ body.light-theme .tag-checkbox-item:not(:last-child) {
     border-bottom-color: var(--glass-border-light);
 }
 
-/* --- Wrapper for Name and Toggle Switch --- */
-.tag-name-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-grow: 1;
-}
-.tag-name-wrapper label {
+/* --- چیدمان جدید آیتم‌های لیست --- */
+.tag-checkbox-item .tag-name {
+    margin-right: 1rem; /* فاصله بین کلید و نام تگ */
+    flex-grow: 1; /* نام تگ فضای خالی را پر می‌کند */
     font-weight: bold;
     font-size: 1.1rem;
     cursor: pointer;
 }
+.tag-list-item-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-left: 0.5rem; /* فاصله از لبه چپ */
+}
 
-/* --- Custom Toggle Switch for Modal --- */
+/* --- Custom Toggle Switch --- */
 .modal-toggle-switch {
     position: relative;
     display: inline-block;
@@ -4023,27 +4026,16 @@ body.light-theme .tag-checkbox-item:not(:last-child) {
     height: 28px;
     flex-shrink: 0;
 }
-.modal-toggle-switch .toggle-input {
-    opacity: 0; width: 0; height: 0;
-}
+.modal-toggle-switch .toggle-input { opacity: 0; width: 0; height: 0; }
 .modal-toggle-switch .toggle-label {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
     background-color: rgba(128, 128, 128, 0.4);
-    transition: .4s;
-    border-radius: 28px;
+    transition: .4s; border-radius: 28px;
 }
 .modal-toggle-switch .toggle-label:before {
-    position: absolute;
-    content: "";
-    height: 22px;
-    width: 22px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
+    position: absolute; content: ""; height: 22px; width: 22px;
+    left: 3px; bottom: 3px; background-color: white;
+    transition: .4s; border-radius: 50%;
 }
 .modal-toggle-switch .toggle-input:checked + .toggle-label {
     background-color: var(--primary-color);
@@ -4056,10 +4048,6 @@ body.light-theme .modal-toggle-switch .toggle-input:checked + .toggle-label {
 }
 
 /* --- Action Buttons & Edit Form --- */
-.tag-list-item-actions {
-    display: flex;
-    gap: 0.75rem; /* فاصله بیشتر بین آیکون‌ها */
-}
 .tag-action-btn {
     background: none; border: none; cursor: pointer; padding: 0.4rem;
     display: flex; border-radius: 50%; transition: background-color 0.2s;
@@ -4072,7 +4060,8 @@ body.light-theme .tag-action-btn:hover { background-color: rgba(0,0,0,0.05); }
 .edit-tag-form {
     display: none; flex-grow: 1; gap: 0.5rem;
 }
-.tag-checkbox-item.is-editing .tag-name-wrapper,
+.tag-checkbox-item.is-editing .tag-name,
+.tag-checkbox-item.is-editing .modal-toggle-switch,
 .tag-checkbox-item.is-editing .tag-list-item-actions {
     display: none;
 }
