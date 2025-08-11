@@ -17,23 +17,23 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="journal-cover">فایل کاور (تصویر)</label>
+                        <label>فایل کاور (تصویر)</label>
+                        <input type="file" id="journal-cover" name="coverFile" class="file-upload-input" accept="image/*,.webp" required>
                         <div id="cover-upload-wrapper" class="custom-file-upload">
-                            <input type="file" id="journal-cover" name="coverFile" accept="image/*,.webp" required>
                             <div class="file-upload-buttons">
-                                <button type="button" class="btn btn-secondary file-select-btn">انتخاب فایل</button>
-                                <button type="button" class="btn btn-danger file-clear-btn" title="حذف فایل">حذف فایل</button>
+                                <label for="journal-cover" class="btn btn-secondary file-select-btn">انتخاب فایل</label>
+                                <button type="button" class="btn btn-danger file-clear-btn" title="حذف فایل">حذف</button>
                             </div>
                             <span class="file-name-display">هیچ فایلی انتخاب نشده</span>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="journal-file">فایل نشریه (PDF)</label>
+                        <label>فایل نشریه (PDF)</label>
+                        <input type="file" id="journal-file" name="journalFile" class="file-upload-input" accept=".pdf" required>
                         <div id="pdf-upload-wrapper" class="custom-file-upload">
-                            <input type="file" id="journal-file" name="journalFile" accept=".pdf" required>
                             <div class="file-upload-buttons">
-                                <button type="button" class="btn btn-secondary file-select-btn">انتخاب فایل</button>
-                                <button type="button" class="btn btn-danger file-clear-btn" title="حذف فایل">حذف فایل</button>
+                                <label for="journal-file" class="btn btn-secondary file-select-btn">انتخاب فایل</label>
+                                <button type="button" class="btn btn-danger file-clear-btn" title="حذف فایل">حذف</button>
                             </div>
                             <span class="file-name-display">هیچ فایلی انتخاب نشده</span>
                         </div>
@@ -49,7 +49,14 @@
                 </div>
             </form>
         </div>
+
+        <div class="content-box" style="margin-top: 2rem;">
+            <h3 class="admin-section-subtitle">لیست نشریه‌ها</h3>
+            <div id="journal-admin-list">
+                </div>
+        </div>
     </div>
+
     <div class="guidance-container">
         <div class="content-box">
             <h3 class="admin-section-subtitle">راهنمای آپلود</h3>
@@ -66,10 +73,4 @@
             </div>
         </div>
     </div>
-</div>
-
-<div class="content-box" style="margin-top: 2rem;">
-    <h3 class="admin-section-subtitle">لیست نشریه‌ها</h3>
-    <div id="journal-admin-list">
-        </div>
 </div>

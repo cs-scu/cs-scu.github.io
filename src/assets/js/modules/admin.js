@@ -121,9 +121,11 @@ const initializeJournalModule = () => {
     const adminListContainer = document.getElementById('journal-admin-list');
     
     ['cover', 'pdf'].forEach(type => {
+        // Find elements based on the new structure
+        const input = document.getElementById(`journal-${type}`);
         const wrapper = document.getElementById(`${type}-upload-wrapper`);
-        if (!wrapper) return;
-        const input = wrapper.querySelector('input[type="file"]');
+        if (!input || !wrapper) return;
+        
         const nameDisplay = wrapper.querySelector('.file-name-display');
         const clearBtn = wrapper.querySelector('.file-clear-btn');
 
@@ -146,15 +148,14 @@ const initializeJournalModule = () => {
             }
             updateFileName();
         });
-
-        // --- START: FINAL FIX ---
-        clearBtn.addEventListener('click', (event) => {
-            event.stopPropagation(); // This line prevents the click from reaching the file input below.
+        
+        // The click listener no longer needs to stop propagation
+        clearBtn.addEventListener('click', () => {
             input.value = '';
             updateFileName();
         });
-        // --- END: FINAL FIX ---
 
+        // Drag and Drop logic still applies to the wrapper
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             wrapper.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
         });
