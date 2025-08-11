@@ -60,6 +60,8 @@ const renderJournalList = (issues) => {
                     <tr>
                         <th class="actions-header">عملیات</th>
                         <th>عنوان</th>
+                        <th>تاریخ</th>
+                        <th>خلاصه</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -76,6 +78,8 @@ const renderJournalList = (issues) => {
                                 </button>
                             </td>
                             <td>${issue.title}</td>
+                            <td>${issue.date}</td>
+                            <td class="summary-cell" title="${issue.summary || ''}">${issue.summary || ''}</td>
                         </tr>`).join('')}
                 </tbody>
             </table>
