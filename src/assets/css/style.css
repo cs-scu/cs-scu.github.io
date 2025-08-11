@@ -3563,13 +3563,14 @@ body.light-theme .video-tab-btn:not(.active) img {
     padding-right: 0.5rem;
 }
 
-/* ================== FINAL ADMIN PANEL STYLES (v1.4 - Mobile Optimized) ================== */
+/* ================== FINAL ADMIN PANEL STYLES (v1.5 - Fully Mobile Optimized) ================== */
 
 /* --- Layout & Base --- */
 .admin-panel-body { 
     background-color: var(--background-color-light); 
     color: var(--text-color-light); 
     font-family: 'Vazirmatn', sans-serif;
+    overflow-x: hidden; /* Prevents horizontal scroll on the body */
 }
 body.dark-theme.admin-panel-body { 
     background-color: #001f20; 
@@ -3645,6 +3646,8 @@ body.admin-panel-body .btn-danger:hover { background-color: #bb2d3b; border-colo
 .guidance-content a { font-weight: bold; text-decoration: underline; }
 
 /* ================== MOBILE OPTIMIZATIONS for Admin Panel ================== */
+
+/* --- Medium screens and tablets (up to 992px) --- */
 @media (max-width: 992px) {
     /* Stack form and guidance vertically */
     .form-and-guidance-wrapper {
@@ -3652,10 +3655,11 @@ body.admin-panel-body .btn-danger:hover { background-color: #bb2d3b; border-colo
     }
 }
 
+/* --- Small tablets and large phones (up to 768px) --- */
 @media (max-width: 768px) {
     /* Reduce padding on main content */
     .admin-main-content {
-        padding: 1rem;
+        padding: 1.5rem;
     }
 
     /* Stack form fields for better readability */
@@ -3671,4 +3675,33 @@ body.admin-panel-body .btn-danger:hover { background-color: #bb2d3b; border-colo
     .admin-sidebar { position: fixed; top: 0; right: 0; height: 100%; z-index: 3000; transform: translateX(100%); transition: transform 0.3s ease-in-out; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
     .admin-sidebar.is-open { transform: translateX(0); }
     body.admin-sidebar-is-open::after { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 2999; }
+}
+
+/* --- Small phones (up to 480px) --- */
+@media (max-width: 480px) {
+    .admin-main-content {
+        padding: 1rem; /* Even less padding */
+    }
+
+    .custom-file-upload {
+        flex-direction: column; /* Stack upload elements vertically */
+        align-items: stretch;   /* Make them full-width */
+        gap: 0.75rem;
+    }
+
+    .file-name-display {
+        text-align: center; /* Center the file name */
+        order: 1; /* Show file name first */
+    }
+
+    .file-upload-buttons {
+        order: 2; /* Show buttons after the name */
+        width: 100%;
+        display: flex;
+    }
+    
+    .file-upload-buttons .btn {
+        width: 100%; /* Make buttons full-width inside their container */
+        justify-content: center;
+    }
 }
