@@ -3747,90 +3747,92 @@ body.light-theme .admin-section-subtitle {
     text-overflow: ellipsis;
 }
 
-/* === Advanced File Upload Styles (v1.9 - Final & Stable) === */
-.file-upload-input {
-    display: none; /* Hide the actual file input */
+/* ================== FINAL ADMIN PANEL STYLES (v2.1 - Icon Buttons & Scroll Fix) ================== */
+
+/* --- Layout & Base --- */
+.admin-panel-body {
+    background-color: var(--background-color-light);
+    color: var(--text-color-light);
+    font-family: 'Vazirmatn', sans-serif;
+    overflow-x: hidden;
 }
-.custom-file-upload {
+body.dark-theme.admin-panel-body {
+    background-color: #001f20;
+    color: var(--text-color-dark);
+}
+.admin-container { display: flex; min-height: 100vh; }
+.admin-main-wrapper { display: flex; flex-direction: column; flex-grow: 1; width: 100%; }
+.admin-main-content { flex-grow: 1; padding: 2rem; overflow-y: auto; }
+
+/* ... (Sidebar, Header, Refresh Button styles remain the same) ... */
+
+/* --- Module & Table Styles --- */
+.admin-module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.admin-module-header h2 { margin: 0; }
+.admin-section-subtitle { font-size: 1.3rem; margin-bottom: 1.5rem; border-bottom: 2px solid; padding-bottom: 0.5rem; }
+body.dark-theme .admin-section-subtitle { border-color: var(--glass-border-dark); }
+body.light-theme .admin-section-subtitle { border-color: var(--glass-border-light); }
+
+.custom-table-wrapper {
+    overflow-x: auto; /* This is the key for table scrolling */
+    -webkit-overflow-scrolling: touch;
+}
+.custom-table th, .custom-table td { white-space: nowrap; }
+.custom-table .message-cell { max-width: 400px; overflow: hidden; text-overflow: ellipsis; }
+
+/* START: NEW styles for table action buttons */
+.custom-table .actions-header {
+    text-align: left;
+    padding-left: 1rem;
+}
+.custom-table .actions-cell {
+    text-align: left;
     display: flex;
-    align-items: center;
-    gap: 1rem; /* Space between filename and button */
-    border: 2px dashed;
-    border-radius: 8px;
-    padding: 0.5rem;
-    transition: border-color 0.3s;
+    gap: 0.5rem;
 }
+.actions-cell .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.actions-cell .btn svg {
+    flex-shrink: 0;
+}
+/* END: NEW styles */
+
+
+/* --- Advanced File Upload Styles --- */
+.file-upload-input { display: none; }
+.custom-file-upload { display: flex; align-items: center; gap: 1rem; border: 2px dashed; border-radius: 8px; padding: 0.5rem; transition: border-color 0.3s; overflow: hidden; }
 body.dark-theme .custom-file-upload { border-color: var(--glass-border-dark); }
 body.light-theme .custom-file-upload { border-color: var(--glass-border-light); }
-.custom-file-upload.is-dragging {
-    cursor: pointer;
-}
+.custom-file-upload.is-dragging { cursor: pointer; }
 body.dark-theme .custom-file-upload.is-dragging { border-color: var(--primary-color); background-color: rgba(232, 195, 142, 0.1); }
 body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-color-light-theme); background-color: rgba(26, 92, 93, 0.05); }
 
-.file-name-display {
-    flex: 1; /* Key part: allows this element to grow and shrink */
-    min-width: 0; /* Key part: allows shrinking below content size */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    direction: ltr;
-    text-align: right; /* Changed to right for better RTL feel */
-    opacity: 0.8;
-}
-.file-upload-buttons {
-    flex-shrink: 0; /* Prevents buttons from shrinking */
-}
-.file-upload-buttons .btn,
-.file-upload-buttons .file-select-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-}
-.file-select-btn {
-    cursor: pointer;
-}
+.file-name-display { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: ltr; text-align: left; opacity: 0.8; }
+.custom-file-upload.file-selected .file-name-display { opacity: 1; }
+
+.file-upload-buttons { flex-shrink: 0; }
+.file-upload-buttons .btn, .file-upload-buttons .file-select-btn { padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap; }
+.file-select-btn { cursor: pointer; }
 .file-clear-btn { display: none; }
 .file-select-btn { display: inline-block; }
 .custom-file-upload.file-selected .file-clear-btn { display: inline-block; }
 .custom-file-upload.file-selected .file-select-btn { display: none; }
 
-/* Red color for the delete button */
-.btn-danger {
-    background-color: #dc3545;
-    border-color: #dc3545;
-    color: white;
-}
-.btn-danger:hover {
-    background-color: #bb2d3b;
-    border-color: #b02a37;
-}
+.btn-danger { background-color: #dc3545; border-color: #dc3545; color: white; }
+.btn-danger:hover { background-color: #bb2d3b; border-color: #b02a37; }
 
 /* --- Admin Form Guidance Layout --- */
-.form-and-guidance-wrapper {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-    align-items: flex-start;
-}
-.guidance-content ul {
-    list-style-position: inside;
-    padding-right: 1rem;
-    margin-top: 1rem;
-    line-height: 2;
-}
-.guidance-content ul li {
-    margin-bottom: 0.5rem;
-}
-.guidance-content a {
-    font-weight: bold;
-    text-decoration: underline;
-}
+.form-and-guidance-wrapper { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: flex-start; }
+.guidance-content ul { list-style-position: inside; padding-right: 1rem; margin-top: 1rem; line-height: 2; }
+.guidance-content ul li { margin-bottom: 0.5rem; }
+.guidance-content a { font-weight: bold; text-decoration: underline; }
 
 /* ================== RESPONSIVE OPTIMIZATIONS ================== */
 @media (max-width: 1024px) {
-    .form-and-guidance-wrapper {
-        grid-template-columns: 1fr;
-    }
+    .form-and-guidance-wrapper { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
@@ -3842,12 +3844,24 @@ body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-c
     .admin-sidebar { position: fixed; top: 0; right: 0; height: 100%; z-index: 3000; transform: translateX(100%); transition: transform 0.3s ease-in-out; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
     .admin-sidebar.is-open { transform: translateX(0); }
     body.admin-sidebar-is-open::after { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 2999; }
+
+    /* START: NEW styles for mobile table actions */
+    .actions-cell .btn .btn-text {
+        display: none; /* Hide text on mobile */
+    }
+    .actions-cell .btn {
+        padding: 0.5rem; /* Make it a square */
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+    }
+    /* END: NEW styles */
 }
 
 @media (max-width: 480px) {
     .admin-main-content { padding: 1rem; }
     .custom-file-upload { flex-direction: column; align-items: stretch; gap: 0.75rem; }
-    .file-name-display { text-align: center; order: 2; } /* Name below buttons */
-    .file-upload-buttons { order: 1; width: 100%; display: flex; }
+    .file-name-display { text-align: center; order: 1; }
+    .file-upload-buttons { order: 2; width: 100%; display: flex; }
     .file-upload-buttons .btn { width: 100%; justify-content: center; }
 }
