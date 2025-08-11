@@ -453,7 +453,6 @@ const initializeEventsModule = () => {
         });
     };
     
-    // تابع اصلی برای رندر کردن محتوای مودال یکپارچه
     const renderUnifiedTagsModal = () => {
         const modalContent = document.getElementById('admin-generic-modal-content');
         if (!modalContent) return;
@@ -465,9 +464,9 @@ const initializeEventsModule = () => {
             const isChecked = selectedTagIds.includes(id);
             tagsListHTML += `
                 <div class="tag-checkbox-item" data-tag-id="${id}">
-                    <div class="tag-selector">
-                        <input type="checkbox" id="modal-tag-${id}" value="${id}" ${isChecked ? 'checked' : ''}>
-                        <label for="modal-tag-${id}">${name}</label>
+                    <div class="tag-list-item-actions">
+                        <button class="tag-action-btn edit-tag-btn" title="ویرایش"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                        <button class="tag-action-btn delete-tag-btn" title="حذف"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
                     </div>
                     
                     <div class="edit-tag-form">
@@ -476,9 +475,12 @@ const initializeEventsModule = () => {
                         <button type="button" class="btn btn-secondary btn-sm cancel-edit-btn">لغو</button>
                     </div>
 
-                    <div class="tag-list-item-actions">
-                        <button class="tag-action-btn edit-tag-btn" title="ویرایش"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-                        <button class="tag-action-btn delete-tag-btn" title="حذف"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                    <div class="tag-name-wrapper">
+                        <label for="modal-tag-${id}">${name}</label>
+                        <div class="modal-toggle-switch">
+                            <input type="checkbox" class="toggle-input" id="modal-tag-${id}" value="${id}" ${isChecked ? 'checked' : ''}>
+                            <label for="modal-tag-${id}" class="toggle-label"></label>
+                        </div>
                     </div>
                 </div>`;
         });
@@ -499,7 +501,6 @@ const initializeEventsModule = () => {
         document.getElementById('admin-generic-modal').classList.add('is-open');
     };
 
-    // مدیریت تمام رویدادهای داخل مودال
     document.getElementById('admin-generic-modal').addEventListener('click', async (e) => {
         const modal = document.getElementById('admin-generic-modal');
         if (e.target === modal || e.target.closest('.close-modal')) {
