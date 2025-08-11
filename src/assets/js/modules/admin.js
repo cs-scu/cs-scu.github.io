@@ -424,12 +424,12 @@ const initializeEventsModule = () => {
     const cancelBtn = document.getElementById('cancel-edit-btn');
     const hiddenIdInput = document.getElementById('event-id');
     const adminListContainer = document.getElementById('events-admin-list');
-
-    // --- START: NEW LOGIC FOR TOGGLE SWITCHES ---
+    
     const locationInput = document.getElementById('event-location');
     const locationToggle = document.getElementById('toggle-location-online');
     const costInput = document.getElementById('event-cost');
     const costToggle = document.getElementById('toggle-cost-free');
+    const detailPageInput = document.getElementById('event-detail-page');
 
     const setupToggleSwitch = (input, toggle, value) => {
         toggle.addEventListener('change', () => {
@@ -446,7 +446,23 @@ const initializeEventsModule = () => {
 
     setupToggleSwitch(locationInput, locationToggle, 'آنلاین');
     setupToggleSwitch(costInput, costToggle, 'رایگان');
-    // --- END: NEW LOGIC FOR TOGGLE SWITCHES ---
+    
+    // --- START: NEW LOGIC FOR SMART SLUG ---
+    detailPageInput.addEventListener('blur', () => {
+        const isEditing = hiddenIdInput.value;
+        if (isEditing) return; // Only run for new events
+
+        let slug = detailPageInput.value.trim();
+        if (slug && !slug.startsWith('#/events/')) {
+            slug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            
+            const maxId = state.allEvents.reduce((max, event) => Math.max(max, event.id), 0);
+            const newId = maxId + 1;
+            
+            detailPageInput.value = `#/events/${newId}-${slug}`;
+        }
+    });
+    // --- END: NEW LOGIC FOR SMART SLUG ---
 
     const safeJsonStringify = (obj, indent = 2) => {
         try {
@@ -468,7 +484,6 @@ const initializeEventsModule = () => {
         submitBtn.textContent = 'افزودن رویداد';
         cancelBtn.style.display = 'none';
         
-        // Reset toggle switches and inputs
         locationInput.disabled = false;
         locationToggle.checked = false;
         costInput.disabled = false;
@@ -577,7 +592,12 @@ const initializeEventsModule = () => {
             document.getElementById('event-start-date').value = eventToEdit.startDate || '';
             document.getElementById('event-end-date').value = eventToEdit.endDate || '';
             document.getElementById('event-image-url').value = eventToEdit.image || '';
-            document.getElementById('event-detail-page').value = eventToEdit.detailPage || '';
+            
+            // --- START: PARSE SLUG ON EDIT ---
+            const detailPageValue = eventToEdit.detailPage || '';
+            const slugMatch = detailPageValue.match(/#\/events\/\d+-(.*)/);
+            document.getElementById('event-detail-page').value = slugMatch ? slugMatch[1] : detailPageValue;
+            // --- END: PARSE SLUG ON EDIT ---
             
             if (eventToEdit.location === 'آنلاین') {
                 locationToggle.checked = true;
@@ -706,11 +726,11 @@ const loadAdminPage = async (path) => {
     const response = await fetch(route.html);
     const pageHtml = await response.text();
     
-    const data = await route.loader();
+    await route.loader(); // Load data before rendering
     
     mainContent.innerHTML = pageHtml;
 
-    route.renderer(data);
+    route.renderer(state[route.loader.name.replace('load', 'all').toLowerCase()]); // Pass correct data
     
     if (route.initializer) {
         route.initializer();

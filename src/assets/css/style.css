@@ -3867,67 +3867,81 @@ body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-c
     .file-upload-buttons .btn { width: 100%; justify-content: center; }
 }
 
-/* ================== ADMIN PANEL FORM IMPROVEMENTS ================== */
+/* ================== ADMIN PANEL FORM IMPROVEMENTS V2 ================== */
 .admin-main-content .form-row {
-    gap: 1.5rem; /* Increase gap between columns in a row */
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    gap: 1.5rem;
+    margin-bottom: 1rem; /* Add space between rows */
 }
 .admin-main-content .form-group {
-    margin-bottom: 1rem; /* Add space below each form group */
+    flex: 1 1 200px; /* Allow items to grow and shrink */
+    min-width: 200px; /* Minimum width for form groups */
 }
 
-/* --- Input with Toggle Switch --- */
+/* --- Input with Toggle Switch Wrapper --- */
 .input-with-toggle {
     display: flex;
     align-items: center;
     gap: 1rem;
+    width: 100%;
 }
 .input-with-toggle input[type="text"] {
     flex-grow: 1;
 }
 
 /* --- Modern Toggle Switch Style --- */
-.toggle-switch {
+.toggle-switch-wrapper {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-}
-.toggle-input {
-    height: 0;
-    width: 0;
-    visibility: hidden;
-}
-.toggle-label {
-    cursor: pointer;
-    text-indent: -9999px;
-    width: 50px;
-    height: 28px;
-    background: grey;
-    display: block;
-    border-radius: 100px;
-    position: relative;
+    gap: 0.75rem;
     flex-shrink: 0;
 }
-.toggle-label:after {
-    content: '';
+.toggle-label-text {
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    user-select: none;
+}
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+.toggle-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.toggle-label {
     position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 22px;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 28px;
+}
+.toggle-label:before {
+    position: absolute;
+    content: "";
     height: 22px;
-    background: #fff;
-    border-radius: 90px;
-    transition: 0.3s;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
 }
 .toggle-input:checked + .toggle-label {
-    background: var(--primary-color-light-theme);
+    background-color: var(--primary-color-light-theme);
 }
 body.dark-theme .toggle-input:checked + .toggle-label {
-    background: var(--primary-color);
+    background-color: var(--primary-color);
 }
-.toggle-input:checked + .toggle-label:after {
-    left: calc(100% - 3px);
-    transform: translateX(-100%);
-}
-.toggle-label:active:after {
-    width: 30px;
+.toggle-input:checked + .toggle-label:before {
+    transform: translateX(22px);
 }

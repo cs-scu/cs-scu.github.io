@@ -16,9 +16,12 @@
                 <label for="event-location">مکان</label>
                 <div class="input-with-toggle">
                     <input type="text" id="event-location" name="location" placeholder="مکان برگزاری حضوری...">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="toggle-location-online" class="toggle-input">
-                        <label for="toggle-location-online" class="toggle-label">آنلاین</label>
+                    <div class="toggle-switch-wrapper">
+                        <label for="toggle-location-online" class="toggle-label-text">آنلاین</label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="toggle-location-online" class="toggle-input">
+                            <label for="toggle-location-online" class="toggle-label"></label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -26,9 +29,12 @@
                 <label for="event-cost">هزینه</label>
                 <div class="input-with-toggle">
                     <input type="text" id="event-cost" name="cost" placeholder="مثال: ۲۰,۰۰۰ تومان">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="toggle-cost-free" class="toggle-input">
-                        <label for="toggle-cost-free" class="toggle-label">رایگان</label>
+                    <div class="toggle-switch-wrapper">
+                        <label for="toggle-cost-free" class="toggle-label-text">رایگان</label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="toggle-cost-free" class="toggle-input">
+                            <label for="toggle-cost-free" class="toggle-label"></label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -42,7 +48,11 @@
 
         <div class="form-row">
             <div class="form-group" style="flex: 2;"><label for="event-image-url">آدرس URL تصویر</label><input type="url" id="event-image-url" name="image" placeholder="https://example.com/image.jpg" required></div>
-            <div class="form-group" style="flex: 1;"><label for="event-detail-page">شناسه صفحه جزئیات</label><input type="text" id="event-detail-page" name="detailPage" placeholder="مثال: #/events/my-event-name" required></div>
+            <div class="form-group" style="flex: 1;">
+                <label for="event-detail-page">شناسه صفحه جزئیات</label>
+                <input type="text" id="event-detail-page" name="detailPage" placeholder="مثال: linux-essentials" required>
+                <small class="form-note" style="display: block; margin-top: 0.5rem; opacity: 0.8;">فقط نامک را وارد کنید. شناسه کامل به صورت خودکار ساخته می‌شود.</small>
+            </div>
         </div>
 
         <div class="form-group"><label for="event-tags">تگ‌ها (فرمت JSON)</label><textarea id="event-tags" name="tags" rows="2" placeholder='[["دوره آموزشی", "#10b981"], ["Linux", "#facc15"]]'></textarea></div>
