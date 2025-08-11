@@ -453,68 +453,51 @@ const initializeEventsModule = () => {
         });
     };
     
-    const renderTagsModalContent = (view = 'select') => {
+    // تابع اصلی برای رندر کردن محتوای مودال یکپارچه
+    const renderUnifiedTagsModal = () => {
         const modalContent = document.getElementById('admin-generic-modal-content');
         if (!modalContent) return;
         
         const sortedTags = Array.from(state.tagsMap.entries()).sort((a, b) => a[1].localeCompare(b[1], 'fa'));
 
-        if (view === 'select') {
-            let tagsHTML = '';
-            sortedTags.forEach(([id, name]) => {
-                const isChecked = selectedTagIds.includes(id);
-                tagsHTML += `<div class="tag-checkbox-item">
+        let tagsListHTML = '';
+        sortedTags.forEach(([id, name]) => {
+            const isChecked = selectedTagIds.includes(id);
+            tagsListHTML += `
+                <div class="tag-checkbox-item" data-tag-id="${id}">
                     <input type="checkbox" id="modal-tag-${id}" value="${id}" ${isChecked ? 'checked' : ''}>
                     <label for="modal-tag-${id}">${name}</label>
-                </div>`;
-            });
+                    
+                    <div class="edit-tag-form">
+                        <input type="text" class="form-control" value="${name}">
+                        <button type="button" class="btn btn-primary btn-sm save-edit-btn">ذخیره</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit-btn">لغو</button>
+                    </div>
 
-            modalContent.innerHTML = `
-                <div class="tags-modal-container">
-                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h3>انتخاب تگ‌ها</h3>
-                        <button type="button" class="btn btn-secondary btn-sm" id="manage-tags-inline-btn">مدیریت تگ‌ها</button>
-                    </div>
-                    <div class="tags-modal-list">${tagsHTML || '<p>تگی یافت نشد.</p>'}</div>
-                    <div class="tags-modal-actions">
-                        <button type="button" class="btn btn-primary" id="confirm-tags-btn">تایید انتخاب</button>
+                    <div class="tag-list-item-actions">
+                        <button class="tag-action-btn edit-tag-btn" title="ویرایش"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                        <button class="tag-action-btn delete-tag-btn" title="حذف"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
                     </div>
                 </div>`;
-
-        } else if (view === 'manage') {
-            let tagsListHTML = '';
-            sortedTags.forEach(([id, name]) => {
-                tagsListHTML += `
-                    <div class="tag-list-item" data-tag-id="${id}">
-                        <span class="tag-name">${name}</span>
-                        <div class="edit-tag-form">
-                            <input type="text" class="form-control" value="${name}">
-                            <button type="button" class="btn btn-primary btn-sm save-edit-btn">ذخیره</button>
-                            <button type="button" class="btn btn-secondary btn-sm cancel-edit-btn">لغو</button>
-                        </div>
-                        <div class="tag-actions">
-                            <button class="tag-action-btn edit-tag-btn" title="ویرایش"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-                            <button class="tag-action-btn delete-tag-btn" title="حذف"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
-                        </div>
-                    </div>`;
-            });
-            modalContent.innerHTML = `
-                <div class="tags-modal-container">
-                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h3>مدیریت تگ‌ها</h3>
-                        <button type="button" class="btn btn-secondary btn-sm" id="select-tags-inline-btn">بازگشت به انتخاب</button>
-                    </div>
-                    <form class="add-tag-form"><input type="text" id="new-tag-name" class="form-control" placeholder="نام تگ جدید..."><button type="submit" id="add-tag-btn" class="btn btn-primary">افزودن</button></form>
-                    <div class="tags-modal-list">${tagsListHTML}</div>
-                </div>`;
-        }
+        });
+        
+        modalContent.innerHTML = `
+            <div class="tags-modal-container">
+                <h3>مدیریت و انتخاب تگ‌ها</h3>
+                <form class="add-tag-form"><input type="text" id="new-tag-name" class="form-control" placeholder="افزودن تگ جدید..."><button type="submit" id="add-tag-btn" class="btn btn-primary">افزودن</button></form>
+                <div class="tags-modal-list">${tagsListHTML || '<p style="text-align:center; opacity:0.8; padding: 1rem;">تگی یافت نشد.</p>'}</div>
+                <div class="tags-modal-actions">
+                    <button type="button" class="btn btn-primary" id="confirm-tags-btn">تایید انتخاب</button>
+                </div>
+            </div>`;
     };
 
     const openTagsModal = () => {
-        renderTagsModalContent('select');
+        renderUnifiedTagsModal();
         document.getElementById('admin-generic-modal').classList.add('is-open');
     };
 
+    // مدیریت تمام رویدادهای داخل مودال
     document.getElementById('admin-generic-modal').addEventListener('click', async (e) => {
         const modal = document.getElementById('admin-generic-modal');
         if (e.target === modal || e.target.closest('.close-modal')) {
@@ -526,12 +509,10 @@ const initializeEventsModule = () => {
             updateSelectedTagsDisplay();
             modal.classList.remove('is-open');
         }
-        if (e.target.id === 'manage-tags-inline-btn') renderTagsModalContent('manage');
-        if (e.target.id === 'select-tags-inline-btn') renderTagsModalContent('select');
         
         const deleteBtn = e.target.closest('.delete-tag-btn');
         if (deleteBtn) {
-            const item = deleteBtn.closest('.tag-list-item');
+            const item = deleteBtn.closest('.tag-checkbox-item');
             const tagId = parseInt(item.dataset.tagId, 10);
             const tagName = state.tagsMap.get(tagId);
             if (confirm(`آیا از حذف تگ «${tagName}» مطمئن هستید؟ این تگ از تمام رویدادها نیز حذف خواهد شد.`)) {
@@ -540,32 +521,32 @@ const initializeEventsModule = () => {
                     state.tagsMap.delete(tagId);
                     selectedTagIds = selectedTagIds.filter(id => id !== tagId);
                     updateSelectedTagsDisplay();
-                    renderTagsModalContent('manage');
+                    renderUnifiedTagsModal();
                 } catch (error) { alert('خطا در حذف تگ.'); }
             }
         }
 
         const editBtn = e.target.closest('.edit-tag-btn');
         if (editBtn) {
-            const item = editBtn.closest('.tag-list-item');
+            const item = editBtn.closest('.tag-checkbox-item');
             item.classList.add('is-editing');
         }
 
         const cancelEditBtn = e.target.closest('.edit-tag-form .cancel-edit-btn');
         if (cancelEditBtn) {
-            cancelEditBtn.closest('.tag-list-item').classList.remove('is-editing');
+            cancelEditBtn.closest('.tag-checkbox-item').classList.remove('is-editing');
         }
 
         const saveBtn = e.target.closest('.save-edit-btn');
         if (saveBtn) {
-            const item = saveBtn.closest('.tag-list-item');
+            const item = saveBtn.closest('.tag-checkbox-item');
             const tagId = parseInt(item.dataset.tagId, 10);
             const newName = item.querySelector('input').value.trim();
             if (newName && newName !== state.tagsMap.get(tagId)) {
                 try {
                     const updatedTag = await updateTag(tagId, newName);
                     state.tagsMap.set(updatedTag.id, updatedTag.name);
-                    renderTagsModalContent('manage');
+                    renderUnifiedTagsModal();
                 } catch { alert('خطا در ویرایش تگ.'); }
             } else {
                 item.classList.remove('is-editing');
@@ -582,7 +563,7 @@ const initializeEventsModule = () => {
             try {
                 const newTag = await addTag(newName);
                 state.tagsMap.set(newTag.id, newTag.name);
-                renderTagsModalContent('manage');
+                renderUnifiedTagsModal();
             } catch { alert('خطا در افزودن تگ.'); }
         }
     });
