@@ -1,7 +1,7 @@
 // src/assets/js/modules/admin.js
 
 import { state } from './state.js';
-import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags } from './api.js';
+import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags, addTag, updateTag, deleteTag, uploadEventImage, deleteEventImage } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
 
 // --- توابع کمکی ---
@@ -420,12 +420,20 @@ const initializeEventsModule = () => {
     if (!eventForm) return;
 
     let selectedTagIds = [];
+    let currentImageUrl = ''; // متغیری برای نگهداری URL تصویر فعلی هنگام ویرایش
 
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
     const cancelBtn = document.getElementById('cancel-edit-btn');
     const hiddenIdInput = document.getElementById('event-id');
     const adminListContainer = document.getElementById('events-admin-list');
+    
+    // المان‌های جدید برای آپلود تصویر
+    const imageUploadInput = document.getElementById('event-image-upload');
+    const imagePreviewContainer = document.getElementById('event-image-preview');
+    const imagePreviewImg = imagePreviewContainer.querySelector('img');
+    const fileNameDisplay = document.querySelector('.image-upload-controls .file-name-display');
+    const fileClearBtn = document.querySelector('.image-upload-controls .file-clear-btn');
     
     const locationInput = document.getElementById('event-location');
     const locationToggle = document.getElementById('toggle-location-online');
@@ -434,18 +442,42 @@ const initializeEventsModule = () => {
     const detailPageInput = document.getElementById('event-detail-page');
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
-    const paymentInfoSection = document.getElementById('payment-info-section'); // <-- انتخاب بخش پرداخت
+    const paymentInfoSection = document.getElementById('payment-info-section');
 
-    // **START: منطق جدید برای کنترل نمایش فیلدهای پرداخت**
     const togglePaymentFields = () => {
         if (!paymentInfoSection || !costToggle) return;
-        // اگر تیک "رایگان" زده شده باشد، بخش پرداخت مخفی می‌شود
         paymentInfoSection.style.display = costToggle.checked ? 'none' : 'block';
     };
-
     costToggle.addEventListener('change', togglePaymentFields);
-    // **END: منطق جدید**
 
+    const updateImagePreview = (src = '') => {
+        if (src) {
+            imagePreviewImg.src = src;
+            imagePreviewImg.style.display = 'block';
+        } else {
+            imagePreviewImg.src = '';
+            imagePreviewImg.style.display = 'none';
+        }
+    };
+
+    imageUploadInput.addEventListener('change', () => {
+        const file = imageUploadInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => updateImagePreview(e.target.result);
+            reader.readAsDataURL(file);
+            fileNameDisplay.textContent = file.name;
+            fileClearBtn.style.display = 'inline-block';
+        }
+    });
+
+    fileClearBtn.addEventListener('click', () => {
+        imageUploadInput.value = '';
+        updateImagePreview(currentImageUrl);
+        fileNameDisplay.textContent = 'فایلی انتخاب نشده';
+        fileClearBtn.style.display = 'none';
+    });
+    
     const updateSelectedTagsDisplay = () => {
         if (!selectedTagsDisplay) return;
         if (selectedTagIds.length === 0) {
@@ -618,6 +650,12 @@ const initializeEventsModule = () => {
     const resetForm = () => {
         eventForm.reset();
         hiddenIdInput.value = '';
+        currentImageUrl = '';
+        updateImagePreview();
+        fileNameDisplay.textContent = 'فایلی انتخاب نشده';
+        fileClearBtn.style.display = 'none';
+        imageUploadInput.required = true;
+
         formTitle.textContent = 'درج رویداد جدید';
         submitBtn.textContent = 'افزودن رویداد';
         cancelBtn.style.display = 'none';
@@ -625,7 +663,7 @@ const initializeEventsModule = () => {
         costInput.disabled = false;
         selectedTagIds = [];
         updateSelectedTagsDisplay();
-        togglePaymentFields(); // **فراخوانی در ریست فرم**
+        togglePaymentFields();
         eventForm.scrollIntoView({ behavior: 'smooth' });
     };
 
@@ -637,9 +675,23 @@ const initializeEventsModule = () => {
         
         hideStatus(statusBox);
         submitBtn.disabled = true;
-        submitBtn.textContent = isEditing ? 'در حال ویرایش...' : 'در حال افزودن...';
+        submitBtn.textContent = isEditing ? 'در حال آپلود و ویرایش...' : 'در حال آپلود و افزودن...';
 
         try {
+            let imageUrl = currentImageUrl;
+            const imageFile = imageUploadInput.files[0];
+
+            if (imageFile) {
+                if (isEditing && currentImageUrl) {
+                    await deleteEventImage(currentImageUrl);
+                }
+                imageUrl = await uploadEventImage(imageFile);
+            }
+            
+            if (!imageUrl) {
+                throw new Error("تصویر رویداد الزامی است.");
+            }
+
             const parseJsonField = (fieldName) => {
                 const value = formData.get(fieldName);
                 try { return value ? JSON.parse(value) : null; }
@@ -654,7 +706,7 @@ const initializeEventsModule = () => {
                 displayDate: formData.get('displayDate'),
                 startDate: formData.get('startDate'),
                 endDate: formData.get('endDate'),
-                image: formData.get('image'),
+                image: imageUrl,
                 detailPage: formData.get('detailPage'),
                 tag_ids: selectedTagIds,
                 content: parseJsonField('content'),
@@ -696,12 +748,16 @@ const initializeEventsModule = () => {
             resetForm();
 
             hiddenIdInput.value = eventToEdit.id;
+            
+            currentImageUrl = eventToEdit.image || '';
+            updateImagePreview(currentImageUrl);
+            imageUploadInput.required = false;
+
             document.getElementById('event-title').value = eventToEdit.title || '';
             document.getElementById('event-summary').value = eventToEdit.summary || '';
             document.getElementById('event-display-date').value = eventToEdit.displayDate || '';
             document.getElementById('event-start-date').value = eventToEdit.startDate || '';
             document.getElementById('event-end-date').value = eventToEdit.endDate || '';
-            document.getElementById('event-image-url').value = eventToEdit.image || '';
             document.getElementById('event-detail-page').value = eventToEdit.detailPage || '';
             
             locationInput.value = eventToEdit.location || '';
@@ -711,7 +767,7 @@ const initializeEventsModule = () => {
             costInput.value = eventToEdit.cost || '';
             costToggle.checked = eventToEdit.cost === 'رایگان';
             costToggle.dispatchEvent(new Event('change'));
-            togglePaymentFields(); // **فراخوانی هنگام ویرایش**
+            togglePaymentFields();
             
             selectedTagIds = eventToEdit.tag_ids || [];
             updateSelectedTagsDisplay();
@@ -735,16 +791,27 @@ const initializeEventsModule = () => {
         const deleteBtn = event.target.closest('.delete-event-btn');
         if (deleteBtn) {
             const id = deleteBtn.dataset.id;
-            if (confirm('آیا از حذف این رویداد مطمئن هستید؟')) {
-                deleteBtn.disabled = true;
-                await deleteEvent(id);
-                state.allEvents = state.allEvents.filter(e => e.id != id);
-                renderEventsList(state.allEvents);
+            const eventToDelete = state.allEvents.find(e => e.id == id);
+            if (!eventToDelete) return;
+
+            if (confirm('آیا از حذف این رویداد مطمئن هستید؟ تصویر آن نیز حذف خواهد شد.')) {
+                try {
+                    deleteBtn.disabled = true;
+                    if (eventToDelete.image) {
+                        await deleteEventImage(eventToDelete.image);
+                    }
+                    await deleteEvent(id);
+                    state.allEvents = state.allEvents.filter(e => e.id != id);
+                    renderEventsList(state.allEvents);
+                } catch (error) {
+                    alert('خطا در حذف رویداد.');
+                    deleteBtn.disabled = false;
+                }
             }
         }
     });
 
-    togglePaymentFields(); // **فراخوانی اولیه هنگام بارگذاری ماژول**
+    togglePaymentFields();
 };
 
 const initializeAdminLayout = () => {

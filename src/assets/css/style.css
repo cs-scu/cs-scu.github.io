@@ -3894,7 +3894,7 @@ body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-c
 /* --- Input with Toggle Switch Wrapper --- */
 .input-with-toggle {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: 1rem;
     width: 100%;
 }
@@ -4172,4 +4172,56 @@ body.light-theme .toggle-input:checked + .toggle-label {
 }
 .toggle-input:checked + .toggle-label:before {
     transform: translateX(28px);
+}
+
+/* ================== Styles for Image Upload Component ================== */
+.image-upload-wrapper {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+.image-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    border: 2px dashed var(--glass-border-dark);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+body.light-theme .image-preview {
+    border-color: var(--glass-border-light);
+}
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.image-preview .preview-text {
+    font-size: 0.9rem;
+    opacity: 0.6;
+}
+.image-preview img ~ .preview-text {
+    display: none;
+}
+
+.image-upload-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+    flex-grow: 1;
+}
+.image-upload-controls .file-name-display {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    direction: ltr;
+    text-align: left;
+    background-color: rgba(128,128,128,0.1);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    width: 100%;
 }

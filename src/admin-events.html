@@ -47,11 +47,28 @@
         </div>
 
         <div class="form-row">
-            <div class="form-group" style="flex: 2;"><label for="event-image-url">آدرس URL تصویر</label><input type="url" id="event-image-url" name="image" placeholder="https://example.com/image.jpg" required></div>
+            <div class="form-group" style="flex: 2;">
+                <label>تصویر رویداد</label>
+                <div class="image-upload-wrapper">
+                    <div class="image-preview" id="event-image-preview">
+                        <img src="" alt="پیش‌نمایش تصویر" style="display: none;">
+                        <span class="preview-text">پیش‌نمایش</span>
+                    </div>
+                    <div class="image-upload-controls">
+                        <input type="file" id="event-image-upload" name="imageFile" class="file-upload-input" accept="image/jpeg, image/png, image/webp">
+                        <label for="event-image-upload" class="btn btn-secondary file-select-btn">انتخاب تصویر</label>
+                        <button type="button" class="btn btn-danger file-clear-btn" style="display: none;">حذف</button>
+                        <span class="file-name-display">فایلی انتخاب نشده</span>
+                    </div>
+                </div>
+                <small class="form-note" style="display: block; margin-top: 0.5rem; opacity: 0.8;">
+                    در حالت ویرایش، فقط در صورتی تصویر جدید انتخاب کنید که قصد تغییر آن را دارید.
+                </small>
+            </div>
             <div class="form-group" style="flex: 1;">
                 <label for="event-detail-page">شناسه صفحه جزئیات</label>
                 <input type="text" id="event-detail-page" name="detailPage" placeholder="مثال: linux-essentials" required>
-                <small class="form-note" style="display: block; margin-top: 0.5rem; opacity: 0.8;">فقط نامک را وارد کنید. شناسه کامل به صورت خودکار ساخته می‌شود.</small>
+                <small class="form-note" style="display: block; margin-top: 0.5rem; opacity: 0.8;">فقط نامک را وارد کنید.</small>
             </div>
         </div>
 

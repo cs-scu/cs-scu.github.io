@@ -520,3 +520,39 @@ export const deleteEvent = async (id) => {
         return { error };
     }
 };
+export const uploadEventImage = async (file) => {
+    if (!file) return null;
+    const extension = file.name.split('.').pop();
+    const fileName = `events/event-${Date.now()}.${extension}`;
+
+    try {
+        const { error: uploadError } = await supabaseClient.storage
+            .from('assets')
+            .upload(fileName, file, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabaseClient.storage
+            .from('assets')
+            .getPublicUrl(fileName);
+        
+        return data.publicUrl;
+    } catch (error) {
+        console.error('Error uploading event image:', error);
+        throw error;
+    }
+};
+
+export const deleteEventImage = async (imageUrl) => {
+    if (!imageUrl) return;
+    try {
+        const urlParts = imageUrl.split('/assets/');
+        const filePath = urlParts[1];
+        if (filePath) {
+            await supabaseClient.storage.from('assets').remove([filePath]);
+        }
+    } catch (error) {
+        // Log error but don't throw, as failing to delete an old image shouldn't stop the whole process
+        console.error('Failed to delete old event image:', error.message);
+    }
+};
