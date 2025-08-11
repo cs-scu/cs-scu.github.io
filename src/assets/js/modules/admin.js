@@ -694,18 +694,28 @@ const initializeEventsModule = () => {
         try {
             let imageUrl = currentImageUrl;
             const imageFile = imageUploadInput.files[0];
+            const newDetailPageValue = formData.get('detailPage') || '';
+            const newSlug = newDetailPageValue.split('/').pop();
 
+            // اگر فایل جدیدی انتخاب شده بود، آن را آپلود کن
             if (imageFile) {
                 if (isEditing && currentImageUrl) {
                     await deleteEventImage(currentImageUrl);
                 }
-                
-                // **START: این سه خط را اینجا اضافه کن**
-                const detailPageValue = formData.get('detailPage') || '';
-                const eventSlug = detailPageValue.split('/').pop(); // اسلاگ را از انتهای آدرس استخراج می‌کند
-                imageUrl = await uploadEventImage(imageFile, eventSlug); // اسلاگ را به تابع ارسال می‌کند
-                // **END: تغییر**
+                imageUrl = await uploadEventImage(imageFile, newSlug);
+            
+            // **START: منطق جدید برای تغییر نام فایل هنگام تغییر اسلاگ**
+            } else if (isEditing && currentImageUrl) {
+                const oldFileName = currentImageUrl.split('/').pop();
+                const oldSlugMatch = oldFileName.match(/ev-(.*)-\d{14}/);
+                const oldSlug = oldSlugMatch ? oldSlugMatch[1] : null;
+
+                // اگر اسلاگ تغییر کرده بود، نام فایل را هم تغییر بده
+                if (oldSlug && newSlug !== oldSlug) {
+                    imageUrl = await renameEventImage(currentImageUrl, newSlug);
+                }
             }
+            // **END: منطق جدید**
             
             if (!imageUrl) {
                 throw new Error("تصویر رویداد الزامی است.");
@@ -726,7 +736,7 @@ const initializeEventsModule = () => {
                 startDate: formData.get('startDate'),
                 endDate: formData.get('endDate'),
                 image: imageUrl,
-                detailPage: formData.get('detailPage'),
+                detailPage: newDetailPageValue, // استفاده از مقدار جدید
                 tag_ids: selectedTagIds,
                 content: parseJsonField('content'),
                 schedule: parseJsonField('schedule'),

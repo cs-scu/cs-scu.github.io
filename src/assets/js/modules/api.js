@@ -565,3 +565,44 @@ export const deleteEventImage = async (imageUrl) => {
         console.error('Failed to delete old event image:', error.message);
     }
 };
+
+
+export const renameEventImage = async (oldImageUrl, newSlug) => {
+    if (!oldImageUrl || !newSlug) return oldImageUrl;
+
+    try {
+        const urlParts = oldImageUrl.split('/event-assets/');
+        const oldFilePath = urlParts[1];
+        if (!oldFilePath) return oldImageUrl;
+
+        // استخراج نام فایل قدیمی و ساختن نام جدید
+        const oldFileName = oldFilePath.split('/').pop();
+        const extension = oldFileName.split('.').pop();
+        const timestamp = oldFileName.match(/(\d{14})/)[0]; // پیدا کردن بخش تاریخ ۱۴ رقمی
+        const newFileName = `covers/ev-${newSlug}-${timestamp}.${extension}`;
+        const newFilePath = `covers/ev-${newSlug}-${timestamp}.${extension}`;
+
+        // اگر نام جدید با نام قدیم یکی بود، کاری انجام نده
+        if (oldFilePath === newFilePath) {
+            return oldImageUrl;
+        }
+
+        // تغییر نام فایل در استوریج
+        const { error: moveError } = await supabaseClient.storage
+            .from('event-assets')
+            .move(oldFilePath, newFilePath);
+
+        if (moveError) throw moveError;
+
+        // دریافت URL عمومی جدید
+        const { data } = supabaseClient.storage
+            .from('event-assets')
+            .getPublicUrl(newFilePath);
+        
+        return data.publicUrl;
+    } catch (error) {
+        console.error('Error renaming event image:', error);
+        // در صورت بروز خطا، همان URL قدیمی را برمی‌گردانیم تا لینک نشکند
+        return oldImageUrl;
+    }
+};
