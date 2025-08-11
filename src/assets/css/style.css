@@ -4174,54 +4174,38 @@ body.light-theme .toggle-input:checked + .toggle-label {
     transform: translateX(28px);
 }
 
-/* ================== Styles for Image Upload Component ================== */
+/* ================== Styles for Image Upload Component v2.0 (No Preview) ================== */
 .image-upload-wrapper {
     display: flex;
     gap: 1rem;
-    align-items: flex-start;
+    align-items: center; /* آیتم‌ها را در مرکز تراز می‌کند */
 }
 .image-preview {
-    width: 120px;
-    height: 120px;
-    border-radius: 12px;
-    border: 2px dashed var(--glass-border-dark);
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    position: relative;
-}
-body.light-theme .image-preview {
-    border-color: var(--glass-border-light);
-}
-.image-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.image-preview .preview-text {
-    font-size: 0.9rem;
-    opacity: 0.6;
-}
-.image-preview img ~ .preview-text {
-    display: none;
+    display: none; /* مخفی کردن کامل بخش پیش‌نمایش */
 }
 
 .image-upload-controls {
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* چیدمان افقی */
     gap: 0.75rem;
-    align-items: flex-start;
+    align-items: center; /* تراز عمودی آیتم‌ها */
     flex-grow: 1;
+    border: 2px dashed var(--glass-border-dark);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
 }
+body.light-theme .image-upload-controls {
+    border-color: var(--glass-border-light);
+}
+
 .image-upload-controls .file-name-display {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     opacity: 0.8;
     direction: ltr;
     text-align: left;
-    background-color: rgba(128,128,128,0.1);
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    width: 100%;
+    flex-grow: 1; /* نام فایل فضای خالی را پر می‌کند */
+}
+.image-upload-controls .file-select-btn,
+.image-upload-controls .file-clear-btn {
+    flex-shrink: 0; /* جلوگیری از کوچک شدن دکمه‌ها */
 }
