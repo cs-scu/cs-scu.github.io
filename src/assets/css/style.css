@@ -3902,63 +3902,53 @@ body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-c
     flex-grow: 1;
 }
 
-/* --- Modern Toggle Switch Style --- */
-.toggle-switch-wrapper {
+/* ================== Styles for Final Polished Tags Modal v3.4 (Mobile Responsive) ================== */
+
+/* --- Tag Display Box on Main Form --- */
+.tags-selection-area {
     display: flex;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+    border: 1px solid var(--glass-border-dark);
+    border-radius: 50px;
+    overflow: hidden;
+    transition: background-color 0.2s;
+}
+body.light-theme .tags-selection-area {
+    border-color: var(--glass-border-light);
+}
+body.dark-theme .tags-selection-area:hover { background-color: rgba(255, 255, 255, 0.05); }
+body.light-theme .tags-selection-area:hover { background-color: rgba(0, 0, 0, 0.03); }
+
+.selected-tags-display {
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    padding: 0.75rem 1rem;
     align-items: center;
-    gap: 0.75rem;
+}
+.selected-tags-display .tag {
+    font-size: 0.85rem;
+    padding: 0.25rem 0.8rem;
+}
+#open-tags-modal-btn {
+    border-radius: 0 !important;
+    border: none !important;
+    border-right: 1px solid var(--glass-border-dark) !important;
     flex-shrink: 0;
 }
-.toggle-label-text {
-    font-weight: bold;
-    font-size: 0.9rem;
-    cursor: pointer;
-    user-select: none;
-}
-.toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 28px;
-}
-.toggle-input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-.toggle-label {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 28px;
-}
-.toggle-label:before {
-    position: absolute;
-    content: "";
-    height: 22px;
-    width: 22px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-.toggle-input:checked + .toggle-label {
-    background-color: var(--primary-color-light-theme);
-}
-body.dark-theme .toggle-input:checked + .toggle-label {
-    background-color: var(--primary-color);
-}
-.toggle-input:checked + .toggle-label:before {
-    transform: translateX(22px);
+body.light-theme #open-tags-modal-btn {
+    border-right-color: var(--glass-border-light) !important;
 }
 
-/* ================== Styles for Final Polished Tags Modal v3.0 ================== */
+
+/* --- Main Modal Container --- */
+.tags-modal-container {
+    padding: 1rem 1.5rem;
+}
 .tags-modal-container h3 {
     text-align: center;
     margin-bottom: 1.5rem;
@@ -3969,7 +3959,6 @@ body.dark-theme .toggle-input:checked + .toggle-label {
     gap: 0.75rem;
     margin-bottom: 1.5rem;
 }
-/* گوشه‌های گردتر برای فرم افزودن تگ */
 .add-tag-form input,
 .add-tag-form button {
     border-radius: 50px !important;
@@ -3995,7 +3984,7 @@ body.light-theme .tags-modal-list {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.8rem 0.4rem; /* پدینگ عمودی بیشتر */
+    padding: 0.8rem 0.4rem;
 }
 .tag-checkbox-item:not(:last-child) {
     border-bottom: 1px solid var(--glass-border-dark);
@@ -4004,10 +3993,9 @@ body.light-theme .tag-checkbox-item:not(:last-child) {
     border-bottom-color: var(--glass-border-light);
 }
 
-/* --- چیدمان جدید آیتم‌های لیست --- */
 .tag-checkbox-item .tag-name {
-    margin-right: 1rem; /* فاصله بین کلید و نام تگ */
-    flex-grow: 1; /* نام تگ فضای خالی را پر می‌کند */
+    margin-right: 1rem;
+    flex-grow: 1;
     font-weight: bold;
     font-size: 1.1rem;
     cursor: pointer;
@@ -4015,7 +4003,7 @@ body.light-theme .tag-checkbox-item:not(:last-child) {
 .tag-list-item-actions {
     display: flex;
     gap: 0.75rem;
-    margin-left: 0.5rem; /* فاصله از لبه چپ */
+    margin-left: 0.5rem;
 }
 
 /* --- Custom Toggle Switch --- */
@@ -4070,4 +4058,118 @@ body.light-theme .tag-action-btn:hover { background-color: rgba(0,0,0,0.05); }
 }
 .edit-tag-form .btn-sm {
     padding: 0.4rem 0.8rem; font-size: 0.8rem;
+}
+
+/* --- START: Mobile Responsive Styles --- */
+@media (max-width: 700px) {
+    .tags-selection-area {
+        flex-direction: column;
+        border-radius: 12px;
+    }
+    #open-tags-modal-btn {
+        border-right: none !important;
+        border-top: 1px solid var(--glass-border-dark) !important;
+        border-radius: 0 0 12px 12px !important;
+    }
+    body.light-theme #open-tags-modal-btn {
+        border-top-color: var(--glass-border-light) !important;
+    }
+    .selected-tags-display {
+        padding: 0.75rem;
+        min-height: 48px;
+    }
+
+    .tags-modal-container {
+        padding: 1rem;
+    }
+    .tag-checkbox-item .tag-name {
+        font-size: 1rem;
+        margin-right: 0.75rem;
+    }
+    .tag-list-item-actions {
+        gap: 0.5rem;
+    }
+
+    .add-tag-form {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .add-tag-form button {
+        width: 100%;
+    }
+    
+    /* **START: اصلاح جدید برای ارتفاع فیلد در موبایل** */
+    .add-tag-form input {
+        padding: 0.8rem 1rem; /* افزایش پدینگ داخلی برای بزرگتر شدن */
+        font-size: 1rem; /* کمی بزرگتر کردن فونت */
+    }
+    /* **END: اصلاح جدید** */
+}
+/* --- END: Mobile Responsive Styles --- */
+/* ================== Styles for Final Polished Toggle Switches v4.1 (Corrected & Final) ================== */
+
+/* --- Wrapper for the entire component --- */
+.toggle-switch-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+.toggle-label-text {
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* --- The Switch Container (Corrected Dimensions) --- */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 32px;
+}
+.toggle-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* --- The track of the switch (the rounded rectangle) --- */
+.toggle-switch .toggle-label {
+    box-sizing: border-box; 
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(128, 128, 128, 0.35);
+    transition: background-color .4s;
+    border-radius: 32px;
+}
+
+/* --- The white circle (the thumb) --- */
+.toggle-switch .toggle-label:before {
+    position: absolute;
+    content: "";
+    box-sizing: border-box;
+    height: 26px;
+    width: 26px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border: none;
+    padding: 0;
+    transition: transform .4s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+}
+
+/* --- Checked State (On) --- */
+.toggle-input:checked + .toggle-label {
+    background-color: var(--primary-color); 
+}
+body.light-theme .toggle-input:checked + .toggle-label {
+    background-color: var(--primary-color-light-theme);
+}
+.toggle-input:checked + .toggle-label:before {
+    transform: translateX(28px);
 }
