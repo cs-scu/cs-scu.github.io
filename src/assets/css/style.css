@@ -3866,3 +3866,68 @@ body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-c
     .file-upload-buttons { order: 2; width: 100%; display: flex; }
     .file-upload-buttons .btn { width: 100%; justify-content: center; }
 }
+
+/* ================== ADMIN PANEL FORM IMPROVEMENTS ================== */
+.admin-main-content .form-row {
+    gap: 1.5rem; /* Increase gap between columns in a row */
+}
+.admin-main-content .form-group {
+    margin-bottom: 1rem; /* Add space below each form group */
+}
+
+/* --- Input with Toggle Switch --- */
+.input-with-toggle {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.input-with-toggle input[type="text"] {
+    flex-grow: 1;
+}
+
+/* --- Modern Toggle Switch Style --- */
+.toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.toggle-input {
+    height: 0;
+    width: 0;
+    visibility: hidden;
+}
+.toggle-label {
+    cursor: pointer;
+    text-indent: -9999px;
+    width: 50px;
+    height: 28px;
+    background: grey;
+    display: block;
+    border-radius: 100px;
+    position: relative;
+    flex-shrink: 0;
+}
+.toggle-label:after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    background: #fff;
+    border-radius: 90px;
+    transition: 0.3s;
+}
+.toggle-input:checked + .toggle-label {
+    background: var(--primary-color-light-theme);
+}
+body.dark-theme .toggle-input:checked + .toggle-label {
+    background: var(--primary-color);
+}
+.toggle-input:checked + .toggle-label:after {
+    left: calc(100% - 3px);
+    transform: translateX(-100%);
+}
+.toggle-label:active:after {
+    width: 30px;
+}

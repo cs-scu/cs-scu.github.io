@@ -12,24 +12,30 @@
         <div class="form-group"><label for="event-summary">خلاصه (متن کوتاه)</label><textarea id="event-summary" name="summary" rows="2"></textarea></div>
 
         <div class="form-row">
-            <div class="form-group" style="position: relative; flex: 2;">
+            <div class="form-group" style="flex: 2;">
                 <label for="event-location">مکان</label>
-                <div style="display: flex; gap: 0.5rem;">
-                    <input type="text" id="event-location" name="location" style="flex-grow: 1;">
-                    <button type="button" class="btn btn-secondary" id="toggle-location-online" style="flex-shrink: 0;">آنلاین</button>
+                <div class="input-with-toggle">
+                    <input type="text" id="event-location" name="location" placeholder="مکان برگزاری حضوری...">
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="toggle-location-online" class="toggle-input">
+                        <label for="toggle-location-online" class="toggle-label">آنلاین</label>
+                    </div>
                 </div>
             </div>
-            <div class="form-group" style="position: relative; flex: 1;">
+            <div class="form-group" style="flex: 1;">
                 <label for="event-cost">هزینه</label>
-                <div style="display: flex; gap: 0.5rem;">
-                    <input type="text" id="event-cost" name="cost" placeholder="مثال: ۲۰,۰۰۰ تومان" style="flex-grow: 1;">
-                    <button type="button" class="btn btn-secondary" id="toggle-cost-free" style="flex-shrink: 0;">رایگان</button>
+                <div class="input-with-toggle">
+                    <input type="text" id="event-cost" name="cost" placeholder="مثال: ۲۰,۰۰۰ تومان">
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="toggle-cost-free" class="toggle-input">
+                        <label for="toggle-cost-free" class="toggle-label">رایگان</label>
+                    </div>
                 </div>
             </div>
-            <div class="form-group" style="flex: 2;"><label for="event-display-date">تاریخ نمایشی</label><input type="text" id="event-display-date" name="displayDate" placeholder="مثال: ۱۲ تا ۱۴ شهریور ۱۴۰۴" required></div>
         </div>
         
         <div class="form-row">
+            <div class="form-group"><label for="event-display-date">تاریخ نمایشی</label><input type="text" id="event-display-date" name="displayDate" placeholder="مثال: ۱۲ تا ۱۴ شهریور ۱۴۰۴" required></div>
             <div class="form-group"><label for="event-start-date">تاریخ شروع (میلادی)</label><input type="date" id="event-start-date" name="startDate" required></div>
             <div class="form-group"><label for="event-end-date">تاریخ پایان (میلادی)</label><input type="date" id="event-end-date" name="endDate" required></div>
         </div>
@@ -61,7 +67,7 @@
         <div class="form-group"><label for="event-schedule">برنامه زمانی (فرمت JSON)</label><textarea id="event-schedule" name="schedule" rows="5" placeholder="برنامه زمانی جلسات را در قالب JSON وارد کنید..."></textarea></div>
 
         <div class="form-status"></div>
-        <div class="form-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
+        <div class="form-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
             <button type="submit" class="btn btn-primary" id="event-submit-btn">افزودن رویداد</button>
             <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;">انصراف</button>
         </div>
