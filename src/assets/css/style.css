@@ -3563,11 +3563,18 @@ body.light-theme .video-tab-btn:not(.active) img {
     padding-right: 0.5rem;
 }
 
-/* ================== FINAL ADMIN PANEL STYLES (v1.2) ================== */
+/* ================== FINAL ADMIN PANEL STYLES (v1.3 - Refactored) ================== */
 
 /* --- Layout & Base --- */
-.admin-panel-body { background-color: var(--background-color-light); color: var(--text-color-light); }
-body.dark-theme.admin-panel-body { background-color: #001f20; color: var(--text-color-dark); }
+.admin-panel-body { 
+    background-color: var(--background-color-light); 
+    color: var(--text-color-light); 
+    font-family: 'Vazirmatn', sans-serif; /* Ensure font is loaded */
+}
+body.dark-theme.admin-panel-body { 
+    background-color: #001f20; 
+    color: var(--text-color-dark); 
+}
 .admin-container { display: flex; min-height: 100vh; }
 .admin-main-wrapper { display: flex; flex-direction: column; flex-grow: 1; width: 100%; }
 .admin-main-content { flex-grow: 1; padding: 2rem; overflow-y: auto; }
@@ -3618,233 +3625,72 @@ body.light-theme .admin-main-header { background-color: #fff; border-bottom: 1px
 body.dark-theme .admin-section-subtitle { border-color: var(--glass-border-dark); }
 body.light-theme .admin-section-subtitle { border-color: var(--glass-border-light); }
 
-/* === Table Scroll Fix === */
-.custom-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
-/* === Advanced File Upload Styles === */
-.custom-file-upload { position: relative; display: flex; align-items: center; border: 2px dashed; border-radius: 8px; padding: 0.5rem; transition: border-color 0.3s; }
-body.dark-theme .custom-file-upload { border-color: var(--glass-border-dark); }
-body.light-theme .custom-file-upload { border-color: var(--glass-border-light); }
-.custom-file-upload.is-dragging { cursor: pointer; }
-body.dark-theme .custom-file-upload.is-dragging { border-color: var(--primary-color); background-color: rgba(232, 195, 142, 0.1); }
-body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-color-light-theme); background-color: rgba(26, 92, 93, 0.05); }
-.custom-file-upload input[type="file"] { position: absolute; left: 0; top: 0; height: 100%; width: 100%; opacity: 0; cursor: pointer; z-index: 10; }
-.custom-file-upload .file-select-btn { flex-shrink: 0; z-index: 1; pointer-events: none; }
-.file-name-display { flex-grow: 1; padding: 0 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.8; direction: ltr; text-align: left; }
-.file-clear-btn { background: none; border: none; color: inherit; font-size: 1.8rem; cursor: pointer; opacity: 0.6; transition: opacity 0.2s; z-index: 5; display: none; }
-.file-clear-btn:hover { opacity: 1; }
-
-/* === Advanced File Upload Styles === */
-.custom-file-upload {
-    position: relative;
-    display: flex;
-    align-items: center;
-    border: 2px dashed;
-    border-radius: 8px;
-    padding: 0.5rem;
-    transition: border-color 0.3s, background-color 0.3s;
-}
-
-body.dark-theme .custom-file-upload {
-    border-color: var(--glass-border-dark);
-}
-
-body.light-theme .custom-file-upload {
-    border-color: var(--glass-border-light);
-}
-
-.custom-file-upload.is-dragging {
-    cursor: pointer;
-}
-
-body.dark-theme .custom-file-upload.is-dragging {
-    border-color: var(--primary-color);
-    background-color: rgba(232, 195, 142, 0.1);
-}
-
-body.light-theme .custom-file-upload.is-dragging {
-    border-color: var(--primary-color-light-theme);
-    background-color: rgba(26, 92, 93, 0.05);
-}
-
-.custom-file-upload input[type="file"] {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 100%;
-    opacity: 0;
-    cursor: pointer;
-    z-index: 10;
-}
-
-.custom-file-upload .file-select-btn {
-    flex-shrink: 0;
-    z-index: 1;
-    pointer-events: none; /* کلیک‌ها از طریق input مخفی انجام می‌شود */
-}
-
-.file-name-display {
-    flex-grow: 1;
-    padding: 0 1rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    opacity: 0.8;
-    direction: ltr;
-    text-align: left;
-}
-
-.file-clear-btn {
-    background: none;
-    border: none;
-    color: inherit;
-    font-size: 1.8rem;
-    cursor: pointer;
-    opacity: 0.6;
-    transition: opacity 0.2s;
-    z-index: 5;
-    display: none; /* در ابتدا مخفی است */
-    padding: 0 0.5rem;
-    line-height: 1;
-}
-
-.file-clear-btn:hover {
-    opacity: 1;
-}
-
-/* === Advanced File Upload Styles (Updated) === */
-.custom-file-upload {
-    position: relative;
-    display: flex;
-    align-items: center;
-    border: 2px dashed;
-    border-radius: 8px;
-    padding: 0.5rem;
-    transition: border-color 0.3s, background-color 0.3s;
-    justify-content: space-between; /* Pushes items to ends */
-}
-/* ... existing styles for dark/light theme and dragging ... */
-
-.custom-file-upload input[type="file"] {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 100%;
-    opacity: 0;
-    cursor: pointer;
-    z-index: 10;
-}
-
-.file-upload-buttons {
-    flex-shrink: 0; /* Prevents button from shrinking */
-    z-index: 5;
-}
-
-.file-name-display {
-    flex-grow: 1;
-    padding: 0 1rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    opacity: 0.8;
-    direction: ltr;
-    text-align: left;
-}
-
-/* --- Button Toggle Logic --- */
-.file-clear-btn {
-    display: none; /* Hidden by default */
-}
-.file-select-btn {
-    display: inline-block; /* Shown by default */
-}
-
-/* When a file is selected */
-.custom-file-upload.file-selected .file-clear-btn {
-    display: inline-block; /* Show the delete button */
-}
-.custom-file-upload.file-selected .file-select-btn {
-    display: none; /* Hide the select button */
-}
-
-/* Red color for the delete button */
-.btn-danger {
-    background-color: #dc3545;
-    border-color: #dc3545;
-    color: white;
-}
-.btn-danger:hover {
-    background-color: #bb2d3b;
-    border-color: #b02a37;
-}
-
-/* === Table Scroll Fix (Revised) === */
-
-/* The wrapper enables horizontal scrolling */
+/* --- Table Scroll Fix (Revised) --- */
 .custom-table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }
-
-/* Apply nowrap to ALL cells in the table to prevent any wrapping */
-.custom-table th,
-.custom-table td {
+.custom-table th, .custom-table td {
     white-space: nowrap;
 }
-
-/* Keep the ellipsis specifically for the long message cell for aesthetics */
 .custom-table .message-cell {
-    max-width: 400px; /* Optional: keeps the column from getting excessively wide */
+    max-width: 400px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-/* === Journal Download Loading Icon === */
-.journal-card-download .icon-loading {
-    animation: spin 1.5s linear infinite;
-}
 
-.journal-card.is-downloading {
-    cursor: wait; /* Show a waiting cursor during download */
+/* === Advanced File Upload Styles (Refactored) === */
+.custom-file-upload {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 2px dashed;
+    border-radius: 8px;
+    padding: 0.5rem;
+    transition: border-color 0.3s, background-color 0.3s;
 }
+body.dark-theme .custom-file-upload { border-color: var(--glass-border-dark); }
+body.light-theme .custom-file-upload { border-color: var(--glass-border-light); }
 
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.custom-file-upload.is-dragging { cursor: pointer; }
+body.dark-theme .custom-file-upload.is-dragging { border-color: var(--primary-color); background-color: rgba(232, 195, 142, 0.1); }
+body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-color-light-theme); background-color: rgba(26, 92, 93, 0.05); }
+
+.custom-file-upload input[type="file"] {
+    position: absolute; left: 0; top: 0; height: 100%; width: 100%; opacity: 0; cursor: pointer; z-index: 10;
 }
+.file-upload-buttons { flex-shrink: 0; z-index: 5; }
+.file-name-display { flex-grow: 1; padding: 0 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.8; direction: ltr; text-align: left; }
+
+.file-clear-btn { display: none; }
+.file-select-btn { display: inline-block; pointer-events: none; }
+.custom-file-upload.file-selected .file-clear-btn { display: inline-block; }
+.custom-file-upload.file-selected .file-select-btn { display: none; }
+
+.file-upload-buttons .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+body.admin-panel-body .btn-danger { background-color: #dc3545; border-color: #dc3545; color: white; }
+body.admin-panel-body .btn-danger:hover { background-color: #bb2d3b; border-color: #b02a37; }
 
 /* === Admin Form Guidance Layout === */
 .form-and-guidance-wrapper {
     display: grid;
-    grid-template-columns: 2fr 1fr; /* Form takes 2/3, guidance takes 1/3 */
+    grid-template-columns: 2fr 1fr;
     gap: 2rem;
     align-items: flex-start;
 }
+.guidance-content ul { list-style-position: inside; padding-right: 1rem; margin-top: 1rem; line-height: 2; }
+.guidance-content ul li { margin-bottom: 0.5rem; }
+.guidance-content a { font-weight: bold; text-decoration: underline; }
 
-.guidance-content ul {
-    list-style-position: inside;
-    padding-right: 1rem;
-    margin-top: 1rem;
-    line-height: 2;
-}
-
-.guidance-content ul li {
-    margin-bottom: 0.5rem;
-}
-
-.guidance-content a {
-    font-weight: bold;
-    text-decoration: underline;
-}
-
-/* Responsive adjustments for smaller screens */
 @media (max-width: 992px) {
-    .form-and-guidance-wrapper {
-        grid-template-columns: 1fr; /* Stack on top of each other */
-    }
+    .form-and-guidance-wrapper { grid-template-columns: 1fr; }
 }
+
+/* === Journal Download Loading Icon === */
+.journal-card-download .icon-loading { animation: spin 1.5s linear infinite; }
+.journal-card.is-downloading { cursor: wait; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
