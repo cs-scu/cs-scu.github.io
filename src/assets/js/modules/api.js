@@ -520,20 +520,21 @@ export const deleteEvent = async (id) => {
         return { error };
     }
 };
+// START: توابع جدید مدیریت تصویر رویداد با باکت اختصاصی
 export const uploadEventImage = async (file) => {
     if (!file) return null;
     const extension = file.name.split('.').pop();
-    const fileName = `events/event-${Date.now()}.${extension}`;
+    const fileName = `public/event-${Date.now()}.${extension}`; // مسیر جدید در باکت
 
     try {
         const { error: uploadError } = await supabaseClient.storage
-            .from('assets')
+            .from('event-assets') // **تغییر اصلی: نام باکت جدید**
             .upload(fileName, file, { upsert: true });
 
         if (uploadError) throw uploadError;
 
         const { data } = supabaseClient.storage
-            .from('assets')
+            .from('event-assets') // **تغییر اصلی: نام باکت جدید**
             .getPublicUrl(fileName);
         
         return data.publicUrl;
@@ -546,13 +547,15 @@ export const uploadEventImage = async (file) => {
 export const deleteEventImage = async (imageUrl) => {
     if (!imageUrl) return;
     try {
-        const urlParts = imageUrl.split('/assets/');
+        // **منطق جدید برای پیدا کردن مسیر فایل در باکت جدید**
+        const urlParts = imageUrl.split('/event-assets/');
         const filePath = urlParts[1];
         if (filePath) {
-            await supabaseClient.storage.from('assets').remove([filePath]);
+            await supabaseClient.storage
+                .from('event-assets') // **تغییر اصلی: نام باکت جدید**
+                .remove([filePath]);
         }
     } catch (error) {
-        // Log error but don't throw, as failing to delete an old image shouldn't stop the whole process
         console.error('Failed to delete old event image:', error.message);
     }
 };
