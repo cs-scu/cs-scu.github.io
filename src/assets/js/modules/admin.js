@@ -1,7 +1,7 @@
 // src/assets/js/modules/admin.js
 
 import { state } from './state.js';
-import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags , addTag, updateTag, deleteTag } from './api.js';
+import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
 
 // --- توابع کمکی ---
@@ -419,7 +419,6 @@ const initializeEventsModule = () => {
     const eventForm = document.getElementById('add-event-form');
     if (!eventForm) return;
 
-    // متغیری برای نگهداری موقت آی‌دی تگ‌های انتخاب شده
     let selectedTagIds = [];
 
     const formTitle = document.getElementById('event-form-title');
@@ -453,146 +452,15 @@ const initializeEventsModule = () => {
             }
         });
     };
-
-    const renderManageTagsModal = () => {
-        const modal = document.getElementById('admin-generic-modal');
+    
+    const renderTagsModalContent = (view = 'select') => {
         const modalContent = document.getElementById('admin-generic-modal-content');
-        if (!modal || !modalContent) return;
-
-        let tagsListHTML = '';
+        if (!modalContent) return;
+        
         const sortedTags = Array.from(state.tagsMap.entries()).sort((a, b) => a[1].localeCompare(b[1], 'fa'));
 
-        sortedTags.forEach(([id, name]) => {
-            tagsListHTML += `
-                <div class="tag-list-item" data-tag-id="${id}">
-                    <span class="tag-name">${name}</span>
-                    <div class="edit-tag-form" style="display: none;">
-                        <input type="text" class="form-control" value="${name}">
-                        <button type="button" class="btn btn-primary btn-sm save-edit-btn">ذخیره</button>
-                        <button type="button" class="btn btn-secondary btn-sm cancel-edit-btn">لغو</button>
-                    </div>
-                    <div class="tag-actions">
-                        <button class="tag-action-btn edit-tag-btn" title="ویرایش">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                        <button class="tag-action-btn delete-tag-btn" title="حذف">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>
-                    </div>
-                </div>
-            `;
-        });
-        
-        modalContent.innerHTML = `
-            <div class="tags-modal-container">
-                <h3>مدیریت تگ‌ها</h3>
-                <div class="add-tag-form">
-                    <input type="text" id="new-tag-name" class="form-control" placeholder="نام تگ جدید...">
-                    <button type="button" id="add-tag-btn" class="btn btn-primary">افزودن</button>
-                </div>
-                <div class="tags-modal-list">
-                    ${tagsListHTML || '<p style="text-align:center; opacity:0.8; padding: 1rem;">تگی یافت نشد.</p>'}
-                </div>
-            </div>`;
-    };
-
-    const openTagsModal = () => {
-        renderManageTagsModal();
-        document.getElementById('admin-generic-modal').classList.add('is-open');
-    };
-    
-    // Event delegation for modal actions
-    document.getElementById('admin-generic-modal-content').addEventListener('click', async (e) => {
-        const addBtn = e.target.closest('#add-tag-btn');
-        const editBtn = e.target.closest('.edit-tag-btn');
-        const deleteBtn = e.target.closest('.delete-tag-btn');
-        const saveBtn = e.target.closest('.save-edit-btn');
-        const cancelBtn = e.target.closest('.cancel-edit-btn');
-
-        if (addBtn) {
-            const input = document.getElementById('new-tag-name');
-            const newName = input.value.trim();
-            if (!newName) return;
-            addBtn.disabled = true;
-            try {
-                const newTag = await addTag(newName);
-                state.tagsMap.set(newTag.id, newTag.name);
-                renderManageTagsModal(); // Re-render the modal content
-            } catch (error) {
-                alert('خطا در افزودن تگ.');
-            } finally {
-                addBtn.disabled = false;
-            }
-        }
-
-        if (editBtn) {
-            const item = editBtn.closest('.tag-list-item');
-            item.classList.add('is-editing');
-            item.querySelector('.tag-name').style.display = 'none';
-            item.querySelector('.tag-actions').style.display = 'none';
-            item.querySelector('.edit-tag-form').style.display = 'flex';
-        }
-
-        if (cancelBtn) {
-            const item = cancelBtn.closest('.tag-list-item');
-            item.classList.remove('is-editing');
-            item.querySelector('.tag-name').style.display = 'block';
-            item.querySelector('.tag-actions').style.display = 'flex';
-            item.querySelector('.edit-tag-form').style.display = 'none';
-        }
-
-        if (saveBtn) {
-            const item = saveBtn.closest('.tag-list-item');
-            const tagId = parseInt(item.dataset.tagId, 10);
-            const input = item.querySelector('input');
-            const newName = input.value.trim();
-            if (!newName || newName === state.tagsMap.get(tagId)) return cancelBtn.click();
-            saveBtn.disabled = true;
-            try {
-                const updatedTag = await updateTag(tagId, newName);
-                state.tagsMap.set(updatedTag.id, updatedTag.name);
-                renderManageTagsModal();
-            } catch (error) {
-                alert('خطا در ویرایش تگ.');
-                saveBtn.disabled = false;
-            }
-        }
-
-        if (deleteBtn) {
-            const item = deleteBtn.closest('.tag-list-item');
-            const tagId = parseInt(item.dataset.tagId, 10);
-            const tagName = state.tagsMap.get(tagId);
-            if (confirm(`آیا از حذف تگ «${tagName}» مطمئن هستید؟ این تگ از تمام رویدادها نیز حذف خواهد شد.`)) {
-                deleteBtn.disabled = true;
-                try {
-                    await deleteTag(tagId);
-                    state.tagsMap.delete(tagId);
-                    // Also remove it from the currently selected tags in the form
-                    selectedTagIds = selectedTagIds.filter(id => id !== tagId);
-                    updateSelectedTagsDisplay();
-                    renderManageTagsModal();
-                } catch (error) {
-                    alert('خطا در حذف تگ.');
-                    deleteBtn.disabled = false;
-                }
-            }
-        }
-    });
-
-
-    if (openTagsModalBtn) {
-        openTagsModalBtn.addEventListener('click', () => {
-            // This will now open the management modal, selection happens separately
-            // For selection, we might need a different modal or UI element.
-            // For now, let's keep it simple: manage here, select on event form.
-            // A better UX would be to manage AND select in one modal. Let's build that.
-            
-            const modal = document.getElementById('admin-generic-modal');
-            const modalContent = document.getElementById('admin-generic-modal-content');
-            
+        if (view === 'select') {
             let tagsHTML = '';
-            const sortedTags = Array.from(state.tagsMap.entries()).sort((a, b) => a[1].localeCompare(b[1], 'fa'));
-
             sortedTags.forEach(([id, name]) => {
                 const isChecked = selectedTagIds.includes(id);
                 tagsHTML += `<div class="tag-checkbox-item">
@@ -603,31 +471,127 @@ const initializeEventsModule = () => {
 
             modalContent.innerHTML = `
                 <div class="tags-modal-container">
-                    <div style="display:flex; justify-content: space-between; align-items: center;">
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <h3>انتخاب تگ‌ها</h3>
                         <button type="button" class="btn btn-secondary btn-sm" id="manage-tags-inline-btn">مدیریت تگ‌ها</button>
                     </div>
-                    <div class="tags-modal-list">${tagsHTML}</div>
+                    <div class="tags-modal-list">${tagsHTML || '<p>تگی یافت نشد.</p>'}</div>
                     <div class="tags-modal-actions">
                         <button type="button" class="btn btn-primary" id="confirm-tags-btn">تایید انتخاب</button>
                     </div>
                 </div>`;
-            
-            modal.classList.add('is-open');
 
-            document.getElementById('confirm-tags-btn').onclick = () => {
-                const checkedInputs = modalContent.querySelectorAll('input[type="checkbox"]:checked');
-                selectedTagIds = Array.from(checkedInputs).map(input => parseInt(input.value, 10));
-                updateSelectedTagsDisplay();
-                modal.classList.remove('is-open');
-            };
+        } else if (view === 'manage') {
+            let tagsListHTML = '';
+            sortedTags.forEach(([id, name]) => {
+                tagsListHTML += `
+                    <div class="tag-list-item" data-tag-id="${id}">
+                        <span class="tag-name">${name}</span>
+                        <div class="edit-tag-form">
+                            <input type="text" class="form-control" value="${name}">
+                            <button type="button" class="btn btn-primary btn-sm save-edit-btn">ذخیره</button>
+                            <button type="button" class="btn btn-secondary btn-sm cancel-edit-btn">لغو</button>
+                        </div>
+                        <div class="tag-actions">
+                            <button class="tag-action-btn edit-tag-btn" title="ویرایش"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                            <button class="tag-action-btn delete-tag-btn" title="حذف"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                        </div>
+                    </div>`;
+            });
+            modalContent.innerHTML = `
+                <div class="tags-modal-container">
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3>مدیریت تگ‌ها</h3>
+                        <button type="button" class="btn btn-secondary btn-sm" id="select-tags-inline-btn">بازگشت به انتخاب</button>
+                    </div>
+                    <form class="add-tag-form"><input type="text" id="new-tag-name" class="form-control" placeholder="نام تگ جدید..."><button type="submit" id="add-tag-btn" class="btn btn-primary">افزودن</button></form>
+                    <div class="tags-modal-list">${tagsListHTML}</div>
+                </div>`;
+        }
+    };
 
-            document.getElementById('manage-tags-inline-btn').onclick = () => {
-                renderManageTagsModal();
-            };
-        });
+    const openTagsModal = () => {
+        renderTagsModalContent('select');
+        document.getElementById('admin-generic-modal').classList.add('is-open');
+    };
+
+    document.getElementById('admin-generic-modal').addEventListener('click', async (e) => {
+        const modal = document.getElementById('admin-generic-modal');
+        if (e.target === modal || e.target.closest('.close-modal')) {
+            modal.classList.remove('is-open');
+        }
+        if (e.target.id === 'confirm-tags-btn') {
+            const checkedInputs = modal.querySelectorAll('input[type="checkbox"]:checked');
+            selectedTagIds = Array.from(checkedInputs).map(input => parseInt(input.value, 10));
+            updateSelectedTagsDisplay();
+            modal.classList.remove('is-open');
+        }
+        if (e.target.id === 'manage-tags-inline-btn') renderTagsModalContent('manage');
+        if (e.target.id === 'select-tags-inline-btn') renderTagsModalContent('select');
+        
+        const deleteBtn = e.target.closest('.delete-tag-btn');
+        if (deleteBtn) {
+            const item = deleteBtn.closest('.tag-list-item');
+            const tagId = parseInt(item.dataset.tagId, 10);
+            const tagName = state.tagsMap.get(tagId);
+            if (confirm(`آیا از حذف تگ «${tagName}» مطمئن هستید؟ این تگ از تمام رویدادها نیز حذف خواهد شد.`)) {
+                try {
+                    await deleteTag(tagId);
+                    state.tagsMap.delete(tagId);
+                    selectedTagIds = selectedTagIds.filter(id => id !== tagId);
+                    updateSelectedTagsDisplay();
+                    renderTagsModalContent('manage');
+                } catch (error) { alert('خطا در حذف تگ.'); }
+            }
+        }
+
+        const editBtn = e.target.closest('.edit-tag-btn');
+        if (editBtn) {
+            const item = editBtn.closest('.tag-list-item');
+            item.classList.add('is-editing');
+        }
+
+        const cancelEditBtn = e.target.closest('.edit-tag-form .cancel-edit-btn');
+        if (cancelEditBtn) {
+            cancelEditBtn.closest('.tag-list-item').classList.remove('is-editing');
+        }
+
+        const saveBtn = e.target.closest('.save-edit-btn');
+        if (saveBtn) {
+            const item = saveBtn.closest('.tag-list-item');
+            const tagId = parseInt(item.dataset.tagId, 10);
+            const newName = item.querySelector('input').value.trim();
+            if (newName && newName !== state.tagsMap.get(tagId)) {
+                try {
+                    const updatedTag = await updateTag(tagId, newName);
+                    state.tagsMap.set(updatedTag.id, updatedTag.name);
+                    renderTagsModalContent('manage');
+                } catch { alert('خطا در ویرایش تگ.'); }
+            } else {
+                item.classList.remove('is-editing');
+            }
+        }
+    });
+
+    document.getElementById('admin-generic-modal-content').addEventListener('submit', async (e) => {
+        if (e.target.classList.contains('add-tag-form')) {
+            e.preventDefault();
+            const input = document.getElementById('new-tag-name');
+            const newName = input.value.trim();
+            if (!newName) return;
+            try {
+                const newTag = await addTag(newName);
+                state.tagsMap.set(newTag.id, newTag.name);
+                renderTagsModalContent('manage');
+            } catch { alert('خطا در افزودن تگ.'); }
+        }
+    });
+
+    if (openTagsModalBtn) {
+        openTagsModalBtn.addEventListener('click', openTagsModal);
     }
     
+    // ... بقیه کدهای تابع initializeEventsModule (از setupToggleSwitch به بعد) بدون تغییر باقی می‌ماند ...
     const setupToggleSwitch = (input, toggle, value) => {
         toggle.addEventListener('change', () => {
             if (toggle.checked) {
@@ -684,11 +648,8 @@ const initializeEventsModule = () => {
         try {
             const parseJsonField = (fieldName) => {
                 const value = formData.get(fieldName);
-                try {
-                    return value ? JSON.parse(value) : null;
-                } catch (e) {
-                    throw new Error(`فرمت JSON در فیلد "${fieldName}" نامعتبر است: ${e.message}`);
-                }
+                try { return value ? JSON.parse(value) : null; }
+                catch (e) { throw new Error(`فرمت JSON در فیلد "${fieldName}" نامعتبر است.`); }
             };
 
             const eventData = {
@@ -704,8 +665,8 @@ const initializeEventsModule = () => {
                 tag_ids: selectedTagIds,
                 content: parseJsonField('content'),
                 schedule: parseJsonField('schedule'),
-                payment_card_number: { name: formData.get('payment_name'), number: formData.get('payment_number') },
-                contact_link: { phone: formData.get('contact_phone'), telegram: formData.get('contact_telegram'), whatsapp: formData.get('contact_whatsapp') },
+                payment_card_number: (formData.get('payment_name') || formData.get('payment_number')) ? { name: formData.get('payment_name'), number: formData.get('payment_number') } : null,
+                contact_link: (formData.get('contact_phone') || formData.get('contact_telegram') || formData.get('contact_whatsapp')) ? { phone: formData.get('contact_phone'), telegram: formData.get('contact_telegram'), whatsapp: formData.get('contact_whatsapp') } : null,
             };
             
             if (isEditing) {

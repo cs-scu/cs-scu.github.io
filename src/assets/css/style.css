@@ -4063,6 +4063,7 @@ body.dark-theme .tag-list-item:not(:last-child) {
     border-radius: 50%;
     transition: background-color 0.2s;
     opacity: 0.7;
+    color: inherit;
 }
 .tag-action-btn:hover {
     opacity: 1;
@@ -4080,17 +4081,19 @@ body.light-theme .tag-action-btn:hover { background-color: rgba(0,0,0,0.05); }
 }
 
 /* استایل برای حالت ویرایش */
-.tag-list-item.is-editing {
-    padding-right: 0.2rem;
-}
-.tag-list-item.is-editing .tag-name {
-    display: none;
-}
+.tag-list-item.is-editing .tag-name,
 .tag-list-item.is-editing .tag-actions {
     display: none;
 }
 .edit-tag-form {
-    display: flex;
+    display: none; /* مخفی به صورت پیش‌فرض */
     flex-grow: 1;
     gap: 0.5rem;
+}
+.tag-list-item.is-editing .edit-tag-form {
+    display: flex;
+}
+.edit-tag-form .btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
 }
