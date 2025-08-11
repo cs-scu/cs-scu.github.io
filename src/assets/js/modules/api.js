@@ -408,3 +408,38 @@ export const deleteJournalFiles = async (fileUrls) => {
     }
 };
 // --- END: NEW FUNCTION ---
+
+// --- START: EVENT MANAGEMENT FUNCTIONS ---
+export const addEvent = async (eventData) => {
+    try {
+        const { error } = await supabaseClient.from('events').insert([eventData]);
+        if (error) throw error;
+        return { error: null };
+    } catch (error) {
+        console.error('Error adding event:', error);
+        return { error };
+    }
+};
+
+export const updateEvent = async (id, eventData) => {
+    try {
+        const { error } = await supabaseClient.from('events').update(eventData).eq('id', id);
+        if (error) throw error;
+        return { error: null };
+    } catch (error) {
+        console.error('Error updating event:', error);
+        return { error };
+    }
+};
+
+export const deleteEvent = async (id) => {
+    try {
+        const { error } = await supabaseClient.from('events').delete().eq('id', id);
+        if (error) throw error;
+        return { error: null };
+    } catch (error) {
+        console.error('Error deleting event:', error);
+        return { error };
+    }
+};
+// --- END: EVENT MANAGEMENT FUNCTIONS ---

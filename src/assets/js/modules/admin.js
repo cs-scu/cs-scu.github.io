@@ -1,7 +1,7 @@
 // src/assets/js/modules/admin.js
 
 import { state } from './state.js';
-import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles } from './api.js';
+import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
 
 // --- توابع کمکی ---
@@ -84,6 +84,50 @@ const renderJournalList = (issues) => {
         </div>`;
 };
 // --- END: UPDATED FUNCTION ---
+
+// --- START: NEW FUNCTION ---
+const renderEventsList = (events) => {
+    const container = document.getElementById('events-admin-list');
+    if (!container) return;
+
+    if (!events || events.length === 0) {
+        container.innerHTML = '<p style="text-align: center; opacity: 0.8;">هنوز هیچ رویدادی ثبت نشده است.</p>';
+        return;
+    }
+
+    const sortedEvents = events.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+    container.innerHTML = `
+        <div class="custom-table-wrapper">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th class="actions-header">عملیات</th>
+                        <th>عنوان</th>
+                        <th>مدرس</th>
+                        <th>تاریخ نمایشی</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${sortedEvents.map(event => `
+                        <tr>
+                            <td class="actions-cell">
+                                <button class="btn btn-secondary btn-sm edit-event-btn" data-id="${event.id}" title="ویرایش">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </button>
+                                <button class="btn btn-danger btn-sm delete-event-btn" data-id="${event.id}" title="حذف">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </td>
+                            <td>${event.title}</td>
+                            <td>${event.instructor_name || '---'}</td>
+                            <td>${event.displayDate}</td>
+                        </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>`;
+};
+// --- END: NEW FUNCTION ---
 
 
 // --- توابع مدیریت رویدادها ---
@@ -373,6 +417,120 @@ const initializeMessagesModule = () => {
     // No specific JS needed for this module anymore
 };
 
+// --- START: NEW FUNCTION ---
+const initializeEventsModule = () => {
+    const eventForm = document.getElementById('add-event-form');
+    if (!eventForm) return;
+
+    const formTitle = document.getElementById('event-form-title');
+    const submitBtn = document.getElementById('event-submit-btn');
+    const cancelBtn = document.getElementById('cancel-edit-btn');
+    const hiddenIdInput = document.getElementById('event-id');
+    const adminListContainer = document.getElementById('events-admin-list');
+
+    const resetForm = () => {
+        eventForm.reset();
+        hiddenIdInput.value = '';
+        formTitle.textContent = 'درج رویداد جدید';
+        submitBtn.textContent = 'افزودن رویداد';
+        cancelBtn.style.display = 'none';
+        eventForm.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    eventForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const statusBox = eventForm.querySelector('.form-status');
+        const isEditing = hiddenIdInput.value;
+        const formData = new FormData(eventForm);
+
+        hideStatus(statusBox);
+        submitBtn.disabled = true;
+        submitBtn.textContent = isEditing ? 'در حال ویرایش...' : 'در حال افزودن...';
+
+        try {
+            const eventData = {
+                title: formData.get('title'),
+                summary: formData.get('summary'),
+                instructor_name: formData.get('instructor_name'),
+                location: formData.get('location'),
+                cost: formData.get('cost'),
+                displayDate: formData.get('displayDate'),
+                startDate: formData.get('startDate'),
+                endDate: formData.get('endDate'),
+                image: formData.get('image'),
+                detailPage: formData.get('detailPage'),
+            };
+
+            if (isEditing) {
+                await updateEvent(isEditing, eventData);
+                showStatus(statusBox, 'رویداد با موفقیت ویرایش شد.', 'success');
+            } else {
+                await addEvent(eventData);
+                showStatus(statusBox, 'رویداد با موفقیت افزوده شد.', 'success');
+            }
+
+            state.allEvents = []; // Invalidate cache
+            const data = await loadEvents();
+            renderEventsList(state.allEvents);
+            resetForm();
+
+        } catch (error) {
+            console.error("Error during event submission:", error);
+            showStatus(statusBox, `عملیات با خطا مواجه شد: ${error.message}`, 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = isEditing ? 'ذخیره تغییرات' : 'افزودن رویداد';
+        }
+    });
+
+    cancelBtn.addEventListener('click', resetForm);
+
+    adminListContainer.addEventListener('click', async (event) => {
+        const editBtn = event.target.closest('.edit-event-btn');
+        const deleteBtn = event.target.closest('.delete-event-btn');
+
+        if (editBtn) {
+            const id = editBtn.dataset.id;
+            const eventToEdit = state.allEvents.find(e => e.id == id);
+            if (!eventToEdit) return;
+
+            hiddenIdInput.value = eventToEdit.id;
+            document.getElementById('event-title').value = eventToEdit.title || '';
+            document.getElementById('event-instructor').value = eventToEdit.instructor_name || '';
+            document.getElementById('event-summary').value = eventToEdit.summary || '';
+            document.getElementById('event-location').value = eventToEdit.location || '';
+            document.getElementById('event-cost').value = eventToEdit.cost || '';
+            document.getElementById('event-display-date').value = eventToEdit.displayDate || '';
+            document.getElementById('event-start-date').value = eventToEdit.startDate || '';
+            document.getElementById('event-end-date').value = eventToEdit.endDate || '';
+            document.getElementById('event-image-url').value = eventToEdit.image || '';
+            document.getElementById('event-detail-page').value = eventToEdit.detailPage || '';
+
+            formTitle.textContent = 'ویرایش رویداد';
+            submitBtn.textContent = 'ذخیره تغییرات';
+            cancelBtn.style.display = 'inline-block';
+            eventForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        if (deleteBtn) {
+            const id = deleteBtn.dataset.id;
+            if (confirm('آیا از حذف این رویداد مطمئن هستید؟')) {
+                try {
+                    deleteBtn.disabled = true;
+                    await deleteEvent(id);
+                    state.allEvents = state.allEvents.filter(e => e.id != id);
+                    renderEventsList(state.allEvents);
+                } catch (error) {
+                    alert('خطا در حذف رویداد.');
+                    console.error("Deletion Error:", error);
+                    deleteBtn.disabled = false;
+                }
+            }
+        }
+    });
+};
+// --- END: NEW FUNCTION ---
+
 const initializeAdminLayout = () => {
     const sidebar = document.getElementById('admin-sidebar');
     const menuToggle = document.getElementById('mobile-admin-menu-toggle');
@@ -425,7 +583,16 @@ const adminRoutes = {
         loader: async () => { state.allJournalIssues = []; await loadJournal(); return state.allJournalIssues; },
         renderer: renderJournalList,
         initializer: initializeJournalModule
+    },
+    // --- START: NEW ROUTE ---
+    '/admin/events': {
+        title: 'مدیریت رویدادها',
+        html: 'admin-events.html',
+        loader: async () => { state.allEvents = []; await loadEvents(); return state.allEvents; },
+        renderer: renderEventsList,
+        initializer: initializeEventsModule
     }
+    // --- END: NEW ROUTE ---
 };
 
 const loadAdminPage = async (path) => {

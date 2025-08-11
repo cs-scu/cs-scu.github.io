@@ -1,0 +1,37 @@
+<div class="admin-module-header">
+    <h2>مدیریت رویدادها</h2>
+</div>
+
+<div class="content-box">
+    <h3 id="event-form-title" class="admin-section-subtitle">درج یا ویرایش رویداد</h3>
+    <form id="add-event-form">
+        <input type="hidden" id="event-id" name="id">
+        <div class="form-row">
+            <div class="form-group"><label for="event-title">عنوان رویداد</label><input type="text" id="event-title" name="title" required></div>
+            <div class="form-group"><label for="event-instructor">نام مدرس</label><input type="text" id="event-instructor" name="instructor_name"></div>
+        </div>
+        <div class="form-group"><label for="event-summary">خلاصه</label><textarea id="event-summary" name="summary" rows="3"></textarea></div>
+        <div class="form-row">
+            <div class="form-group"><label for="event-location">مکان</label><input type="text" id="event-location" name="location"></div>
+            <div class="form-group"><label for="event-cost">هزینه</label><input type="text" id="event-cost" name="cost" placeholder="مثال: رایگان یا ۲۰,۰۰۰ تومان"></div>
+            <div class="form-group"><label for="event-display-date">تاریخ نمایشی</label><input type="text" id="event-display-date" name="displayDate" placeholder="مثال: ۱۲ تا ۱۴ شهریور ۱۴۰۴" required></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label for="event-start-date">تاریخ شروع (میلادی)</label><input type="date" id="event-start-date" name="startDate" required></div>
+            <div class="form-group"><label for="event-end-date">تاریخ پایان (میلادی)</label><input type="date" id="event-end-date" name="endDate" required></div>
+        </div>
+        <div class="form-group"><label for="event-image-url">آدرس URL تصویر</label><input type="url" id="event-image-url" name="image" placeholder="https://example.com/image.jpg" required></div>
+        <div class="form-group"><label for="event-detail-page">لینک صفحه جزئیات</label><input type="text" id="event-detail-page" name="detailPage" placeholder="مثال: #/events/my-event-name" required></div>
+        <div class="form-status"></div>
+        <div class="form-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-primary" id="event-submit-btn">افزودن رویداد</button>
+            <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;">انصراف</button>
+        </div>
+    </form>
+</div>
+
+<div class="content-box" style="margin-top: 2rem;">
+    <h3 class="admin-section-subtitle">لیست رویدادها</h3>
+    <div id="events-admin-list">
+        </div>
+</div>
