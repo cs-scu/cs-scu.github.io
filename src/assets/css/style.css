@@ -3747,7 +3747,7 @@ body.light-theme .admin-section-subtitle {
     text-overflow: ellipsis;
 }
 
-/* ================== FINAL ADMIN PANEL STYLES (v2.1 - Icon Buttons & Scroll Fix) ================== */
+/* ================== FINAL ADMIN PANEL STYLES (v2.2 - Final Layout) ================== */
 
 /* --- Layout & Base --- */
 .admin-panel-body {
@@ -3774,7 +3774,7 @@ body.dark-theme .admin-section-subtitle { border-color: var(--glass-border-dark)
 body.light-theme .admin-section-subtitle { border-color: var(--glass-border-light); }
 
 .custom-table-wrapper {
-    overflow-x: auto; /* This is the key for table scrolling */
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }
 .custom-table th, .custom-table td { white-space: nowrap; }
@@ -3782,11 +3782,11 @@ body.light-theme .admin-section-subtitle { border-color: var(--glass-border-ligh
 
 /* START: NEW styles for table action buttons */
 .custom-table .actions-header {
-    text-align: left;
-    padding-left: 1rem;
+    text-align: right; /* Align header to the right */
+    width: 1%; /* Allow column to be as small as possible */
 }
 .custom-table .actions-cell {
-    text-align: left;
+    text-align: right;
     display: flex;
     gap: 0.5rem;
 }
@@ -3845,17 +3845,15 @@ body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-c
     .admin-sidebar.is-open { transform: translateX(0); }
     body.admin-sidebar-is-open::after { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 2999; }
 
-    /* START: NEW styles for mobile table actions */
     .actions-cell .btn .btn-text {
-        display: none; /* Hide text on mobile */
+        display: none;
     }
     .actions-cell .btn {
-        padding: 0.5rem; /* Make it a square */
+        padding: 0.5rem;
         justify-content: center;
         width: 38px;
         height: 38px;
     }
-    /* END: NEW styles */
 }
 
 @media (max-width: 480px) {
