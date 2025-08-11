@@ -4127,7 +4127,7 @@ body.light-theme .tag-action-btn:hover { background-color: rgba(0,0,0,0.05); }
     position: relative;
     display: inline-block;
     width: 60px;
-    height: 32px;
+    height: 40px;
 }
 .toggle-input {
     opacity: 0;

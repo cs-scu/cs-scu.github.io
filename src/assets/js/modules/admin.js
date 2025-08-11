@@ -434,6 +434,17 @@ const initializeEventsModule = () => {
     const detailPageInput = document.getElementById('event-detail-page');
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
+    const paymentInfoSection = document.getElementById('payment-info-section'); // <-- انتخاب بخش پرداخت
+
+    // **START: منطق جدید برای کنترل نمایش فیلدهای پرداخت**
+    const togglePaymentFields = () => {
+        if (!paymentInfoSection || !costToggle) return;
+        // اگر تیک "رایگان" زده شده باشد، بخش پرداخت مخفی می‌شود
+        paymentInfoSection.style.display = costToggle.checked ? 'none' : 'block';
+    };
+
+    costToggle.addEventListener('change', togglePaymentFields);
+    // **END: منطق جدید**
 
     const updateSelectedTagsDisplay = () => {
         if (!selectedTagsDisplay) return;
@@ -614,6 +625,7 @@ const initializeEventsModule = () => {
         costInput.disabled = false;
         selectedTagIds = [];
         updateSelectedTagsDisplay();
+        togglePaymentFields(); // **فراخوانی در ریست فرم**
         eventForm.scrollIntoView({ behavior: 'smooth' });
     };
 
@@ -699,6 +711,7 @@ const initializeEventsModule = () => {
             costInput.value = eventToEdit.cost || '';
             costToggle.checked = eventToEdit.cost === 'رایگان';
             costToggle.dispatchEvent(new Event('change'));
+            togglePaymentFields(); // **فراخوانی هنگام ویرایش**
             
             selectedTagIds = eventToEdit.tag_ids || [];
             updateSelectedTagsDisplay();
@@ -730,6 +743,8 @@ const initializeEventsModule = () => {
             }
         }
     });
+
+    togglePaymentFields(); // **فراخوانی اولیه هنگام بارگذاری ماژول**
 };
 
 const initializeAdminLayout = () => {
