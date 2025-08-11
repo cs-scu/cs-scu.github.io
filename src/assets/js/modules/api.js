@@ -151,6 +151,72 @@ export const loadTags = async () => {
     }
 };
 
+export const addTag = async (tagName) => {
+    try {
+        const { data, error } = await supabaseClient
+            .from('tags')
+            .insert({ name: tagName })
+            .select()
+            .single(); // .single() برای بازگرداندن آبجکت تگ جدید
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error adding tag:', error);
+        throw error;
+    }
+};
+
+export const updateTag = async (tagId, newName) => {
+    try {
+        const { data, error } = await supabaseClient
+            .from('tags')
+            .update({ name: newName })
+            .eq('id', tagId)
+            .select()
+            .single();
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error updating tag:', error);
+        throw error;
+    }
+};
+
+export const deleteTag = async (tagId) => {
+    try {
+        // ابتدا تگ را از تمام رویدادهایی که از آن استفاده کرده‌اند، حذف می‌کنیم
+        const { data: events, error: fetchError } = await supabaseClient
+            .from('events')
+            .select('id, tag_ids')
+            .filter('tag_ids', 'cs', `{${tagId}}`); // بررسی می‌کند که آیا tagId در آرایه tag_ids وجود دارد یا نه
+
+        if (fetchError) throw fetchError;
+
+        if (events.length > 0) {
+            const updates = events.map(event => {
+                const newTagIds = event.tag_ids.filter(id => id !== tagId);
+                return supabaseClient
+                    .from('events')
+                    .update({ tag_ids: newTagIds })
+                    .eq('id', event.id);
+            });
+            await Promise.all(updates);
+        }
+
+        // سپس خود تگ را حذف می‌کنیم
+        const { error: deleteError } = await supabaseClient
+            .from('tags')
+            .delete()
+            .eq('id', tagId);
+
+        if (deleteError) throw deleteError;
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting tag:', error);
+        throw error;
+    }
+};
+
 export const loadEvents = async () => {
     if (state.allEvents.length > 0) return;
     try {
