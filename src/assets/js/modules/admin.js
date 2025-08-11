@@ -131,11 +131,11 @@ const initializeJournalModule = () => {
             if (input.files && input.files[0]) {
                 nameDisplay.textContent = input.files[0].name;
                 nameDisplay.style.opacity = 1;
-                wrapper.classList.add('file-selected'); // Add class when file is present
+                wrapper.classList.add('file-selected');
             } else {
                 nameDisplay.textContent = 'هیچ فایلی انتخاب نشده';
                 nameDisplay.style.opacity = 0.8;
-                wrapper.classList.remove('file-selected'); // Remove class when no file
+                wrapper.classList.remove('file-selected');
             }
         };
 
@@ -147,10 +147,13 @@ const initializeJournalModule = () => {
             updateFileName();
         });
 
-        clearBtn.addEventListener('click', () => {
+        // --- START: FIX ---
+        clearBtn.addEventListener('click', (event) => {
+            event.stopPropagation(); // This line prevents the click from reaching the file input
             input.value = '';
             updateFileName();
         });
+        // --- END: FIX ---
 
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             wrapper.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
