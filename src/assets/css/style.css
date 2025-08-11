@@ -3660,10 +3660,28 @@ body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-c
 .guidance-content ul li { margin-bottom: 0.5rem; }
 .guidance-content a { font-weight: bold; text-decoration: underline; }
 
-/* ================== MOBILE OPTIMIZATIONS for Admin Panel ================== */
-@media (max-width: 992px) {
-    .form-and-guidance-wrapper { grid-template-columns: 1fr; }
+/* ================== RESPONSIVE OPTIMIZATIONS ================== */
+
+@media (max-width: 1024px) {
+    /* Stack form and guidance vertically on tablets */
+    .form-and-guidance-wrapper {
+        grid-template-columns: 1fr;
+    }
+
+    /* Adjust main page container for better spacing */
+    .container {
+        width: 95%;
+    }
 }
+
+/* --- Medium screens and large phones (up to 992px) --- */
+@media (max-width: 992px) {
+    .form-and-guidance-wrapper {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Small tablets and phones (up to 768px) --- */
 @media (max-width: 768px) {
     .admin-main-content { padding: 1.5rem; }
     .admin-main-content .form-row { flex-direction: column; gap: 1rem; }
@@ -3674,6 +3692,8 @@ body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-c
     .admin-sidebar.is-open { transform: translateX(0); }
     body.admin-sidebar-is-open::after { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 2999; }
 }
+
+/* --- Small phones (up to 480px) --- */
 @media (max-width: 480px) {
     .admin-main-content { padding: 1rem; }
     .custom-file-upload { flex-direction: column; align-items: stretch; gap: 0.75rem; }
