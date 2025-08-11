@@ -3958,109 +3958,156 @@ body.dark-theme .toggle-input:checked + .toggle-label {
     transform: translateX(22px);
 }
 
-/* Styles for Tags Modal in Admin Panel */
-.tags-selection-area {
+/* ================== Styles for Polished Tags Modal ================== */
+.tags-modal-container h3 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.add-tag-form {
     display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.5rem;
-    border: 1px solid var(--glass-border-light);
-    border-radius: 8px;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
 }
-body.dark-theme .tags-selection-area {
-    border-color: var(--glass-border-dark);
-}
-.selected-tags-display {
+.add-tag-form input {
     flex-grow: 1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    opacity: 0.8;
-    padding: 0.25rem;
 }
-.selected-tags-display .tag {
-    font-size: 0.85rem;
-    padding: 0.25rem 0.8rem;
-}
-#admin-generic-modal .modal-content {
-    max-width: 500px;
-    padding: 1.5rem;
-    padding-top: 4rem;
-}
-.tags-modal-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
+
 .tags-modal-list {
-    max-height: 300px;
+    max-height: 280px;
     overflow-y: auto;
     border: 1px solid var(--glass-border-light);
     border-radius: 8px;
-    padding: 1rem;
+    padding: 0.5rem;
+    margin-bottom: 1.5rem;
 }
 body.dark-theme .tags-modal-list {
     border-color: var(--glass-border-dark);
 }
-.tags-modal-list .tag-checkbox-item {
-    display: block;
-    margin-bottom: 0.75rem;
-}
-.tags-modal-list label {
-    cursor: pointer;
-    margin-right: 0.5rem;
-}
-.tags-modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1rem;
-}
 
-/* Styles for Unified Tags Management Modal */
-.tags-modal-list .tag-checkbox-item {
+.tag-checkbox-item {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    padding: 0.75rem;
+    padding: 0.5rem;
     border-radius: 6px;
     transition: background-color 0.2s;
 }
-.tags-modal-list .tag-checkbox-item:not(:last-child) {
+.tag-checkbox-item:not(:last-child) {
     border-bottom: 1px solid var(--glass-border-light);
 }
-body.dark-theme .tags-modal-list .tag-checkbox-item:not(:last-child) {
+body.dark-theme .tag-checkbox-item:not(:last-child) {
     border-bottom-color: var(--glass-border-dark);
 }
+body.dark-theme .tag-checkbox-item:hover { background-color: rgba(255, 255, 255, 0.05); }
+body.light-theme .tag-checkbox-item:hover { background-color: rgba(0, 0, 0, 0.03); }
 
-/* بزرگتر کردن چک‌باکس و لیبل */
-.tags-modal-list .tag-checkbox-item input[type="checkbox"] {
-    transform: scale(1.4);
-    margin-left: 1rem;
-    cursor: pointer;
-}
-.tags-modal-list .tag-checkbox-item label {
+/* --- Custom Checkbox Styles --- */
+.tag-selector {
+    display: flex;
+    align-items: center;
     flex-grow: 1;
-    font-weight: bold;
     cursor: pointer;
 }
+.tag-selector input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+.tag-selector label {
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding-right: 2.2rem; /* فاصله برای چک‌باکس سفارشی */
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+}
+/* قاب چک‌باکس */
+.tag-selector label::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--glass-border-dark);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+body.light-theme .tag-selector label::before {
+    border-color: var(--glass-border-light);
+}
+/* آیکون تیک */
+.tag-selector label::after {
+    content: '';
+    position: absolute;
+    right: 7px;
+    top: 40%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 7px;
+    height: 12px;
+    border: solid var(--primary-color);
+    border-width: 0 3px 3px 0;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+body.light-theme .tag-selector label::after {
+    border-color: var(--primary-color-light-theme);
+}
+/* حالت انتخاب شده */
+.tag-selector input[type="checkbox"]:checked + label::before {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+body.light-theme .tag-selector input[type="checkbox"]:checked + label::before {
+    background-color: var(--primary-color-light-theme);
+    border-color: var(--primary-color-light-theme);
+}
+.tag-selector input[type="checkbox"]:checked + label::after {
+    opacity: 1;
+}
+body.dark-theme .tag-selector input[type="checkbox"]:checked + label::after {
+    border-color: var(--background-color-dark);
+}
+body.light-theme .tag-selector input[type="checkbox"]:checked + label::after {
+    border-color: #fff;
+}
 
+/* --- Action Buttons & Edit Form --- */
 .tag-list-item-actions {
     display: flex;
     gap: 0.5rem;
 }
+.tag-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.4rem;
+    display: flex;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+    opacity: 0.7;
+    color: inherit;
+}
+.tag-action-btn:hover { opacity: 1; }
+body.dark-theme .tag-action-btn:hover { background-color: rgba(255,255,255,0.1); }
+body.light-theme .tag-action-btn:hover { background-color: rgba(0,0,0,0.05); }
 
-/* فرم ویرایش که در حالت عادی مخفی است */
 .edit-tag-form {
     display: none;
     flex-grow: 1;
     gap: 0.5rem;
 }
+.tag-checkbox-item.is-editing .tag-selector,
+.tag-checkbox-item.is-editing .tag-list-item-actions {
+    display: none;
+}
 .tag-checkbox-item.is-editing .edit-tag-form {
     display: flex;
 }
-.tag-checkbox-item.is-editing label,
-.tag-checkbox-item.is-editing .tag-list-item-actions,
-.tag-checkbox-item.is-editing input[type="checkbox"] {
-    display: none;
+.edit-tag-form .btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
 }
