@@ -521,20 +521,27 @@ export const deleteEvent = async (id) => {
     }
 };
 // START: توابع جدید مدیریت تصویر رویداد با باکت اختصاصی
-export const uploadEventImage = async (file) => {
-    if (!file) return null;
+export const uploadEventImage = async (file, slug) => {
+    if (!file || !slug) return null;
+
+    // ساخت بخش تاریخ از سال تا ثانیه
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}` +
+                      `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+    
     const extension = file.name.split('.').pop();
-    const fileName = `public/event-${Date.now()}.${extension}`; // مسیر جدید در باکت
+    // **تغییر اصلی: ساخت نام فایل بر اساس الگوی جدید**
+    const fileName = `covers/ev-${slug}-${timestamp}.${extension}`;
 
     try {
         const { error: uploadError } = await supabaseClient.storage
-            .from('event-assets') // **تغییر اصلی: نام باکت جدید**
+            .from('event-assets')
             .upload(fileName, file, { upsert: true });
 
         if (uploadError) throw uploadError;
 
         const { data } = supabaseClient.storage
-            .from('event-assets') // **تغییر اصلی: نام باکت جدید**
+            .from('event-assets')
             .getPublicUrl(fileName);
         
         return data.publicUrl;
@@ -543,7 +550,6 @@ export const uploadEventImage = async (file) => {
         throw error;
     }
 };
-
 export const deleteEventImage = async (imageUrl) => {
     if (!imageUrl) return;
     try {

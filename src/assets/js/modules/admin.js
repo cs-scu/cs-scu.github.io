@@ -699,7 +699,12 @@ const initializeEventsModule = () => {
                 if (isEditing && currentImageUrl) {
                     await deleteEventImage(currentImageUrl);
                 }
-                imageUrl = await uploadEventImage(imageFile);
+                
+                // **START: این سه خط را اینجا اضافه کن**
+                const detailPageValue = formData.get('detailPage') || '';
+                const eventSlug = detailPageValue.split('/').pop(); // اسلاگ را از انتهای آدرس استخراج می‌کند
+                imageUrl = await uploadEventImage(imageFile, eventSlug); // اسلاگ را به تابع ارسال می‌کند
+                // **END: تغییر**
             }
             
             if (!imageUrl) {
