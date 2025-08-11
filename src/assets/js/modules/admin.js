@@ -419,44 +419,85 @@ const initializeEventsModule = () => {
     const eventForm = document.getElementById('add-event-form');
     if (!eventForm) return;
 
+    // متغیری برای نگهداری موقت آی‌دی تگ‌های انتخاب شده
+    let selectedTagIds = [];
+
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
     const cancelBtn = document.getElementById('cancel-edit-btn');
     const hiddenIdInput = document.getElementById('event-id');
     const adminListContainer = document.getElementById('events-admin-list');
-    const tagsContainer = document.getElementById('tags-container');
-
+    
     const locationInput = document.getElementById('event-location');
     const locationToggle = document.getElementById('toggle-location-online');
     const costInput = document.getElementById('event-cost');
     const costToggle = document.getElementById('toggle-cost-free');
     const detailPageInput = document.getElementById('event-detail-page');
+    const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
+    const selectedTagsDisplay = document.getElementById('selected-tags-display');
 
-    // تابع جدید برای رندر کردن چک‌باکس‌های تگ
-    const renderTagsSelection = (container, selectedIds = []) => {
-        if (!container) return;
-        container.innerHTML = '';
-        if (state.tagsMap.size === 0) {
-            container.innerHTML = '<p style="opacity: 0.8; font-size: 0.9rem;">ابتدا باید تگ‌ها را در جدول `tags` در Supabase تعریف کنید.</p>';
+    // تابع برای نمایش تگ‌های انتخاب شده در فرم
+    const updateSelectedTagsDisplay = () => {
+        if (!selectedTagsDisplay) return;
+        if (selectedTagIds.length === 0) {
+            selectedTagsDisplay.innerHTML = 'هیچ تگی انتخاب نشده است.';
             return;
         }
-    
-        let tagsHTML = '';
-        for (const [id, name] of state.tagsMap.entries()) {
-            const isChecked = selectedIds.includes(id);
-            tagsHTML += `
-                <div class="tag-checkbox-item" style="display: inline-block; margin-left: 1rem; margin-bottom: 0.5rem;">
-                    <input type="checkbox" id="tag-${id}" name="tag_ids" value="${id}" ${isChecked ? 'checked' : ''} style="margin-left: 0.25rem;">
-                    <label for="tag-${id}" style="cursor: pointer;">${name}</label>
-                </div>
-            `;
-        }
-        container.innerHTML = tagsHTML;
+        selectedTagsDisplay.innerHTML = '';
+        selectedTagIds.forEach(id => {
+            const tagName = state.tagsMap.get(id);
+            if (tagName) {
+                const tagEl = document.createElement('span');
+                tagEl.className = 'tag'; // استفاده از کلاس عمومی تگ
+                tagEl.textContent = tagName;
+                selectedTagsDisplay.appendChild(tagEl);
+            }
+        });
     };
 
-    // رندر اولیه تگ‌ها هنگام بارگذاری ماژول
-    renderTagsSelection(tagsContainer);
+    // تابع برای باز کردن و مدیریت مودال تگ‌ها
+    const openTagsModal = () => {
+        const modal = document.getElementById('admin-generic-modal');
+        const modalContent = document.getElementById('admin-generic-modal-content');
+        if (!modal || !modalContent) return;
+        
+        let tagsHTML = '';
+        for (const [id, name] of state.tagsMap.entries()) {
+            const isChecked = selectedTagIds.includes(id);
+            tagsHTML += `<div class="tag-checkbox-item">
+                <input type="checkbox" id="modal-tag-${id}" value="${id}" ${isChecked ? 'checked' : ''}>
+                <label for="modal-tag-${id}">${name}</label>
+            </div>`;
+        }
 
+        modalContent.innerHTML = `
+            <div class="tags-modal-container">
+                <h3>انتخاب تگ‌ها</h3>
+                <div class="tags-modal-list">${tagsHTML || '<p>تگی برای نمایش وجود ندارد.</p>'}</div>
+                <div class="tags-modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-tags-btn">انصراف</button>
+                    <button type="button" class="btn btn-primary" id="confirm-tags-btn">تایید</button>
+                </div>
+            </div>`;
+        
+        modal.classList.add('is-open');
+
+        const closeModal = () => modal.classList.remove('is-open');
+        modal.querySelector('.close-modal').onclick = closeModal;
+        document.getElementById('cancel-tags-btn').onclick = closeModal;
+
+        document.getElementById('confirm-tags-btn').onclick = () => {
+            const checkedInputs = modalContent.querySelectorAll('input[type="checkbox"]:checked');
+            selectedTagIds = Array.from(checkedInputs).map(input => parseInt(input.value, 10));
+            updateSelectedTagsDisplay();
+            closeModal();
+        };
+    };
+
+    if (openTagsModalBtn) {
+        openTagsModalBtn.addEventListener('click', openTagsModal);
+    }
+    
     const setupToggleSwitch = (input, toggle, value) => {
         toggle.addEventListener('change', () => {
             if (toggle.checked) {
@@ -474,31 +515,17 @@ const initializeEventsModule = () => {
     setupToggleSwitch(costInput, costToggle, 'رایگان');
     
     detailPageInput.addEventListener('blur', () => {
-        const isEditing = hiddenIdInput.value;
-        if (isEditing) return; 
-
+        if (hiddenIdInput.value) return; 
         let slug = detailPageInput.value.trim();
         if (slug && !slug.startsWith('#/events/')) {
             slug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-            
             const maxId = state.allEvents.reduce((max, event) => Math.max(max, event.id), 0);
-            const newId = maxId + 1;
-            
-            detailPageInput.value = `#/events/${newId}-${slug}`;
+            detailPageInput.value = `#/events/${maxId + 1}-${slug}`;
         }
     });
 
-    const safeJsonStringify = (obj, indent = 2) => {
-        try {
-            if (obj === null || obj === undefined) return '';
-            if (typeof obj === 'string') {
-                JSON.parse(obj);
-                return JSON.stringify(JSON.parse(obj), null, indent);
-            }
-            return JSON.stringify(obj, null, indent);
-        } catch (e) {
-            return obj;
-        }
+    const safeJsonStringify = (obj) => {
+        try { return obj ? JSON.stringify(obj, null, 2) : ''; } catch (e) { return typeof obj === 'string' ? obj : ''; }
     };
 
     const resetForm = () => {
@@ -507,14 +534,10 @@ const initializeEventsModule = () => {
         formTitle.textContent = 'درج رویداد جدید';
         submitBtn.textContent = 'افزودن رویداد';
         cancelBtn.style.display = 'none';
-        
         locationInput.disabled = false;
-        locationToggle.checked = false;
         costInput.disabled = false;
-        costToggle.checked = false;
-
-        renderTagsSelection(tagsContainer); // ریست کردن تگ‌ها
-
+        selectedTagIds = [];
+        updateSelectedTagsDisplay();
         eventForm.scrollIntoView({ behavior: 'smooth' });
     };
 
@@ -522,16 +545,7 @@ const initializeEventsModule = () => {
         event.preventDefault();
         const statusBox = eventForm.querySelector('.form-status');
         const isEditing = hiddenIdInput.value;
-        
-        const wasLocationDisabled = locationInput.disabled;
-        const wasCostDisabled = costInput.disabled;
-        locationInput.disabled = false;
-        costInput.disabled = false;
-        
         const formData = new FormData(eventForm);
-
-        locationInput.disabled = wasLocationDisabled;
-        costInput.disabled = wasCostDisabled;
         
         hideStatus(statusBox);
         submitBtn.disabled = true;
@@ -540,46 +554,30 @@ const initializeEventsModule = () => {
         try {
             const parseJsonField = (fieldName) => {
                 const value = formData.get(fieldName);
-                if (!value) return null;
                 try {
-                    return JSON.parse(value);
+                    return value ? JSON.parse(value) : null;
                 } catch (e) {
-                    throw new Error(`فرمت JSON در فیلد "${fieldName}" نامعتبر است.`);
+                    throw new Error(`فرمت JSON در فیلد "${fieldName}" نامعتبر است: ${e.message}`);
                 }
-            };
-            
-            // خواندن ID تگ‌های انتخاب شده
-            const selectedTagNodes = document.querySelectorAll('#tags-container input[name="tag_ids"]:checked');
-            const tag_ids = Array.from(selectedTagNodes).map(node => parseInt(node.value, 10));
-
-            const paymentCardNumber = {
-                name: formData.get('payment_name'),
-                number: formData.get('payment_number')
-            };
-
-            const contactLink = {
-                phone: formData.get('contact_phone'),
-                telegram: formData.get('contact_telegram'),
-                whatsapp: formData.get('contact_whatsapp')
             };
 
             const eventData = {
                 title: formData.get('title'),
                 summary: formData.get('summary'),
-                location: formData.get('location'),
-                cost: formData.get('cost'),
+                location: locationInput.value,
+                cost: costInput.value,
                 displayDate: formData.get('displayDate'),
                 startDate: formData.get('startDate'),
                 endDate: formData.get('endDate'),
                 image: formData.get('image'),
                 detailPage: formData.get('detailPage'),
-                tag_ids: tag_ids, // استفاده از آرایه جدید تگ‌ها
+                tag_ids: selectedTagIds, // استفاده از آرایه تگ‌های ذخیره شده
                 content: parseJsonField('content'),
                 schedule: parseJsonField('schedule'),
-                payment_card_number: (paymentCardNumber.name || paymentCardNumber.number) ? paymentCardNumber : null,
-                contact_link: (contactLink.phone || contactLink.telegram || contactLink.whatsapp) ? contactLink : null,
+                payment_card_number: { name: formData.get('payment_name'), number: formData.get('payment_number') },
+                contact_link: { phone: formData.get('contact_phone'), telegram: formData.get('contact_telegram'), whatsapp: formData.get('contact_whatsapp') },
             };
-
+            
             if (isEditing) {
                 await updateEvent(isEditing, eventData);
                 showStatus(statusBox, 'رویداد با موفقیت ویرایش شد.', 'success');
@@ -594,7 +592,6 @@ const initializeEventsModule = () => {
             resetForm();
 
         } catch (error) {
-            console.error("Error during event submission:", error);
             showStatus(statusBox, `عملیات با خطا مواجه شد: ${error.message}`, 'error');
         } finally {
             submitBtn.disabled = false;
@@ -606,8 +603,6 @@ const initializeEventsModule = () => {
 
     adminListContainer.addEventListener('click', async (event) => {
         const editBtn = event.target.closest('.edit-event-btn');
-        const deleteBtn = event.target.closest('.delete-event-btn');
-
         if (editBtn) {
             const id = editBtn.dataset.id;
             const eventToEdit = state.allEvents.find(e => e.id == id);
@@ -622,26 +617,19 @@ const initializeEventsModule = () => {
             document.getElementById('event-start-date').value = eventToEdit.startDate || '';
             document.getElementById('event-end-date').value = eventToEdit.endDate || '';
             document.getElementById('event-image-url').value = eventToEdit.image || '';
+            document.getElementById('event-detail-page').value = eventToEdit.detailPage || '';
             
-            const detailPageValue = eventToEdit.detailPage || '';
-            document.getElementById('event-detail-page').value = detailPageValue;
-            
-            if (eventToEdit.location === 'آنلاین') {
-                locationToggle.checked = true;
-            } else {
-                locationInput.value = eventToEdit.location || '';
-            }
+            locationInput.value = eventToEdit.location || '';
+            locationToggle.checked = eventToEdit.location === 'آنلاین';
             locationToggle.dispatchEvent(new Event('change'));
 
-            if (eventToEdit.cost === 'رایگان') {
-                costToggle.checked = true;
-            } else {
-                costInput.value = eventToEdit.cost || '';
-            }
+            costInput.value = eventToEdit.cost || '';
+            costToggle.checked = eventToEdit.cost === 'رایگان';
             costToggle.dispatchEvent(new Event('change'));
             
-            // انتخاب خودکار تگ‌های مربوط به رویداد
-            renderTagsSelection(tagsContainer, eventToEdit.tag_ids || []);
+            // پر کردن و نمایش تگ‌های مربوط به رویداد
+            selectedTagIds = eventToEdit.tag_ids || [];
+            updateSelectedTagsDisplay();
 
             document.getElementById('event-content').value = safeJsonStringify(eventToEdit.content);
             document.getElementById('event-schedule').value = safeJsonStringify(eventToEdit.schedule);
@@ -656,22 +644,17 @@ const initializeEventsModule = () => {
             formTitle.textContent = 'ویرایش رویداد';
             submitBtn.textContent = 'ذخیره تغییرات';
             cancelBtn.style.display = 'inline-block';
-            eventForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            eventForm.scrollIntoView({ behavior: 'smooth' });
         }
 
+        const deleteBtn = event.target.closest('.delete-event-btn');
         if (deleteBtn) {
             const id = deleteBtn.dataset.id;
             if (confirm('آیا از حذف این رویداد مطمئن هستید؟')) {
-                try {
-                    deleteBtn.disabled = true;
-                    await deleteEvent(id);
-                    state.allEvents = state.allEvents.filter(e => e.id != id);
-                    renderEventsList(state.allEvents);
-                } catch (error) {
-                    alert('خطا در حذف رویداد.');
-                    console.error("Deletion Error:", error);
-                    deleteBtn.disabled = false;
-                }
+                deleteBtn.disabled = true;
+                await deleteEvent(id);
+                state.allEvents = state.allEvents.filter(e => e.id != id);
+                renderEventsList(state.allEvents);
             }
         }
     });

@@ -3957,3 +3957,63 @@ body.dark-theme .toggle-input:checked + .toggle-label {
 .toggle-input:checked + .toggle-label:before {
     transform: translateX(22px);
 }
+
+/* Styles for Tags Modal in Admin Panel */
+.tags-selection-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+    border: 1px solid var(--glass-border-light);
+    border-radius: 8px;
+}
+body.dark-theme .tags-selection-area {
+    border-color: var(--glass-border-dark);
+}
+.selected-tags-display {
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    padding: 0.25rem;
+}
+.selected-tags-display .tag {
+    font-size: 0.85rem;
+    padding: 0.25rem 0.8rem;
+}
+#admin-generic-modal .modal-content {
+    max-width: 500px;
+    padding: 1.5rem;
+    padding-top: 4rem;
+}
+.tags-modal-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.tags-modal-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--glass-border-light);
+    border-radius: 8px;
+    padding: 1rem;
+}
+body.dark-theme .tags-modal-list {
+    border-color: var(--glass-border-dark);
+}
+.tags-modal-list .tag-checkbox-item {
+    display: block;
+    margin-bottom: 0.75rem;
+}
+.tags-modal-list label {
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+.tags-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}

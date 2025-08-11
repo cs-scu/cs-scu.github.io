@@ -57,9 +57,12 @@
 
         <div class="form-group">
             <label>تگ‌ها</label>
-            <div id="tags-container" class="tags-checkbox-container">
-                </div>
+            <div class="tags-selection-area">
+                <div id="selected-tags-display" class="selected-tags-display">هیچ تگی انتخاب نشده است.</div>
+                <button type="button" id="open-tags-modal-btn" class="btn btn-secondary">انتخاب تگ‌ها</button>
+            </div>
         </div>
+        
         <div class="form-group"><label for="event-content">محتوای کامل صفحه (فرمت JSON)</label><textarea id="event-content" name="content" rows="6" placeholder="محتوای کامل رویداد را در قالب JSON وارد کنید..."></textarea></div>
 
         <hr style="margin: 1.5rem 0;">
