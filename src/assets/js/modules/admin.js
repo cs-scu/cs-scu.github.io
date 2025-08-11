@@ -428,10 +428,8 @@ const initializeEventsModule = () => {
     const hiddenIdInput = document.getElementById('event-id');
     const adminListContainer = document.getElementById('events-admin-list');
     
-    // المان‌های جدید برای آپلود تصویر
+    // المان‌های آپلود تصویر
     const imageUploadInput = document.getElementById('event-image-upload');
-    const imagePreviewContainer = document.getElementById('event-image-preview');
-    const imagePreviewImg = imagePreviewContainer.querySelector('img');
     const fileNameDisplay = document.querySelector('.image-upload-controls .file-name-display');
     const fileClearBtn = document.querySelector('.image-upload-controls .file-clear-btn');
     
@@ -450,33 +448,51 @@ const initializeEventsModule = () => {
     };
     costToggle.addEventListener('change', togglePaymentFields);
 
-    const updateImagePreview = (src = '') => {
-        if (src) {
-            imagePreviewImg.src = src;
-            imagePreviewImg.style.display = 'block';
-        } else {
-            imagePreviewImg.src = '';
-            imagePreviewImg.style.display = 'none';
+    const updateFileNameDisplay = (fileName) => {
+        if (!fileNameDisplay) return;
+        if (!fileName) {
+            fileNameDisplay.textContent = 'فایلی انتخاب نشده';
+            if(fileClearBtn) fileClearBtn.style.display = 'none';
+            return;
         }
+
+        const maxChars = 10;
+        let displayName = fileName;
+        const lastDotIndex = fileName.lastIndexOf('.');
+        
+        if (lastDotIndex > 0) {
+            const nameWithoutExt = fileName.substring(0, lastDotIndex);
+            const extension = fileName.substring(lastDotIndex);
+            if (nameWithoutExt.length > maxChars) {
+                displayName = nameWithoutExt.substring(0, maxChars) + '...' + extension;
+            }
+        } else {
+            if (fileName.length > maxChars) {
+                displayName = fileName.substring(0, maxChars) + '...';
+            }
+        }
+        
+        fileNameDisplay.textContent = displayName;
+        if(fileClearBtn) fileClearBtn.style.display = 'inline-block';
     };
 
-    imageUploadInput.addEventListener('change', () => {
-        const file = imageUploadInput.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => updateImagePreview(e.target.result);
-            reader.readAsDataURL(file);
-            fileNameDisplay.textContent = file.name;
-            fileClearBtn.style.display = 'inline-block';
-        }
-    });
+    if(imageUploadInput) {
+        imageUploadInput.addEventListener('change', () => {
+            const file = imageUploadInput.files[0];
+            updateFileNameDisplay(file ? file.name : '');
+        });
+    }
 
-    fileClearBtn.addEventListener('click', () => {
-        imageUploadInput.value = '';
-        updateImagePreview(currentImageUrl);
-        fileNameDisplay.textContent = 'فایلی انتخاب نشده';
-        fileClearBtn.style.display = 'none';
-    });
+    if(fileClearBtn) {
+        fileClearBtn.addEventListener('click', () => {
+            imageUploadInput.value = '';
+            const existingFileName = currentImageUrl ? currentImageUrl.split('/').pop() : '';
+            updateFileNameDisplay(existingFileName);
+            if (!existingFileName) {
+                 fileClearBtn.style.display = 'none';
+            }
+        });
+    }
     
     const updateSelectedTagsDisplay = () => {
         if (!selectedTagsDisplay) return;
@@ -651,9 +667,7 @@ const initializeEventsModule = () => {
         eventForm.reset();
         hiddenIdInput.value = '';
         currentImageUrl = '';
-        updateImagePreview();
-        fileNameDisplay.textContent = 'فایلی انتخاب نشده';
-        fileClearBtn.style.display = 'none';
+        updateFileNameDisplay('');
         imageUploadInput.required = true;
 
         formTitle.textContent = 'درج رویداد جدید';
@@ -750,7 +764,8 @@ const initializeEventsModule = () => {
             hiddenIdInput.value = eventToEdit.id;
             
             currentImageUrl = eventToEdit.image || '';
-            updateImagePreview(currentImageUrl);
+            const existingFileName = currentImageUrl ? currentImageUrl.split('/').pop() : '';
+            updateFileNameDisplay(existingFileName);
             imageUploadInput.required = false;
 
             document.getElementById('event-title').value = eventToEdit.title || '';
