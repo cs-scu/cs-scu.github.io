@@ -3713,7 +3713,7 @@ body.light-theme .custom-file-upload.is-dragging {
     opacity: 1;
 }
 
-/* === Advanced File Upload Styles === */
+/* === Advanced File Upload Styles (Updated) === */
 .custom-file-upload {
     position: relative;
     display: flex;
@@ -3722,29 +3722,9 @@ body.light-theme .custom-file-upload.is-dragging {
     border-radius: 8px;
     padding: 0.5rem;
     transition: border-color 0.3s, background-color 0.3s;
+    justify-content: space-between; /* Pushes items to ends */
 }
-
-body.dark-theme .custom-file-upload {
-    border-color: var(--glass-border-dark);
-}
-
-body.light-theme .custom-file-upload {
-    border-color: var(--glass-border-light);
-}
-
-.custom-file-upload.is-dragging {
-    cursor: pointer;
-}
-
-body.dark-theme .custom-file-upload.is-dragging {
-    border-color: var(--primary-color);
-    background-color: rgba(232, 195, 142, 0.1);
-}
-
-body.light-theme .custom-file-upload.is-dragging {
-    border-color: var(--primary-color-light-theme);
-    background-color: rgba(26, 92, 93, 0.05);
-}
+/* ... existing styles for dark/light theme and dragging ... */
 
 .custom-file-upload input[type="file"] {
     position: absolute;
@@ -3757,10 +3737,9 @@ body.light-theme .custom-file-upload.is-dragging {
     z-index: 10;
 }
 
-.custom-file-upload .file-select-btn {
-    flex-shrink: 0;
-    z-index: 1;
-    pointer-events: none;
+.file-upload-buttons {
+    flex-shrink: 0; /* Prevents button from shrinking */
+    z-index: 5;
 }
 
 .file-name-display {
@@ -3774,26 +3753,31 @@ body.light-theme .custom-file-upload.is-dragging {
     text-align: left;
 }
 
+/* --- Button Toggle Logic --- */
 .file-clear-btn {
-    position: absolute;
-    right: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: inherit;
-    font-size: 1.8rem;
-    cursor: pointer;
-    opacity: 0.6;
-    transition: opacity 0.2s;
-    z-index: 5;
-    display: none;
-    padding: 0 0.5rem;
-    line-height: 1;
+    display: none; /* Hidden by default */
+}
+.file-select-btn {
+    display: inline-block; /* Shown by default */
 }
 
-.file-clear-btn:hover {
-    opacity: 1;
+/* When a file is selected */
+.custom-file-upload.file-selected .file-clear-btn {
+    display: inline-block; /* Show the delete button */
+}
+.custom-file-upload.file-selected .file-select-btn {
+    display: none; /* Hide the select button */
+}
+
+/* Red color for the delete button */
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+.btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
 }
 
 /* === Table Scroll Fix (Revised) === */

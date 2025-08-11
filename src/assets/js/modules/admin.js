@@ -131,11 +131,11 @@ const initializeJournalModule = () => {
             if (input.files && input.files[0]) {
                 nameDisplay.textContent = input.files[0].name;
                 nameDisplay.style.opacity = 1;
-                clearBtn.style.display = 'block';
+                wrapper.classList.add('file-selected'); // Add class when file is present
             } else {
                 nameDisplay.textContent = 'هیچ فایلی انتخاب نشده';
                 nameDisplay.style.opacity = 0.8;
-                clearBtn.style.display = 'none';
+                wrapper.classList.remove('file-selected'); // Remove class when no file
             }
         };
 
@@ -230,7 +230,6 @@ const initializeJournalModule = () => {
                 return data.publicUrl;
             };
             
-            // --- START: UPDATED FILE HANDLING LOGIC ---
             if (coverFile && coverFile.size > 0) {
                 if (originalIssue && originalIssue.coverUrl) {
                     oldFilesToDelete.push(originalIssue.coverUrl);
@@ -244,7 +243,6 @@ const initializeJournalModule = () => {
                 }
                 fileUrl = await uploadFile(journalFile, 'files');
             }
-            // --- END: UPDATED FILE HANDLING LOGIC ---
 
             const entryData = {
                 title: title,
@@ -263,7 +261,6 @@ const initializeJournalModule = () => {
                 showStatus(statusBox, 'نشریه با موفقیت افزوده شد.', 'success');
             }
             
-            // Delete old files only after the database update is successful
             if (oldFilesToDelete.length > 0) {
                 await deleteJournalFiles(oldFilesToDelete);
             }
