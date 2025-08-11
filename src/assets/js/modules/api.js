@@ -442,4 +442,14 @@ export const deleteEvent = async (id) => {
         return { error };
     }
 };
-// --- END: EVENT MANAGEMENT FUNCTIONS ---
+
+export const loadTags = async () => {
+    if (state.tagsMap.size > 0) return;
+    try {
+        const { data: tags, error } = await supabaseClient.from('tags').select('id, name');
+        if (error) throw error;
+        tags.forEach(tag => state.tagsMap.set(tag.id, tag.name));
+    } catch (error) {
+        console.error("Failed to load tags:", error);
+    }
+};

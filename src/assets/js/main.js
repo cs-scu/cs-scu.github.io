@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         onAuthStateChange(handleAuthChange);
 
         await loadMembers(); 
+        await loadTags(); // <-- این خط اضافه شود
         initializeRouter();
 
         if (preloader) {

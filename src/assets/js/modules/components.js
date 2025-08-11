@@ -121,17 +121,22 @@ const renderNewsItems = (items) => {
         cardClone.querySelector('.news-item-comments .count').textContent = toPersianNumber(commentsCount);
         cardClone.querySelector('.news-item-likes .count').textContent = toPersianNumber(likesCount);
 
+        // START: REPLACEMENT CODE
         const tagsContainer = cardClone.querySelector('.news-item-tags');
-        if (tagsContainer && item.tags && Array.isArray(item.tags)) {
+        if (tagsContainer && item.tag_ids && Array.isArray(item.tag_ids)) {
             tagsContainer.innerHTML = '';
-            item.tags.forEach(([text, color]) => {
-                const tagEl = document.createElement('span');
-                tagEl.className = 'news-tag';
-                tagEl.textContent = text;
-                // tagEl.style.backgroundColor = color; delete color
-                tagsContainer.appendChild(tagEl);
+            item.tag_ids.forEach(tagId => {
+                const tagName = state.tagsMap.get(tagId); // خواندن نام تگ از حافظه
+                if (tagName) {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'news-tag';
+                    tagEl.textContent = tagName;
+                    tagsContainer.appendChild(tagEl);
+                }
             });
         }
+        // END: REPLACEMENT CODE
+        
         newsList.appendChild(cardClone);
     });
 };
@@ -157,7 +162,7 @@ export const loadMoreNews = async () => {
 
     const { data: newsToLoad, error } = await supabaseClient
         .from('news')
-        .select('*, likes(count), comments(count)')
+        .select('*, likes(count), comments(count), tag_ids')
         .order('id', { ascending: false })
         .range(from, to);
 

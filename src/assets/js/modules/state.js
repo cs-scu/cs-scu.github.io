@@ -8,6 +8,7 @@ export const state = {
     // Data stores
     allNews: [],
     membersMap: new Map(),
+    tagsMap: new Map(), // <-- این خط اضافه شود
     allEvents: [],
     allJournalIssues: [],
     allCourses: [],
