@@ -121,7 +121,7 @@ const renderNewsItems = (items) => {
         cardClone.querySelector('.news-item-comments .count').textContent = toPersianNumber(commentsCount);
         cardClone.querySelector('.news-item-likes .count').textContent = toPersianNumber(likesCount);
 
-        // START: REPLACEMENT CODE
+        // --- بخش اصلاح شده برای نمایش تگ‌ها ---
         const tagsContainer = cardClone.querySelector('.news-item-tags');
         if (tagsContainer && item.tag_ids && Array.isArray(item.tag_ids)) {
             tagsContainer.innerHTML = '';
@@ -135,12 +135,10 @@ const renderNewsItems = (items) => {
                 }
             });
         }
-        // END: REPLACEMENT CODE
         
         newsList.appendChild(cardClone);
     });
 };
-
 export const loadMoreNews = async () => {
     if (state.isLoadingNews) return;
     state.isLoadingNews = true;

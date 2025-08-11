@@ -139,6 +139,18 @@ export const loadMembers = async () => {
         console.error("Failed to load members:", error);
     }
 };
+
+export const loadTags = async () => {
+    if (state.tagsMap.size > 0) return;
+    try {
+        const { data: tags, error } = await supabaseClient.from('tags').select('id, name');
+        if (error) throw error;
+        tags.forEach(tag => state.tagsMap.set(tag.id, tag.name));
+    } catch (error) {
+        console.error("Failed to load tags:", error);
+    }
+};
+
 export const loadEvents = async () => {
     if (state.allEvents.length > 0) return;
     try {
@@ -440,16 +452,5 @@ export const deleteEvent = async (id) => {
     } catch (error) {
         console.error('Error deleting event:', error);
         return { error };
-    }
-};
-
-export const loadTags = async () => {
-    if (state.tagsMap.size > 0) return;
-    try {
-        const { data: tags, error } = await supabaseClient.from('tags').select('id, name');
-        if (error) throw error;
-        tags.forEach(tag => state.tagsMap.set(tag.id, tag.name));
-    } catch (error) {
-        console.error("Failed to load tags:", error);
     }
 };
