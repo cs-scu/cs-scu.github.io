@@ -424,12 +424,38 @@ const initializeEventsModule = () => {
     const cancelBtn = document.getElementById('cancel-edit-btn');
     const hiddenIdInput = document.getElementById('event-id');
     const adminListContainer = document.getElementById('events-admin-list');
-    
+    const tagsContainer = document.getElementById('tags-container');
+
     const locationInput = document.getElementById('event-location');
     const locationToggle = document.getElementById('toggle-location-online');
     const costInput = document.getElementById('event-cost');
     const costToggle = document.getElementById('toggle-cost-free');
     const detailPageInput = document.getElementById('event-detail-page');
+
+    // تابع جدید برای رندر کردن چک‌باکس‌های تگ
+    const renderTagsSelection = (container, selectedIds = []) => {
+        if (!container) return;
+        container.innerHTML = '';
+        if (state.tagsMap.size === 0) {
+            container.innerHTML = '<p style="opacity: 0.8; font-size: 0.9rem;">ابتدا باید تگ‌ها را در جدول `tags` در Supabase تعریف کنید.</p>';
+            return;
+        }
+    
+        let tagsHTML = '';
+        for (const [id, name] of state.tagsMap.entries()) {
+            const isChecked = selectedIds.includes(id);
+            tagsHTML += `
+                <div class="tag-checkbox-item" style="display: inline-block; margin-left: 1rem; margin-bottom: 0.5rem;">
+                    <input type="checkbox" id="tag-${id}" name="tag_ids" value="${id}" ${isChecked ? 'checked' : ''} style="margin-left: 0.25rem;">
+                    <label for="tag-${id}" style="cursor: pointer;">${name}</label>
+                </div>
+            `;
+        }
+        container.innerHTML = tagsHTML;
+    };
+
+    // رندر اولیه تگ‌ها هنگام بارگذاری ماژول
+    renderTagsSelection(tagsContainer);
 
     const setupToggleSwitch = (input, toggle, value) => {
         toggle.addEventListener('change', () => {
@@ -447,10 +473,9 @@ const initializeEventsModule = () => {
     setupToggleSwitch(locationInput, locationToggle, 'آنلاین');
     setupToggleSwitch(costInput, costToggle, 'رایگان');
     
-    // --- START: NEW LOGIC FOR SMART SLUG ---
     detailPageInput.addEventListener('blur', () => {
         const isEditing = hiddenIdInput.value;
-        if (isEditing) return; // Only run for new events
+        if (isEditing) return; 
 
         let slug = detailPageInput.value.trim();
         if (slug && !slug.startsWith('#/events/')) {
@@ -462,7 +487,6 @@ const initializeEventsModule = () => {
             detailPageInput.value = `#/events/${newId}-${slug}`;
         }
     });
-    // --- END: NEW LOGIC FOR SMART SLUG ---
 
     const safeJsonStringify = (obj, indent = 2) => {
         try {
@@ -488,6 +512,8 @@ const initializeEventsModule = () => {
         locationToggle.checked = false;
         costInput.disabled = false;
         costToggle.checked = false;
+
+        renderTagsSelection(tagsContainer); // ریست کردن تگ‌ها
 
         eventForm.scrollIntoView({ behavior: 'smooth' });
     };
@@ -522,6 +548,10 @@ const initializeEventsModule = () => {
                 }
             };
             
+            // خواندن ID تگ‌های انتخاب شده
+            const selectedTagNodes = document.querySelectorAll('#tags-container input[name="tag_ids"]:checked');
+            const tag_ids = Array.from(selectedTagNodes).map(node => parseInt(node.value, 10));
+
             const paymentCardNumber = {
                 name: formData.get('payment_name'),
                 number: formData.get('payment_number')
@@ -543,7 +573,7 @@ const initializeEventsModule = () => {
                 endDate: formData.get('endDate'),
                 image: formData.get('image'),
                 detailPage: formData.get('detailPage'),
-                tags: parseJsonField('tags'),
+                tag_ids: tag_ids, // استفاده از آرایه جدید تگ‌ها
                 content: parseJsonField('content'),
                 schedule: parseJsonField('schedule'),
                 payment_card_number: (paymentCardNumber.name || paymentCardNumber.number) ? paymentCardNumber : null,
@@ -593,11 +623,8 @@ const initializeEventsModule = () => {
             document.getElementById('event-end-date').value = eventToEdit.endDate || '';
             document.getElementById('event-image-url').value = eventToEdit.image || '';
             
-            // --- START: PARSE SLUG ON EDIT ---
             const detailPageValue = eventToEdit.detailPage || '';
-            const slugMatch = detailPageValue.match(/#\/events\/\d+-(.*)/);
-            document.getElementById('event-detail-page').value = slugMatch ? slugMatch[1] : detailPageValue;
-            // --- END: PARSE SLUG ON EDIT ---
+            document.getElementById('event-detail-page').value = detailPageValue;
             
             if (eventToEdit.location === 'آنلاین') {
                 locationToggle.checked = true;
@@ -613,7 +640,9 @@ const initializeEventsModule = () => {
             }
             costToggle.dispatchEvent(new Event('change'));
             
-            document.getElementById('event-tags').value = safeJsonStringify(eventToEdit.tags);
+            // انتخاب خودکار تگ‌های مربوط به رویداد
+            renderTagsSelection(tagsContainer, eventToEdit.tag_ids || []);
+
             document.getElementById('event-content').value = safeJsonStringify(eventToEdit.content);
             document.getElementById('event-schedule').value = safeJsonStringify(eventToEdit.schedule);
             
@@ -705,7 +734,13 @@ const adminRoutes = {
     '/admin/events': {
         title: 'مدیریت رویدادها',
         html: 'admin-events.html',
-        loader: async () => { state.allEvents = []; await loadEvents(); return state.allEvents; },
+        loader: async () => { 
+            state.allEvents = []; 
+            state.tagsMap.clear();
+            // تغییر اصلی اینجاست: هر دو به صورت همزمان بارگذاری می‌شوند
+            await Promise.all([loadEvents(), loadTags()]); 
+            return state.allEvents; 
+        },
         renderer: renderEventsList,
         initializer: initializeEventsModule
     }
