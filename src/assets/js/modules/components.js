@@ -249,6 +249,7 @@ export const renderEventsPage = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // فیلتر کردن رویدادها به دو دسته پیش رو و گذشته و مرتب‌سازی آن‌ها
     const upcomingEvents = state.allEvents.filter(event => new Date(event.endDate) >= today)
         .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
     const pastEvents = state.allEvents.filter(event => new Date(event.endDate) < today)
@@ -260,6 +261,7 @@ export const renderEventsPage = () => {
 
     if (!upcomingGrid || !pastGrid || !template) return;
     
+    // تابع برای جابجایی هایلایت زیر تب‌های فعال
     const moveHighlighter = (activeTab) => {
         const highlighter = document.querySelector('.tabs-container .highlighter');
         if (!highlighter || !activeTab) return;
@@ -267,8 +269,9 @@ export const renderEventsPage = () => {
         highlighter.style.transform = `translateX(${activeTab.offsetLeft}px)`;
     };
     
+    // تابع اصلی برای ساخت و نمایش کارت‌های رویداد در یک گرید مشخص
     const populateGrid = (grid, events, isPast = false) => {
-        grid.innerHTML = '';
+        grid.innerHTML = ''; // پاک کردن محتوای قبلی
         if (events.length === 0) {
             grid.innerHTML = '<p class="no-events-message">در حال حاضر رویدادی در این دسته وجود ندارد.</p>';
             return;
@@ -291,26 +294,19 @@ export const renderEventsPage = () => {
             const tagsContainer = card.querySelector('.event-card-tags');
             tagsContainer.innerHTML = '';
             
-            let parsedTags = [];
-            if (typeof event.tags === 'string') {
-                try {
-                    parsedTags = JSON.parse(event.tags);
-                } catch (e) {
-                    console.error('Failed to parse event tags:', event.tags, e);
-                }
-            } else if (Array.isArray(event.tags)) {
-                parsedTags = event.tags;
-            }
-
-            if (Array.isArray(parsedTags)) {
-                parsedTags.forEach(([text, color]) => {
-                    const tagEl = document.createElement('span');
-                    tagEl.className = 'news-tag';
-                    tagEl.textContent = text;
-                    // tagEl.style.backgroundColor = color; delete color
-                    tagsContainer.appendChild(tagEl);
+            // --- START: منطق جدید و اصلاح‌شده برای نمایش تگ‌ها ---
+            if (event.tag_ids && Array.isArray(event.tag_ids)) {
+                event.tag_ids.forEach(tagId => {
+                    const tagName = state.tagsMap.get(tagId); // خواندن نام تگ از حافظه مرکزی state.js
+                    if (tagName) {
+                        const tagEl = document.createElement('span');
+                        tagEl.className = 'news-tag'; // استفاده از همان کلاس استایل اخبار برای یکپارچگی
+                        tagEl.textContent = tagName;
+                        tagsContainer.appendChild(tagEl);
+                    }
                 });
             }
+            // --- END: منطق جدید و اصلاح‌شده برای تگ‌ها ---
     
             card.querySelector('.event-card-title-link').href = event.detailPage;
             card.querySelector('.event-card-title').textContent = event.title;
@@ -399,9 +395,11 @@ export const renderEventsPage = () => {
         });
     };
     
+    // پر کردن گریدها با داده‌های مربوطه
     populateGrid(upcomingGrid, upcomingEvents, false);
     populateGrid(pastGrid, pastEvents, true);
 
+    // افزودن Event Listener به دکمه‌های تب
     dom.mainContent.querySelectorAll('.tab-link').forEach(button => {
         button.addEventListener('click', () => {
             const tabId = button.dataset.tab;
@@ -413,6 +411,7 @@ export const renderEventsPage = () => {
         });
     });
     
+    // تنظیم موقعیت اولیه هایلایت
     const initiallyActiveTab = dom.mainContent.querySelector('.tab-link.active');
     if (initiallyActiveTab) {
         requestAnimationFrame(() => {
