@@ -128,7 +128,7 @@ const renderNewsItems = (items) => {
                 const tagEl = document.createElement('span');
                 tagEl.className = 'news-tag';
                 tagEl.textContent = text;
-                tagEl.style.backgroundColor = color;
+                // tagEl.style.backgroundColor = color; delete color
                 tagsContainer.appendChild(tagEl);
             });
         }
@@ -304,7 +304,7 @@ export const renderEventsPage = () => {
                     const tagEl = document.createElement('span');
                     tagEl.className = 'news-tag';
                     tagEl.textContent = text;
-                    tagEl.style.backgroundColor = color;
+                    // tagEl.style.backgroundColor = color; delete color
                     tagsContainer.appendChild(tagEl);
                 });
             }
