@@ -147,13 +147,13 @@ const initializeJournalModule = () => {
             updateFileName();
         });
 
-        // --- START: FIX ---
+        // --- START: FINAL FIX ---
         clearBtn.addEventListener('click', (event) => {
-            event.stopPropagation(); // This line prevents the click from reaching the file input
+            event.stopPropagation(); // This line prevents the click from reaching the file input below.
             input.value = '';
             updateFileName();
         });
-        // --- END: FIX ---
+        // --- END: FINAL FIX ---
 
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             wrapper.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
