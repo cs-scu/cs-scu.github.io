@@ -1,7 +1,7 @@
 // src/assets/js/modules/admin.js
 
 import { state } from './state.js';
-import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags } from './api.js';
+import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags , addTag, updateTag, deleteTag } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
 
 // --- توابع کمکی ---
@@ -421,9 +421,6 @@ const initializeEventsModule = () => {
 
     // متغیری برای نگهداری موقت آی‌دی تگ‌های انتخاب شده
     let selectedTagIds = [];
-
-    // Import the new API functions
-    const { addTag, updateTag, deleteTag } = await import('./api.js');
 
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
