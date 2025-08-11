@@ -494,6 +494,7 @@ const initializeEventsModule = () => {
         };
     };
 
+    // این خط مهم‌ترین بخش است: اتصال رویداد کلیک به دکمه
     if (openTagsModalBtn) {
         openTagsModalBtn.addEventListener('click', openTagsModal);
     }
@@ -659,7 +660,6 @@ const initializeEventsModule = () => {
         }
     });
 };
-
 
 const initializeAdminLayout = () => {
     const sidebar = document.getElementById('admin-sidebar');
