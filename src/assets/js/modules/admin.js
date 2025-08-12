@@ -441,26 +441,36 @@ const initializeEventsModule = async () => {
     const paymentInfoSection = document.getElementById('payment-info-section');
     const dateRangeInput = document.getElementById('event-date-range');
     
-    // کد جدید (جایگزین کنید)
-// کد جدید (این بلوک را جایگزین کنید)
     const initializeDatepicker = () => {
-        // ابتدا مطمئن می‌شویم که اینپوت تاریخ در صفحه وجود دارد
         const dateRangeInput = document.getElementById('event-date-range');
         if (!dateRangeInput) return;
 
-        // اگر نمونه‌ای از تقویم از قبل وجود داشت، آن را از بین می‌بریم
-        if (dateRangePickerInstance) {
-            dateRangePickerInstance.destroy();
-        }
+        // این تابع داخلی صبر می‌کند تا پلاگین شمسی آماده شود
+        const setupCalendarWhenReady = () => {
+            // حالا این شرط به درستی کار می‌کند چون پلاگین شمسی، flatpickr.l10ns.fa را می‌سازد
+            if (typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.fa) {
+                
+                if (dateRangePickerInstance) {
+                    dateRangePickerInstance.destroy();
+                }
 
-        // تقویم جدید را با کتابخانه Flatpickr راه‌اندازی می‌کنیم
-        dateRangePickerInstance = flatpickr(dateRangeInput, {
-            mode: "range",          // حالت انتخاب بازه زمانی
-            locale: "fa",           // فعال‌سازی تقوim شمسی و زبان فارسی
-            dateFormat: "Y/m/d",    // فرمتی که تاریخ در آن ذخیره می‌شود
-            altInput: true,         // یک فیلد زیبا و خوانا برای کاربر نمایش می‌دهد
-            altFormat: "j F Y",     // فرمت نمایش تاریخ به کاربر (مثال: ۱۲ مرداد ۱۴۰۳)
-        });
+                // راه‌اندازی تقویم با اطمینان از اینکه شمسی خواهد بود
+                dateRangePickerInstance = flatpickr(dateRangeInput, {
+                    mode: "range",
+                    locale: "fa", // این گزینه حالا سیستم تقویم را به شمسی تغییر می‌دهد
+                    dateFormat: "Y/m/d",
+                    altInput: true,
+                    altFormat: "j F Y",
+                });
+
+            } else {
+                // اگر پلاگین هنوز آماده نبود، ۱۰۰ میلی‌ثانیه دیگر دوباره تلاش می‌کند
+                setTimeout(setupCalendarWhenReady, 100);
+            }
+        };
+
+        // فرآیند را آغاز می‌کنیم
+        setupCalendarWhenReady();
     };
 
     await initializeDatepicker();
