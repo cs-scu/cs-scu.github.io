@@ -181,14 +181,14 @@ const initializeDatepicker = () => {
         rangeInstance = flatpickr(dateRangeInput, {
             mode: "range",
             locale: "fa",
-            dateFormat: "Y-m-d", // For the database
+            dateFormat: "Y-m-d",
             altInput: true,
-            altFormat: "Y/m/d",  // For the admin to see
+            altFormat: "Y/m/d",
             onClose: function(selectedDates) {
+                // این تابع پس از انتخاب بازه تاریخ، فیلد "تاریخ نمایشی" را پر می‌کند
                 if (selectedDates.length === 2 && displayDateInput) {
                     const [start, end] = selectedDates;
 
-                    // Helper to check for consecutive days using the underlying Gregorian date
                     const areConsecutiveDays = (d1, d2) => {
                         const nextDay = new Date(d1.gregoriandate || d1);
                         nextDay.setDate(nextDay.getDate() + 1);
@@ -203,7 +203,9 @@ const initializeDatepicker = () => {
                     const startYear = start.getFullYear();
                     const endYear = end.getFullYear();
                     
-                    const monthNames = fa.months.longhand;
+                    // FIX: Accessing month names safely from the flatpickr instance itself
+                    // to prevent the 'longhand' error.
+                    const monthNames = this.l10n.months.longhand;
                     let displayString = "";
 
                     console.log(startDay)
