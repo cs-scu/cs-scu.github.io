@@ -989,8 +989,13 @@ const loadAdminPage = async (path) => {
 
         setTimeout(() => {
             if (route.renderer) {
-                const renderData = path === '/admin/events' ? data[0] : data;
-                route.renderer(renderData);
+                // FIX: Explicitly handle the data for the '/admin/events' route
+                if (path === '/admin/events') {
+                    // The loader for events returns [events, tags]. We only need the events array for the renderer.
+                    route.renderer(data[0]);
+                } else {
+                    route.renderer(data);
+                }
             }
             
             if (route.initializer) {
