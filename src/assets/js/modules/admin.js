@@ -195,11 +195,13 @@ const initializeDatepicker = () => {
                         const endDate = new Date(d2.gregoriandate || d2);
                         return nextDay.toDateString() === endDate.toDateString();
                     };
+                    
 
+                    const persianMonth = ["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند"]
                     const startDay = start.getDate();
                     const endDay = end.getDate();
-                    const startMonth = start.getMonth();
-                    const endMonth = end.getMonth();
+                    const startMonth = persianMonth[start.getMonth()];
+                    const endMonth = persianMonth[end.getMonth()];
                     const startYear = start.getFullYear();
                     const endYear = end.getFullYear();
                     
