@@ -222,19 +222,19 @@ const initializeDatepicker = () => {
                     
                     // سناریو ۴: دو روز پشت سر هم (مثال: "۱۸ و ۱۹ تیر ۱۴۰۴")
                     if (areConsecutiveDays(start, end)) {
-                        displayString = `${startDay} و ${endDay} ${monthNames[startMonth]} ${startYear}`;
+                        displayString = `${startDay} و ${endDay} ${persianMonth[startMonth]} ${startYear}`;
                     }
                     // سناریو ۳: ماه و سال یکسان (مثال: "۱۸ الی ۲۵ تیر ۱۴۰۴")
                     else if (startMonth === endMonth && startYear === endYear) {
-                        displayString = `${startDay} الی ${endDay} ${monthNames[startMonth]} ${startYear}`;
+                        displayString = `${startDay} الی ${endDay} ${persianMonth[startMonth]} ${startYear}`;
                     } 
                     // سناریو ۲: سال یکسان، ماه متفاوت (مثال: "۲۵ تیر الی ۵ مرداد ۱۴۰۴")
                     else if (startYear === endYear) {
-                        displayString = `${startDay} ${monthNames[startMonth]} الی ${endDay} ${monthNames[endMonth]} ${startYear}`;
+                        displayString = `${startDay} ${persianMonth[startMonth]} الی ${endDay} ${persianMonth[endMonth]} ${startYear}`;
                     } 
                     // سناریو ۱: سال‌های متفاوت (مثال: "۲۸ اسفند ۱۴۰۴ الی ۵ فروردین ۱۴۰۵")
                     else {
-                        displayString = `${startDay} ${monthNames[startMonth]} ${startYear} الی ${endDay} ${monthNames[endMonth]} ${endYear}`;
+                        displayString = `${startDay} ${persianMonth[startMonth]} ${startYear} الی ${endDay} ${persianMonth[endMonth]} ${endYear}`;
                     }
 
                     // مقدار فیلد متنی "تاریخ نمایشی" را تنظیم می‌کند
