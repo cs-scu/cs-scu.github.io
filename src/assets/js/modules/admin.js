@@ -194,11 +194,9 @@ const initializeDatepicker = () => {
             dateFormat: "Y-m-d", // این فیلد متنی است، فرمت ذخیره اهمیت زیادی ندارد
             altInput: true,
             altFormat: "j F Y",    // فرمت زیبای شمسی (مثال: ۲۲ مرداد ۱۴۰۴)
-            // <<-- mode: "single" حالت پیش‌فرض است و نیازی به نوشتن آن نیست
         });
     }
     
-    // نمونه تقوim بازه‌ای را برای استفاده در هنگام ثبت فرم برمی‌گردانیم
     return rangeInstance; 
 };
 
@@ -450,13 +448,11 @@ const initializeEventsModule = async () => {
     const eventForm = document.getElementById('add-event-form');
     if (!eventForm) return;
 
-    // --- ۱. متغیرهای اصلی را در بالاترین سطح این تابع تعریف می‌کنیم ---
     let selectedTagIds = [];
     let currentImageUrl = '';
-    // <<== FIX: The returned instance from the datepicker is now correctly assigned
+    // FIX 1: The returned instance from the datepicker is now correctly assigned
     let dateRangePickerInstance = initializeDatepicker(); 
 
-    // --- ۲. تمام عناصر فرم را یکجا انتخاب می‌کنیم ---
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
     const cancelBtn = document.getElementById('cancel-edit-btn');
@@ -471,10 +467,11 @@ const initializeEventsModule = async () => {
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
     const paymentInfoSection = document.getElementById('payment-info-section');
-    // <<== FIX: Selecting the new elements for the image upload component
-    const fileNameDisplay = document.querySelector('.file-name-display');
-    const fileClearBtn = document.querySelector('.file-clear-btn');
-
+    
+    // FIX 2: Scope element selectors to the event form to avoid conflicts
+    const imageUploadControls = eventForm.querySelector('.image-upload-controls');
+    const fileNameDisplay = imageUploadControls ? imageUploadControls.querySelector('.file-name-display') : null;
+    const fileClearBtn = imageUploadControls ? imageUploadControls.querySelector('.file-clear-btn') : null;
 
     const togglePaymentFields = () => {
         if (!paymentInfoSection || !costToggle) return;
@@ -513,23 +510,20 @@ const initializeEventsModule = async () => {
             updateFileNameDisplay(file ? file.name : '');
         });
     }
-    
-    // <<== FIX: Corrected logic for the image clear button
+
     if(fileClearBtn) {
         fileClearBtn.addEventListener('click', () => {
-            imageUploadInput.value = ''; // Clear the selected file
+            imageUploadInput.value = '';
             const isEditing = !!hiddenIdInput.value;
             if (isEditing && currentImageUrl) {
-                // In edit mode, if a new file is cleared, revert to showing the old file's name
                 const existingFileName = currentImageUrl.split('/').pop();
                 updateFileNameDisplay(existingFileName);
             } else {
-                // In add mode or if there was no previous image, show "No file selected"
                 updateFileNameDisplay('');
             }
         });
     }
-
+    
     const updateSelectedTagsDisplay = () => {
         if (!selectedTagsDisplay) return;
         if (selectedTagIds.length === 0) {
@@ -753,14 +747,12 @@ const initializeEventsModule = async () => {
             
             if (!imageUrl) throw new Error("تصویر رویداد الزامی است.");
 
-            // ۱. بررسی می‌کنیم که آیا تاریخ انتخاب شده است یا نه
             if (!dateRangePickerInstance || dateRangePickerInstance.selectedDates.length < 2) {
                 throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
             }
 
             const [startDate, endDate] = dateRangePickerInstance.selectedDates;
 
-            // ۲. تابع برای فرمت‌بندی تاریخ‌ها به شکل مورد قبول پایگاه داده
             const formatForSupabase = (date) => {
                 const y = date.getFullYear();
                 const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -777,6 +769,17 @@ const initializeEventsModule = async () => {
                 catch (e) { throw new Error(`فرمت JSON در فیلد "${fieldName}" نامعتبر است.`); }
             };
 
+            // FIX 3: Clean up the contact_link object before sending
+            const contactData = {
+                phone: formData.get('contact_phone'),
+                telegram: formData.get('contact_telegram'),
+                whatsapp: formData.get('contact_whatsapp')
+            };
+            Object.keys(contactData).forEach(key => {
+                if (!contactData[key]) delete contactData[key];
+            });
+            const contactLink = Object.keys(contactData).length > 0 ? contactData : null;
+
             const eventData = {
                 title: formData.get('title'),
                 summary: formData.get('summary'),
@@ -791,7 +794,7 @@ const initializeEventsModule = async () => {
                 content: parseJsonField('content'),
                 schedule: parseJsonField('schedule'),
                 payment_card_number: (formData.get('payment_name') || formData.get('payment_number')) ? { name: formData.get('payment_name'), number: formData.get('payment_number') } : null,
-                contact_link: (formData.get('contact_phone') || formData.get('contact_telegram') || formData.get('contact_whatsapp')) ? { phone: formData.get('contact_phone'), telegram: formData.get('contact_telegram'), whatsapp: formData.get('contact_whatsapp') } : null,
+                contact_link: contactLink,
             };
             
             if (isEditing) {
@@ -985,7 +988,6 @@ const loadAdminPage = async (path) => {
 
         setTimeout(() => {
             if (route.renderer) {
-                // Pass the correct part of the data if it's a Promise.all result
                 const renderData = path === '/admin/events' ? data[0] : data;
                 route.renderer(renderData);
             }

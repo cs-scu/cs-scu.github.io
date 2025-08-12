@@ -1,116 +1,149 @@
-<form id="add-event-form">
-    <input type="hidden" id="event-id" name="id">
-    
-    <div class="form-group">
-        <label for="event-title">عنوان رویداد</label>
-        <input type="text" id="event-title" name="title" required>
-    </div>
+<div class="admin-module-header">
+    <h2>مدیریت رویدادها</h2>
+</div>
 
-    <div class="form-group">
-        <label for="event-detail-page">شناسه صفحه جزئیات (Slug)</label>
-        <input type="text" id="event-detail-page" name="detailPage" placeholder="مثال: linux-essentials" required>
-        <small class="form-note" style="display: block; margin-top: 0.5rem; opacity: 0.8;">فقط نامک را وارد کنید. شناسه کامل به صورت خودکار ساخته می‌شود.</small>
-    </div>
-
-    <div class="form-group">
-        <label for="event-summary">خلاصه (متن کوتاه)</label>
-        <textarea id="event-summary" name="summary" rows="2"></textarea>
-    </div>
-
-    <div class="form-group">
-        <label for="event-location">مکان</label>
-        <div class="input-with-toggle">
-            <input type="text" id="event-location" name="location" placeholder="مکان برگزاری حضوری...">
-            <div class="toggle-switch-wrapper">
-                <label for="toggle-location-online" class="toggle-label-text">آنلاین</label>
-                <div class="toggle-switch">
-                    <input type="checkbox" id="toggle-location-online" class="toggle-input">
-                    <label for="toggle-location-online" class="toggle-label"></label>
+<div class="form-and-guidance-wrapper">
+    <div class="form-container">
+        <div class="content-box">
+            <h3 id="event-form-title" class="admin-section-subtitle">درج یا ویرایش رویداد</h3>
+            <form id="add-event-form">
+                <input type="hidden" id="event-id" name="id">
+                
+                <div class="form-group">
+                    <label for="event-title">عنوان رویداد</label>
+                    <input type="text" id="event-title" name="title" required>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="form-group">
-        <label for="event-cost">هزینه</label>
-        <div class="input-with-toggle">
-            <input type="text" id="event-cost" name="cost" placeholder="مثال: ۲۰,۰۰۰ تومان">
-            <div class="toggle-switch-wrapper">
-                <label for="toggle-cost-free" class="toggle-label-text">رایگان</label>
-                <div class="toggle-switch">
-                    <input type="checkbox" id="toggle-cost-free" class="toggle-input">
-                    <label for="toggle-cost-free" class="toggle-label"></label>
+
+                <div class="form-group">
+                    <label for="event-detail-page">شناسه صفحه جزئیات (Slug)</label>
+                    <input type="text" id="event-detail-page" name="detailPage" placeholder="مثال: linux-essentials" required>
+                    <small class="form-note" style="display: block; margin-top: 0.5rem; opacity: 0.8;">فقط نامک را وارد کنید. شناسه کامل به صورت خودکار ساخته می‌شود.</small>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <div id="payment-info-section">
-        <hr style="margin: 1.5rem 0;">
-        <h4 style="margin-bottom: 1rem;">اطلاعات پرداخت (اختیاری)</h4>
-        <div class="form-row">
-            <div class="form-group"><label for="payment-name">نام صاحب حساب</label><input type="text" id="payment-name" name="payment_name"></div>
-            <div class="form-group"><label for="payment-number">شماره کارت</label><input type="text" id="payment-number" name="payment_number" dir="ltr"></div>
-        </div>
-    </div>
+                <div class="form-group">
+                    <label for="event-summary">خلاصه (متن کوتاه)</label>
+                    <textarea id="event-summary" name="summary" rows="2"></textarea>
+                </div>
 
-    <div class="form-row">
-        <div class="form-group" style="flex: 2;">
-            <label for="event-display-date">تاریخ نمایشی</label>
-                <input type="text" id="event-display-date" name="displayDate" placeholder="مثال: ۱۲ تا ۱۴ شهریور ۱۴۰۴" required>
-        </div>
-    <div class="form-group" style="flex: 1;">
-        <label for="event-date-range-flatpickr">بازه تاریخ رویداد</label>
-        <input type="text" id="event-date-range-flatpickr" name="dateRange" placeholder="تاریخ شروع و پایان را انتخاب کنید..." required>
-    </div>
-    </div>
+                <div class="form-group">
+                    <label for="event-location">مکان</label>
+                    <div class="input-with-toggle">
+                        <input type="text" id="event-location" name="location" placeholder="مکان برگزاری حضوری...">
+                        <div class="toggle-switch-wrapper">
+                            <label for="toggle-location-online" class="toggle-label-text">آنلاین</label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="toggle-location-online" class="toggle-input">
+                                <label for="toggle-location-online" class="toggle-label"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="event-cost">هزینه</label>
+                    <div class="input-with-toggle">
+                        <input type="text" id="event-cost" name="cost" placeholder="مثال: ۲۰,۰۰۰ تومان">
+                        <div class="toggle-switch-wrapper">
+                            <label for="toggle-cost-free" class="toggle-label-text">رایگان</label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="toggle-cost-free" class="toggle-input">
+                                <label for="toggle-cost-free" class="toggle-label"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    <div>
-        <hr style="margin: 1.5rem 0;">
-        <h4 style="margin-bottom: 1rem;">اطلاعات تماس (اختیاری)</h4>
-        <div class="form-row">
-            <div class="form-group"><label for="contact-phone">تلفن</label><input type="tel" id="contact-phone" name="contact_phone" dir="ltr"></div>
-            <div class="form-group"><label for="contact-telegram">تلگرام (لینک کامل)</label><input type="url" id="contact-telegram" name="contact_telegram"></div>
-            <div class="form-group"><label for="contact-whatsapp">واتساپ (لینک کامل)</label><input type="url" id="contact-whatsapp" name="contact_whatsapp"></div>
+                <div id="payment-info-section">
+                    <hr style="margin: 1.5rem 0;">
+                    <h4 style="margin-bottom: 1rem;">اطلاعات پرداخت (اختیاری)</h4>
+                    <div class="form-row">
+                        <div class="form-group"><label for="payment-name">نام صاحب حساب</label><input type="text" id="payment-name" name="payment_name"></div>
+                        <div class="form-group"><label for="payment-number">شماره کارت</label><input type="text" id="payment-number" name="payment_number" dir="ltr"></div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label for="event-display-date">تاریخ نمایشی</label>
+                            <input type="text" id="event-display-date" name="displayDate" placeholder="مثال: ۱۲ تا ۱۴ شهریور ۱۴۰۴" required>
+                    </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="event-date-range-flatpickr">بازه تاریخ رویداد</label>
+                    <input type="text" id="event-date-range-flatpickr" name="dateRange" placeholder="تاریخ شروع و پایان را انتخاب کنید..." required>
+                </div>
+                </div>
+
+                <div>
+                    <hr style="margin: 1.5rem 0;">
+                    <h4 style="margin-bottom: 1rem;">اطلاعات تماس (اختیاری)</h4>
+                    <div class="form-row">
+                        <div class="form-group"><label for="contact-phone">تلفن</label><input type="tel" id="contact-phone" name="contact_phone" dir="ltr"></div>
+                        <div class="form-group"><label for="contact-telegram">تلگرام (لینک کامل)</label><input type="url" id="contact-telegram" name="contact_telegram"></div>
+                        <div class="form-group"><label for="contact-whatsapp">واتساپ (لینک کامل)</label><input type="url" id="contact-whatsapp" name="contact_whatsapp"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label>تصویر رویداد</label>
+                    <div class="image-upload-wrapper">
+                        <div class="image-upload-controls">
+                            <input type="file" id="event-image-upload" name="imageFile" class="file-upload-input" accept="image/jpeg, image/png, image/webp">
+                            <label for="event-image-upload" class="btn btn-secondary file-select-btn">انتخاب تصویر</label>
+                            <button type="button" class="btn btn-danger file-clear-btn" style="display: none;">حذف</button>
+                            <span class="file-name-display">فایلی انتخاب نشده</span>
+                        </div>
+                    </div>
+                    <small class="form-note" style="display: block; margin-top: 0.5rem; opacity: 0.8;">
+                        در حالت ویرایش، فقط در صورتی تصویر جدید انتخاب کنید که قصد تغییر آن را دارید.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label>تگ‌ها</label>
+                    <div class="tags-selection-area">
+                        <div id="selected-tags-display" class="selected-tags-display">هیچ تگی انتخاب نشده است.</div>
+                        <button type="button" id="open-tags-modal-btn" class="btn btn-secondary">انتخاب تگ‌ها</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="event-content">محتوای کامل صفحه (فرمت JSON)</label>
+                    <textarea id="event-content" name="content" rows="6" placeholder="محتوای کامل رویداد را در قالب JSON وارد کنید..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="event-schedule">برنامه زمانی (فرمت JSON)</label>
+                    <textarea id="event-schedule" name="schedule" rows="5" placeholder="برنامه زمانی جلسات را در قالب JSON وارد کنید..."></textarea>
+                </div>
+
+                <div class="form-status"></div>
+                <div class="form-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary" id="event-submit-btn">افزودن رویداد</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;">انصراف</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="content-box" style="margin-top: 2rem;">
+            <h3 class="admin-section-subtitle">لیست رویدادها</h3>
+            <div id="events-admin-list">
+                </div>
         </div>
     </div>
     
-    <div class="form-group" style="margin-top: 1.5rem;">
-        <label>تصویر رویداد</label>
-        <div class="image-upload-wrapper">
-            <div class="image-upload-controls">
-                <input type="file" id="event-image-upload" name="imageFile" class="file-upload-input" accept="image/jpeg, image/png, image/webp">
-                <label for="event-image-upload" class="btn btn-secondary file-select-btn">انتخاب تصویر</label>
-                <button type="button" class="btn btn-danger file-clear-btn" style="display: none;">حذف</button>
-                <span class="file-name-display">فایلی انتخاب نشده</span>
+    <div class="guidance-container">
+        <div class="content-box">
+            <h3 class="admin-section-subtitle">راهنمای آپلود</h3>
+            <div class="guidance-content">
+                <h4>تصویر رویداد</h4>
+                <p>برای بهترین نمایش، لطفاً مشخصات زیر را برای تصویر کاور رعایت کنید:</p>
+                <ul>
+                    <li><strong>ابعاد پیشنهادی:</strong> ۱۲۰۰ (عرض) در ۶۳۰ (ارتفاع) پیکسل.</li>
+                    <li><strong>نسبت تصویر:</strong> ۱.۹۱ به ۱ (افقی).</li>
+                    <li><strong>فرمت بهینه:</strong> WebP.</li>
+                    <li><strong>حجم ایده‌آل:</strong> کمتر از ۱۵۰ کیلوبایت.</li>
+                </ul>
             </div>
         </div>
-        <small class="form-note" style="display: block; margin-top: 0.5rem; opacity: 0.8;">
-            در حالت ویرایش، فقط در صورتی تصویر جدید انتخاب کنید که قصد تغییر آن را دارید.
-        </small>
     </div>
-
-    <div class="form-group">
-        <label>تگ‌ها</label>
-        <div class="tags-selection-area">
-            <div id="selected-tags-display" class="selected-tags-display">هیچ تگی انتخاب نشده است.</div>
-            <button type="button" id="open-tags-modal-btn" class="btn btn-secondary">انتخاب تگ‌ها</button>
-        </div>
-    </div>
-    
-    <div class="form-group">
-        <label for="event-content">محتوای کامل صفحه (فرمت JSON)</label>
-        <textarea id="event-content" name="content" rows="6" placeholder="محتوای کامل رویداد را در قالب JSON وارد کنید..."></textarea>
-    </div>
-
-    <div class="form-group">
-        <label for="event-schedule">برنامه زمانی (فرمت JSON)</label>
-        <textarea id="event-schedule" name="schedule" rows="5" placeholder="برنامه زمانی جلسات را در قالب JSON وارد کنید..."></textarea>
-    </div>
-
-    <div class="form-status"></div>
-    <div class="form-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
-        <button type="submit" class="btn btn-primary" id="event-submit-btn">افزودن رویداد</button>
-        <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;">انصراف</button>
-    </div>
-</form>
+</div>
