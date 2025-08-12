@@ -169,19 +169,37 @@ const initializeGlobalRefreshButton = () => {
     });
 };
 
-// کد جدید برای راه‌اندازی تقوim Flatpickr با افزونه جلالی
+
 const initializeDatepicker = () => {
     const dateRangeInput = document.getElementById('event-date-range-flatpickr');
-    if (!dateRangeInput) return null;
+    const displayDateInput = document.getElementById('event-display-date'); // <<-- انتخاب فیلد تاریخ نمایشی
 
-    // راه‌اندازی Flatpickr
-    return flatpickr(dateRangeInput, {
-        mode: "range",         // حالت انتخاب بازه
-        locale: "fa",          // فعال‌سازی تقوim شمسی با استفاده از افزونه
-        dateFormat: "Y-m-d",   // فرمت ذخیره‌سازی تاریخ به صورت میلادی (برای سرور)
-        altInput: true,        // نمایش یک فیلد جداگانه و خوانا برای کاربر
-        altFormat: "Y/m/d",    // فرمت نمایشی تاریخ به صورت شمسی
-    });
+    let rangeInstance = null;
+
+    // ۱. راه‌اندازی تقوim انتخاب بازه زمانی
+    if (dateRangeInput) {
+        rangeInstance = flatpickr(dateRangeInput, {
+            mode: "range",
+            locale: "fa",
+            dateFormat: "Y-m-d",   // فرمت میلادی برای ذخیره در پایگاه داده
+            altInput: true,
+            altFormat: "Y/m/d",    // فرمت شمسی برای نمایش به کاربر
+        });
+    }
+
+    // ۲. راه‌اندازی تقوim انتخاب تکی برای تاریخ نمایشی
+    if (displayDateInput) {
+        flatpickr(displayDateInput, {
+            locale: "fa",
+            dateFormat: "Y-m-d", // این فیلد متنی است، فرمت ذخیره اهمیت زیادی ندارد
+            altInput: true,
+            altFormat: "j F Y",    // فرمت زیبای شمسی (مثال: ۲۲ مرداد ۱۴۰۴)
+            // <<-- mode: "single" حالت پیش‌فرض است و نیازی به نوشتن آن نیست
+        });
+    }
+    
+    // نمونه تقوim بازه‌ای را برای استفاده در هنگام ثبت فرم برمی‌گردانیم
+    return rangeInstance; 
 };
 
 const initializeJournalModule = () => {
