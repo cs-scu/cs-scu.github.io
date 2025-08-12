@@ -442,34 +442,36 @@ const initializeEventsModule = async () => {
     const dateRangeInput = document.getElementById('event-date-range');
     
     const initializeDatepicker = () => {
-        const dateRangeInput = document.getElementById('event-date-range');
-        if (!dateRangeInput) return;
+        const startDateInput = document.getElementById('event-start-date');
+        const endDateInput = document.getElementById('event-end-date');
+        if (!startDateInput || !endDateInput) return;
 
-        // این تابع داخلی صبر می‌کند تا پلاگین شمسی آماده شود
+        // یک تابع برای بررسی آماده بودن کتابخانه‌ها تعریف می‌کنیم
         const setupCalendarWhenReady = () => {
-            // حالا این شرط به درستی کار می‌کند چون پلاگین شمسی، flatpickr.l10ns.fa را می‌سازد
-            if (typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.fa) {
+            // بررسی می‌کنیم که آیا jQuery و تابع pDatepicker بارگذاری شده‌اند یا نه
+            if (typeof jQuery !== 'undefined' && typeof $.fn.pDatepicker !== 'undefined') {
                 
-                if (dateRangePickerInstance) {
-                    dateRangePickerInstance.destroy();
-                }
-
-                // راه‌اندازی تقویم با اطمینان از اینکه شمسی خواهد بود
-                dateRangePickerInstance = flatpickr(dateRangeInput, {
-                    mode: "range",
-                    locale: "fa", // این گزینه حالا سیستم تقویم را به شمسی تغییر می‌دهد
-                    dateFormat: "Y/m/d",
-                    altInput: true,
-                    altFormat: "j F Y",
+                // راه‌اندازی تقوim برای هر دو فیلد
+                $(startDateInput).pDatepicker({
+                    format: 'YYYY/MM/DD',
+                    autoClose: true,
+                    observer: true,
+                    initialValue: false 
+                });
+                $(endDateInput).pDatepicker({
+                    format: 'YYYY/MM/DD',
+                    autoClose: true,
+                    observer: true,
+                    initialValue: false
                 });
 
             } else {
-                // اگر پلاگین هنوز آماده نبود، ۱۰۰ میلی‌ثانیه دیگر دوباره تلاش می‌کند
+                // اگر هنوز آماده نبود، ۱۰۰ میلی‌ثانیه دیگر دوباره تلاش می‌کند
                 setTimeout(setupCalendarWhenReady, 100);
             }
         };
 
-        // فرآیند را آغاز می‌کنیم
+        // فرآیند بررسی را آغاز می‌کنیم
         setupCalendarWhenReady();
     };
 
