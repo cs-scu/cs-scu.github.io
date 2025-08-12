@@ -420,7 +420,7 @@ const initializeEventsModule = () => {
 
     let selectedTagIds = [];
     let currentImageUrl = '';
-    let dateRangePickerInstance = null;
+    let dateRangePickerInstance = null; // متغیری برای نگهداری نمونه تقویم
 
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
@@ -442,24 +442,27 @@ const initializeEventsModule = () => {
     const paymentInfoSection = document.getElementById('payment-info-section');
     const dateRangeInput = document.getElementById('event-date-range');
     
+    // **راه‌اندازی انتخاب‌گر بازه تاریخ شمسی**
     const initializeDatepicker = () => {
         if (typeof $ === 'undefined' || typeof $.fn.pDatepicker === 'undefined') {
             console.error("jQuery or persian-datepicker is not loaded.");
             return;
         }
-        if (!dateRangeInput) {
-            console.error("Date range input element not found!");
-            return;
-        }
         if (dateRangePickerInstance) {
             dateRangePickerInstance.destroy();
         }
+        // **START: اصلاح اصلی اینجاست**
         dateRangePickerInstance = $(dateRangeInput).pDatepicker({
-            rangePicker: true,
+            rangePicker: true, // این گزینه حالت بازه را فعال می‌کند
             format: 'YYYY/MM/DD',
             autoClose: true,
             initialValue: false,
+            // برای خواندن تاریخ‌ها از این فرمت استفاده می‌کنیم
+            onSelect: function() {
+                // این تابع به ما اطمینان می‌دهد که همیشه بازه انتخاب شده است
+            }
         });
+        // **END: اصلاح**
     };
     initializeDatepicker();
 
@@ -467,7 +470,7 @@ const initializeEventsModule = () => {
         if (!paymentInfoSection || !costToggle) return;
         paymentInfoSection.style.display = costToggle.checked ? 'none' : 'block';
     };
-    if(costToggle) costToggle.addEventListener('change', togglePaymentFields);
+    costToggle.addEventListener('change', togglePaymentFields);
 
     const updateFileNameDisplay = (fileName) => {
         if (!fileNameDisplay) return;
@@ -652,7 +655,6 @@ const initializeEventsModule = () => {
     }
     
     const setupToggleSwitch = (input, toggle, value) => {
-        if (!input || !toggle) return;
         toggle.addEventListener('change', () => {
             if (toggle.checked) {
                 input.value = value;
@@ -668,17 +670,15 @@ const initializeEventsModule = () => {
     setupToggleSwitch(locationInput, locationToggle, 'آنلاین');
     setupToggleSwitch(costInput, costToggle, 'رایگان');
     
-    if(detailPageInput) {
-        detailPageInput.addEventListener('blur', () => {
-            if (hiddenIdInput.value) return; 
-            let slug = detailPageInput.value.trim();
-            if (slug && !slug.startsWith('#/events/')) {
-                slug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-                const maxId = state.allEvents.reduce((max, event) => Math.max(max, event.id), 0);
-                detailPageInput.value = `#/events/${maxId + 1}-${slug}`;
-            }
-        });
-    }
+    detailPageInput.addEventListener('blur', () => {
+        if (hiddenIdInput.value) return; 
+        let slug = detailPageInput.value.trim();
+        if (slug && !slug.startsWith('#/events/')) {
+            slug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            const maxId = state.allEvents.reduce((max, event) => Math.max(max, event.id), 0);
+            detailPageInput.value = `#/events/${maxId + 1}-${slug}`;
+        }
+    });
 
     const safeJsonStringify = (obj) => {
         try { return obj ? JSON.stringify(obj, null, 2) : ''; } catch (e) { return typeof obj === 'string' ? obj : ''; }
@@ -689,13 +689,15 @@ const initializeEventsModule = () => {
         hiddenIdInput.value = '';
         currentImageUrl = '';
         updateFileNameDisplay('');
-        if(imageUploadInput) imageUploadInput.required = true;
-        if (dateRangePickerInstance) dateRangePickerInstance.clear();
+        imageUploadInput.required = true;
+        if (dateRangePickerInstance) {
+            dateRangePickerInstance.clear();
+        }
         formTitle.textContent = 'درج رویداد جدید';
         submitBtn.textContent = 'افزودن رویداد';
         cancelBtn.style.display = 'none';
-        if(locationInput) locationInput.disabled = false;
-        if(costInput) costInput.disabled = false;
+        locationInput.disabled = false;
+        costInput.disabled = false;
         selectedTagIds = [];
         updateSelectedTagsDisplay();
         togglePaymentFields();
@@ -719,11 +721,8 @@ const initializeEventsModule = () => {
             const newSlug = newDetailPageValue.split('/').pop();
 
             if (imageFile) {
-                const uploadedImageUrl = await uploadEventImage(imageFile, newSlug);
-                if (uploadedImageUrl && isEditing && currentImageUrl) {
-                    await deleteEventImage(currentImageUrl);
-                }
-                imageUrl = uploadedImageUrl;
+                if (isEditing && currentImageUrl) await deleteEventImage(currentImageUrl);
+                imageUrl = await uploadEventImage(imageFile, newSlug);
             } else if (isEditing && currentImageUrl) {
                 const oldFileName = currentImageUrl.split('/').pop();
                 const oldSlugMatch = oldFileName.match(/ev-(.*)-\d{14}/);
@@ -735,6 +734,7 @@ const initializeEventsModule = () => {
             
             if (!imageUrl) throw new Error("تصویر رویداد الزامی است.");
 
+            // **START: خواندن و تبدیل تاریخ از تقویم شمسی به میلادی**
             const selectedTimestamps = dateRangePickerInstance.getState().selected.map(d => d.unix);
             if (selectedTimestamps.length < 2) throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
             
@@ -745,6 +745,7 @@ const initializeEventsModule = () => {
             
             const startDate = toGregorian(selectedTimestamps[0]);
             const endDate = toGregorian(selectedTimestamps[1]);
+            // **END: خواندن و تبدیل تاریخ**
 
             const parseJsonField = (fieldName) => {
                 const value = formData.get(fieldName);
@@ -790,85 +791,84 @@ const initializeEventsModule = () => {
         }
     });
 
-    if(cancelBtn) cancelBtn.addEventListener('click', resetForm);
+    cancelBtn.addEventListener('click', resetForm);
 
-    if(adminListContainer) {
-        adminListContainer.addEventListener('click', async (event) => {
-            const editBtn = event.target.closest('.edit-event-btn');
-            if (editBtn) {
-                const id = editBtn.dataset.id;
-                const eventToEdit = state.allEvents.find(e => e.id == id);
-                if (!eventToEdit) return;
-                
-                resetForm();
+    adminListContainer.addEventListener('click', async (event) => {
+        const editBtn = event.target.closest('.edit-event-btn');
+        if (editBtn) {
+            const id = editBtn.dataset.id;
+            const eventToEdit = state.allEvents.find(e => e.id == id);
+            if (!eventToEdit) return;
+            
+            resetForm();
 
-                hiddenIdInput.value = eventToEdit.id;
-                
-                currentImageUrl = eventToEdit.image || '';
-                const existingFileName = currentImageUrl ? currentImageUrl.split('/').pop() : '';
-                updateFileNameDisplay(existingFileName);
-                imageUploadInput.required = false;
+            hiddenIdInput.value = eventToEdit.id;
+            
+            currentImageUrl = eventToEdit.image || '';
+            const existingFileName = currentImageUrl ? currentImageUrl.split('/').pop() : '';
+            updateFileNameDisplay(existingFileName);
+            imageUploadInput.required = false;
 
-                if (eventToEdit.startDate && eventToEdit.endDate && dateRangePickerInstance) {
-                    const startTimestamp = new Date(eventToEdit.startDate).getTime() / 1000;
-                    const endTimestamp = new Date(eventToEdit.endDate).getTime() / 1000;
-                    dateRangePickerInstance.setSelected([startTimestamp, endTimestamp]);
-                }
-
-                document.getElementById('event-title').value = eventToEdit.title || '';
-                document.getElementById('event-summary').value = eventToEdit.summary || '';
-                document.getElementById('event-display-date').value = eventToEdit.displayDate || '';
-                document.getElementById('event-detail-page').value = eventToEdit.detailPage || '';
-                
-                locationInput.value = eventToEdit.location || '';
-                locationToggle.checked = eventToEdit.location === 'آنلاین';
-                locationToggle.dispatchEvent(new Event('change'));
-
-                costInput.value = eventToEdit.cost || '';
-                costToggle.checked = eventToEdit.cost === 'رایگان';
-                costToggle.dispatchEvent(new Event('change'));
-                togglePaymentFields();
-                
-                selectedTagIds = eventToEdit.tag_ids || [];
-                updateSelectedTagsDisplay();
-
-                document.getElementById('event-content').value = safeJsonStringify(eventToEdit.content);
-                document.getElementById('event-schedule').value = safeJsonStringify(eventToEdit.schedule);
-                
-                document.getElementById('payment-name').value = eventToEdit.payment_card_number?.name || '';
-                document.getElementById('payment-number').value = eventToEdit.payment_card_number?.number || '';
-                
-                document.getElementById('contact-phone').value = eventToEdit.contact_link?.phone || '';
-                document.getElementById('contact-telegram').value = eventToEdit.contact_link?.telegram || '';
-                document.getElementById('contact-whatsapp').value = eventToEdit.contact_link?.whatsapp || '';
-
-                formTitle.textContent = 'ویرایش رویداد';
-                submitBtn.textContent = 'ذخیره تغییرات';
-                cancelBtn.style.display = 'inline-block';
-                eventForm.scrollIntoView({ behavior: 'smooth' });
+            // **مقداردهی اولیه انتخاب‌گر تاریخ شمسی در حالت ویرایش**
+            if (eventToEdit.startDate && eventToEdit.endDate) {
+                const startTimestamp = new Date(eventToEdit.startDate).getTime() / 1000;
+                const endTimestamp = new Date(eventToEdit.endDate).getTime() / 1000;
+                dateRangePickerInstance.setSelected([startTimestamp, endTimestamp]);
             }
 
-            const deleteBtn = event.target.closest('.delete-event-btn');
-            if (deleteBtn) {
-                const id = deleteBtn.dataset.id;
-                const eventToDelete = state.allEvents.find(e => e.id == id);
-                if (!eventToDelete) return;
+            document.getElementById('event-title').value = eventToEdit.title || '';
+            document.getElementById('event-summary').value = eventToEdit.summary || '';
+            document.getElementById('event-display-date').value = eventToEdit.displayDate || '';
+            document.getElementById('event-detail-page').value = eventToEdit.detailPage || '';
+            
+            locationInput.value = eventToEdit.location || '';
+            locationToggle.checked = eventToEdit.location === 'آنلاین';
+            locationToggle.dispatchEvent(new Event('change'));
 
-                if (confirm('آیا از حذف این رویداد مطمئن هستید؟ تصویر آن نیز حذف خواهد شد.')) {
-                    try {
-                        deleteBtn.disabled = true;
-                        if (eventToDelete.image) await deleteEventImage(eventToDelete.image);
-                        await deleteEvent(id);
-                        state.allEvents = state.allEvents.filter(e => e.id != id);
-                        renderEventsList(state.allEvents);
-                    } catch (error) {
-                        alert('خطا در حذف رویداد.');
-                        deleteBtn.disabled = false;
-                    }
+            costInput.value = eventToEdit.cost || '';
+            costToggle.checked = eventToEdit.cost === 'رایگان';
+            costToggle.dispatchEvent(new Event('change'));
+            togglePaymentFields();
+            
+            selectedTagIds = eventToEdit.tag_ids || [];
+            updateSelectedTagsDisplay();
+
+            document.getElementById('event-content').value = safeJsonStringify(eventToEdit.content);
+            document.getElementById('event-schedule').value = safeJsonStringify(eventToEdit.schedule);
+            
+            document.getElementById('payment-name').value = eventToEdit.payment_card_number?.name || '';
+            document.getElementById('payment-number').value = eventToEdit.payment_card_number?.number || '';
+            
+            document.getElementById('contact-phone').value = eventToEdit.contact_link?.phone || '';
+            document.getElementById('contact-telegram').value = eventToEdit.contact_link?.telegram || '';
+            document.getElementById('contact-whatsapp').value = eventToEdit.contact_link?.whatsapp || '';
+
+            formTitle.textContent = 'ویرایش رویداد';
+            submitBtn.textContent = 'ذخیره تغییرات';
+            cancelBtn.style.display = 'inline-block';
+            eventForm.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        const deleteBtn = event.target.closest('.delete-event-btn');
+        if (deleteBtn) {
+            const id = deleteBtn.dataset.id;
+            const eventToDelete = state.allEvents.find(e => e.id == id);
+            if (!eventToDelete) return;
+
+            if (confirm('آیا از حذف این رویداد مطمئن هستید؟ تصویر آن نیز حذف خواهد شد.')) {
+                try {
+                    deleteBtn.disabled = true;
+                    if (eventToDelete.image) await deleteEventImage(eventToDelete.image);
+                    await deleteEvent(id);
+                    state.allEvents = state.allEvents.filter(e => e.id != id);
+                    renderEventsList(state.allEvents);
+                } catch (error) {
+                    alert('خطا در حذف رویداد.');
+                    deleteBtn.disabled = false;
                 }
             }
-        });
-    }
+        }
+    });
 
     togglePaymentFields();
 };
