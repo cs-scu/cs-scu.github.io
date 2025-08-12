@@ -231,13 +231,17 @@ export const loadEvents = async () => {
     }
 };
 export const loadJournal = async () => {
-    if (state.allJournalIssues.length > 0) return;
+    // The cache check was also corrected to return the cached data.
+    if (state.allJournalIssues.length > 0) return state.allJournalIssues; // <<-- این خط اصلاح شد
     try {
         const { data, error } = await supabaseClient.from('journal').select('*');
         if (error) throw error;
         state.allJournalIssues = data || [];
+        return state.allJournalIssues; // <<-- این خط اضافه شد
     } catch (error) {
         console.error("Failed to load journal issues:", error);
+        // Throwing the error ensures the calling function knows something went wrong.
+        throw error;
     }
 };
 export const loadChartData = async () => {
@@ -256,7 +260,6 @@ export const loadChartData = async () => {
     }
 };
 
-// *** START: تابع اصلاح شده ***
 export const loadContacts = async () => {
     try {
         const { data, error } = await supabaseClient
@@ -265,12 +268,13 @@ export const loadContacts = async () => {
             .order('created_at', { ascending: false });
         if (error) throw error;
         state.allContacts = data || [];
+        return state.allContacts; // <<-- این خط اضافه شد
     } catch (error) {
         console.error("Failed to load contacts (api.js):", error);
-        throw error; // <-- این خط مهم‌ترین تغییر است و خطا را به بیرون پرتاب می‌کند
+        throw error;
     }
 };
-// *** END: تغییر ***
+
 
 export const getEventRegistration = async (eventId, userId) => {
     if (!eventId || !userId) return { data: null, error: 'Event ID or User ID is missing' };
