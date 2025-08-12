@@ -4210,19 +4210,8 @@ body.light-theme .image-upload-controls {
     flex-shrink: 0; /* جلوگیری از کوچک شدن دکمه‌ها */
 }
 
-/* ================== Styles for d-calendar Datepicker ================== */
-body .d-calendar-picker {
-    font-family: 'Vazirmatn', sans-serif;
-    z-index: 3000 !important; /* Ensure it appears above other elements */
-}
-body.dark-theme .d-calendar-picker {
-    background-color: #0d2f30;
-    border: 1px solid var(--glass-border-dark);
-}
-body.dark-theme .d-calendar-picker .d-calendar-day.d-calendar-selected {
-    background-color: var(--primary-color);
-    color: var(--background-color-dark);
-}
-body.light-theme .d-calendar-picker .d-calendar-day.d-calendar-selected {
-    background-color: var(--primary-color-light-theme);
+/* ================== Persian Datepicker Fix ================== */
+.datepicker-plot-area {
+    font-family: 'Vazirmatn', sans-serif !important;
+    z-index: 1056 !important; /* عددی بالاتر از z-index مودال برای نمایش روی آن */
 }
