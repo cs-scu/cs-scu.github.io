@@ -725,60 +725,82 @@ const initializeEventsModule = async () => {
         submitBtn.textContent = isEditing ? 'در حال آپلود و ویرایش...' : 'در حال آپلود و افزودن...';
 
         try {
-            let imageUrl = currentImageUrl;
-            const imageFile = imageUploadInput.files[0];
+            // --- 1. Preparação de Dados e Variáveis ---
+            const formData = new FormData(eventForm);
+            const isEditing = !!hiddenIdInput.value;
+            let imageUrl = currentImageUrl; // Começa com a imagem atual (se houver)
+
+            // --- 2. Lógica de Tratamento de Imagem ---
+            const newImageFile = imageUploadInput.files[0];
             const newDetailPageValue = formData.get('detailPage') || '';
             const newSlug = newDetailPageValue.split('/').pop();
 
-            if (imageFile) {
-                const uploadedImageUrl = await uploadEventImage(imageFile, newSlug);
+            if (newImageFile) {
+                // Se um novo arquivo foi selecionado, faça o upload dele.
+                const uploadedImageUrl = await uploadEventImage(newImageFile, newSlug);
+                // Se o upload for bem-sucedido e estivermos editando, exclua a imagem antiga.
                 if (uploadedImageUrl && isEditing && currentImageUrl) {
                     await deleteEventImage(currentImageUrl);
                 }
                 imageUrl = uploadedImageUrl;
             } else if (isEditing && currentImageUrl) {
+                // Se nenhuma imagem nova foi enviada, mas estamos editando, verifique se o "slug" mudou para renomear o arquivo.
                 const oldFileName = currentImageUrl.split('/').pop();
                 const oldSlugMatch = oldFileName.match(/ev-(.*)-\d{14}/);
                 const oldSlug = oldSlugMatch ? oldSlugMatch[1] : null;
-                if (oldSlug && newSlug !== oldSlug) {
+
+                if (oldSlug && newSlug && oldSlug !== newSlug) {
                     imageUrl = await renameEventImage(currentImageUrl, newSlug);
                 }
             }
-            
-            if (!imageUrl) throw new Error("تصویر رویداد الزامی است.");
 
+            // Validação final da imagem
+            if (!imageUrl) {
+                throw new Error("A imagem do evento é obrigatória.");
+            }
+
+            // --- 3. Lógica de Tratamento de Data ---
             if (!dateRangePickerInstance || dateRangePickerInstance.selectedDates.length < 2) {
-                throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
+                throw new Error("Por favor, especifique o intervalo de datas (início e fim).");
             }
 
             const [startDate, endDate] = dateRangePickerInstance.selectedDates;
-
             const formatForSupabase = (date) => {
                 const y = date.getFullYear();
                 const m = String(date.getMonth() + 1).padStart(2, '0');
                 const d = String(date.getDate()).padStart(2, '0');
                 return `${y}-${m}-${d}`;
             };
-
             const startDateForDb = formatForSupabase(startDate);
             const endDateForDb = formatForSupabase(endDate);
 
+            // --- 4. Montagem do Objeto de Dados Final ---
             const parseJsonField = (fieldName) => {
                 const value = formData.get(fieldName);
-                try { return value ? JSON.parse(value) : null; }
-                catch (e) { throw new Error(`فرمت JSON در فیلد "${fieldName}" نامعتبر است.`); }
+                if (!value) return null;
+                try {
+                    return JSON.parse(value);
+                } catch (e) {
+                    throw new Error(`O formato JSON no campo "${fieldName}" é inválido.`);
+                }
             };
 
-            // FIX 3: Clean up the contact_link object before sending
             const contactData = {
                 phone: formData.get('contact_phone'),
                 telegram: formData.get('contact_telegram'),
                 whatsapp: formData.get('contact_whatsapp')
             };
+            // Limpa chaves vazias do objeto de contato
             Object.keys(contactData).forEach(key => {
                 if (!contactData[key]) delete contactData[key];
             });
             const contactLink = Object.keys(contactData).length > 0 ? contactData : null;
+            
+            const paymentCardData = {
+                name: formData.get('payment_name'),
+                number: formData.get('payment_number')
+            };
+            const paymentCardInfo = (paymentCardData.name || paymentCardData.number) ? paymentCardData : null;
 
             const eventData = {
                 title: formData.get('title'),
@@ -793,19 +815,21 @@ const initializeEventsModule = async () => {
                 tag_ids: selectedTagIds,
                 content: parseJsonField('content'),
                 schedule: parseJsonField('schedule'),
-                payment_card_number: (formData.get('payment_name') || formData.get('payment_number')) ? { name: formData.get('payment_name'), number: formData.get('payment_number') } : null,
+                payment_card_number: paymentCardInfo,
                 contact_link: contactLink,
             };
-            
+
+            // --- 5. Envio para o Banco de Dados ---
             if (isEditing) {
                 await updateEvent(isEditing, eventData);
-                showStatus(statusBox, 'رویداد با موفقیت ویرایش شد.', 'success');
+                showStatus(statusBox, 'Evento atualizado com sucesso.', 'success');
             } else {
                 await addEvent(eventData);
-                showStatus(statusBox, 'رویداد با موفقیت افزوده شد.', 'success');
+                showStatus(statusBox, 'Evento adicionado com sucesso.', 'success');
             }
 
-            state.allEvents = [];
+            // --- 6. Atualização da Interface e Reset do Formulário ---
+            state.allEvents = []; // Limpa o cache para forçar o recarregamento
             await loadEvents();
             renderEventsList(state.allEvents);
             resetForm();
