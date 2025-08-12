@@ -1,7 +1,7 @@
 // src/assets/js/modules/admin.js
 
 import { state } from './state.js';
-import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags, addTag, updateTag, deleteTag, uploadEventImage, deleteEventImage } from './api.js';
+import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags, addTag, updateTag, deleteTag, uploadEventImage, deleteEventImage, renameEventImage } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
 
 // --- توابع کمکی ---
@@ -697,20 +697,21 @@ const initializeEventsModule = () => {
             const newDetailPageValue = formData.get('detailPage') || '';
             const newSlug = newDetailPageValue.split('/').pop();
 
-            // اگر فایل جدیدی انتخاب شده بود، آن را آپلود کن
+            // **START: منطق جدید و اصلاح‌شده برای مدیریت تصویر**
             if (imageFile) {
-                if (isEditing && currentImageUrl) {
+                // اگر فایل جدیدی انتخاب شده، آن را آپلود کن
+                const uploadedImageUrl = await uploadEventImage(imageFile, newSlug);
+                // اگر آپلود موفق بود و در حالت ویرایش بودیم، تصویر قدیمی را حذف کن
+                if (uploadedImageUrl && isEditing && currentImageUrl) {
                     await deleteEventImage(currentImageUrl);
                 }
-                imageUrl = await uploadEventImage(imageFile, newSlug);
-            
-            // **START: منطق جدید برای تغییر نام فایل هنگام تغییر اسلاگ**
+                imageUrl = uploadedImageUrl;
             } else if (isEditing && currentImageUrl) {
+                // اگر فایل جدیدی نبود اما اسلاگ تغییر کرده بود، نام فایل را در استوریج تغییر بده
                 const oldFileName = currentImageUrl.split('/').pop();
                 const oldSlugMatch = oldFileName.match(/ev-(.*)-\d{14}/);
                 const oldSlug = oldSlugMatch ? oldSlugMatch[1] : null;
 
-                // اگر اسلاگ تغییر کرده بود، نام فایل را هم تغییر بده
                 if (oldSlug && newSlug !== oldSlug) {
                     imageUrl = await renameEventImage(currentImageUrl, newSlug);
                 }
@@ -736,7 +737,7 @@ const initializeEventsModule = () => {
                 startDate: formData.get('startDate'),
                 endDate: formData.get('endDate'),
                 image: imageUrl,
-                detailPage: newDetailPageValue, // استفاده از مقدار جدید
+                detailPage: newDetailPageValue,
                 tag_ids: selectedTagIds,
                 content: parseJsonField('content'),
                 schedule: parseJsonField('schedule'),
