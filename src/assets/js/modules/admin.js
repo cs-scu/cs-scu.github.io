@@ -176,65 +176,30 @@ const initializeDatepicker = () => {
 
     let rangeInstance = null;
 
+    // Instance 1: For the main event date range (used by the system)
     if (dateRangeInput) {
         rangeInstance = flatpickr(dateRangeInput, {
             mode: "range",
             locale: "fa",
-            dateFormat: "Y-m-d",
+            dateFormat: "Y-m-d", // Standard format for the database
             altInput: true,
-            altFormat: "Y/m/d",
-            onClose: function(selectedDates) {
-                // فقط در صورتی ادامه بده که دو تاریخ انتخاب شده باشد
-                if (selectedDates.length === 2 && displayDateInput) {
-                    const [start, end] = selectedDates;
-
-                    // استخراج روز، ماه و سال جلالی
-                    const startDay = start.getDate();
-                    const endDay = end.getDate();
-                    const startMonth = start.getMonth();
-                    const endMonth = end.getMonth();
-                    const startYear = start.getFullYear();
-                    const endYear = end.getFullYear();
-                    
-                    // نام ماه‌های فارسی از کتابخانه تقویم
-                    const monthNames = fa.months.longhand;
-                    let displayString = "";
-
-                    // سناریو ۱: ماه و سال یکسان
-                    if (startMonth === endMonth && startYear === endYear) {
-                        displayString = `${startDay} الی ${endDay} ${monthNames[startMonth]} ${startYear}`;
-                    } 
-                    // سناریو ۲: سال یکسان، ماه متفاوت
-                    else if (startYear === endYear) {
-                        displayString = `${startDay} ${monthNames[startMonth]} الی ${endDay} ${monthNames[endMonth]} ${startYear}`;
-                    } 
-                    // سناریو ۳: سال‌ها متفاوت
-                    else {
-                        displayString = `${startDay} ${monthNames[startMonth]} ${startYear} الی ${endDay} ${monthNames[endMonth]} ${endYear}`;
-                    }
-
-                    // به‌روزرسانی مقدار فیلد "تاریخ نمایشی"
-                    displayDateInput.value = displayString;
-
-                    // اگر تقوim دیگری روی این فیلد فعال است، آن را هم آپدیت می‌کنیم
-                    if (displayDateInput._flatpickr) {
-                       displayDateInput._flatpickr.setDate(displayDateInput.value, false);
-                    }
-                }
-            }
+            altFormat: "Y/m/d",  // User-friendly Jalali format
         });
     }
 
+    // Instance 2: For the display date range (can be custom text)
     if (displayDateInput) {
         flatpickr(displayDateInput, {
+            mode: "range", // This also accepts a date range
             locale: "fa",
-            dateFormat: "Y-m-d",
+            dateFormat: "Y-m-d", // This format is not critical as we send the text value
             altInput: true,
-            altFormat: "j F Y",
+            altFormat: "j F Y",  // A beautiful format for display
+            // The automatic text generation logic (onClose) is removed.
         });
     }
     
-    return rangeInstance; 
+    return rangeInstance; // Return the main instance for form submission logic
 };
 
 const initializeJournalModule = () => {
