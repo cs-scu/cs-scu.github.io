@@ -453,8 +453,8 @@ const initializeEventsModule = async () => {
     // --- ۱. متغیرهای اصلی را در بالاترین سطح این تابع تعریف می‌کنیم ---
     let selectedTagIds = [];
     let currentImageUrl = '';
-    // <<-- اصلاح کلیدی: dateRangePickerInstance اینجا تعریف می‌شود -->>
-    let dateRangePickerInstance = null; 
+    // <<== FIX: The returned instance from the datepicker is now correctly assigned
+    let dateRangePickerInstance = initializeDatepicker(); 
 
     // --- ۲. تمام عناصر فرم را یکجا انتخاب می‌کنیم ---
     const formTitle = document.getElementById('event-form-title');
@@ -471,12 +471,10 @@ const initializeEventsModule = async () => {
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
     const paymentInfoSection = document.getElementById('payment-info-section');
+    // <<== FIX: Selecting the new elements for the image upload component
+    const fileNameDisplay = document.querySelector('.file-name-display');
+    const fileClearBtn = document.querySelector('.file-clear-btn');
 
-    // --- ۳. تقوim را راه‌اندازی کرده و نمونه آن را در متغیر اصلی ذخیره می‌کنیم ---
-    // <<-- اصلاح کلیدی: فراخوانی صحیح و ذخیره نمونه -->>
-    dateRangePickerInstance = initializeDatepicker(); 
-
-    await initializeDatepicker();
 
     const togglePaymentFields = () => {
         if (!paymentInfoSection || !costToggle) return;
@@ -515,18 +513,23 @@ const initializeEventsModule = async () => {
             updateFileNameDisplay(file ? file.name : '');
         });
     }
-
+    
+    // <<== FIX: Corrected logic for the image clear button
     if(fileClearBtn) {
         fileClearBtn.addEventListener('click', () => {
-            imageUploadInput.value = '';
-            const existingFileName = currentImageUrl ? currentImageUrl.split('/').pop() : '';
-            updateFileNameDisplay(existingFileName);
-            if (!existingFileName) {
-                 fileClearBtn.style.display = 'none';
+            imageUploadInput.value = ''; // Clear the selected file
+            const isEditing = !!hiddenIdInput.value;
+            if (isEditing && currentImageUrl) {
+                // In edit mode, if a new file is cleared, revert to showing the old file's name
+                const existingFileName = currentImageUrl.split('/').pop();
+                updateFileNameDisplay(existingFileName);
+            } else {
+                // In add mode or if there was no previous image, show "No file selected"
+                updateFileNameDisplay('');
             }
         });
     }
-    
+
     const updateSelectedTagsDisplay = () => {
         if (!selectedTagsDisplay) return;
         if (selectedTagIds.length === 0) {
