@@ -144,7 +144,6 @@ const initializeGlobalRefreshButton = () => {
 
         try {
             const data = await route.loader();
-            // Pass the correct part of the data if it's a Promise.all result
             const renderData = path === '/admin/events' ? data[0] : data;
             route.renderer(renderData);
             if (route.initializer) {
@@ -184,7 +183,6 @@ const initializeJournalModule = () => {
         const input = document.getElementById(`journal-${type}`);
         const wrapperId = type === 'cover' ? 'cover-upload-wrapper' : 'pdf-upload-wrapper';
         const wrapper = document.getElementById(wrapperId);
-
         if (!input || !wrapper) return;
         
         const nameDisplay = wrapper.querySelector('.file-name-display');
@@ -345,8 +343,7 @@ const initializeJournalModule = () => {
                 await deleteJournalFiles(oldFilesToDelete);
             }
 
-            const { data } = await supabaseClient.from('journal').select('*');
-            state.allJournalIssues = data || [];
+            state.allJournalIssues = await loadJournal();
             renderJournalList(state.allJournalIssues);
             resetForm();
 
@@ -957,6 +954,7 @@ const loadAdminPage = async (path) => {
 
         setTimeout(() => {
             if (route.renderer) {
+                // Pass the correct part of the data if it's a Promise.all result
                 const renderData = path === '/admin/events' ? data[0] : data;
                 route.renderer(renderData);
             }

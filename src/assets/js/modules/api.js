@@ -141,13 +141,15 @@ export const loadMembers = async () => {
 };
 
 export const loadTags = async () => {
-    if (state.tagsMap.size > 0) return;
     try {
-        const { data: tags, error } = await supabaseClient.from('tags').select('id, name');
+        const { data, error } = await supabaseClient.from('tags').select('id, name');
         if (error) throw error;
-        tags.forEach(tag => state.tagsMap.set(tag.id, tag.name));
+        state.tagsMap.clear();
+        (data || []).forEach(tag => state.tagsMap.set(tag.id, tag.name));
+        return state.tagsMap; // **اصلاح کلیدی: داده‌ها باید بازگردانده شوند**
     } catch (error) {
-        console.error("Failed to load tags:", error);
+        console.error('Error loading tags:', error);
+        throw error;
     }
 };
 
@@ -218,13 +220,14 @@ export const deleteTag = async (tagId) => {
 };
 
 export const loadEvents = async () => {
-    if (state.allEvents.length > 0) return;
     try {
         const { data, error } = await supabaseClient.from('events').select('*');
         if (error) throw error;
         state.allEvents = data || [];
+        return state.allEvents; // **اصلاح کلیدی: داده‌ها باید بازگردانده شوند**
     } catch (error) {
         console.error("Failed to load events:", error);
+        throw error;
     }
 };
 export const loadJournal = async () => {
