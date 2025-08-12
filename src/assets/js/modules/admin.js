@@ -86,14 +86,11 @@ const renderJournalList = (issues) => {
 const renderEventsList = (events) => {
     const container = document.getElementById('events-admin-list');
     if (!container) return;
-
     if (!events || events.length === 0) {
         container.innerHTML = '<p style="text-align: center; opacity: 0.8;">هنوز هیچ رویدادی ثبت نشده است.</p>';
         return;
     }
-
     const sortedEvents = events.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
-
     container.innerHTML = `
         <div class="custom-table-wrapper">
             <table class="custom-table">
@@ -126,6 +123,8 @@ const renderEventsList = (events) => {
             </table>
         </div>`;
 };
+
+
 
 // --- Event Handler Functions ---
 const initializeGlobalRefreshButton = () => {
@@ -442,7 +441,7 @@ const initializeEventsModule = () => {
     const paymentInfoSection = document.getElementById('payment-info-section');
     const dateRangeInput = document.getElementById('event-date-range');
     
-    // **START: راه‌اندازی کتابخانه جدید و مطمئن d-calendar**
+    // **راه‌اندازی انتخاب‌گر بازه تاریخ شمسی**
     const initializeDatepicker = () => {
         if (typeof dCalendar === 'undefined') {
             console.error("d-calendar library is not loaded.");
@@ -457,7 +456,6 @@ const initializeEventsModule = () => {
         });
     };
     initializeDatepicker();
-    // **END: راه‌اندازی**
 
     const togglePaymentFields = () => {
         if (!paymentInfoSection || !costToggle) return;
@@ -684,7 +682,7 @@ const initializeEventsModule = () => {
         updateFileNameDisplay('');
         imageUploadInput.required = true;
         if (dateRangePickerInstance) {
-            dateRangePickerInstance.clear(); // پاک کردن تاریخ
+            dateRangePickerInstance.clear();
         }
         formTitle.textContent = 'درج رویداد جدید';
         submitBtn.textContent = 'افزودن رویداد';
@@ -714,8 +712,11 @@ const initializeEventsModule = () => {
             const newSlug = newDetailPageValue.split('/').pop();
 
             if (imageFile) {
-                if (isEditing && currentImageUrl) await deleteEventImage(currentImageUrl);
-                imageUrl = await uploadEventImage(imageFile, newSlug);
+                const uploadedImageUrl = await uploadEventImage(imageFile, newSlug);
+                if (uploadedImageUrl && isEditing && currentImageUrl) {
+                    await deleteEventImage(currentImageUrl);
+                }
+                imageUrl = uploadedImageUrl;
             } else if (isEditing && currentImageUrl) {
                 const oldFileName = currentImageUrl.split('/').pop();
                 const oldSlugMatch = oldFileName.match(/ev-(.*)-\d{14}/);
@@ -727,11 +728,9 @@ const initializeEventsModule = () => {
             
             if (!imageUrl) throw new Error("تصویر رویداد الزامی است.");
 
-            // **START: خواندن و تبدیل تاریخ از کتابخانه جدید**
             const [startJalali, endJalali] = dateRangePickerInstance.getValue();
             if (!startJalali || !endJalali) throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
-
-            // تبدیل تاریخ شمسی به میلادی
+            
             const toGregorian = (jalaliDate) => {
                 const [y, m, d] = jalaliDate.split('/').map(Number);
                 const g = persianDate.jalaliToGregorian([y, m, d]);
@@ -740,9 +739,12 @@ const initializeEventsModule = () => {
             
             const startDate = toGregorian(startJalali);
             const endDate = toGregorian(endJalali);
-            // **END: خواندن و تبدیل تاریخ**
 
-            const parseJsonField = (fieldName) => { /* ... کد این بخش بدون تغییر ... */ };
+            const parseJsonField = (fieldName) => {
+                const value = formData.get(fieldName);
+                try { return value ? JSON.parse(value) : null; }
+                catch (e) { throw new Error(`فرمت JSON در فیلد "${fieldName}" نامعتبر است.`); }
+            };
 
             const eventData = {
                 title: formData.get('title'),
@@ -800,7 +802,6 @@ const initializeEventsModule = () => {
             updateFileNameDisplay(existingFileName);
             imageUploadInput.required = false;
 
-            // **مقداردهی اولیه انتخاب‌گر تاریخ در حالت ویرایش**
             if (eventToEdit.startDate && eventToEdit.endDate && dateRangePickerInstance) {
                  const toJalali = (gregorianDate) => {
                     const [y, m, d] = gregorianDate.split('-').map(Number);
