@@ -413,7 +413,7 @@ const initializeJournalModule = () => {
 
 const initializeMessagesModule = () => { /* No specific JS needed */ };
 
-const initializeEventsModule = () => {
+const initializeEventsModule = async () => {
     const eventForm = document.getElementById('add-event-form');
     if (!eventForm) return;
 
@@ -441,20 +441,31 @@ const initializeEventsModule = () => {
     const paymentInfoSection = document.getElementById('payment-info-section');
     const dateRangeInput = document.getElementById('event-date-range');
     
+    // کد جدید (جایگزین کنید)
     const initializeDatepicker = () => {
-        if (typeof dCalendar === 'undefined') {
-            console.error("d-calendar library is not loaded.");
-            return;
-        }
-        if (dateRangePickerInstance) {
-            dateRangePickerInstance.destroy();
-        }
-        dateRangePickerInstance = new dCalendar(dateRangeInput, {
-            type: 'range',
-            format: 'YYYY/MM/DD',
+        return new Promise((resolve) => {
+            // یک تابع برای بررسی و راه‌اندازی تقویم تعریف می‌کنیم
+            const setupCalendar = () => {
+                if (typeof dCalendar !== 'undefined') {
+                    if (dateRangePickerInstance) {
+                        dateRangePickerInstance.destroy();
+                    }
+                    dateRangePickerInstance = new dCalendar(dateRangeInput, {
+                        type: 'range',
+                        format: 'YYYY/MM/DD',
+                    });
+                    resolve(); // به Promise اطلاع می‌دهیم که کار تمام شده است
+                } else {
+                    // اگر کتابخانه هنوز آماده نبود، ۱۰۰ میلی‌ثانیه دیگر دوباره تلاش کن
+                    setTimeout(setupCalendar, 100);
+                }
+            };
+            // اولین بررسی را شروع می‌کنیم
+            setupCalendar();
         });
     };
-    initializeDatepicker();
+
+    await initializeDatepicker();
 
     const togglePaymentFields = () => {
         if (!paymentInfoSection || !costToggle) return;
