@@ -176,23 +176,24 @@ const initializeDatepicker = () => {
 
     let rangeInstance = null;
 
+    // Instance 1: For the main event date range (triggers the display date update)
     if (dateRangeInput) {
         rangeInstance = flatpickr(dateRangeInput, {
             mode: "range",
             locale: "fa",
-            dateFormat: "Y-m-d",
+            dateFormat: "Y-m-d", // For the database
             altInput: true,
-            altFormat: "Y/m/d",
+            altFormat: "Y/m/d",  // For the admin to see
             onClose: function(selectedDates) {
                 if (selectedDates.length === 2 && displayDateInput) {
                     const [start, end] = selectedDates;
 
-                    // Helper function to check if two dates are consecutive
-                    const areConsecutiveDays = (date1, date2) => {
-                        const nextDay = new Date(date1.gregoriandate || date1);
+                    // Helper to check for consecutive days using the underlying Gregorian date
+                    const areConsecutiveDays = (d1, d2) => {
+                        const nextDay = new Date(d1.gregoriandate || d1);
                         nextDay.setDate(nextDay.getDate() + 1);
-                        const endGregorian = new Date(date2.gregoriandate || date2);
-                        return nextDay.toDateString() === endGregorian.toDateString();
+                        const endDate = new Date(d2.gregoriandate || d2);
+                        return nextDay.toDateString() === endDate.toDateString();
                     };
 
                     const startDay = start.getDate();
@@ -205,39 +206,41 @@ const initializeDatepicker = () => {
                     const monthNames = fa.months.longhand;
                     let displayString = "";
 
-                    // <<-- FIX: Implementing the new scenarios in the correct order -->>
-
-                    // Scenario 4: Consecutive days (e.g., "۱۸ و ۱۹ تیر ۱۴۰۴")
+                    // Implementing the scenarios in the correct order
                     if (areConsecutiveDays(start, end)) {
                         displayString = `${startDay} و ${endDay} ${monthNames[startMonth]} ${startYear}`;
-                    }
-                    // Scenario 3: Same month and year (e.g., "۱۸ الی ۲۵ تیر ۱۴۰۴")
-                    else if (startMonth === endMonth && startYear === endYear) {
+                    } else if (startMonth === endMonth && startYear === endYear) {
                         displayString = `${startDay} الی ${endDay} ${monthNames[startMonth]} ${startYear}`;
-                    } 
-                    // Scenario 2: Same year, different month (e.g., "۲۵ تیر الی ۵ مرداد ۱۴۰۴")
-                    else if (startYear === endYear) {
+                    } else if (startYear === endYear) {
                         displayString = `${startDay} ${monthNames[startMonth]} الی ${endDay} ${monthNames[endMonth]} ${startYear}`;
-                    } 
-                    // Scenario 1: Different years (e.g., "۲۸ اسفند ۱۴۰۴ الی ۵ فروردین ۱۴۰۵")
-                    else {
+                    } else {
                         displayString = `${startDay} ${monthNames[startMonth]} ${startYear} الی ${endDay} ${monthNames[endMonth]} ${endYear}`;
                     }
 
+                    // Update the value of the display date input
                     displayDateInput.value = displayString;
+                    
+                    // Also update the flatpickr instance on the display input
+                    if (displayDateInput._flatpickr) {
+                        displayDateInput._flatpickr.setDate([start, end], false);
+                    }
                 }
             }
         });
     }
 
-    // Keep the separate flatpickr for the display date for manual editing
+    // Instance 2: A separate range picker for the display date for manual override
     if (displayDateInput) {
         flatpickr(displayDateInput, {
+            mode: "range",
             locale: "fa",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "j F Y",
         });
     }
     
-    return rangeInstance; 
+    return rangeInstance; // Return the main instance for form submission logic
 };
 
 const initializeJournalModule = () => {
