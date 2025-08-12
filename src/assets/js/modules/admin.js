@@ -170,6 +170,10 @@ const initializeGlobalRefreshButton = () => {
 };
 
 
+// src/assets/js/modules/admin.js
+
+// ... (کدهای قبلی)
+
 const initializeDatepicker = () => {
     const dateRangeInput = document.getElementById('event-date-range-flatpickr');
     const displayDateInput = document.getElementById('event-display-date');
@@ -177,8 +181,8 @@ const initializeDatepicker = () => {
     let rangeInstance = null;
 
     // <<-- START: CHANGE -->>
-    // Instance 1: For the main event date range (system date).
-    // The `onClose` event has been completely removed to make it independent.
+
+    // Instance 1: For the main event date range (system date). This remains independent.
     if (dateRangeInput) {
         rangeInstance = flatpickr(dateRangeInput, {
             mode: "range",
@@ -186,24 +190,69 @@ const initializeDatepicker = () => {
             dateFormat: "Y-m-d",
             altInput: true,
             altFormat: "Y/m/d"
-            // No onClose event here.
         });
     }
 
-    // Instance 2: A separate, independent range picker for the display date.
+    // Instance 2: For the display date, with logic to convert the selected range into a text string.
     if (displayDateInput) {
         flatpickr(displayDateInput, {
             mode: "range",
             locale: "fa",
-            dateFormat: "Y-m-d", // This can be kept for consistency or removed
             altInput: true,
-            altFormat: "j F Y", // User-friendly format for display
+            altFormat: "j F Y", // Format shown to user while picking
+            dateFormat: "Y-m-d", // Base format for the hidden input
+            onClose: function(selectedDates, dateStr, instance) {
+                // This logic ONLY runs for the display date picker
+                if (selectedDates.length === 2) {
+                    const [start, end] = selectedDates;
+
+                    const areConsecutiveDays = (d1, d2) => {
+                        const nextDay = new Date(d1.gregoriandate || d1);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        const endDate = new Date(d2.gregoriandate || d2);
+                        return nextDay.toDateString() === endDate.toDateString();
+                    };
+                    
+                    const startDay = instance.formatDate(start, "j");
+                    const endDay = instance.formatDate(end, "j");
+                    const startMonthName = instance.formatDate(start, "F");
+                    const endMonthName = instance.formatDate(end, "F");
+                    const startYear = instance.formatDate(start, "Y");
+                    const endYear = instance.formatDate(end, "Y");
+                    
+                    let displayString = "";
+
+                    if (startYear !== endYear) {
+                        displayString = `${startDay} ${startMonthName} ${startYear} الی ${endDay} ${endMonthName} ${endYear}`;
+                    } else if (startMonthName !== endMonthName) {
+                        displayString = `${startDay} ${startMonthName} الی ${endDay} ${endMonthName} ${startYear}`;
+                    } else {
+                        if (startDay !== endDay && areConsecutiveDays(start, end)) {
+                             displayString = `${startDay} و ${endDay} ${startMonthName} ${startYear}`;
+                        } else if (startDay === endDay) {
+                            displayString = `${startDay} ${startMonthName} ${startYear}`;
+                        } else {
+                            displayString = `${startDay} الی ${endDay} ${startMonthName} ${startYear}`;
+                        }
+                    }
+
+                    // Overwrite the input's value with the generated text string
+                    // This affects both the original (hidden) input and the visible altInput
+                    instance.input.value = displayString;
+                    if (instance.altInput) {
+                        instance.altInput.value = displayString;
+                    }
+                }
+            }
         });
     }
+    
     // <<-- END: CHANGE -->>
     
     return rangeInstance;
 };
+
+// ... (کدهای بعدی)
 
 const initializeJournalModule = () => {
     const journalForm = document.getElementById('add-journal-form');
