@@ -206,6 +206,16 @@ const initializeDatepicker = () => {
                     const monthNames = fa.months.longhand;
                     let displayString = "";
 
+                    console.log(startDay)
+                    console.log(endDay)
+                    console.log(startMonth)
+                    console.log(endMonth)
+                    console.log(startYear)
+                    console.log(endYear)
+
+                    
+                    
+                    
                     // سناریو ۴: دو روز پشت سر هم (مثال: "۱۸ و ۱۹ تیر ۱۴۰۴")
                     if (areConsecutiveDays(start, end)) {
                         displayString = `${startDay} و ${endDay} ${monthNames[startMonth]} ${startYear}`;
