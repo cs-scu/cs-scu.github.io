@@ -420,7 +420,7 @@ const initializeEventsModule = () => {
     if (!eventForm) return;
 
     let selectedTagIds = [];
-    let currentImageUrl = ''; // متغیری برای نگهداری URL تصویر فعلی هنگام ویرایش
+    let currentImageUrl = '';
 
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
@@ -441,6 +441,14 @@ const initializeEventsModule = () => {
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
     const paymentInfoSection = document.getElementById('payment-info-section');
+    
+    // **راه‌اندازی انتخاب‌گر بازه تاریخ**
+    const dateRangePicker = flatpickr("#event-date-range", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "F j, Y",
+    });
 
     const togglePaymentFields = () => {
         if (!paymentInfoSection || !costToggle) return;
@@ -455,11 +463,9 @@ const initializeEventsModule = () => {
             if(fileClearBtn) fileClearBtn.style.display = 'none';
             return;
         }
-
         const maxChars = 10;
         let displayName = fileName;
         const lastDotIndex = fileName.lastIndexOf('.');
-        
         if (lastDotIndex > 0) {
             const nameWithoutExt = fileName.substring(0, lastDotIndex);
             const extension = fileName.substring(lastDotIndex);
@@ -471,7 +477,6 @@ const initializeEventsModule = () => {
                 displayName = fileName.substring(0, maxChars) + '...';
             }
         }
-        
         fileNameDisplay.textContent = displayName;
         if(fileClearBtn) fileClearBtn.style.display = 'inline-block';
     };
@@ -669,7 +674,7 @@ const initializeEventsModule = () => {
         currentImageUrl = '';
         updateFileNameDisplay('');
         imageUploadInput.required = true;
-
+        dateRangePicker.clear();
         formTitle.textContent = 'درج رویداد جدید';
         submitBtn.textContent = 'افزودن رویداد';
         cancelBtn.style.display = 'none';
@@ -697,30 +702,24 @@ const initializeEventsModule = () => {
             const newDetailPageValue = formData.get('detailPage') || '';
             const newSlug = newDetailPageValue.split('/').pop();
 
-            // **START: منطق جدید و اصلاح‌شده برای مدیریت تصویر**
             if (imageFile) {
-                // اگر فایل جدیدی انتخاب شده، آن را آپلود کن
-                const uploadedImageUrl = await uploadEventImage(imageFile, newSlug);
-                // اگر آپلود موفق بود و در حالت ویرایش بودیم، تصویر قدیمی را حذف کن
-                if (uploadedImageUrl && isEditing && currentImageUrl) {
-                    await deleteEventImage(currentImageUrl);
-                }
-                imageUrl = uploadedImageUrl;
+                if (isEditing && currentImageUrl) await deleteEventImage(currentImageUrl);
+                imageUrl = await uploadEventImage(imageFile, newSlug);
             } else if (isEditing && currentImageUrl) {
-                // اگر فایل جدیدی نبود اما اسلاگ تغییر کرده بود، نام فایل را در استوریج تغییر بده
                 const oldFileName = currentImageUrl.split('/').pop();
                 const oldSlugMatch = oldFileName.match(/ev-(.*)-\d{14}/);
                 const oldSlug = oldSlugMatch ? oldSlugMatch[1] : null;
-
                 if (oldSlug && newSlug !== oldSlug) {
                     imageUrl = await renameEventImage(currentImageUrl, newSlug);
                 }
             }
-            // **END: منطق جدید**
             
-            if (!imageUrl) {
-                throw new Error("تصویر رویداد الزامی است.");
-            }
+            if (!imageUrl) throw new Error("تصویر رویداد الزامی است.");
+
+            const dateRange = dateRangePicker.selectedDates;
+            if (dateRange.length < 2) throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
+            const startDate = dateRange[0].toISOString().split('T')[0];
+            const endDate = dateRange[1].toISOString().split('T')[0];
 
             const parseJsonField = (fieldName) => {
                 const value = formData.get(fieldName);
@@ -734,8 +733,8 @@ const initializeEventsModule = () => {
                 location: locationInput.value,
                 cost: costInput.value,
                 displayDate: formData.get('displayDate'),
-                startDate: formData.get('startDate'),
-                endDate: formData.get('endDate'),
+                startDate: startDate,
+                endDate: endDate,
                 image: imageUrl,
                 detailPage: newDetailPageValue,
                 tag_ids: selectedTagIds,
@@ -784,11 +783,13 @@ const initializeEventsModule = () => {
             updateFileNameDisplay(existingFileName);
             imageUploadInput.required = false;
 
+            if (eventToEdit.startDate && eventToEdit.endDate) {
+                dateRangePicker.setDate([eventToEdit.startDate, eventToEdit.endDate]);
+            }
+
             document.getElementById('event-title').value = eventToEdit.title || '';
             document.getElementById('event-summary').value = eventToEdit.summary || '';
             document.getElementById('event-display-date').value = eventToEdit.displayDate || '';
-            document.getElementById('event-start-date').value = eventToEdit.startDate || '';
-            document.getElementById('event-end-date').value = eventToEdit.endDate || '';
             document.getElementById('event-detail-page').value = eventToEdit.detailPage || '';
             
             locationInput.value = eventToEdit.location || '';
@@ -828,9 +829,7 @@ const initializeEventsModule = () => {
             if (confirm('آیا از حذف این رویداد مطمئن هستید؟ تصویر آن نیز حذف خواهد شد.')) {
                 try {
                     deleteBtn.disabled = true;
-                    if (eventToDelete.image) {
-                        await deleteEventImage(eventToDelete.image);
-                    }
+                    if (eventToDelete.image) await deleteEventImage(eventToDelete.image);
                     await deleteEvent(id);
                     state.allEvents = state.allEvents.filter(e => e.id != id);
                     renderEventsList(state.allEvents);
