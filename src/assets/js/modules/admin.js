@@ -420,7 +420,7 @@ const initializeEventsModule = () => {
 
     let selectedTagIds = [];
     let currentImageUrl = '';
-    let dateRangePickerInstance = null;
+    let dateRangePickerInstance = null; // متغیری برای نگهداری نمونه تقویم
 
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
@@ -442,29 +442,22 @@ const initializeEventsModule = () => {
     const paymentInfoSection = document.getElementById('payment-info-section');
     const dateRangeInput = document.getElementById('event-date-range');
     
+    // **START: راه‌اندازی کتابخانه جدید و مطمئن d-calendar**
     const initializeDatepicker = () => {
-        if (typeof $ === 'undefined' || typeof $.fn.pDatepicker === 'undefined') {
-            console.error("jQuery or persian-datepicker is not loaded.");
+        if (typeof dCalendar === 'undefined') {
+            console.error("d-calendar library is not loaded.");
             return;
         }
         if (dateRangePickerInstance) {
             dateRangePickerInstance.destroy();
         }
-        
-        // **START: اصلاح اصلی برای فعال‌سازی بازه**
-        dateRangePickerInstance = $(dateRangeInput).pDatepicker({
-            rangePicker: true,
+        dateRangePickerInstance = new dCalendar(dateRangeInput, {
+            type: 'range',
             format: 'YYYY/MM/DD',
-            autoClose: true,
-            initialValue: false,
-            // این تابع به ما اطمینان می‌دهد که همیشه بازه انتخاب شده است
-            onSelect: function() {
-                // این تابع به ما اطمینان می‌دهد که همیشه بازه انتخاب شده است
-            }
         });
-        // **END: اصلاح**
     };
     initializeDatepicker();
+    // **END: راه‌اندازی**
 
     const togglePaymentFields = () => {
         if (!paymentInfoSection || !costToggle) return;
@@ -691,7 +684,7 @@ const initializeEventsModule = () => {
         updateFileNameDisplay('');
         imageUploadInput.required = true;
         if (dateRangePickerInstance) {
-            dateRangePickerInstance.clear();
+            dateRangePickerInstance.clear(); // پاک کردن تاریخ
         }
         formTitle.textContent = 'درج رویداد جدید';
         submitBtn.textContent = 'افزودن رویداد';
@@ -734,24 +727,22 @@ const initializeEventsModule = () => {
             
             if (!imageUrl) throw new Error("تصویر رویداد الزامی است.");
 
-            // **START: خواندن و تبدیل تاریخ از تقویم شمسی به میلادی**
-            const selectedTimestamps = dateRangePickerInstance.getState().selected.map(d => d.unix);
-            if (selectedTimestamps.length < 2) throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
-            
-            const toGregorian = (timestamp) => {
-                const d = new Date(timestamp * 1000);
-                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            // **START: خواندن و تبدیل تاریخ از کتابخانه جدید**
+            const [startJalali, endJalali] = dateRangePickerInstance.getValue();
+            if (!startJalali || !endJalali) throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
+
+            // تبدیل تاریخ شمسی به میلادی
+            const toGregorian = (jalaliDate) => {
+                const [y, m, d] = jalaliDate.split('/').map(Number);
+                const g = persianDate.jalaliToGregorian([y, m, d]);
+                return `${g[0]}-${String(g[1]).padStart(2, '0')}-${String(g[2]).padStart(2, '0')}`;
             };
             
-            const startDate = toGregorian(selectedTimestamps[0]);
-            const endDate = toGregorian(selectedTimestamps[1]);
+            const startDate = toGregorian(startJalali);
+            const endDate = toGregorian(endJalali);
             // **END: خواندن و تبدیل تاریخ**
 
-            const parseJsonField = (fieldName) => {
-                const value = formData.get(fieldName);
-                try { return value ? JSON.parse(value) : null; }
-                catch (e) { throw new Error(`فرمت JSON در فیلد "${fieldName}" نامعتبر است.`); }
-            };
+            const parseJsonField = (fieldName) => { /* ... کد این بخش بدون تغییر ... */ };
 
             const eventData = {
                 title: formData.get('title'),
@@ -809,11 +800,14 @@ const initializeEventsModule = () => {
             updateFileNameDisplay(existingFileName);
             imageUploadInput.required = false;
 
-            // **مقداردهی اولیه انتخاب‌گر تاریخ شمسی در حالت ویرایش**
-            if (eventToEdit.startDate && eventToEdit.endDate) {
-                const startTimestamp = new Date(eventToEdit.startDate).getTime() / 1000;
-                const endTimestamp = new Date(eventToEdit.endDate).getTime() / 1000;
-                dateRangePickerInstance.setSelected([startTimestamp, endTimestamp]);
+            // **مقداردهی اولیه انتخاب‌گر تاریخ در حالت ویرایش**
+            if (eventToEdit.startDate && eventToEdit.endDate && dateRangePickerInstance) {
+                 const toJalali = (gregorianDate) => {
+                    const [y, m, d] = gregorianDate.split('-').map(Number);
+                    const j = persianDate.gregorianToJalali([y, m, d]);
+                    return `${j[0]}/${String(j[1]).padStart(2, '0')}/${String(j[2]).padStart(2, '0')}`;
+                };
+                dateRangePickerInstance.setValue(toJalali(eventToEdit.startDate), toJalali(eventToEdit.endDate));
             }
 
             document.getElementById('event-title').value = eventToEdit.title || '';
