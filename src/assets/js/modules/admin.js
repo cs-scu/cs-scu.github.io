@@ -169,6 +169,32 @@ const initializeGlobalRefreshButton = () => {
     });
 };
 
+const initializeDatepicker = () => {
+    const startDateInput = document.getElementById('event-start-date');
+    const endDateInput = document.getElementById('event-end-date');
+    if (!startDateInput || !endDateInput) return;
+
+    const setupCalendarWhenReady = () => {
+        if (typeof jQuery !== 'undefined' && typeof $.fn.pDatepicker !== 'undefined') {
+            $(startDateInput).pDatepicker({
+                format: 'YYYY/MM/DD',
+                autoClose: true,
+                observer: true,
+                initialValue: false 
+            });
+            $(endDateInput).pDatepicker({
+                format: 'YYYY/MM/DD',
+                autoClose: true,
+                observer: true,
+                initialValue: false
+            });
+        } else {
+            setTimeout(setupCalendarWhenReady, 100);
+        }
+    };
+    setupCalendarWhenReady();
+};
+
 const initializeJournalModule = () => {
     const journalForm = document.getElementById('add-journal-form');
     if (!journalForm) return;
@@ -440,40 +466,6 @@ const initializeEventsModule = async () => {
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
     const paymentInfoSection = document.getElementById('payment-info-section');
     const dateRangeInput = document.getElementById('event-date-range');
-    
-    const initializeDatepicker = () => {
-        const startDateInput = document.getElementById('event-start-date');
-        const endDateInput = document.getElementById('event-end-date');
-        if (!startDateInput || !endDateInput) return;
-
-        // یک تابع برای بررسی آماده بودن کتابخانه‌ها تعریف می‌کنیم
-        const setupCalendarWhenReady = () => {
-            // بررسی می‌کنیم که آیا jQuery و تابع pDatepicker بارگذاری شده‌اند یا نه
-            if (typeof jQuery !== 'undefined' && typeof $.fn.pDatepicker !== 'undefined') {
-                
-                // راه‌اندازی تقوim برای هر دو فیلد
-                $(startDateInput).pDatepicker({
-                    format: 'YYYY/MM/DD',
-                    autoClose: true,
-                    observer: true,
-                    initialValue: false 
-                });
-                $(endDateInput).pDatepicker({
-                    format: 'YYYY/MM/DD',
-                    autoClose: true,
-                    observer: true,
-                    initialValue: false
-                });
-
-            } else {
-                // اگر هنوز آماده نبود، ۱۰۰ میلی‌ثانیه دیگر دوباره تلاش می‌کند
-                setTimeout(setupCalendarWhenReady, 100);
-            }
-        };
-
-        // فرآیند بررسی را آغاز می‌کنیم
-        setupCalendarWhenReady();
-    };
 
     await initializeDatepicker();
 
