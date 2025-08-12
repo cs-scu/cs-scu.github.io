@@ -733,9 +733,10 @@ const initializeEventsModule = async () => {
                 const [startDate, endDate] = dateRangePickerInstance.selectedDates;
 
                 const formatForSupabase = (date) => {
-                    const y = date.getFullYear();
-                    const m = String(date.getMonth() + 1).padStart(2, '0');
-                    const d = String(date.getDate()).padStart(2, '0');
+                    const gregorianDate = date.gregoriandate || date;
+                    const y = gregorianDate.getFullYear();
+                    const m = String(gregorianDate.getMonth() + 1).padStart(2, '0');
+                    const d = String(gregorianDate.getDate()).padStart(2, '0');
                     return `${y}-${m}-${d}`;
                 };
 
