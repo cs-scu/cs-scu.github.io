@@ -176,7 +176,7 @@ const initializeDatepicker = () => {
 
     let rangeInstance = null;
 
-    // Instance 1: For the main event date range (system date)
+    // Instance 1: For the main event date range (triggers the display date update)
     if (dateRangeInput) {
         rangeInstance = flatpickr(dateRangeInput, {
             mode: "range",
@@ -186,17 +186,67 @@ const initializeDatepicker = () => {
             altFormat: "Y/m/d",
             onClose: function(selectedDates) {
                 // <<-- START: CHANGE -->>
-                // This function is now empty.
-                // By removing the logic here, the 'displayDateInput'
-                // will no longer be automatically populated, allowing for free text input.
+                // This function now automatically populates the "display date" field
+                // based on the selected date range, according to specific scenarios.
+                if (selectedDates.length === 2 && displayDateInput) {
+                    const [start, end] = selectedDates;
+
+                    const areConsecutiveDays = (d1, d2) => {
+                        const nextDay = new Date(d1.gregoriandate || d1);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        const endDate = new Date(d2.gregoriandate || d2);
+                        return nextDay.toDateString() === endDate.toDateString();
+                    };
+                    
+                    const monthNames = this.l10n.months.longhand;
+                    const startDay = start.getDate();
+                    const endDay = end.getDate();
+                    const startMonth = start.getMonth();
+                    const endMonth = end.getMonth();
+                    const startYear = start.getFullYear();
+                    const endYear = end.getFullYear();
+                    
+                    let displayString = "";
+
+                    // Scenario 1: Different years (e.g., "28 Esfand 1404 to 5 Farvardin 1405")
+                    if (startYear !== endYear) {
+                        displayString = `${startDay} ${monthNames[startMonth]} ${startYear} الی ${endDay} ${monthNames[endMonth]} ${endYear}`;
+                    }
+                    // Scenario 2: Same year, different months (e.g., "25 Tir to 5 Mordad 1404")
+                    else if (startMonth !== endMonth) {
+                        displayString = `${startDay} ${monthNames[startMonth]} الی ${endDay} ${monthNames[endMonth]} ${startYear}`;
+                    }
+                    // Scenario 3: Same month and year
+                    else {
+                        // Sub-scenario 3a: Consecutive days (e.g., "18 and 19 Tir 1404")
+                        if (areConsecutiveDays(start, end)) {
+                            displayString = `${startDay} و ${endDay} ${monthNames[startMonth]} ${startYear}`;
+                        }
+                        // Sub-scenario 3b: Range within the same month (e.g., "18 to 25 Tir 1404")
+                        else {
+                            displayString = `${startDay} الی ${endDay} ${monthNames[startMonth]} ${startYear}`;
+                        }
+                    }
+
+                    // Set the value of the "display date" text input
+                    displayDateInput.value = displayString;
+                }
                 // <<-- END: CHANGE -->>
             }
         });
     }
 
-    // Instance 2: This was removed to ensure the display date is a simple text field.
-    // if (displayDateInput) { ... }
-
+    // Instance 2: Re-enabled to provide a calendar for the display date if manual override is needed
+    if (displayDateInput) {
+        flatpickr(displayDateInput, {
+            mode: "range",
+            locale: "fa",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "j F Y",
+        });
+    }
+    
     return rangeInstance; // Return the main instance for form submission logic
 };
 
