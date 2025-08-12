@@ -170,29 +170,18 @@ const initializeGlobalRefreshButton = () => {
 };
 
 const initializeDatepicker = () => {
-    const startDateInput = document.getElementById('event-start-date');
-    const endDateInput = document.getElementById('event-end-date');
-    if (!startDateInput || !endDateInput) return;
+    const dateRangeInput = document.getElementById('event-date-range-mds');
+    if (!dateRangeInput) return;
 
-    const setupCalendarWhenReady = () => {
-        if (typeof jQuery !== 'undefined' && typeof $.fn.pDatepicker !== 'undefined') {
-            $(startDateInput).pDatepicker({
-                format: 'YYYY/MM/DD',
-                autoClose: true,
-                observer: true,
-                initialValue: false 
-            });
-            $(endDateInput).pDatepicker({
-                format: 'YYYY/MM/DD',
-                autoClose: true,
-                observer: true,
-                initialValue: false
-            });
-        } else {
-            setTimeout(setupCalendarWhenReady, 100);
-        }
-    };
-    setupCalendarWhenReady();
+    // فقط با همین یک خط، تقوim راه‌اندازی می‌شود!
+    const datepicker = new mds.MdsPersianDatepicker(dateRangeInput, {
+        isRange: true, // فعال کردن حالت انتخاب بازه
+        disableBeforeToday: true, // غیرفعال کردن روزهای گذشته
+        dateFormat: 'yyyy/MM/dd',
+        textFormat: 'yyyy/MM/dd',
+    });
+    
+    return datepicker; // <<-- مهم: نمونه ساخته شده را برمی‌گردانیم
 };
 
 const initializeJournalModule = () => {
@@ -445,7 +434,6 @@ const initializeEventsModule = async () => {
 
     let selectedTagIds = [];
     let currentImageUrl = '';
-    let dateRangePickerInstance = null;
 
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
@@ -466,6 +454,7 @@ const initializeEventsModule = async () => {
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
     const paymentInfoSection = document.getElementById('payment-info-section');
     const dateRangeInput = document.getElementById('event-date-range');
+    const dateRangePickerInstance = initializeDatepicker();
 
     await initializeDatepicker();
 
@@ -741,8 +730,11 @@ const initializeEventsModule = async () => {
             
             if (!imageUrl) throw new Error("تصویر رویداد الزامی است.");
 
-            const [startJalali, endJalali] = dateRangePickerInstance.getValue();
-            if (!startJalali || !endJalali) throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
+            const dateRange = formData.get('dateRange');
+            if (!dateRange || !dateRange.includes(',')) {
+                throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
+            }
+            const [startJalali, endJalali] = dateRange.split(',');
             
             const toGregorian = (jalaliDate) => {
                 const [y, m, d] = jalaliDate.split('/').map(Number);
