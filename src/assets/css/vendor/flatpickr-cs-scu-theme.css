@@ -379,6 +379,7 @@
     background-color: transparent;
     outline: none;
     padding: 0;
+    color:white
 }
 .flatpickr-weekdays {
     background: transparent;
