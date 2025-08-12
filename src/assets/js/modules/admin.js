@@ -421,6 +421,7 @@ const initializeEventsModule = () => {
 
     let selectedTagIds = [];
     let currentImageUrl = '';
+    let dateRangePickerInstance = null; // متغیری برای نگهداری نمونه تقویم
 
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
@@ -428,7 +429,6 @@ const initializeEventsModule = () => {
     const hiddenIdInput = document.getElementById('event-id');
     const adminListContainer = document.getElementById('events-admin-list');
     
-    // المان‌های آپلود تصویر
     const imageUploadInput = document.getElementById('event-image-upload');
     const fileNameDisplay = document.querySelector('.image-upload-controls .file-name-display');
     const fileClearBtn = document.querySelector('.image-upload-controls .file-clear-btn');
@@ -441,14 +441,27 @@ const initializeEventsModule = () => {
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
     const paymentInfoSection = document.getElementById('payment-info-section');
+    const dateRangeInput = document.getElementById('event-date-range');
     
-    // **راه‌اندازی انتخاب‌گر بازه تاریخ**
-    const dateRangePicker = flatpickr("#event-date-range", {
-        mode: "range",
-        dateFormat: "Y-m-d",
-        altInput: true,
-        altFormat: "F j, Y",
-    });
+    // **راه‌اندازی انتخاب‌گر بازه تاریخ شمسی**
+    const initializeDatepicker = () => {
+        // First check if the jQuery and pDatepicker are available
+        if (typeof $ === 'undefined' || typeof $.fn.pDatepicker === 'undefined') {
+            console.error("jQuery or persian-datepicker is not loaded.");
+            return;
+        }
+        if (dateRangePickerInstance) {
+            dateRangePickerInstance.destroy();
+        }
+        dateRangePickerInstance = $(dateRangeInput).pDatepicker({
+            rangePicker: true,
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: false,
+            // Additional configurations can go here
+        });
+    };
+    initializeDatepicker();
 
     const togglePaymentFields = () => {
         if (!paymentInfoSection || !costToggle) return;
@@ -674,7 +687,9 @@ const initializeEventsModule = () => {
         currentImageUrl = '';
         updateFileNameDisplay('');
         imageUploadInput.required = true;
-        dateRangePicker.clear();
+        if (dateRangePickerInstance) {
+            dateRangePickerInstance.clear();
+        }
         formTitle.textContent = 'درج رویداد جدید';
         submitBtn.textContent = 'افزودن رویداد';
         cancelBtn.style.display = 'none';
@@ -716,10 +731,16 @@ const initializeEventsModule = () => {
             
             if (!imageUrl) throw new Error("تصویر رویداد الزامی است.");
 
-            const dateRange = dateRangePicker.selectedDates;
-            if (dateRange.length < 2) throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
-            const startDate = dateRange[0].toISOString().split('T')[0];
-            const endDate = dateRange[1].toISOString().split('T')[0];
+            const selectedTimestamps = dateRangePickerInstance.getState().selected.map(d => d.unix);
+            if (selectedTimestamps.length < 2) throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
+            
+            const toGregorian = (timestamp) => {
+                const d = new Date(timestamp * 1000);
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            };
+            
+            const startDate = toGregorian(selectedTimestamps[0]);
+            const endDate = toGregorian(selectedTimestamps[1]);
 
             const parseJsonField = (fieldName) => {
                 const value = formData.get(fieldName);
@@ -784,7 +805,9 @@ const initializeEventsModule = () => {
             imageUploadInput.required = false;
 
             if (eventToEdit.startDate && eventToEdit.endDate) {
-                dateRangePicker.setDate([eventToEdit.startDate, eventToEdit.endDate]);
+                const startTimestamp = new Date(eventToEdit.startDate).getTime() / 1000;
+                const endTimestamp = new Date(eventToEdit.endDate).getTime() / 1000;
+                dateRangePickerInstance.setSelected([startTimestamp, endTimestamp]);
             }
 
             document.getElementById('event-title').value = eventToEdit.title || '';
