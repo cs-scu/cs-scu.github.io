@@ -176,30 +176,68 @@ const initializeDatepicker = () => {
 
     let rangeInstance = null;
 
-    // Instance 1: For the main event date range (used by the system)
     if (dateRangeInput) {
         rangeInstance = flatpickr(dateRangeInput, {
             mode: "range",
             locale: "fa",
-            dateFormat: "Y-m-d", // Standard format for the database
+            dateFormat: "Y-m-d",
             altInput: true,
-            altFormat: "Y/m/d",  // User-friendly Jalali format
+            altFormat: "Y/m/d",
+            onClose: function(selectedDates) {
+                if (selectedDates.length === 2 && displayDateInput) {
+                    const [start, end] = selectedDates;
+
+                    // Helper function to check if two dates are consecutive
+                    const areConsecutiveDays = (date1, date2) => {
+                        const nextDay = new Date(date1.gregoriandate || date1);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        const endGregorian = new Date(date2.gregoriandate || date2);
+                        return nextDay.toDateString() === endGregorian.toDateString();
+                    };
+
+                    const startDay = start.getDate();
+                    const endDay = end.getDate();
+                    const startMonth = start.getMonth();
+                    const endMonth = end.getMonth();
+                    const startYear = start.getFullYear();
+                    const endYear = end.getFullYear();
+                    
+                    const monthNames = fa.months.longhand;
+                    let displayString = "";
+
+                    // <<-- FIX: Implementing the new scenarios in the correct order -->>
+
+                    // Scenario 4: Consecutive days (e.g., "۱۸ و ۱۹ تیر ۱۴۰۴")
+                    if (areConsecutiveDays(start, end)) {
+                        displayString = `${startDay} و ${endDay} ${monthNames[startMonth]} ${startYear}`;
+                    }
+                    // Scenario 3: Same month and year (e.g., "۱۸ الی ۲۵ تیر ۱۴۰۴")
+                    else if (startMonth === endMonth && startYear === endYear) {
+                        displayString = `${startDay} الی ${endDay} ${monthNames[startMonth]} ${startYear}`;
+                    } 
+                    // Scenario 2: Same year, different month (e.g., "۲۵ تیر الی ۵ مرداد ۱۴۰۴")
+                    else if (startYear === endYear) {
+                        displayString = `${startDay} ${monthNames[startMonth]} الی ${endDay} ${monthNames[endMonth]} ${startYear}`;
+                    } 
+                    // Scenario 1: Different years (e.g., "۲۸ اسفند ۱۴۰۴ الی ۵ فروردین ۱۴۰۵")
+                    else {
+                        displayString = `${startDay} ${monthNames[startMonth]} ${startYear} الی ${endDay} ${monthNames[endMonth]} ${endYear}`;
+                    }
+
+                    displayDateInput.value = displayString;
+                }
+            }
         });
     }
 
-    // Instance 2: For the display date range (can be custom text)
+    // Keep the separate flatpickr for the display date for manual editing
     if (displayDateInput) {
         flatpickr(displayDateInput, {
-            mode: "range", // This also accepts a date range
             locale: "fa",
-            dateFormat: "Y-m-d", // This format is not critical as we send the text value
-            altInput: true,
-            altFormat: "j F Y",  // A beautiful format for display
-            // The automatic text generation logic (onClose) is removed.
         });
     }
     
-    return rangeInstance; // Return the main instance for form submission logic
+    return rangeInstance; 
 };
 
 const initializeJournalModule = () => {
