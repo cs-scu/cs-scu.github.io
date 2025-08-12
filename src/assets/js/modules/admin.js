@@ -442,26 +442,24 @@ const initializeEventsModule = async () => {
     const dateRangeInput = document.getElementById('event-date-range');
     
     // کد جدید (جایگزین کنید)
+// کد جدید (این بلوک را جایگزین کنید)
     const initializeDatepicker = () => {
-        return new Promise((resolve) => {
-            // یک تابع برای بررسی و راه‌اندازی تقویم تعریف می‌کنیم
-            const setupCalendar = () => {
-                if (typeof dCalendar !== 'undefined') {
-                    if (dateRangePickerInstance) {
-                        dateRangePickerInstance.destroy();
-                    }
-                    dateRangePickerInstance = new dCalendar(dateRangeInput, {
-                        type: 'range',
-                        format: 'YYYY/MM/DD',
-                    });
-                    resolve(); // به Promise اطلاع می‌دهیم که کار تمام شده است
-                } else {
-                    // اگر کتابخانه هنوز آماده نبود، ۱۰۰ میلی‌ثانیه دیگر دوباره تلاش کن
-                    setTimeout(setupCalendar, 100);
-                }
-            };
-            // اولین بررسی را شروع می‌کنیم
-            setupCalendar();
+        // ابتدا مطمئن می‌شویم که اینپوت تاریخ در صفحه وجود دارد
+        const dateRangeInput = document.getElementById('event-date-range');
+        if (!dateRangeInput) return;
+
+        // اگر نمونه‌ای از تقویم از قبل وجود داشت، آن را از بین می‌بریم
+        if (dateRangePickerInstance) {
+            dateRangePickerInstance.destroy();
+        }
+
+        // تقویم جدید را با کتابخانه Flatpickr راه‌اندازی می‌کنیم
+        dateRangePickerInstance = flatpickr(dateRangeInput, {
+            mode: "range",          // حالت انتخاب بازه زمانی
+            locale: "fa",           // فعال‌سازی تقوim شمسی و زبان فارسی
+            dateFormat: "Y/m/d",    // فرمتی که تاریخ در آن ذخیره می‌شود
+            altInput: true,         // یک فیلد زیبا و خوانا برای کاربر نمایش می‌دهد
+            altFormat: "j F Y",     // فرمت نمایش تاریخ به کاربر (مثال: ۱۲ مرداد ۱۴۰۳)
         });
     };
 
