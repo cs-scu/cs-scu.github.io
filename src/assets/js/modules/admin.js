@@ -176,7 +176,7 @@ const initializeDatepicker = () => {
 
     let rangeInstance = null;
 
-    // Instance 1: For the main event date range (triggers the display date update)
+    // Instance 1: For the main event date range (system date)
     if (dateRangeInput) {
         rangeInstance = flatpickr(dateRangeInput, {
             mode: "range",
@@ -185,81 +185,18 @@ const initializeDatepicker = () => {
             altInput: true,
             altFormat: "Y/m/d",
             onClose: function(selectedDates) {
-                // این تابع پس از انتخاب بازه تاریخ، فیلد "تاریخ نمایشی" را پر می‌کند
-                if (selectedDates.length === 2 && displayDateInput) {
-                    const [start, end] = selectedDates;
-
-                    const areConsecutiveDays = (d1, d2) => {
-                        const nextDay = new Date(d1.gregoriandate || d1);
-                        nextDay.setDate(nextDay.getDate() + 1);
-                        const endDate = new Date(d2.gregoriandate || d2);
-                        return nextDay.toDateString() === endDate.toDateString();
-                    };
-                    
-
-                    const persianMonth = ["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند"]
-                    const startDay = start.getDate();
-                    const endDay = end.getDate();
-                    const startMonth = persianMonth[start.getMonth()];
-                    const endMonth = persianMonth[end.getMonth()];
-                    const startYear = start.getFullYear();
-                    const endYear = end.getFullYear();
-                    
-                    // FIX: Accessing month names safely from the flatpickr instance itself
-                    // to prevent the 'longhand' error.
-                    const monthNames = this.l10n.months.longhand;
-                    let displayString = "";
-
-                    console.log(startDay)
-                    console.log(endDay)
-                    console.log(startMonth)
-                    console.log(endMonth)
-                    console.log(startYear)
-                    console.log(endYear)
-
-                    
-                    
-                    
-                    // سناریو ۴: دو روز پشت سر هم (مثال: "۱۸ و ۱۹ تیر ۱۴۰۴")
-                    if (areConsecutiveDays(start, end)) {
-                        displayString = `${startDay} و ${endDay} ${persianMonth[startMonth]} ${startYear}`;
-                    }
-                    // سناریو ۳: ماه و سال یکسان (مثال: "۱۸ الی ۲۵ تیر ۱۴۰۴")
-                    else if (startMonth === endMonth && startYear === endYear) {
-                        displayString = `${startDay} الی ${endDay} ${persianMonth[startMonth]} ${startYear}`;
-                    } 
-                    // سناریو ۲: سال یکسان، ماه متفاوت (مثال: "۲۵ تیر الی ۵ مرداد ۱۴۰۴")
-                    else if (startYear === endYear) {
-                        displayString = `${startDay} ${persianMonth[startMonth]} الی ${endDay} ${persianMonth[endMonth]} ${startYear}`;
-                    } 
-                    // سناریو ۱: سال‌های متفاوت (مثال: "۲۸ اسفند ۱۴۰۴ الی ۵ فروردین ۱۴۰۵")
-                    else {
-                        displayString = `${startDay} ${persianMonth[startMonth]} ${startYear} الی ${endDay} ${persianMonth[endMonth]} ${endYear}`;
-                    }
-
-                    // مقدار فیلد متنی "تاریخ نمایشی" را تنظیم می‌کند
-                    displayDateInput.value = displayString;
-                    
-                    // Also update the flatpickr instance on the display input
-                    if (displayDateInput._flatpickr) {
-                        displayDateInput._flatpickr.setDate([start, end], false);
-                    }
-                }
+                // <<-- START: CHANGE -->>
+                // This function is now empty.
+                // By removing the logic here, the 'displayDateInput'
+                // will no longer be automatically populated, allowing for free text input.
+                // <<-- END: CHANGE -->>
             }
         });
     }
 
-    // Instance 2: A separate range picker for the display date for manual override
-    if (displayDateInput) {
-        flatpickr(displayDateInput, {
-            mode: "range",
-            locale: "fa",
-            dateFormat: "Y-m-d",
-            altInput: true,
-            altFormat: "j F Y",
-        });
-    }
-    
+    // Instance 2: This was removed to ensure the display date is a simple text field.
+    // if (displayDateInput) { ... }
+
     return rangeInstance; // Return the main instance for form submission logic
 };
 
