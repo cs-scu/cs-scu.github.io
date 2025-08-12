@@ -169,19 +169,19 @@ const initializeGlobalRefreshButton = () => {
     });
 };
 
+// کد جدید برای راه‌اندازی تقوim Flatpickr با افزونه جلالی
 const initializeDatepicker = () => {
-    const dateRangeInput = document.getElementById('event-date-range-mds');
-    if (!dateRangeInput) return;
+    const dateRangeInput = document.getElementById('event-date-range-flatpickr');
+    if (!dateRangeInput) return null;
 
-    // فقط با همین یک خط، تقوim راه‌اندازی می‌شود!
-    const datepicker = new mds.MdsPersianDatepicker(dateRangeInput, {
-        isRange: true, // فعال کردن حالت انتخاب بازه
-        disableBeforeToday: true, // غیرفعال کردن روزهای گذشته
-        dateFormat: 'yyyy/MM/dd',
-        textFormat: 'yyyy/MM/dd',
+    // راه‌اندازی Flatpickr
+    return flatpickr(dateRangeInput, {
+        mode: "range",         // حالت انتخاب بازه
+        locale: "fa",          // فعال‌سازی تقوim شمسی با استفاده از افزونه
+        dateFormat: "Y-m-d",   // فرمت ذخیره‌سازی تاریخ به صورت میلادی (برای سرور)
+        altInput: true,        // نمایش یک فیلد جداگانه و خوانا برای کاربر
+        altFormat: "Y/m/d",    // فرمت نمایشی تاریخ به صورت شمسی
     });
-    
-    return datepicker; // <<-- مهم: نمونه ساخته شده را برمی‌گردانیم
 };
 
 const initializeJournalModule = () => {
@@ -730,20 +730,23 @@ const initializeEventsModule = async () => {
             
             if (!imageUrl) throw new Error("تصویر رویداد الزامی است.");
 
-            const dateRange = formData.get('dateRange');
-            if (!dateRange || !dateRange.includes(',')) {
+            // ۱. بررسی می‌کنیم که آیا تاریخ انتخاب شده است یا نه
+            if (!dateRangePickerInstance || dateRangePickerInstance.selectedDates.length < 2) {
                 throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
             }
-            const [startJalali, endJalali] = dateRange.split(',');
-            
-            const toGregorian = (jalaliDate) => {
-                const [y, m, d] = jalaliDate.split('/').map(Number);
-                const g = persianDate.jalaliToGregorian([y, m, d]);
-                return `${g[0]}-${String(g[1]).padStart(2, '0')}-${String(g[2]).padStart(2, '0')}`;
+
+            const [startDate, endDate] = dateRangePickerInstance.selectedDates;
+
+            // ۲. تابع برای فرمت‌بندی تاریخ‌ها به شکل مورد قبول پایگاه داده
+            const formatForSupabase = (date) => {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
             };
-            
-            const startDate = toGregorian(startJalali);
-            const endDate = toGregorian(endJalali);
+
+            const startDateForDb = formatForSupabase(startDate);
+            const endDateForDb = formatForSupabase(endDate);
 
             const parseJsonField = (fieldName) => {
                 const value = formData.get(fieldName);
@@ -757,8 +760,9 @@ const initializeEventsModule = async () => {
                 location: locationInput.value,
                 cost: costInput.value,
                 displayDate: formData.get('displayDate'),
-                startDate: startDate,
-                endDate: endDate,
+                // *** ۳. اصلاح کلیدی: از متغیرهای فرمت‌بندی شده استفاده می‌کنیم ***
+                startDate: startDateForDb,
+                endDate: endDateForDb,
                 image: imageUrl,
                 detailPage: newDetailPageValue,
                 tag_ids: selectedTagIds,
