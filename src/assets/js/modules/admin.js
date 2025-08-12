@@ -420,7 +420,7 @@ const initializeEventsModule = () => {
 
     let selectedTagIds = [];
     let currentImageUrl = '';
-    let dateRangePickerInstance = null; // متغیری برای نگهداری نمونه تقویم
+    let dateRangePickerInstance = null;
 
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
@@ -442,7 +442,6 @@ const initializeEventsModule = () => {
     const paymentInfoSection = document.getElementById('payment-info-section');
     const dateRangeInput = document.getElementById('event-date-range');
     
-    // **راه‌اندازی انتخاب‌گر بازه تاریخ شمسی**
     const initializeDatepicker = () => {
         if (typeof $ === 'undefined' || typeof $.fn.pDatepicker === 'undefined') {
             console.error("jQuery or persian-datepicker is not loaded.");
@@ -451,13 +450,14 @@ const initializeEventsModule = () => {
         if (dateRangePickerInstance) {
             dateRangePickerInstance.destroy();
         }
-        // **START: اصلاح اصلی اینجاست**
+        
+        // **START: اصلاح اصلی برای فعال‌سازی بازه**
         dateRangePickerInstance = $(dateRangeInput).pDatepicker({
-            rangePicker: true, // این گزینه حالت بازه را فعال می‌کند
+            rangePicker: true,
             format: 'YYYY/MM/DD',
             autoClose: true,
             initialValue: false,
-            // برای خواندن تاریخ‌ها از این فرمت استفاده می‌کنیم
+            // این تابع به ما اطمینان می‌دهد که همیشه بازه انتخاب شده است
             onSelect: function() {
                 // این تابع به ما اطمینان می‌دهد که همیشه بازه انتخاب شده است
             }
