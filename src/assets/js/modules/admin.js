@@ -450,19 +450,19 @@ const initializeEventsModule = async () => {
     const eventForm = document.getElementById('add-event-form');
     if (!eventForm) return;
 
+    // --- ۱. متغیرهای اصلی را در بالاترین سطح این تابع تعریف می‌کنیم ---
     let selectedTagIds = [];
     let currentImageUrl = '';
+    // <<-- اصلاح کلیدی: dateRangePickerInstance اینجا تعریف می‌شود -->>
+    let dateRangePickerInstance = null; 
 
+    // --- ۲. تمام عناصر فرم را یکجا انتخاب می‌کنیم ---
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
     const cancelBtn = document.getElementById('cancel-edit-btn');
     const hiddenIdInput = document.getElementById('event-id');
     const adminListContainer = document.getElementById('events-admin-list');
-    
     const imageUploadInput = document.getElementById('event-image-upload');
-    const fileNameDisplay = document.querySelector('.image-upload-controls .file-name-display');
-    const fileClearBtn = document.querySelector('.image-upload-controls .file-clear-btn');
-    
     const locationInput = document.getElementById('event-location');
     const locationToggle = document.getElementById('toggle-location-online');
     const costInput = document.getElementById('event-cost');
@@ -471,8 +471,10 @@ const initializeEventsModule = async () => {
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
     const paymentInfoSection = document.getElementById('payment-info-section');
-    const dateRangeInput = document.getElementById('event-date-range');
-    const dateRangePickerInstance = initializeDatepicker();
+
+    // --- ۳. تقوim را راه‌اندازی کرده و نمونه آن را در متغیر اصلی ذخیره می‌کنیم ---
+    // <<-- اصلاح کلیدی: فراخوانی صحیح و ذخیره نمونه -->>
+    dateRangePickerInstance = initializeDatepicker(); 
 
     await initializeDatepicker();
 
@@ -778,7 +780,6 @@ const initializeEventsModule = async () => {
                 location: locationInput.value,
                 cost: costInput.value,
                 displayDate: formData.get('displayDate'),
-                // *** ۳. اصلاح کلیدی: از متغیرهای فرمت‌بندی شده استفاده می‌کنیم ***
                 startDate: startDateForDb,
                 endDate: endDateForDb,
                 image: imageUrl,
