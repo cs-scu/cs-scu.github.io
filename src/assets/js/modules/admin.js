@@ -172,28 +172,69 @@ const initializeGlobalRefreshButton = () => {
 
 const initializeDatepicker = () => {
     const dateRangeInput = document.getElementById('event-date-range-flatpickr');
-    const displayDateInput = document.getElementById('event-display-date'); // <<-- انتخاب فیلد تاریخ نمایشی
+    const displayDateInput = document.getElementById('event-display-date');
 
     let rangeInstance = null;
 
-    // ۱. راه‌اندازی تقوim انتخاب بازه زمانی
+    // ۱. راه‌اندازی تقویم انتخاب بازه زمانی با منطق جدید
     if (dateRangeInput) {
         rangeInstance = flatpickr(dateRangeInput, {
             mode: "range",
-            locale: "fa",
-            dateFormat: "Y-m-d",   // فرمت میلادی برای ذخیره در پایگاه داده
+            locale: "fa", // مهم: استفاده از آبجکت تاریخ جلالی
+            dateFormat: "Y-m-d",
             altInput: true,
-            altFormat: "Y/m/d",    // فرمت شمسی برای نمایش به کاربر
+            altFormat: "Y/m/d",
+            // <<-- FIX: این رویداد، پس از بستن تقویم اجرا می‌شود -->>
+            onClose: function(selectedDates) {
+                // فقط در صورتی ادامه بده که دو تاریخ (شروع و پایان) انتخاب شده باشد
+                if (selectedDates.length === 2 && displayDateInput) {
+                    const [start, end] = selectedDates;
+
+                    // استخراج روز، ماه و سال جلالی از آبجکت‌های تاریخ
+                    const startDay = start.getDate();
+                    const endDay = end.getDate();
+                    const startMonth = start.getMonth();
+                    const endMonth = end.getMonth();
+                    const startYear = start.getFullYear();
+                    const endYear = end.getFullYear();
+
+                    // دسترسی به نام ماه‌های فارسی از کتابخانه تقویم
+                    const monthNames = fa.months.longhand;
+
+                    let displayString = "";
+
+                    // سناریو ۱: ماه و سال یکسان است (مثال: ۱۰ الی ۲۴ تیر ۱۴۰۴)
+                    if (startMonth === endMonth && startYear === endYear) {
+                        displayString = `${startDay} الی ${endDay} ${monthNames[startMonth]} ${startYear}`;
+                    } 
+                    // سناریو ۲: سال یکسان ولی ماه متفاوت است
+                    else if (startYear === endYear) {
+                        displayString = `${startDay} ${monthNames[startMonth]} الی ${endDay} ${monthNames[endMonth]} ${startYear}`;
+                    } 
+                    // سناریو ۳: سال‌ها متفاوت هستند
+                    else {
+                        displayString = `${startDay} ${monthNames[startMonth]} ${startYear} الی ${endDay} ${monthNames[endMonth]} ${endYear}`;
+                    }
+
+                    // به‌روزرسانی مقدار فیلد "تاریخ نمایشی"
+                    displayDateInput.value = displayString;
+
+                    // اگر تقویم دیگری روی فیلد تاریخ نمایشی فعال بود، آن را هم آپدیت می‌کنیم
+                    if (displayDateInput._flatpickr) {
+                       displayDateInput._flatpickr.setDate(displayDateInput.value, false);
+                    }
+                }
+            }
         });
     }
 
-    // ۲. راه‌اندازی تقوim انتخاب تکی برای تاریخ نمایشی
+    // ۲. راه‌اندازی تقویم انتخاب تکی برای تاریخ نمایشی (بدون تغییر)
     if (displayDateInput) {
         flatpickr(displayDateInput, {
             locale: "fa",
-            dateFormat: "Y-m-d", // این فیلد متنی است، فرمت ذخیره اهمیت زیادی ندارد
+            dateFormat: "Y-m-d",
             altInput: true,
-            altFormat: "j F Y",    // فرمت زیبای شمسی (مثال: ۲۲ مرداد ۱۴۰۴)
+            altFormat: "j F Y",
         });
     }
     
