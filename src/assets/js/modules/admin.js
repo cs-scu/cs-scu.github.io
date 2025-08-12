@@ -125,7 +125,6 @@ const renderEventsList = (events) => {
 };
 
 
-
 // --- Event Handler Functions ---
 const initializeGlobalRefreshButton = () => {
     const refreshBtn = document.getElementById('admin-global-refresh-btn');
@@ -145,13 +144,19 @@ const initializeGlobalRefreshButton = () => {
 
         try {
             const data = await route.loader();
-            route.renderer(data);
+            // Pass the correct part of the data if it's a Promise.all result
+            const renderData = path === '/admin/events' ? data[0] : data;
+            route.renderer(renderData);
+            if (route.initializer) {
+                route.initializer();
+            }
             
             refreshBtn.classList.remove('loading');
             refreshBtn.classList.add('success');
             refreshBtn.innerHTML = checkIconSVG;
 
         } catch (error) {
+            console.error(`Error refreshing page ${path}:`, error);
             refreshBtn.classList.remove('loading');
             refreshBtn.classList.add('error');
             refreshBtn.innerHTML = errorIconSVG;
@@ -409,9 +414,7 @@ const initializeJournalModule = () => {
     });
 };
 
-const initializeMessagesModule = () => {
-    // No specific JS needed for this module anymore
-};
+const initializeMessagesModule = () => { /* No specific JS needed */ };
 
 const initializeEventsModule = () => {
     const eventForm = document.getElementById('add-event-form');
@@ -419,7 +422,7 @@ const initializeEventsModule = () => {
 
     let selectedTagIds = [];
     let currentImageUrl = '';
-    let dateRangePickerInstance = null; // متغیری برای نگهداری نمونه تقویم
+    let dateRangePickerInstance = null;
 
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
@@ -441,7 +444,6 @@ const initializeEventsModule = () => {
     const paymentInfoSection = document.getElementById('payment-info-section');
     const dateRangeInput = document.getElementById('event-date-range');
     
-    // **راه‌اندازی انتخاب‌گر بازه تاریخ شمسی**
     const initializeDatepicker = () => {
         if (typeof dCalendar === 'undefined') {
             console.error("d-calendar library is not loaded.");
@@ -641,11 +643,10 @@ const initializeEventsModule = () => {
         }
     });
 
-    if (openTagsModalBtn) {
-        openTagsModalBtn.addEventListener('click', openTagsModal);
-    }
+    if (openTagsModalBtn) { openTagsModalBtn.addEventListener('click', openTagsModal); }
     
     const setupToggleSwitch = (input, toggle, value) => {
+        if (!input || !toggle) return;
         toggle.addEventListener('change', () => {
             if (toggle.checked) {
                 input.value = value;
@@ -661,15 +662,17 @@ const initializeEventsModule = () => {
     setupToggleSwitch(locationInput, locationToggle, 'آنلاین');
     setupToggleSwitch(costInput, costToggle, 'رایگان');
     
-    detailPageInput.addEventListener('blur', () => {
-        if (hiddenIdInput.value) return; 
-        let slug = detailPageInput.value.trim();
-        if (slug && !slug.startsWith('#/events/')) {
-            slug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-            const maxId = state.allEvents.reduce((max, event) => Math.max(max, event.id), 0);
-            detailPageInput.value = `#/events/${maxId + 1}-${slug}`;
-        }
-    });
+    if(detailPageInput) {
+        detailPageInput.addEventListener('blur', () => {
+            if (hiddenIdInput.value) return; 
+            let slug = detailPageInput.value.trim();
+            if (slug && !slug.startsWith('#/events/')) {
+                slug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                const maxId = state.allEvents.reduce((max, event) => Math.max(max, event.id), 0);
+                detailPageInput.value = `#/events/${maxId + 1}-${slug}`;
+            }
+        });
+    }
 
     const safeJsonStringify = (obj) => {
         try { return obj ? JSON.stringify(obj, null, 2) : ''; } catch (e) { return typeof obj === 'string' ? obj : ''; }
@@ -784,86 +787,88 @@ const initializeEventsModule = () => {
         }
     });
 
-    cancelBtn.addEventListener('click', resetForm);
+    if(cancelBtn) cancelBtn.addEventListener('click', resetForm);
 
-    adminListContainer.addEventListener('click', async (event) => {
-        const editBtn = event.target.closest('.edit-event-btn');
-        if (editBtn) {
-            const id = editBtn.dataset.id;
-            const eventToEdit = state.allEvents.find(e => e.id == id);
-            if (!eventToEdit) return;
-            
-            resetForm();
+    if(adminListContainer) {
+        adminListContainer.addEventListener('click', async (event) => {
+            const editBtn = event.target.closest('.edit-event-btn');
+            if (editBtn) {
+                const id = editBtn.dataset.id;
+                const eventToEdit = state.allEvents.find(e => e.id == id);
+                if (!eventToEdit) return;
+                
+                resetForm();
 
-            hiddenIdInput.value = eventToEdit.id;
-            
-            currentImageUrl = eventToEdit.image || '';
-            const existingFileName = currentImageUrl ? currentImageUrl.split('/').pop() : '';
-            updateFileNameDisplay(existingFileName);
-            imageUploadInput.required = false;
+                hiddenIdInput.value = eventToEdit.id;
+                
+                currentImageUrl = eventToEdit.image || '';
+                const existingFileName = currentImageUrl ? currentImageUrl.split('/').pop() : '';
+                updateFileNameDisplay(existingFileName);
+                imageUploadInput.required = false;
 
-            if (eventToEdit.startDate && eventToEdit.endDate && dateRangePickerInstance) {
-                 const toJalali = (gregorianDate) => {
-                    const [y, m, d] = gregorianDate.split('-').map(Number);
-                    const j = persianDate.gregorianToJalali([y, m, d]);
-                    return `${j[0]}/${String(j[1]).padStart(2, '0')}/${String(j[2]).padStart(2, '0')}`;
-                };
-                dateRangePickerInstance.setValue(toJalali(eventToEdit.startDate), toJalali(eventToEdit.endDate));
+                if (eventToEdit.startDate && eventToEdit.endDate && dateRangePickerInstance) {
+                     const toJalali = (gregorianDate) => {
+                        const [y, m, d] = gregorianDate.split('-').map(Number);
+                        const j = persianDate.gregorianToJalali([y, m, d]);
+                        return `${j[0]}/${String(j[1]).padStart(2, '0')}/${String(j[2]).padStart(2, '0')}`;
+                    };
+                    dateRangePickerInstance.setValue(toJalali(eventToEdit.startDate), toJalali(eventToEdit.endDate));
+                }
+
+                document.getElementById('event-title').value = eventToEdit.title || '';
+                document.getElementById('event-summary').value = eventToEdit.summary || '';
+                document.getElementById('event-display-date').value = eventToEdit.displayDate || '';
+                document.getElementById('event-detail-page').value = eventToEdit.detailPage || '';
+                
+                locationInput.value = eventToEdit.location || '';
+                locationToggle.checked = eventToEdit.location === 'آنلاین';
+                locationToggle.dispatchEvent(new Event('change'));
+
+                costInput.value = eventToEdit.cost || '';
+                costToggle.checked = eventToEdit.cost === 'رایگان';
+                costToggle.dispatchEvent(new Event('change'));
+                togglePaymentFields();
+                
+                selectedTagIds = eventToEdit.tag_ids || [];
+                updateSelectedTagsDisplay();
+
+                document.getElementById('event-content').value = safeJsonStringify(eventToEdit.content);
+                document.getElementById('event-schedule').value = safeJsonStringify(eventToEdit.schedule);
+                
+                document.getElementById('payment-name').value = eventToEdit.payment_card_number?.name || '';
+                document.getElementById('payment-number').value = eventToEdit.payment_card_number?.number || '';
+                
+                document.getElementById('contact-phone').value = eventToEdit.contact_link?.phone || '';
+                document.getElementById('contact-telegram').value = eventToEdit.contact_link?.telegram || '';
+                document.getElementById('contact-whatsapp').value = eventToEdit.contact_link?.whatsapp || '';
+
+                formTitle.textContent = 'ویرایش رویداد';
+                submitBtn.textContent = 'ذخیره تغییرات';
+                cancelBtn.style.display = 'inline-block';
+                eventForm.scrollIntoView({ behavior: 'smooth' });
             }
 
-            document.getElementById('event-title').value = eventToEdit.title || '';
-            document.getElementById('event-summary').value = eventToEdit.summary || '';
-            document.getElementById('event-display-date').value = eventToEdit.displayDate || '';
-            document.getElementById('event-detail-page').value = eventToEdit.detailPage || '';
-            
-            locationInput.value = eventToEdit.location || '';
-            locationToggle.checked = eventToEdit.location === 'آنلاین';
-            locationToggle.dispatchEvent(new Event('change'));
+            const deleteBtn = event.target.closest('.delete-event-btn');
+            if (deleteBtn) {
+                const id = deleteBtn.dataset.id;
+                const eventToDelete = state.allEvents.find(e => e.id == id);
+                if (!eventToDelete) return;
 
-            costInput.value = eventToEdit.cost || '';
-            costToggle.checked = eventToEdit.cost === 'رایگان';
-            costToggle.dispatchEvent(new Event('change'));
-            togglePaymentFields();
-            
-            selectedTagIds = eventToEdit.tag_ids || [];
-            updateSelectedTagsDisplay();
-
-            document.getElementById('event-content').value = safeJsonStringify(eventToEdit.content);
-            document.getElementById('event-schedule').value = safeJsonStringify(eventToEdit.schedule);
-            
-            document.getElementById('payment-name').value = eventToEdit.payment_card_number?.name || '';
-            document.getElementById('payment-number').value = eventToEdit.payment_card_number?.number || '';
-            
-            document.getElementById('contact-phone').value = eventToEdit.contact_link?.phone || '';
-            document.getElementById('contact-telegram').value = eventToEdit.contact_link?.telegram || '';
-            document.getElementById('contact-whatsapp').value = eventToEdit.contact_link?.whatsapp || '';
-
-            formTitle.textContent = 'ویرایش رویداد';
-            submitBtn.textContent = 'ذخیره تغییرات';
-            cancelBtn.style.display = 'inline-block';
-            eventForm.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        const deleteBtn = event.target.closest('.delete-event-btn');
-        if (deleteBtn) {
-            const id = deleteBtn.dataset.id;
-            const eventToDelete = state.allEvents.find(e => e.id == id);
-            if (!eventToDelete) return;
-
-            if (confirm('آیا از حذف این رویداد مطمئن هستید؟ تصویر آن نیز حذف خواهد شد.')) {
-                try {
-                    deleteBtn.disabled = true;
-                    if (eventToDelete.image) await deleteEventImage(eventToDelete.image);
-                    await deleteEvent(id);
-                    state.allEvents = state.allEvents.filter(e => e.id != id);
-                    renderEventsList(state.allEvents);
-                } catch (error) {
-                    alert('خطا در حذف رویداد.');
-                    deleteBtn.disabled = false;
+                if (confirm('آیا از حذف این رویداد مطمئن هستید؟ تصویر آن نیز حذف خواهد شد.')) {
+                    try {
+                        deleteBtn.disabled = true;
+                        if (eventToDelete.image) await deleteEventImage(eventToDelete.image);
+                        await deleteEvent(id);
+                        state.allEvents = state.allEvents.filter(e => e.id != id);
+                        renderEventsList(state.allEvents);
+                    } catch (error) {
+                        alert('خطا در حذف رویداد.');
+                        deleteBtn.disabled = false;
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 
     togglePaymentFields();
 };
@@ -924,13 +929,8 @@ const adminRoutes = {
     '/admin/events': {
         title: 'مدیریت رویدادها',
         html: 'admin-events.html',
-        loader: async () => { 
-            state.allEvents = []; 
-            state.tagsMap.clear();
-            await Promise.all([loadEvents(), loadTags()]); 
-            return state.allEvents; 
-        },
-        renderer: renderEventsList,
+        loader: () => Promise.all([loadEvents(), loadTags()]),
+        renderer: (data) => renderEventsList(data[0]),
         initializer: initializeEventsModule
     }
 };
@@ -955,19 +955,24 @@ const loadAdminPage = async (path) => {
         
         mainContent.innerHTML = pageHtml;
 
-        if (route.renderer) {
-            route.renderer(data);
-        }
-        
-        if (route.initializer) {
-            route.initializer();
-        }
+        setTimeout(() => {
+            if (route.renderer) {
+                const renderData = path === '/admin/events' ? data[0] : data;
+                route.renderer(renderData);
+            }
+            
+            if (route.initializer) {
+                route.initializer();
+            }
+        }, 0);
+
     } catch (error) {
         console.error(`Error loading page ${path}:`, error);
         mainContent.innerHTML = `<p style="text-align:center; color: red;">خطا در بارگذاری صفحه.</p>`;
     }
 };
 
+// --- Main Execution Function ---
 document.addEventListener('DOMContentLoaded', async () => {
     initializeAdminTheme();
     initializeAdminLayout();

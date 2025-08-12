@@ -4213,7 +4213,7 @@ body.light-theme .image-upload-controls {
 /* ================== Styles for d-calendar Datepicker ================== */
 body .d-calendar-picker {
     font-family: 'Vazirmatn', sans-serif;
-    z-index: 3000 !important; /* Ensure it appears above the modal */
+    z-index: 3000 !important; /* Ensure it appears above other elements */
 }
 body.dark-theme .d-calendar-picker {
     background-color: #0d2f30;
@@ -4225,4 +4225,5 @@ body.dark-theme .d-calendar-picker .d-calendar-day.d-calendar-selected {
 }
 body.light-theme .d-calendar-picker .d-calendar-day.d-calendar-selected {
     background-color: var(--primary-color-light-theme);
+
 }
