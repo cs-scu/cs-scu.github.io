@@ -144,7 +144,7 @@ const initializeGlobalRefreshButton = () => {
 
         try {
             const data = await route.loader();
-            const renderData = path === '/admin/events' ? data[0] : data;
+            const renderData = currentPath === '/admin/events' ? data[0] : data; // <<-- اینجا 'path' به 'currentPath' تغییر کرد
             route.renderer(renderData);
             if (route.initializer) {
                 route.initializer();
@@ -961,7 +961,8 @@ const adminRoutes = {
         title: 'مدیریت رویدادها',
         html: 'admin-events.html',
         loader: () => Promise.all([loadEvents(), loadTags()]),
-        renderer: (data) => renderEventsList(data[0]),
+        // FIX: The renderer now directly receives the events array from the router logic.
+        renderer: renderEventsList,
         initializer: initializeEventsModule
     }
 };
