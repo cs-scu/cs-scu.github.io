@@ -4,6 +4,11 @@ import { state } from './state.js';
 import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags, addTag, updateTag, deleteTag, uploadEventImage, deleteEventImage, renameEventImage } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
 
+const toPersianNumber = (n) => {
+    const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    return String(n).replace(/[0-9]/g, (digit) => persianNumbers[digit]);
+};
+
 // --- Helper Functions ---
 const hideStatus = (statusBox) => {
     if (!statusBox) return;
@@ -180,8 +185,6 @@ const initializeDatepicker = () => {
 
     let rangeInstance = null;
 
-    // <<-- START: CHANGE -->>
-
     // Instance 1: For the main event date range (system date). This remains independent.
     if (dateRangeInput) {
         rangeInstance = flatpickr(dateRangeInput, {
@@ -193,16 +196,15 @@ const initializeDatepicker = () => {
         });
     }
 
-    // Instance 2: For the display date, with logic to convert the selected range into a text string.
+    // Instance 2: For the display date, with logic to convert the selected range into a Persian text string.
     if (displayDateInput) {
         flatpickr(displayDateInput, {
             mode: "range",
             locale: "fa",
             altInput: true,
-            altFormat: "j F Y", // Format shown to user while picking
-            dateFormat: "Y-m-d", // Base format for the hidden input
+            altFormat: "j F Y",
+            dateFormat: "Y-m-d",
             onClose: function(selectedDates, dateStr, instance) {
-                // This logic ONLY runs for the display date picker
                 if (selectedDates.length === 2) {
                     const [start, end] = selectedDates;
 
@@ -213,12 +215,15 @@ const initializeDatepicker = () => {
                         return nextDay.toDateString() === endDate.toDateString();
                     };
                     
-                    const startDay = instance.formatDate(start, "j");
-                    const endDay = instance.formatDate(end, "j");
+                    // <<-- START: CHANGE -->>
+                    // Convert numbers to Persian before creating the string
+                    const startDay = toPersianNumber(instance.formatDate(start, "j"));
+                    const endDay = toPersianNumber(instance.formatDate(end, "j"));
                     const startMonthName = instance.formatDate(start, "F");
                     const endMonthName = instance.formatDate(end, "F");
-                    const startYear = instance.formatDate(start, "Y");
-                    const endYear = instance.formatDate(end, "Y");
+                    const startYear = toPersianNumber(instance.formatDate(start, "Y"));
+                    const endYear = toPersianNumber(instance.formatDate(end, "Y"));
+                    // <<-- END: CHANGE -->>
                     
                     let displayString = "";
 
@@ -236,8 +241,6 @@ const initializeDatepicker = () => {
                         }
                     }
 
-                    // Overwrite the input's value with the generated text string
-                    // This affects both the original (hidden) input and the visible altInput
                     instance.input.value = displayString;
                     if (instance.altInput) {
                         instance.altInput.value = displayString;
@@ -247,10 +250,9 @@ const initializeDatepicker = () => {
         });
     }
     
-    // <<-- END: CHANGE -->>
-    
     return rangeInstance;
 };
+
 
 // ... (کدهای بعدی)
 
