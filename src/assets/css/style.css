@@ -3886,10 +3886,11 @@ body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-c
     gap: 1.5rem;
     margin-bottom: 1rem; /* Add space between rows */
 }
-.admin-main-content .form-group {
-    flex: 1 1 200px; /* Allow items to grow and shrink */
-    min-width: 200px; /* Minimum width for form groups */
-}
+
+/* .admin-main-content .form-group {
+    flex: 1 1 200px;
+    min-width: 200px; 
+*/
 
 /* --- Input with Toggle Switch Wrapper --- */
 .input-with-toggle {
