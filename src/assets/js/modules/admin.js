@@ -506,19 +506,19 @@ const initializeEventsModule = async () => {
 
     let selectedTagIds = [];
     let currentImageUrl = '';
-    let dateRangePickerInstance = initializeDatepicker(); 
-    let eventBeingEdited = null; // برای نگهداری اطلاعات رویداد در حال ویرایش
+    let dateRangePickerInstance = initializeDatepicker();
+    let eventBeingEdited = null;
 
     const regDateRangeInput = document.getElementById('registration-date-range');
     let regDateRangePicker = null;
 
     if (regDateRangeInput) {
-        regDateRangePicker = flatpickr(regDateRangeInput, { 
+        regDateRangePicker = flatpickr(regDateRangeInput, {
             mode: "range",
-            locale: "fa", 
-            altInput: true, 
-            altFormat: "Y/m/d", 
-            dateFormat: "Y-m-d" 
+            locale: "fa",
+            altInput: true,
+            altFormat: "Y/m/d",
+            dateFormat: "Y-m-d"
         });
     }
 
@@ -538,7 +538,8 @@ const initializeEventsModule = async () => {
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
     const paymentInfoSection = document.getElementById('payment-info-section');
-    
+    const paymentNumberInput = document.getElementById('payment-number');
+
     const imageUploadControls = eventForm.querySelector('.image-upload-controls');
     const fileNameDisplay = imageUploadControls ? imageUploadControls.querySelector('.file-name-display') : null;
     const fileClearBtn = imageUploadControls ? imageUploadControls.querySelector('.file-clear-btn') : null;
@@ -547,7 +548,7 @@ const initializeEventsModule = async () => {
         const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
         return String(n).replace(/[0-9]/g, (digit) => persianNumbers[digit]);
     };
-    
+
     const togglePaymentFields = () => {
         if (!paymentInfoSection || !costToggle) return;
         paymentInfoSection.style.display = costToggle.checked ? 'none' : 'block';
@@ -775,13 +776,27 @@ const initializeEventsModule = async () => {
         });
 
         costInput.addEventListener('blur', () => {
-            if (costInput.value && !costInput.value.includes('تومان')) {
+            if (costInput.value && !costInput.value.includes('تومان') && costInput.value !== 'رایگان') {
                 costInput.value += ' تومان';
             }
         });
 
         costInput.addEventListener('focus', () => {
             costInput.value = costInput.value.replace(/ تومان/g, '').replace(/,/g, '');
+        });
+    }
+
+    if (paymentNumberInput) {
+        paymentNumberInput.addEventListener('input', () => {
+            let value = paymentNumberInput.value.replace(/[^0-9]/g, '');
+            let formattedValue = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) {
+                    formattedValue += '-';
+                }
+                formattedValue += value[i];
+            }
+            paymentNumberInput.value = formattedValue.substring(0, 19);
         });
     }
 
@@ -961,11 +976,9 @@ const initializeEventsModule = async () => {
                 if (!eventToEdit) return;
                 
                 resetForm();
-
                 eventBeingEdited = eventToEdit;
 
                 hiddenIdInput.value = eventToEdit.id;
-                
                 currentImageUrl = eventToEdit.image || '';
                 const existingFileName = currentImageUrl ? currentImageUrl.split('/').pop() : '';
                 updateFileNameDisplay(existingFileName);
@@ -986,6 +999,10 @@ const initializeEventsModule = async () => {
                 locationToggle.dispatchEvent(new Event('change'));
 
                 costInput.value = eventToEdit.cost || '';
+                if (eventToEdit.cost && eventToEdit.cost !== 'رایگان') {
+                    costInput.dispatchEvent(new Event('blur'));
+                }
+                
                 costToggle.checked = eventToEdit.cost === 'رایگان';
                 costToggle.dispatchEvent(new Event('change'));
                 togglePaymentFields();
