@@ -916,9 +916,17 @@ const initializeEventsModule = async () => {
                     if (!contactData[key]) delete contactData[key];
                 });
                 
-                let detailPageValue = formData.get('detailPage').trim();
-                if (detailPageValue && !detailPageValue.startsWith('#/events/')) {
-                    detailPageValue = `#/events/${detailPageValue}`;
+                let slug = formData.get('detailPage').trim();
+                let detailPageValue = '';
+                if (slug) {
+                    if (isEditing) {
+                        const eventId = hiddenIdInput.value;
+                        detailPageValue = `#/events/${eventId}-${slug}`;
+                    } else {
+                        const maxId = state.allEvents.reduce((max, event) => Math.max(max, event.id), 0);
+                        const newId = maxId + 1;
+                        detailPageValue = `#/events/${newId}-${slug}`;
+                    }
                 }
 
                 return {
@@ -1015,8 +1023,10 @@ const initializeEventsModule = async () => {
                 document.getElementById('event-display-date').value = eventToEdit.displayDate || '';
                 
                 let slugToDisplay = eventToEdit.detailPage || '';
-                if (slugToDisplay.startsWith('#/events/')) {
-                    slugToDisplay = slugToDisplay.substring(9);
+                const slugParts = slugToDisplay.split('-');
+                if (slugToDisplay.startsWith('#/events/') && slugParts.length > 1) {
+                    // Remove '#/events/ID-' part
+                    slugToDisplay = slugParts.slice(1).join('-');
                 }
                 document.getElementById('event-detail-page').value = slugToDisplay;
                 
