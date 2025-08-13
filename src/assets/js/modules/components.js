@@ -281,15 +281,17 @@ const getRegistrationEndTimeString = (targetDate) => {
     const days = Math.floor(totalSeconds / (3600 * 24));
     const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
 
-    if (days > 1) {
+    if (days >= 2) {
         return `پایان مهلت تا ${toPersianNumber(days)} روز دیگر`;
     }
     if (days === 1) {
         return `کمتر از ۲ روز تا پایان مهلت`;
     }
+    // اگر کمتر از یک روز باقی مانده باشد
     if (hours > 0) {
         return `کمتر از ${toPersianNumber(hours + 1)} ساعت تا پایان مهلت`;
     }
+    // اگر کمتر از یک ساعت باقی مانده باشد
     return 'مهلت ثبت‌نام امروز به پایان می‌رسد';
 };
 
@@ -437,15 +439,12 @@ const populateGrid = (grid, events, isPast = false) => {
                 mainButton.disabled = true;
             } else {
                 mainButton.textContent = 'ثبت‌نام';
-                // *** START: تغییر اصلی اینجاست ***
-                // اگر ثبت‌نام باز است، شمارش معکوس تا پایان مهلت را نمایش بده
                 if (regStatus === 'open' && regEndDate) {
                     const countdownText = document.createElement('small');
                     countdownText.className = 'countdown-text';
                     countdownText.textContent = getRegistrationEndTimeString(regEndDate);
                     actionsContainer.appendChild(countdownText);
                 }
-                // *** END: پایان تغییر ***
             }
         }
         
@@ -466,6 +465,7 @@ const populateGrid = (grid, events, isPast = false) => {
         grid.appendChild(cardElement);
     });
 };
+
 
 // END: پایان تابع جایگزین شده
     
