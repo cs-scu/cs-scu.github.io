@@ -539,6 +539,8 @@ const initializeEventsModule = async () => {
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
     const paymentInfoSection = document.getElementById('payment-info-section');
     const paymentNumberInput = document.getElementById('payment-number');
+    const contactTelegramInput = document.getElementById('contact-telegram');
+    const contactWhatsappInput = document.getElementById('contact-whatsapp');
 
     const imageUploadControls = eventForm.querySelector('.image-upload-controls');
     const fileNameDisplay = imageUploadControls ? imageUploadControls.querySelector('.file-name-display') : null;
@@ -800,6 +802,30 @@ const initializeEventsModule = async () => {
         });
     }
 
+    if (contactWhatsappInput) {
+        contactWhatsappInput.addEventListener('blur', () => {
+            let value = contactWhatsappInput.value.trim();
+            if (/^(09|989)\d{9}$/.test(value)) {
+                const phone = value.startsWith('09') ? `98${value.substring(1)}` : value;
+                contactWhatsappInput.value = `https://wa.me/${phone}`;
+            }
+        });
+    }
+
+    if (contactTelegramInput) {
+        contactTelegramInput.addEventListener('blur', () => {
+            let value = contactTelegramInput.value.trim();
+            if (/^(09|989)\d{9}$/.test(value)) {
+                const phone = value.startsWith('09') ? `+98${value.substring(1)}` : `+${value}`;
+                contactTelegramInput.value = `https://t.me/${phone}`;
+            } 
+            else if (value && !value.includes('t.me')) {
+                const username = value.startsWith('@') ? value.substring(1) : value;
+                contactTelegramInput.value = `https://t.me/${username}`;
+            }
+        });
+    }
+
     const safeJsonStringify = (obj) => {
         try { return obj ? JSON.stringify(obj, null, 2) : ''; } catch (e) { return typeof obj === 'string' ? obj : ''; }
     };
@@ -998,7 +1024,6 @@ const initializeEventsModule = async () => {
                 locationToggle.checked = eventToEdit.location === 'آنلاین';
                 locationToggle.dispatchEvent(new Event('change'));
                 
-                // <<-- START: CORRECTED LOGIC FOR COST FIELD -->>
                 costToggle.checked = eventToEdit.cost === 'رایگان';
                 if (costToggle.checked) {
                     costInput.value = 'رایگان';
@@ -1006,13 +1031,11 @@ const initializeEventsModule = async () => {
                 } else {
                     costInput.value = eventToEdit.cost || '';
                     costInput.disabled = false;
-                    // Trigger blur to format the number correctly
                     if (costInput.value) {
                          costInput.dispatchEvent(new Event('blur'));
                     }
                 }
                 togglePaymentFields();
-                // <<-- END: CORRECTED LOGIC FOR COST FIELD -->>
                 
                 if (eventToEdit.capacity === -1) {
                     capacityToggle.checked = true;
@@ -1033,9 +1056,8 @@ const initializeEventsModule = async () => {
                 document.getElementById('payment-name').value = eventToEdit.payment_card_number?.name || '';
                 document.getElementById('payment-number').value = eventToEdit.payment_card_number?.number || '';
                 
-                document.getElementById('contact-phone').value = eventToEdit.contact_link?.phone || '';
-                document.getElementById('contact-telegram').value = eventToEdit.contact_link?.telegram || '';
-                document.getElementById('contact-whatsapp').value = eventToEdit.contact_link?.whatsapp || '';
+                contactTelegramInput.value = eventToEdit.contact_link?.telegram || '';
+                contactWhatsappInput.value = eventToEdit.contact_link?.whatsapp || '';
 
                 formTitle.textContent = 'ویرایش رویداد';
                 submitBtn.textContent = 'ذخیره تغییرات';
