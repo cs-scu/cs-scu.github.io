@@ -1469,7 +1469,10 @@ export const showEventRegistrationModal = async (eventId) => {
                     <p style="margin-top: 1rem;">شما می‌توانید اطلاعات خود را ویرایش کرده و مجدداً برای بررسی ارسال کنید یا با پشتیبانی تماس بگیرید.</p>
                     
                     <div class="form-actions" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                        <a href="tel:09339170324" class="btn btn-secondary" style="flex-grow: 1;">تماس با پشتیبانی</a>
+                        <a href="tel:09339170324" class="btn btn-secondary btn-contact-support" style="flex-grow: 1;">
+                            <span>تماس با پشتیبانی</span>
+                            <span class="support-phone-number">09339170324</span>
+                        </a>
                         <button id="edit-rejected-registration-btn" class="btn btn-primary" style="flex-grow: 1;">ویرایش اطلاعات</button>
                     </div>
                 </div>`;
