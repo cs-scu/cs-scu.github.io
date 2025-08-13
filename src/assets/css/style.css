@@ -4220,17 +4220,18 @@ body.light-theme .image-upload-controls {
 
 .event-actions {
     display: flex;
-    flex-direction: column; /* چیدمان عمودی */
-    align-items: center;   /* آیتم‌ها در مرکز قرار می‌گیرند */
+    flex-direction: column; /* چیدمان عمودی برای کل بخش actions */
+    align-items: center;   /* همه چیز در مرکز افقی قرار می‌گیرد */
     gap: 0.5rem;             /* فاصله بین ردیف دکمه‌ها و متن شمارش معکوس */
     margin-top: 1.25rem;
 }
 
 .event-buttons-wrapper {
     display: flex;
-    justify-content: center; /* دکمه‌ها را در مرکز ردیف خود قرار می‌دهد */
+    justify-content: center; /* دکمه‌ها در مرکز ردیف خود قرار می‌گیرند */
     gap: 0.75rem;            /* فاصله بین دکمه‌ها */
     width: 100%;             /* عرض کامل می‌گیرد تا محتوا در مرکز آن قرار گیرد */
+    order: 1;                /* ردیف دکمه‌ها همیشه اول نمایش داده می‌شود */
 }
 
 .countdown-text {
@@ -4238,4 +4239,5 @@ body.light-theme .image-upload-controls {
     opacity: 0.8;
     text-align: center;
     line-height: 1.2;
+    order: 2;                /* متن شمارش معکوس همیشه دوم (زیر دکمه‌ها) است */
 }

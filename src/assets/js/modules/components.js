@@ -427,7 +427,6 @@ export const renderEventsPage = () => {
                 mainButton.textContent = 'اطلاعات بیشتر';
                 if (isPast) mainButton.classList.add('disabled');
             }
-            buttonsWrapper.appendChild(mainButton);
             
             let scheduleData = [];
             if (event.schedule) {
@@ -443,8 +442,12 @@ export const renderEventsPage = () => {
                 scheduleButton.textContent = 'برنامه زمانی';
                 scheduleButton.dataset.eventId = event.id;
                 if (isPast) scheduleButton.disabled = true;
+                // دکمه برنامه زمانی (ثانویه) اول اضافه می‌شود
                 buttonsWrapper.appendChild(scheduleButton);
             }
+            
+            // دکمه اصلی در آخر اضافه می‌شود تا در سمت چپ قرار گیرد
+            buttonsWrapper.appendChild(mainButton);
             
             actionsContainer.prepend(buttonsWrapper);
     
