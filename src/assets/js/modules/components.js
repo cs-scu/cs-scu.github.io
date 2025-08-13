@@ -245,7 +245,7 @@ export const renderMembersPage = () => {
     });
 };
 
-// <<-- START: NEW HELPER FUNCTION -->>
+// تابع کمکی برای محاسبه و نمایش زمان باقی‌مانده
 const getTimeRemainingString = (targetDate) => {
     const now = new Date();
     const totalSeconds = (targetDate - now) / 1000;
@@ -257,24 +257,22 @@ const getTimeRemainingString = (targetDate) => {
     const minutes = Math.floor((totalSeconds % 3600) / 60);
 
     if (days > 0) {
-        return `ثبت‌نام از ${toPersianNumber(days)} روز دیگر`;
+        return `شروع تا ${toPersianNumber(days)} روز دیگر`;
     }
     if (hours > 0) {
-        return `ثبت‌نام از ${toPersianNumber(hours)} ساعت دیگر`;
+        return `شروع تا ${toPersianNumber(hours)} ساعت دیگر`;
     }
     if (minutes > 0) {
-        return `ثبت‌نام از ${toPersianNumber(minutes)} دقیقه دیگر`;
+        return `شروع تا ${toPersianNumber(minutes)} دقیقه دیگر`;
     }
-    return 'ثبت‌نام به‌زودی';
+    return 'ثبت‌نام به‌زودی آغاز می‌شود';
 };
-// <<-- END: NEW HELPER FUNCTION -->>
 
 
 export const renderEventsPage = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // فیلتر کردن رویدادها به دو دسته پیش رو و گذشته و مرتب‌سازی آن‌ها
     const upcomingEvents = state.allEvents.filter(event => new Date(event.endDate) >= today)
         .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
     const pastEvents = state.allEvents.filter(event => new Date(event.endDate) < today)
@@ -286,7 +284,6 @@ export const renderEventsPage = () => {
 
     if (!upcomingGrid || !pastGrid || !template) return;
     
-    // تابع برای جابجایی هایلایت زیر تب‌های فعال
     const moveHighlighter = (activeTab) => {
         const highlighter = document.querySelector('.tabs-container .highlighter');
         if (!highlighter || !activeTab) return;
@@ -294,9 +291,8 @@ export const renderEventsPage = () => {
         highlighter.style.transform = `translateX(${activeTab.offsetLeft}px)`;
     };
     
-    // تابع اصلی برای ساخت و نمایش کارت‌های رویداد در یک گرید مشخص
     const populateGrid = (grid, events, isPast = false) => {
-        grid.innerHTML = ''; // پاک کردن محتوای قبلی
+        grid.innerHTML = '';
         if (events.length === 0) {
             grid.innerHTML = '<p class="no-events-message">در حال حاضر رویدادی در این دسته وجود ندارد.</p>';
             return;
@@ -406,12 +402,13 @@ export const renderEventsPage = () => {
                 scheduleButton.className = 'btn btn-secondary btn-view-schedule';
                 scheduleButton.textContent = 'برنامه زمانی';
                 scheduleButton.dataset.eventId = event.id;
-                if (isPast) {
-                    scheduleButton.disabled = true;
-                }
+                if (isPast) scheduleButton.disabled = true;
                 actionsContainer.appendChild(scheduleButton);
             }
             
+            const mainActionWrapper = document.createElement('div');
+            mainActionWrapper.className = 'main-action-wrapper';
+
             let mainButton;
             if (event.registrationLink) {
                 mainButton = document.createElement('button');
@@ -420,22 +417,19 @@ export const renderEventsPage = () => {
                 
                 if (isPast) {
                     mainButton.textContent = 'پایان یافته';
-                    mainButton.classList.add('disabled');
                     mainButton.disabled = true;
                 } else if (isFull) {
                     mainButton.textContent = 'ظرفیت تکمیل';
-                    mainButton.classList.add('disabled');
                     mainButton.disabled = true;
                 } else if (regStatus === 'not_started') {
-                    // <<-- START: CHANGE -->>
-                    // Use the new helper function to show a countdown.
-                    mainButton.textContent = getTimeRemainingString(regStartDate);
-                    // <<-- END: CHANGE -->>
-                    mainButton.classList.add('disabled');
+                    mainButton.textContent = 'ثبت‌نام به‌زودی';
                     mainButton.disabled = true;
+                    const countdownText = document.createElement('small');
+                    countdownText.className = 'countdown-text';
+                    countdownText.textContent = getTimeRemainingString(regStartDate);
+                    mainActionWrapper.appendChild(countdownText);
                 } else if (regStatus === 'ended') {
                     mainButton.textContent = 'ثبت‌نام بسته شد';
-                    mainButton.classList.add('disabled');
                     mainButton.disabled = true;
                 } else {
                     mainButton.textContent = 'ثبت‌نام';
@@ -445,11 +439,11 @@ export const renderEventsPage = () => {
                 mainButton.href = event.detailPage;
                 mainButton.className = 'btn btn-secondary';
                 mainButton.textContent = 'اطلاعات بیشتر';
-                 if (isPast) {
-                    mainButton.classList.add('disabled');
-                }
+                if (isPast) mainButton.classList.add('disabled');
             }
-            actionsContainer.appendChild(mainButton);
+
+            mainActionWrapper.prepend(mainButton);
+            actionsContainer.appendChild(mainActionWrapper);
     
             grid.appendChild(cardElement);
         });
