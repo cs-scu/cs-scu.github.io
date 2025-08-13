@@ -275,11 +275,13 @@ const getRegistrationEndTimeString = (targetDate) => {
     endOfDay.setHours(23, 59, 59, 999);
 
     const totalSeconds = (endOfDay - now) / 1000;
+    console.log(totalSeconds)
 
     if (totalSeconds <= 0) return ''; // اگر مهلت تمام شده، چیزی نمایش نمی‌دهیم
 
     const days = Math.floor(totalSeconds / (3600 * 24));
     const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+    console.log(days)
 
     if (days >= 2) {
         return `پایان مهلت تا ${toPersianNumber(days)} روز دیگر`;
