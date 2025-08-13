@@ -25,43 +25,46 @@
                     <textarea id="event-summary" name="summary" rows="2"></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label for="event-location">مکان</label>
-                    <div class="input-with-toggle">
-                        <input type="text" id="event-location" name="location" placeholder="مکان برگزاری حضوری...">
-                        <div class="toggle-switch-wrapper">
-                            <label for="toggle-location-online" class="toggle-label-text">آنلاین</label>
-                            <div class="toggle-switch">
-                                <input type="checkbox" id="toggle-location-online" class="toggle-input">
-                                <label for="toggle-location-online" class="toggle-label"></label>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="event-location">مکان</label>
+                        <div class="input-with-toggle">
+                            <input type="text" id="event-location" name="location" placeholder="مکان برگزاری حضوری...">
+                            <div class="toggle-switch-wrapper">
+                                <label for="toggle-location-online" class="toggle-label-text">آنلاین</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="toggle-location-online" class="toggle-input">
+                                    <label for="toggle-location-online" class="toggle-label"></label>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="event-cost">هزینه</label>
-                    <div class="input-with-toggle">
-                        <input type="text" id="event-cost" name="cost" placeholder="مثال: ۲۰,۰۰۰ تومان">
-                        <div class="toggle-switch-wrapper">
-                            <label for="toggle-cost-free" class="toggle-label-text">رایگان</label>
-                            <div class="toggle-switch">
-                                <input type="checkbox" id="toggle-cost-free" class="toggle-input">
-                                <label for="toggle-cost-free" class="toggle-label"></label>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="event-cost">هزینه</label>
+                        <div class="input-with-toggle">
+                            <input type="text" id="event-cost" name="cost" placeholder="مثال: ۲۰,۰۰۰ تومان">
+                            <div class="toggle-switch-wrapper">
+                                <label for="toggle-cost-free" class="toggle-label-text">رایگان</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="toggle-cost-free" class="toggle-input">
+                                    <label for="toggle-cost-free" class="toggle-label"></label>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="event-capacity">ظرفیت</label>
-                    <div class="input-with-toggle">
-                        <input type="number" id="event-capacity" name="capacity" placeholder="تعداد شرکت‌کنندگان..." min="1">
-                        <div class="toggle-switch-wrapper">
-                            <label for="toggle-capacity-unlimited" class="toggle-label-text">نامحدود</label>
-                            <div class="toggle-switch">
-                                <input type="checkbox" id="toggle-capacity-unlimited" class="toggle-input">
-                                <label for="toggle-capacity-unlimited" class="toggle-label"></label>
+                    <div class="form-group">
+                        <label for="event-capacity">ظرفیت</label>
+                        <div class="input-with-toggle">
+                            <input type="number" id="event-capacity" name="capacity" placeholder="تعداد شرکت‌کنندگان..." min="1">
+                            <div class="toggle-switch-wrapper">
+                                <label for="toggle-capacity-unlimited" class="toggle-label-text">نامحدود</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="toggle-capacity-unlimited" class="toggle-input">
+                                    <label for="toggle-capacity-unlimited" class="toggle-label"></label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -82,10 +85,23 @@
                         <input type="text" id="event-date-range-flatpickr" name="dateRange" placeholder="انتخاب تاریخ شروع و پایان..." required>
                     </div>
                     <div class="form-group" style="flex: 2;">
-                        <label for="event-display-date">تاریخ نمایشی (قابل ویرایش)</label>
-                        <input type="text" id="event-display-date" name="displayDate" placeholder="مثال: ۱۸ و ۱۹ تیر ۱۴۰۴" required>
+                        <label for="event-display-date">تاریخ نمایشی (متن دلخواه)</label>
+                        <input type="text" id="event-display-date" name="displayDate" placeholder="مثال: ۱۸ و ۱۹ تیر ۱۴۰۴ یا پاییز ۱۴۰۴" required>
                     </div>
                 </div>
+
+                > -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="registration-start-date">تاریخ شروع ثبت‌نام</label>
+                        <input type="text" id="registration-start-date" name="registrationStartDate" placeholder="انتخاب تاریخ...">
+                    </div>
+                    <div class="form-group">
+                        <label for="registration-end-date">تاریخ پایان ثبت‌نام</label>
+                        <input type="text" id="registration-end-date" name="registrationEndDate" placeholder="انتخاب تاریخ...">
+                    </div>
+                </div>
+                >
 
                 <div>
                     <hr style="margin: 1.5rem 0;">
