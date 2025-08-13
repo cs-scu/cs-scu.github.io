@@ -294,25 +294,33 @@ export const renderEventsPage = () => {
             const tagsContainer = card.querySelector('.event-card-tags');
             tagsContainer.innerHTML = '';
             
-            // --- START: منطق جدید و اصلاح‌شده برای نمایش تگ‌ها ---
             if (event.tag_ids && Array.isArray(event.tag_ids)) {
                 event.tag_ids.forEach(tagId => {
-                    const tagName = state.tagsMap.get(tagId); // خواندن نام تگ از حافظه مرکزی state.js
+                    const tagName = state.tagsMap.get(tagId);
                     if (tagName) {
                         const tagEl = document.createElement('span');
-                        tagEl.className = 'news-tag'; // استفاده از همان کلاس استایل اخبار برای یکپارچگی
+                        tagEl.className = 'news-tag';
                         tagEl.textContent = tagName;
                         tagsContainer.appendChild(tagEl);
                     }
                 });
             }
-            // --- END: منطق جدید و اصلاح‌شده برای تگ‌ها ---
     
             card.querySelector('.event-card-title-link').href = event.detailPage;
             card.querySelector('.event-card-title').textContent = event.title;
             card.querySelector('.event-card-summary').textContent = event.summary;
     
             const metaContainer = card.querySelector('.event-meta');
+            
+            const isUnlimited = event.capacity === -1;
+            const remainingCapacity = isUnlimited ? 'نامحدود' : toPersianNumber(event.capacity - event.registrations_count);
+            const isFull = !isUnlimited && (event.capacity - event.registrations_count <= 0);
+
+            const capacityHTML = `
+                <span class="event-meta-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>ظرفیت باقی‌مانده: ${isFull ? 'تکمیل' : remainingCapacity}</span>
+                </span>`;
             
             const instructorHTML = event.instructor_name 
                 ? `
@@ -343,6 +351,7 @@ export const renderEventsPage = () => {
                     <span>${event.location}</span>
                 </span>
                 ${costHTML}
+                ${capacityHTML}
             `;
     
             const actionsContainer = card.querySelector('.event-actions');
@@ -377,6 +386,10 @@ export const renderEventsPage = () => {
                     mainButton.textContent = 'پایان یافته';
                     mainButton.classList.add('disabled');
                     mainButton.disabled = true;
+                } else if (isFull) {
+                    mainButton.textContent = 'ظرفیت تکمیل';
+                    mainButton.classList.add('disabled');
+                    mainButton.disabled = true;
                 } else {
                     mainButton.textContent = 'ثبت‌نام';
                 }
@@ -395,11 +408,9 @@ export const renderEventsPage = () => {
         });
     };
     
-    // پر کردن گریدها با داده‌های مربوطه
     populateGrid(upcomingGrid, upcomingEvents, false);
     populateGrid(pastGrid, pastEvents, true);
 
-    // افزودن Event Listener به دکمه‌های تب
     dom.mainContent.querySelectorAll('.tab-link').forEach(button => {
         button.addEventListener('click', () => {
             const tabId = button.dataset.tab;
@@ -411,7 +422,6 @@ export const renderEventsPage = () => {
         });
     });
     
-    // تنظیم موقعیت اولیه هایلایت
     const initiallyActiveTab = dom.mainContent.querySelector('.tab-link.active');
     if (initiallyActiveTab) {
         requestAnimationFrame(() => {

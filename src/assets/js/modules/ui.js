@@ -639,6 +639,16 @@ export const showEventModal = async (path) => {
     };
     
     const detailHtml = renderJsonContent(event.content);
+    
+    const isUnlimited = event.capacity === -1;
+    const remainingCapacity = isUnlimited ? 'نامحدود' : toPersianNumber(event.capacity - event.registrations_count);
+    const isFull = !isUnlimited && (event.capacity - event.registrations_count <= 0);
+
+    const capacityHTML = `
+        <span class="event-meta-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            ظرفیت باقی‌مانده: ${isFull ? 'تکمیل' : remainingCapacity}
+        </span>`;
 
     const costHTML = event.cost ? `
         <span class="event-meta-item">
@@ -653,6 +663,17 @@ export const showEventModal = async (path) => {
     let actionsHTML = '';
     if (event.registrationLink) {
         const isPastEvent = new Date(event.endDate) < new Date();
+        
+        let buttonText = 'ثبت‌نام در این رویداد';
+        let buttonDisabled = '';
+
+        if (isPastEvent) {
+            buttonText = 'رویداد پایان یافته';
+            buttonDisabled = 'disabled';
+        } else if (isFull) {
+            buttonText = 'ظرفیت تکمیل';
+            buttonDisabled = 'disabled';
+        }
 
         let contactInfo = null;
         try {
@@ -681,8 +702,8 @@ export const showEventModal = async (path) => {
                     class="btn btn-primary btn-event-register"
                     data-event-id="${event.id}"
                     style="flex-grow: 2;"
-                    ${isPastEvent ? 'disabled' : ''}>
-                    ${isPastEvent ? 'رویداد پایان یافته' : 'ثبت‌نام در این رویداد'}
+                    ${buttonDisabled}>
+                    ${buttonText}
                 </button>
                 ${contactButton}
             </div>
@@ -703,6 +724,7 @@ export const showEventModal = async (path) => {
                         ${event.location}
                     </span>
                     ${costHTML}
+                    ${capacityHTML}
                 </div>
                 <br>
                 ${detailHtml}
