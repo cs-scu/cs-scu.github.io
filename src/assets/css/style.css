@@ -4252,3 +4252,59 @@ body.light-theme .image-upload-controls {
     align-items: center;
     white-space: nowrap; /* جلوگیری از شکستن متن دکمه */
 }
+
+/* ================== CONTACT SUPPORT BUTTON STYLE ================== */
+.btn-contact-support {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem; /* فاصله بین متن و شماره */
+    text-align: center;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem; /* اندازه فونت متن اصلی */
+    line-height: 1.4;
+}
+
+.support-phone-number {
+    font-size: 0.85rem; /* اندازه فونت شماره */
+    opacity: 0.8;
+    direction: ltr; /* برای نمایش صحیح شماره */
+    font-weight: normal; /* جلوگیری از ضخیم شدن شماره */
+}
+
+/* ================== REJECTED MODAL BUTTONS STYLE ================== */
+.rejected-modal-actions {
+    display: flex;
+    flex-direction: row !important; /* باعث می‌شود دکمه‌ها همیشه کنار هم باشند */
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.rejected-modal-actions .btn {
+    flex-grow: 1; /* دکمه‌ها فضا را به طور مساوی تقسیم می‌کنند */
+    padding: 0.6rem 1rem; /* کاهش پدینگ برای کوچک‌تر شدن */
+    font-size: 0.9rem; /* کاهش اندازه فونت */
+}
+
+.rejected-modal-actions .btn-contact-support {
+    display: flex;
+    flex-direction: row; /* آیکون و متن کنار هم قرار می‌گیرند */
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem; /* فاصله بین آیکون و متن */
+}
+
+.rejected-modal-actions .support-phone-number {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    direction: ltr; /* برای نمایش صحیح شماره */
+    font-weight: normal;
+    margin-right: 0.25rem; /* فاصله کوچک بعد از کلمه "تماس" */
+}
+
+.rejected-modal-actions .btn svg {
+    width: 16px; /* کوچک کردن اندازه آیکون */
+    height: 16px;
+}

@@ -1459,23 +1459,24 @@ export const showEventRegistrationModal = async (eventId) => {
             const rejectedModalHtml = `
                 <div class="content-box">
                     <h2 style="color: #dc3545;">وضعیت ثبت‌نام: رد شده</h2>
-                    <p>متاسفانه ثبت‌نام شما تایید نشده است. این معمولاً به دلیل اطلاعات ناقص یا نادرست در بخش پرداخت (مانند ۴ رقم آخر کارت یا زمان واریز) است.</p>
+                    <p>متاسفانه ثبت‌نام شما تایید نشده است. این معمولاً به دلیل اطلاعات ناقص یا نادرست در بخش پرداخت است.</p>
                     <p style="margin-top: 1rem;"><strong>اطلاعات ثبت شده شما:</strong></p>
                     <div class="registration-status-details">
                         <div class="info-row"><span>نام:</span><strong>${existingRegistration.full_name}</strong></div>
                         <div class="info-row"><span>کد دانشجویی:</span><strong>${existingRegistration.student_id}</strong></div>
                         ${paymentInfoHTML}
                     </div>
-                    <p style="margin-top: 1rem;">شما می‌توانید اطلاعات خود را ویرایش کرده و مجدداً برای بررسی ارسال کنید یا با پشتیبانی تماس بگیرید.</p>
+                    <p style="margin-top: 1rem;">می‌توانید اطلاعات خود را ویرایش کرده و مجدداً برای بررسی ارسال کنید یا با پشتیبانی تماس بگیرید.</p>
                     
-                    <div class="form-actions" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                        <a href="tel:09339170324" class="btn btn-secondary btn-contact-support" style="flex-grow: 1;">
-                            <span>تماس با پشتیبانی</span>
+                    <div class="form-actions rejected-modal-actions">
+                        <a href="tel:09339170324" class="btn btn-secondary btn-contact-support">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                            <span>تماس</span>
                             <span class="support-phone-number">09339170324</span>
                         </a>
-                        <button id="edit-rejected-registration-btn" class="btn btn-primary" style="flex-grow: 1;">ویرایش اطلاعات</button>
+                        <button id="edit-rejected-registration-btn" class="btn btn-primary">ویرایش اطلاعات</button>
                     </div>
-                </div>`;
+                    </div>`;
             genericModalContent.innerHTML = rejectedModalHtml;
 
             const editBtn = genericModalContent.querySelector('#edit-rejected-registration-btn');
