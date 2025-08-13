@@ -4219,7 +4219,7 @@ body.light-theme .image-upload-controls {
 /* ================== FINAL Event Card Actions Layout (Flexbox Column) ================== */
 
 .event-actions {
-    display: flex;
+    display: grid;
     flex-direction: column; /* چیدمان عمودی برای کل بخش actions */
     align-items: center;   /* همه چیز در مرکز افقی قرار می‌گیرد */
     gap: 0.5rem;             /* فاصله بین ردیف دکمه‌ها و متن شمارش معکوس */
@@ -4227,7 +4227,7 @@ body.light-theme .image-upload-controls {
 }
 
 .event-buttons-wrapper {
-    display: flex;
+    display: grid;
     justify-content: center; /* دکمه‌ها در مرکز ردیف خود قرار می‌گیرند */
     gap: 0.75rem;            /* فاصله بین دکمه‌ها */
     width: 100%;             /* عرض کامل می‌گیرد تا محتوا در مرکز آن قرار گیرد */
