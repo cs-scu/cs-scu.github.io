@@ -221,10 +221,14 @@ export const deleteTag = async (tagId) => {
 
 export const loadEvents = async () => {
     try {
-        const { data, error } = await supabaseClient.from('events').select('*');
+        // <<-- START: MAJOR CHANGE - Using RPC instead of direct select -->>
+        // This RPC call fetches all events and joins the confirmed registration count.
+        const { data, error } = await supabaseClient.rpc('get_events_with_registration_count');
+        // <<-- END: MAJOR CHANGE -->>
+
         if (error) throw error;
         state.allEvents = data || [];
-        return state.allEvents; // **اصلاح کلیدی: داده‌ها باید بازگردانده شوند**
+        return state.allEvents;
     } catch (error) {
         console.error("Failed to load events:", error);
         throw error;
