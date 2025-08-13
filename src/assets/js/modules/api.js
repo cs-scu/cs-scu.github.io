@@ -662,3 +662,20 @@ export const updateRegistrationStatus = async (registrationId, newStatus) => {
 };
 
 // --- END: Event Registration Management Functions ---
+
+// --- START: تابع جدید برای دریافت ثبت‌نام‌های کاربر ---
+export const getUserRegistrations = async (userId) => {
+    if (!userId) return [];
+    try {
+        const { data, error } = await supabaseClient
+            .from('event_registrations')
+            .select('event_id, status') // فقط ستون‌های مورد نیاز را می‌گیریم
+            .eq('user_id', userId);
+        if (error) throw error;
+        return data || [];
+    } catch (error) {
+        console.error("Failed to get user registrations:", error);
+        return [];
+    }
+};
+// --- END: پایان تابع جدید ---

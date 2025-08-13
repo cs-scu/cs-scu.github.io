@@ -62,6 +62,16 @@ document.addEventListener('DOMContentLoaded', () => {
             let profile = null;
             if (user) {
                 profile = await getProfile();
+                // START: بخش جدید برای بارگذاری ثبت‌نام‌ها
+                const registrations = await getUserRegistrations(user.id);
+                state.userRegistrations.clear();
+                registrations.forEach(reg => {
+                    state.userRegistrations.set(reg.event_id, reg.status);
+                });
+                // END: پایان بخش جدید
+            } else {
+                // اگر کاربر خارج شد، اطلاعات ثبت‌نام او را پاک می‌کنیم
+                state.userRegistrations.clear();
             }
             updateUserUI(user, profile); 
         };
