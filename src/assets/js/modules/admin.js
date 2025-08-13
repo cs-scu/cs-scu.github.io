@@ -542,6 +542,13 @@ const initializeEventsModule = async () => {
     const fileNameDisplay = imageUploadControls ? imageUploadControls.querySelector('.file-name-display') : null;
     const fileClearBtn = imageUploadControls ? imageUploadControls.querySelector('.file-clear-btn') : null;
 
+    // <<-- START: NEW HELPER FUNCTION FOR PERSIAN NUMBERS -->>
+    const toPersianNumber = (n) => {
+        const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        return String(n).replace(/[0-9]/g, (digit) => persianNumbers[digit]);
+    };
+    // <<-- END: NEW HELPER FUNCTION -->>
+    
     const togglePaymentFields = () => {
         if (!paymentInfoSection || !costToggle) return;
         paymentInfoSection.style.display = costToggle.checked ? 'none' : 'block';
@@ -748,18 +755,38 @@ const initializeEventsModule = async () => {
     setupToggleSwitch(costInput, costToggle, 'رایگان');
     setupToggleSwitch(capacityInput, capacityToggle, '');
     
-    // <<-- START: CHANGE -->>
     if(detailPageInput) {
         detailPageInput.addEventListener('blur', () => {
-            // Sanitize the input value by converting to lowercase, replacing spaces with hyphens,
-            // and removing invalid characters. This happens whether it's a new or existing event.
             let slug = detailPageInput.value.trim();
-            // Allow Persian characters in the slug
             slug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-_\u0600-\u06FF]/g, '');
             detailPageInput.value = slug;
         });
     }
-    // <<-- END: CHANGE -->>
+
+    // <<-- START: NEW LOGIC FOR COST INPUT FORMATTING -->>
+    if (costInput) {
+        costInput.addEventListener('input', () => {
+            let value = costInput.value.replace(/[^۰-۹0-9]/g, '');
+            value = value.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+            if (value === '') {
+                costInput.value = '';
+                return;
+            }
+            const number = parseInt(value, 10);
+            costInput.value = toPersianNumber(number.toLocaleString('en-US'));
+        });
+
+        costInput.addEventListener('blur', () => {
+            if (costInput.value && !costInput.value.includes('تومان')) {
+                costInput.value += ' تومان';
+            }
+        });
+
+        costInput.addEventListener('focus', () => {
+            costInput.value = costInput.value.replace(/ تومان/g, '').replace(/,/g, '');
+        });
+    }
+    // <<-- END: NEW LOGIC FOR COST INPUT FORMATTING -->>
 
     const safeJsonStringify = (obj) => {
         try { return obj ? JSON.stringify(obj, null, 2) : ''; } catch (e) { return typeof obj === 'string' ? obj : ''; }
@@ -834,13 +861,10 @@ const initializeEventsModule = async () => {
                     if (!contactData[key]) delete contactData[key];
                 });
                 
-                // <<-- START: CHANGE -->>
                 let detailPageValue = formData.get('detailPage').trim();
-                // Construct the full path ONLY if it's a new event and not already a full path.
                 if (!isEditing && detailPageValue && !detailPageValue.startsWith('#/events/')) {
                     detailPageValue = `#/events/${detailPageValue}`;
                 }
-                // <<-- END: CHANGE -->>
 
                 return {
                     title: formData.get('title'),
@@ -943,14 +967,11 @@ const initializeEventsModule = async () => {
                 document.getElementById('event-summary').value = eventToEdit.summary || '';
                 document.getElementById('event-display-date').value = eventToEdit.displayDate || '';
                 
-                // <<-- START: CHANGE -->>
-                // When editing, show only the slug part, not the full path
                 let slugToDisplay = eventToEdit.detailPage || '';
                 if (slugToDisplay.startsWith('#/events/')) {
-                    slugToDisplay = slugToDisplay.substring(9); // Remove '#/events/'
+                    slugToDisplay = slugToDisplay.substring(9);
                 }
                 document.getElementById('event-detail-page').value = slugToDisplay;
-                // <<-- END: CHANGE -->>
                 
                 locationInput.value = eventToEdit.location || '';
                 locationToggle.checked = eventToEdit.location === 'آنلاین';
