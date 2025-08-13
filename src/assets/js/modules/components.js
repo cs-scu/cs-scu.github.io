@@ -268,6 +268,30 @@ const getTimeRemainingString = (targetDate) => {
     return 'ثبت‌نام به‌زودی آغاز می‌شود';
 };
 
+const getRegistrationEndTimeString = (targetDate) => {
+    const now = new Date();
+    // برای محاسبه دقیق روز، ساعت پایان را به انتهای روز (23:59:59) منتقل می‌کنیم
+    const endOfDay = new Date(targetDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const totalSeconds = (endOfDay - now) / 1000;
+
+    if (totalSeconds <= 0) return ''; // اگر مهلت تمام شده، چیزی نمایش نمی‌دهیم
+
+    const days = Math.floor(totalSeconds / (3600 * 24));
+    const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+
+    if (days > 1) {
+        return `پایان مهلت تا ${toPersianNumber(days)} روز دیگر`;
+    }
+    if (days === 1) {
+        return `کمتر از ۲ روز تا پایان مهلت`;
+    }
+    if (hours > 0) {
+        return `کمتر از ${toPersianNumber(hours + 1)} ساعت تا پایان مهلت`;
+    }
+    return 'مهلت ثبت‌نام امروز به پایان می‌رسد';
+};
 
 export const renderEventsPage = () => {
     const today = new Date();
@@ -294,145 +318,155 @@ export const renderEventsPage = () => {
     };
     
     // تابع اصلی برای ساخت و نمایش کارت‌های رویداد در یک گرید مشخص
-    const populateGrid = (grid, events, isPast = false) => {
-        grid.innerHTML = ''; // پاک کردن محتوای قبلی
-        if (events.length === 0) {
-            grid.innerHTML = '<p class="no-events-message">در حال حاضر رویدادی در این دسته وجود ندارد.</p>';
-            return;
+const populateGrid = (grid, events, isPast = false) => {
+    grid.innerHTML = ''; // پاک کردن محتوای قبلی
+    if (events.length === 0) {
+        grid.innerHTML = '<p class="no-events-message">در حال حاضر رویدادی در این دسته وجود ندارد.</p>';
+        return;
+    }
+    events.forEach(event => {
+        const cardElement = template.content.cloneNode(true);
+        const card = cardElement.querySelector('.event-card');
+        
+        if (isPast) {
+            card.classList.add('past-event');
         }
-        events.forEach(event => {
-            const cardElement = template.content.cloneNode(true);
-            const card = cardElement.querySelector('.event-card');
-            
+
+        card.querySelector('.event-card-image-link').href = event.detailPage;
+        
+        const img = card.querySelector('.event-card-image');
+        img.src = event.image;
+        img.alt = event.title;
+        img.loading = 'lazy';
+
+        const tagsContainer = card.querySelector('.event-card-tags');
+        tagsContainer.innerHTML = '';
+        
+        if (event.tag_ids && Array.isArray(event.tag_ids)) {
+            event.tag_ids.forEach(tagId => {
+                const tagName = state.tagsMap.get(tagId);
+                if (tagName) {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'news-tag';
+                    tagEl.textContent = tagName;
+                    tagsContainer.appendChild(tagEl);
+                }
+            });
+        }
+
+        card.querySelector('.event-card-title-link').href = event.detailPage;
+        card.querySelector('.event-card-title').textContent = event.title;
+        card.querySelector('.event-card-summary').textContent = event.summary;
+
+        const metaContainer = card.querySelector('.event-meta');
+        
+        const isUnlimited = event.capacity === -1;
+        const remainingCapacity = isUnlimited ? 'نامحدود' : toPersianNumber(event.capacity - event.registrations_count);
+        const isFull = !isUnlimited && (event.capacity - event.registrations_count <= 0);
+
+        const now = new Date();
+        const regStartDate = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
+        const regEndDate = event.registrationEndDate ? new Date(event.registrationEndDate) : null;
+
+        let regStatus = 'open';
+        if (regStartDate && now < regStartDate) {
+            regStatus = 'not_started';
+        } else if (regEndDate && now < regEndDate) {
+            regStatus = 'open';
+        } else if (regEndDate && now > regEndDate) {
+            regStatus = 'ended';
+        }
+
+        const capacityHTML = `
+            <span class="event-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>ظرفیت باقی‌مانده: ${isFull ? 'تکمیل' : remainingCapacity}</span>
+            </span>`;
+        
+        const instructorHTML = event.instructor_name 
+            ? `<span class="event-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>مدرس: ${event.instructor_name}</span>
+            </span>`
+            : '';
+
+        const costHTML = (event.cost && event.cost.trim() !== "") ? `<span class="event-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                <span>${event.cost}</span>
+            </span>` : '';
+
+        metaContainer.innerHTML = `${instructorHTML}
+            <span class="event-meta-item"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span>${event.displayDate}</span></span>
+            <span class="event-meta-item"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>${event.location}</span></span>
+            ${costHTML} ${capacityHTML}`;
+
+        const actionsContainer = card.querySelector('.event-actions');
+        actionsContainer.innerHTML = '';
+
+        const buttonsWrapper = document.createElement('div');
+        buttonsWrapper.className = 'event-buttons-wrapper';
+
+        let mainButton = document.createElement('button');
+        mainButton.className = 'btn btn-primary btn-event-register';
+        mainButton.dataset.eventId = event.id;
+
+        const userHasRegistered = state.userRegistrations.has(event.id);
+
+        if (userHasRegistered) {
+            mainButton.textContent = 'پیگیری ثبت‌نام';
+            mainButton.disabled = false;
+            mainButton.classList.replace('btn-primary', 'btn-secondary');
+        } else {
             if (isPast) {
-                card.classList.add('past-event');
-            }
-
-            card.querySelector('.event-card-image-link').href = event.detailPage;
-            
-            const img = card.querySelector('.event-card-image');
-            img.src = event.image;
-            img.alt = event.title;
-            img.loading = 'lazy';
-    
-            const tagsContainer = card.querySelector('.event-card-tags');
-            tagsContainer.innerHTML = '';
-            
-            if (event.tag_ids && Array.isArray(event.tag_ids)) {
-                event.tag_ids.forEach(tagId => {
-                    const tagName = state.tagsMap.get(tagId);
-                    if (tagName) {
-                        const tagEl = document.createElement('span');
-                        tagEl.className = 'news-tag';
-                        tagEl.textContent = tagName;
-                        tagsContainer.appendChild(tagEl);
-                    }
-                });
-            }
-    
-            card.querySelector('.event-card-title-link').href = event.detailPage;
-            card.querySelector('.event-card-title').textContent = event.title;
-            card.querySelector('.event-card-summary').textContent = event.summary;
-    
-            const metaContainer = card.querySelector('.event-meta');
-            
-            const isUnlimited = event.capacity === -1;
-            const remainingCapacity = isUnlimited ? 'نامحدود' : toPersianNumber(event.capacity - event.registrations_count);
-            const isFull = !isUnlimited && (event.capacity - event.registrations_count <= 0);
-
-            const now = new Date();
-            const regStartDate = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
-            const regEndDate = event.registrationEndDate ? new Date(event.registrationEndDate) : null;
-
-            let regStatus = 'open';
-            if (regStartDate && now < regStartDate) {
-                regStatus = 'not_started';
-            } else if (regEndDate && now > regEndDate) {
-                regStatus = 'ended';
-            }
-
-            const capacityHTML = `
-                <span class="event-meta-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    <span>ظرفیت باقی‌مانده: ${isFull ? 'تکمیل' : remainingCapacity}</span>
-                </span>`;
-            
-            const instructorHTML = event.instructor_name 
-                ? `<span class="event-meta-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    <span>مدرس: ${event.instructor_name}</span>
-                </span>`
-                : '';
-
-            const costHTML = (event.cost && event.cost.trim() !== "") ? `<span class="event-meta-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
-                    <span>${event.cost}</span>
-                </span>` : '';
-
-            metaContainer.innerHTML = `${instructorHTML}
-                <span class="event-meta-item"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    <span>${event.displayDate}</span></span>
-                <span class="event-meta-item"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    <span>${event.location}</span></span>
-                ${costHTML} ${capacityHTML}`;
-    
-            const actionsContainer = card.querySelector('.event-actions');
-            actionsContainer.innerHTML = '';
-
-            const buttonsWrapper = document.createElement('div');
-            buttonsWrapper.className = 'event-buttons-wrapper';
-
-            let mainButton = document.createElement('button');
-            mainButton.className = 'btn btn-primary btn-event-register';
-            mainButton.dataset.eventId = event.id;
-
-            // *** START: منطق اصلی و جدید اینجاست ***
-            const userHasRegistered = state.userRegistrations.has(event.id);
-
-            if (userHasRegistered) {
-                mainButton.textContent = 'پیگیری ثبت‌نام';
-                mainButton.disabled = false; // دکمه همیشه فعال است
-                mainButton.classList.replace('btn-primary', 'btn-secondary'); // تغییر استایل برای تمایز
+                mainButton.textContent = 'پایان یافته';
+                mainButton.disabled = true;
+            } else if (isFull) {
+                mainButton.textContent = 'ظرفیت تکمیل';
+                mainButton.disabled = true;
+            } else if (regStatus === 'not_started') {
+                mainButton.textContent = 'ثبت‌نام به‌زودی';
+                mainButton.disabled = true;
+                const countdownText = document.createElement('small');
+                countdownText.className = 'countdown-text';
+                countdownText.textContent = getTimeRemainingString(regStartDate);
+                actionsContainer.appendChild(countdownText);
+            } else if (regStatus === 'ended') {
+                mainButton.textContent = 'پایان ثبت‌نام';
+                mainButton.disabled = true;
             } else {
-                if (isPast) {
-                    mainButton.textContent = 'پایان یافته';
-                    mainButton.disabled = true;
-                } else if (isFull) {
-                    mainButton.textContent = 'ظرفیت تکمیل';
-                    mainButton.disabled = true;
-                } else if (regStatus === 'not_started') {
-                    mainButton.textContent = 'ثبت‌نام به‌زودی';
-                    mainButton.disabled = true;
+                mainButton.textContent = 'ثبت‌نام';
+                // *** START: تغییر اصلی اینجاست ***
+                // اگر ثبت‌نام باز است، شمارش معکوس تا پایان مهلت را نمایش بده
+                if (regStatus === 'open' && regEndDate) {
                     const countdownText = document.createElement('small');
                     countdownText.className = 'countdown-text';
-                    countdownText.textContent = getTimeRemainingString(regStartDate);
+                    countdownText.textContent = getRegistrationEndTimeString(regEndDate);
                     actionsContainer.appendChild(countdownText);
-                } else if (regStatus === 'ended') {
-                    mainButton.textContent = 'پایان ثبت‌نام';
-                    mainButton.disabled = true;
-                } else {
-                    mainButton.textContent = 'ثبت‌نام';
                 }
+                // *** END: پایان تغییر ***
             }
-            // *** END: پایان منطق جدید ***
-            
-            let scheduleData = [];
-            if (event.schedule) { try { scheduleData = typeof event.schedule === 'string' ? JSON.parse(event.schedule) : event.schedule; } catch (e) {} }
-            if (Array.isArray(scheduleData) && scheduleData.length > 0) {
-                const scheduleButton = document.createElement('button');
-                scheduleButton.className = 'btn btn-secondary btn-view-schedule';
-                scheduleButton.textContent = 'برنامه زمانی';
-                scheduleButton.dataset.eventId = event.id;
-                if (isPast) scheduleButton.disabled = true;
-                buttonsWrapper.appendChild(scheduleButton);
-            }
-            
-            buttonsWrapper.appendChild(mainButton);
-            actionsContainer.prepend(buttonsWrapper);
-    
-            grid.appendChild(cardElement);
-        });
-    };
+        }
+        
+        let scheduleData = [];
+        if (event.schedule) { try { scheduleData = typeof event.schedule === 'string' ? JSON.parse(event.schedule) : event.schedule; } catch (e) {} }
+        if (Array.isArray(scheduleData) && scheduleData.length > 0) {
+            const scheduleButton = document.createElement('button');
+            scheduleButton.className = 'btn btn-secondary btn-view-schedule';
+            scheduleButton.textContent = 'برنامه زمانی';
+            scheduleButton.dataset.eventId = event.id;
+            if (isPast) scheduleButton.disabled = true;
+            buttonsWrapper.appendChild(scheduleButton);
+        }
+        
+        buttonsWrapper.appendChild(mainButton);
+        actionsContainer.prepend(buttonsWrapper);
+
+        grid.appendChild(cardElement);
+    });
+};
+
 // END: پایان تابع جایگزین شده
     
     populateGrid(upcomingGrid, upcomingEvents, false);
