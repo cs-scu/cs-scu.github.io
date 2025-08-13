@@ -917,7 +917,7 @@ const initializeEventsModule = async () => {
                 });
                 
                 let detailPageValue = formData.get('detailPage').trim();
-                if (!isEditing && detailPageValue && !detailPageValue.startsWith('#/events/')) {
+                if (detailPageValue && !detailPageValue.startsWith('#/events/')) {
                     detailPageValue = `#/events/${detailPageValue}`;
                 }
 
