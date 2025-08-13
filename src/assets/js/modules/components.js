@@ -415,7 +415,7 @@ export const renderEventsPage = () => {
                     countdownText.textContent = getTimeRemainingString(regStartDate);
                     actionsContainer.appendChild(countdownText);
                 } else if (regStatus === 'ended') {
-                    mainButton.textContent = 'ثبت‌نام بسته شد';
+                    mainButton.textContent = 'پایان ثبت‌نام';
                     mainButton.disabled = true;
                 } else {
                     mainButton.textContent = 'ثبت‌نام';

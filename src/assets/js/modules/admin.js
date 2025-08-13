@@ -508,16 +508,28 @@ const initializeEventsModule = async () => {
     let currentImageUrl = '';
     let dateRangePickerInstance = initializeDatepicker(); 
 
+    // <<-- START: NEW DATEPICKER INSTANCES FOR REGISTRATION DATES -->>
     const regStartDateInput = document.getElementById('registration-start-date');
     const regEndDateInput = document.getElementById('registration-end-date');
     let regStartDatePicker, regEndDatePicker;
 
     if (regStartDateInput) {
-        regStartDatePicker = flatpickr(regStartDateInput, { locale: "fa", altInput: true, altFormat: "Y/m/d", dateFormat: "Y-m-d" });
+        regStartDatePicker = flatpickr(regStartDateInput, { 
+            locale: "fa", 
+            altInput: true, 
+            altFormat: "Y/m/d", 
+            dateFormat: "Y-m-d" 
+        });
     }
     if (regEndDateInput) {
-        regEndDatePicker = flatpickr(regEndDateInput, { locale: "fa", altInput: true, altFormat: "Y/m/d", dateFormat: "Y-m-d" });
+        regEndDatePicker = flatpickr(regEndDateInput, { 
+            locale: "fa", 
+            altInput: true, 
+            altFormat: "Y/m/d", 
+            dateFormat: "Y-m-d" 
+        });
     }
+    // <<-- END: NEW DATEPICKER INSTANCES -->>
 
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
@@ -744,7 +756,7 @@ const initializeEventsModule = async () => {
 
     setupToggleSwitch(locationInput, locationToggle, 'آنلاین');
     setupToggleSwitch(costInput, costToggle, 'رایگان');
-    setupToggleSwitch(capacityInput, capacityToggle, ''); // Empty value will be handled as -1
+    setupToggleSwitch(capacityInput, capacityToggle, '');
     
     if(detailPageInput) {
         detailPageInput.addEventListener('blur', () => {
