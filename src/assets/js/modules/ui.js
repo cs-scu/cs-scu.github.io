@@ -1447,39 +1447,58 @@ export const showEventRegistrationModal = async (eventId) => {
     }
 
     if (existingRegistration) {
-        // *** START: تغییر اصلی و نهایی اینجاست ***
+        // *** START: تغییرات اصلی و نهایی اینجاست ***
+        // اطلاعات پرداخت را برای نمایش آماده می‌کنیم
+        let paymentInfoHTML = '';
+        if (existingRegistration.card_last_four_digits) {
+            paymentInfoHTML = `<div class="info-row"><span>چهار رقم آخر کارت:</span><strong>${existingRegistration.card_last_four_digits}</strong></div><div class="info-row"><span>ساعت واریز:</span><strong>${existingRegistration.transaction_time}</strong></div>`;
+        }
+        
         // حالت 1: ثبت‌نام رد شده است
         if (existingRegistration.status === 'rejected') {
             const rejectedModalHtml = `
                 <div class="content-box">
                     <h2 style="color: #dc3545;">وضعیت ثبت‌نام: رد شده</h2>
-                    <p>متاسفانه ثبت‌نام شما در این رویداد تایید نشده است. این ممکن است به دلیل اطلاعات ناقص یا نادرست پرداخت باشد.</p>
-                    <p>جهت پیگیری و رفع مشکل، لطفاً با پشتیبانی تماس بگیرید.</p>
+                    <p>متاسفانه ثبت‌نام شما تایید نشده است. این معمولاً به دلیل اطلاعات ناقص یا نادرست در بخش پرداخت (مانند ۴ رقم آخر کارت یا زمان واریز) است.</p>
+                    <p style="margin-top: 1rem;"><strong>اطلاعات ثبت شده شما:</strong></p>
+                    <div class="registration-status-details">
+                        <div class="info-row"><span>نام:</span><strong>${existingRegistration.full_name}</strong></div>
+                        <div class="info-row"><span>کد دانشجویی:</span><strong>${existingRegistration.student_id}</strong></div>
+                        ${paymentInfoHTML}
+                    </div>
+                    <p style="margin-top: 1rem;">شما می‌توانید اطلاعات خود را ویرایش کرده و مجدداً برای بررسی ارسال کنید یا با پشتیبانی تماس بگیرید.</p>
                     
                     <div class="form-actions" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                        <button id="close-rejected-modal" class="btn btn-secondary" style="flex-grow: 1;">بستن</button>
-                        <a href="tel:09339170324" class="btn btn-primary" style="flex-grow: 1;">تماس با پشتیبانی</a>
+                        <a href="tel:09339170324" class="btn btn-secondary" style="flex-grow: 1;">تماس با پشتیبانی</a>
+                        <button id="edit-rejected-registration-btn" class="btn btn-primary" style="flex-grow: 1;">ویرایش اطلاعات</button>
                     </div>
                 </div>`;
             genericModalContent.innerHTML = rejectedModalHtml;
 
-            // افزودن رویداد برای دکمه بستن
-            genericModalContent.querySelector('#close-rejected-modal').addEventListener('click', () => {
-                genericModal.classList.remove('is-open');
-                dom.body.classList.remove('modal-is-open');
-            });
-            return; // اجرای تابع متوقف می‌شود و فرم جدید نمایش داده نمی‌شود
+            const editBtn = genericModalContent.querySelector('#edit-rejected-registration-btn');
+            if (editBtn) {
+                editBtn.addEventListener('click', async () => {
+                    if (confirm("برای ویرایش، اطلاعات قبلی شما حذف و فرم ثبت‌نام مجدداً نمایش داده می‌شود. آیا ادامه می‌دهید؟")) {
+                        editBtn.disabled = true;
+                        editBtn.textContent = 'لطفا صبر کنید...';
+                        const { success } = await deleteEventRegistration(existingRegistration.id);
+                        if (success) {
+                            await showEventRegistrationModal(eventId); // فرم ثبت‌نام جدید را نمایش می‌دهد
+                        } else {
+                            alert('خطا در پردازش درخواست. لطفاً دوباره تلاش کنید.');
+                            editBtn.disabled = false;
+                            editBtn.textContent = 'ویرایش اطلاعات';
+                        }
+                    }
+                });
+            }
+            return;
         }
-        // *** END: پایان تغییر اصلی ***
+        // *** END: پایان تغییرات ***
 
         // حالت 2: ثبت‌نام تایید شده یا در انتظار است
         const statusText = existingRegistration.status === 'pending' ? 'در انتظار تایید' : 'تایید شده';
         const statusClass = existingRegistration.status === 'pending' ? 'status-pending' : 'status-confirmed';
-        
-        let paymentInfoHTML = '';
-        if (existingRegistration.card_last_four_digits) {
-            paymentInfoHTML = `<div class="info-row"><span>چهار رقم آخر کارت:</span><strong>${existingRegistration.card_last_four_digits}</strong></div><div class="info-row"><span>ساعت واریز:</span><strong>${existingRegistration.transaction_time}</strong></div>`;
-        }
 
         const editButtonHTML = existingRegistration.status === 'pending' 
             ? `<button id="edit-registration-btn" class="btn btn-primary" style="flex-grow: 1;">ویرایش اطلاعات</button>` 
