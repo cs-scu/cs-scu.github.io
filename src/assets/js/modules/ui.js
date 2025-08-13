@@ -646,7 +646,11 @@ export const showEventModal = async (path) => {
     
     const now = new Date();
     const regStartDate = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
+
     const regEndDate = event.registrationEndDate ? new Date(event.registrationEndDate) : null;
+    if (regEndDate) {
+        regEndDate.setHours(23, 59, 59, 999); // تاریخ پایان را به انتهای روز منتقل می‌کنیم
+    }
 
     let regStatus = 'open';
     if (regStartDate && now < regStartDate) {
@@ -657,17 +661,13 @@ export const showEventModal = async (path) => {
 
     const capacityHTML = `
         <span class="event-meta-item">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             ظرفیت باقی‌مانده: ${isFull ? 'تکمیل' : remainingCapacity}
         </span>`;
 
     const costHTML = event.cost ? `
         <span class="event-meta-item">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
-                <path d="M12 18V6"></path>
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
             ${event.cost}
         </span>` : '';
 
@@ -675,13 +675,9 @@ export const showEventModal = async (path) => {
     const isPastEvent = new Date(event.endDate) < new Date();
     const userHasRegistered = state.userRegistrations.has(event.id);
 
-    // *** START: منطق جدید و یکپارچه برای دکمه اصلی ***
     let mainButtonHTML = '';
     if (userHasRegistered) {
-        mainButtonHTML = `
-            <button class="btn btn-secondary btn-event-register" data-event-id="${event.id}" style="flex-grow: 2;">
-                پیگیری ثبت‌نام
-            </button>`;
+        mainButtonHTML = `<button class="btn btn-secondary btn-event-register" data-event-id="${event.id}" style="flex-grow: 2;">پیگیری ثبت‌نام</button>`;
     } else {
         let buttonText = 'ثبت‌نام در این رویداد';
         let buttonDisabled = '';
@@ -699,10 +695,7 @@ export const showEventModal = async (path) => {
             buttonText = 'ثبت‌نام بسته شد';
             buttonDisabled = 'disabled';
         }
-        mainButtonHTML = `
-            <button class="btn btn-primary btn-event-register" data-event-id="${event.id}" style="flex-grow: 2;" ${buttonDisabled}>
-                ${buttonText}
-            </button>`;
+        mainButtonHTML = `<button class="btn btn-primary btn-event-register" data-event-id="${event.id}" style="flex-grow: 2;" ${buttonDisabled}>${buttonText}</button>`;
     }
     // *** END: پایان منطق جدید ***
 

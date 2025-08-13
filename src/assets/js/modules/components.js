@@ -322,8 +322,9 @@ export const renderEventsPage = () => {
     };
     
     // تابع اصلی برای ساخت و نمایش کارت‌های رویداد در یک گرید مشخص
-const populateGrid = (grid, events, isPast = false) => {
-    grid.innerHTML = ''; // پاک کردن محتوای قبلی
+// START: این تابع را به طور کامل جایگزین کنید
+    const populateGrid = (grid, events, isPast = false) => {
+    grid.innerHTML = '';
     if (events.length === 0) {
         grid.innerHTML = '<p class="no-events-message">در حال حاضر رویدادی در این دسته وجود ندارد.</p>';
         return;
@@ -370,13 +371,17 @@ const populateGrid = (grid, events, isPast = false) => {
 
         const now = new Date();
         const regStartDate = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
+        
+        // *** START: تغییر اصلی اینجاست ***
         const regEndDate = event.registrationEndDate ? new Date(event.registrationEndDate) : null;
+        if (regEndDate) {
+            regEndDate.setHours(23, 59, 59, 999); // تاریخ پایان را به انتهای روز منتقل می‌کنیم
+        }
+        // *** END: پایان تغییر ***
 
         let regStatus = 'open';
         if (regStartDate && now < regStartDate) {
             regStatus = 'not_started';
-        } else if (regEndDate && now < regEndDate) {
-            regStatus = 'open';
         } else if (regEndDate && now > regEndDate) {
             regStatus = 'ended';
         }
@@ -467,6 +472,7 @@ const populateGrid = (grid, events, isPast = false) => {
         grid.appendChild(cardElement);
     });
 };
+// END: پایان تابع جایگزین شده
 
 
 
