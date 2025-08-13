@@ -4242,3 +4242,13 @@ body.light-theme .image-upload-controls {
     line-height: 1.2;
     order: 2;                /* متن شمارش معکوس همیشه دوم (زیر دکمه‌ها) است */
 }
+
+/* ================== ADMIN PANEL BUTTON FIX ================== */
+.actions-cell .btn-sm-text {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap; /* جلوگیری از شکستن متن دکمه */
+}

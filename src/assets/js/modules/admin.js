@@ -130,7 +130,7 @@ const renderEventsList = (events) => {
 };
 
 
-// START: تابع جدید برای ساخت یک سطر از جدول
+// START: این تابع را به طور کامل جایگزین کنید
 const renderRegistrationRowHTML = (reg) => {
     const getStatusBadge = (status) => {
         switch (status) {
@@ -156,12 +156,12 @@ const renderRegistrationRowHTML = (reg) => {
                 <button class="btn btn-success btn-sm update-status-btn" data-status="confirmed" title="تایید ثبت‌نام">✔️</button>
                 <button class="btn btn-danger btn-sm update-status-btn" data-status="rejected" title="رد ثبت‌نام">✖️</button>
             ` : `
-                <button class="btn btn-secondary btn-sm update-status-btn" data-status="pending" title="بازگردانی به حالت انتظار">🔄</button>
-            `}
+                <button class="btn btn-secondary btn-sm-text update-status-btn" data-status="pending" title="بازگردانی به حالت انتظار">بازگردانی</button>
+                `}
         </td>
     `;
 };
-// END: تابع جدید
+// END: پایان تابع جایگزین شده
 
 // START: تابع renderRegistrationsList را با این نسخه جایگزین کنید
 const renderRegistrationsList = (registrations) => {
