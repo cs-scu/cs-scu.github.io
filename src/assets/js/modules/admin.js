@@ -130,16 +130,8 @@ const renderEventsList = (events) => {
 };
 
 
-// START: این تابع را به طور کامل جایگزین کنید
-const renderRegistrationsList = (registrations) => {
-    const container = document.getElementById('registrations-admin-list');
-    if (!container) return;
-
-    if (!registrations || registrations.length === 0) {
-        container.innerHTML = '<p style="text-align: center; opacity: 0.8; padding: 2rem;">هیچ ثبت‌نامی برای نمایش یافت نشد.</p>';
-        return;
-    }
-
+// START: تابع جدید برای ساخت یک سطر از جدول
+const renderRegistrationRowHTML = (reg) => {
     const getStatusBadge = (status) => {
         switch (status) {
             case 'confirmed': return `<span class="tag" style="background-color: #28a745; color: white;">تایید شده</span>`;
@@ -148,6 +140,38 @@ const renderRegistrationsList = (registrations) => {
             default: return `<span class="tag">${status}</span>`;
         }
     };
+
+    const eventTitle = reg.events ? reg.events.title : 'رویداد حذف شده';
+    
+    // محتوای داخل تگ <tr> را برمی‌گرداند
+    return `
+        <td style="white-space: nowrap;">${reg.full_name || '---'}</td>
+        <td>${eventTitle}</td>
+        <td>${reg.student_id || '---'}</td>
+        <td>${reg.card_last_four_digits || '---'}</td>
+        <td>${reg.transaction_time || '---'}</td>
+        <td class="status-cell">${getStatusBadge(reg.status)}</td>
+        <td class="actions-cell">
+            ${reg.status === 'pending' ? `
+                <button class="btn btn-success btn-sm update-status-btn" data-status="confirmed" title="تایید ثبت‌نام">✔️</button>
+                <button class="btn btn-danger btn-sm update-status-btn" data-status="rejected" title="رد ثبت‌نام">✖️</button>
+            ` : `
+                <button class="btn btn-secondary btn-sm update-status-btn" data-status="pending" title="بازگردانی به حالت انتظار">🔄</button>
+            `}
+        </td>
+    `;
+};
+// END: تابع جدید
+
+// START: تابع renderRegistrationsList را با این نسخه جایگزین کنید
+const renderRegistrationsList = (registrations) => {
+    const container = document.getElementById('registrations-admin-list');
+    if (!container) return;
+
+    if (!registrations || registrations.length === 0) {
+        container.innerHTML = '<p style="text-align: center; opacity: 0.8; padding: 2rem;">هیچ ثبت‌نامی برای نمایش یافت نشد.</p>';
+        return;
+    }
 
     container.innerHTML = `
         <div class="custom-table-wrapper">
@@ -165,45 +189,20 @@ const renderRegistrationsList = (registrations) => {
                 </thead>
                 <tbody>
                     ${registrations.map(reg => {
-                        // *** START: تغییر اصلی اینجاست ***
-                        // ابتدا بررسی می‌کنیم reg.events وجود دارد یا خیر
                         const eventTitle = reg.events ? reg.events.title : 'رویداد حذف شده';
-                        // *** END: پایان تغییر اصلی ***
-
-                        const searchTerms = `
-                            ${(reg.full_name || '').toLowerCase()} 
-                            ${eventTitle.toLowerCase()} 
-                            ${(reg.email || '').toLowerCase()} 
-                            ${reg.student_id || ''}
-                            ${reg.card_last_four_digits || ''}
-                            ${reg.transaction_time || ''}
-                        `;
-
-                        return `
-                        <tr data-registration-id="${reg.id}" data-status="${reg.status}" data-search-terms="${searchTerms.trim()}">
-                            <td style="white-space: nowrap;">${reg.full_name || '---'}</td>
-                            <td>${eventTitle}</td>
-                            <td>${reg.student_id || '---'}</td>
-                            <td>${reg.card_last_four_digits || '---'}</td>
-                            <td>${reg.transaction_time || '---'}</td>
-                            <td class="status-cell">${getStatusBadge(reg.status)}</td>
-                            <td class="actions-cell">
-                                ${reg.status === 'pending' ? `
-                                    <button class="btn btn-success btn-sm update-status-btn" data-status="confirmed" title="تایید ثبت‌نام">✔️</button>
-                                    <button class="btn btn-danger btn-sm update-status-btn" data-status="rejected" title="رد ثبت‌نام">✖️</button>
-                                ` : `
-                                    <button class="btn btn-secondary btn-sm update-status-btn" data-status="pending" title="بازگردانی به حالت انتظار">🔄</button>
-                                `}
-                            </td>
-                        </tr>
-                    `}).join('')}
+                        const searchTerms = `${(reg.full_name || '').toLowerCase()} ${eventTitle.toLowerCase()} ${(reg.email || '').toLowerCase()} ${reg.student_id || ''} ${reg.card_last_four_digits || ''} ${reg.transaction_time || ''}`;
+                        
+                        return `<tr data-registration-id="${reg.id}" data-status="${reg.status}" data-search-terms="${searchTerms.trim()}">
+                                    ${renderRegistrationRowHTML(reg)}
+                                </tr>`;
+                    }).join('')}
                 </tbody>
             </table>
         </div>`;
 };
-// END: پایان تابع جایگزین شده
+// END: پایان تابع renderRegistrationsList
 
-// START: این تابع را به طور کامل جایگزین کنید
+// START: تابع initializeRegistrationsModule را با این نسخه جایگزین کنید
 const initializeRegistrationsModule = () => {
     const container = document.getElementById('admin-main-content');
     if (!container) return;
@@ -212,7 +211,6 @@ const initializeRegistrationsModule = () => {
     const searchInput = container.querySelector('#registration-search');
     const statusFilter = container.querySelector('#status-filter');
 
-    // تابع فیلتر و جستجو بدون تغییر باقی می‌ماند
     const filterAndRender = () => {
         const searchTerm = (searchInput.value || '').toLowerCase().trim();
         const status = statusFilter.value;
@@ -220,8 +218,6 @@ const initializeRegistrationsModule = () => {
 
         allRows.forEach(row => {
             const isSearchMatch = searchTerm === '' || (row.dataset.searchTerms || '').includes(searchTerm);
-            
-            // برای فیلتر وضعیت، به جای متن، مقدار وضعیت را از یک دیتا اتریبیوت می‌خوانیم
             const currentStatus = row.dataset.status;
             const isStatusMatch = status === 'all' || currentStatus === status;
             
@@ -232,7 +228,6 @@ const initializeRegistrationsModule = () => {
     if (searchInput) searchInput.addEventListener('input', filterAndRender);
     if (statusFilter) statusFilter.addEventListener('change', filterAndRender);
 
-    // بخش مدیریت کلیک که اصلاح شده است
     if (listContainer) {
         listContainer.addEventListener('click', async (e) => {
             const button = e.target.closest('.update-status-btn');
@@ -242,49 +237,31 @@ const initializeRegistrationsModule = () => {
             const registrationId = row.dataset.registrationId;
             const newStatus = button.dataset.status;
             
-            // غیرفعال کردن همه دکمه‌های همان سطر
             row.querySelectorAll('.update-status-btn').forEach(btn => {
                 btn.innerHTML = '...';
                 btn.disabled = true;
             });
 
             try {
-                // *** START: تغییر اصلی اینجاست ***
                 const { data: updatedRegistration, error } = await updateRegistrationStatus(registrationId, newStatus);
-
-                // اگر سرور خطا برگرداند، آن را نمایش می‌دهیم
-                if (error) {
-                    throw error;
-                }
+                if (error) throw error;
+                if (!updatedRegistration) throw new Error("No data returned from server after update.");
                 
-                // اگر به هر دلیلی داده‌ای برنگشت، آن را به عنوان خطا مدیریت می‌کنیم
-                if (!updatedRegistration) {
-                    throw new Error("داده‌ای از سرور پس از آپدیت دریافت نشد.");
-                }
-                
-                // حالا که مطمئن هستیم داده معتبر است، UI را آپدیت می‌کنیم
-                const newRowContent = renderRegistrationsList([updatedRegistration]);
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = newRowContent;
-                const newRowHTML = tempDiv.querySelector('tbody tr').innerHTML;
-                
-                // محتوای سطر را با اطلاعات جدید جایگزین می‌کنیم
-                row.innerHTML = newRowHTML;
-                row.dataset.status = newStatus; // دیتا اتریبیوت وضعیت را هم آپدیت می‌کنیم
-
-                // *** END: پایان تغییر اصلی ***
+                // *** تغییر اصلی اینجاست: استفاده از تابع جدید ***
+                row.innerHTML = renderRegistrationRowHTML(updatedRegistration);
+                row.dataset.status = newStatus; // آپدیت دیتا اتریبیوت برای فیلتر
 
             } catch (error) {
                 console.error("Update Error:", error);
                 alert('خطا در به‌روزرسانی وضعیت. لطفاً کنسول را بررسی کنید.');
-                // در صورت خطا، دکمه‌ها را به حالت اولیه برمی‌گردانیم (این بخش حذف شده تا از پیچیدگی جلوگیری شود)
-                // برای سادگی، کاربر می‌تواند صفحه را رفرش کند تا دکمه‌ها به حالت اول برگردند.
+                // در صورت خطا، بهترین کار بارگذاری مجدد لیست است
+                const refreshedData = await loadRegistrations();
+                renderRegistrationsList(refreshedData);
             }
         });
     }
 };
-// END: پایان تابع جایگزین شده
-
+// END: پایان تابع initializeRegistrationsModule
 
 // --- Event Handler Functions ---
 const initializeGlobalRefreshButton = () => {
