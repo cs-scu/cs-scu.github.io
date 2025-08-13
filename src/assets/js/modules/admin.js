@@ -130,7 +130,6 @@ const renderEventsList = (events) => {
 };
 
 
-// START: این تابع را به طور کامل جایگزین کنید
 const renderRegistrationRowHTML = (reg) => {
     const getStatusBadge = (status) => {
         switch (status) {
@@ -161,9 +160,7 @@ const renderRegistrationRowHTML = (reg) => {
         </td>
     `;
 };
-// END: پایان تابع جایگزین شده
 
-// START: تابع renderRegistrationsList را با این نسخه جایگزین کنید
 const renderRegistrationsList = (registrations) => {
     const container = document.getElementById('registrations-admin-list');
     if (!container) return;
@@ -200,9 +197,7 @@ const renderRegistrationsList = (registrations) => {
             </table>
         </div>`;
 };
-// END: پایان تابع renderRegistrationsList
 
-// START: تابع initializeRegistrationsModule را با این نسخه جایگزین کنید
 const initializeRegistrationsModule = () => {
     const container = document.getElementById('admin-main-content');
     if (!container) return;
@@ -237,6 +232,12 @@ const initializeRegistrationsModule = () => {
             const registrationId = row.dataset.registrationId;
             const newStatus = button.dataset.status;
             
+            // *** START: تغییر اصلی اینجاست ***
+            // عنوان رویداد را قبل از هر کاری از سطر فعلی می‌خوانیم و ذخیره می‌کنیم
+            const eventTitleCell = row.querySelector('td:nth-child(2)');
+            const preservedEventTitle = eventTitleCell ? eventTitleCell.textContent : 'رویداد حذف شده';
+            // *** END: پایان تغییر اصلی ***
+
             row.querySelectorAll('.update-status-btn').forEach(btn => {
                 btn.innerHTML = '...';
                 btn.disabled = true;
@@ -247,9 +248,11 @@ const initializeRegistrationsModule = () => {
                 if (error) throw error;
                 if (!updatedRegistration) throw new Error("No data returned from server after update.");
                 
-                // *** تغییر اصلی اینجاست: استفاده از تابع جدید ***
+                // اطلاعات رویداد را به صورت دستی به آبجکت برگشتی اضافه می‌کنیم
+                updatedRegistration.events = { title: preservedEventTitle };
+
                 row.innerHTML = renderRegistrationRowHTML(updatedRegistration);
-                row.dataset.status = newStatus; // آپدیت دیتا اتریبیوت برای فیلتر
+                row.dataset.status = newStatus;
 
             } catch (error) {
                 console.error("Update Error:", error);
@@ -261,9 +264,7 @@ const initializeRegistrationsModule = () => {
         });
     }
 };
-// END: پایان تابع initializeRegistrationsModule
 
-// --- Event Handler Functions ---
 const initializeGlobalRefreshButton = () => {
     const refreshBtn = document.getElementById('admin-global-refresh-btn');
     if (!refreshBtn) return;
