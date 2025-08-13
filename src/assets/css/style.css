@@ -4215,3 +4215,39 @@ body.light-theme .image-upload-controls {
     font-family: 'Vazirmatn', sans-serif !important;
     z-index: 1056 !important; /* عددی بالاتر از z-index مودال برای نمایش روی آن */
 }
+
+/* ================== FINAL Event Card Actions Layout (Grid) ================== */
+
+.event-actions {
+    display: grid;
+    grid-template-columns: 1fr auto; /* ستون اول بزرگ، ستون دوم خودکار */
+    grid-template-rows: auto auto;    /* دو ردیف با ارتفاع خودکار */
+    gap: 0.5rem 0.75rem;          /* فاصله عمودی و افقی */
+    align-items: center;             /* تراز عمودی آیتم‌ها */
+    margin-top: 1.25rem;
+}
+
+/* دکمه اصلی ثبت‌نام در جایگاه خود قرار می‌گیرد */
+.event-actions .btn-primary {
+    grid-column: 1 / 2; /* این دکمه در ستون اول است */
+    grid-row: 1 / 2;    /* و در ردیف اول */
+    width: auto;        /* عرض دکمه به اندازه محتوا */
+    justify-self: center; /* <<-- کلید اصلی: دکمه در مرکز ستون خود قرار می‌گیرد */
+}
+
+/* متن شمارش معکوس زیر دکمه اصلی */
+.countdown-text {
+    grid-column: 1 / 2; /* این متن هم در ستون اول است */
+    grid-row: 2 / 3;    /* اما در ردیف دوم */
+    font-size: 0.75rem;
+    opacity: 0.8;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* دکمه برنامه زمانی در ستون و ردیف خود */
+.event-actions .btn-secondary {
+    grid-column: 2 / 3; /* ستون دوم */
+    grid-row: 1 / 3;    /* هر دو ردیف را اشغال می‌کند تا در مرکز قرار گیرد */
+    align-self: center; /* تراز عمودی در مرکز */
+}

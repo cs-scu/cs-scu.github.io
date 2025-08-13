@@ -273,6 +273,7 @@ export const renderEventsPage = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // فیلتر کردن رویدادها به دو دسته پیش رو و گذشته و مرتب‌سازی آن‌ها
     const upcomingEvents = state.allEvents.filter(event => new Date(event.endDate) >= today)
         .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
     const pastEvents = state.allEvents.filter(event => new Date(event.endDate) < today)
@@ -284,6 +285,7 @@ export const renderEventsPage = () => {
 
     if (!upcomingGrid || !pastGrid || !template) return;
     
+    // تابع برای جابجایی هایلایت زیر تب‌های فعال
     const moveHighlighter = (activeTab) => {
         const highlighter = document.querySelector('.tabs-container .highlighter');
         if (!highlighter || !activeTab) return;
@@ -291,8 +293,9 @@ export const renderEventsPage = () => {
         highlighter.style.transform = `translateX(${activeTab.offsetLeft}px)`;
     };
     
+    // تابع اصلی برای ساخت و نمایش کارت‌های رویداد در یک گرید مشخص
     const populateGrid = (grid, events, isPast = false) => {
-        grid.innerHTML = '';
+        grid.innerHTML = ''; // پاک کردن محتوای قبلی
         if (events.length === 0) {
             grid.innerHTML = '<p class="no-events-message">در حال حاضر رویدادی در این دسته وجود ندارد.</p>';
             return;
@@ -389,6 +392,43 @@ export const renderEventsPage = () => {
             const actionsContainer = card.querySelector('.event-actions');
             actionsContainer.innerHTML = '';
 
+            // <<-- START: NEW LOGIC FOR MAIN ACTION -->>
+            // Note: The mainActionWrapper is no longer needed with the Grid layout
+            let mainButton;
+            if (event.registrationLink) {
+                mainButton = document.createElement('button');
+                mainButton.className = 'btn btn-primary btn-event-register';
+                mainButton.dataset.eventId = event.id;
+                
+                if (isPast) {
+                    mainButton.textContent = 'پایان یافته';
+                    mainButton.disabled = true;
+                } else if (isFull) {
+                    mainButton.textContent = 'ظرفیت تکمیل';
+                    mainButton.disabled = true;
+                } else if (regStatus === 'not_started') {
+                    mainButton.textContent = 'ثبت‌نام به‌زودی';
+                    mainButton.disabled = true;
+                    // The countdown text is added as a separate element to the grid
+                    const countdownText = document.createElement('small');
+                    countdownText.className = 'countdown-text';
+                    countdownText.textContent = getTimeRemainingString(regStartDate);
+                    actionsContainer.appendChild(countdownText);
+                } else if (regStatus === 'ended') {
+                    mainButton.textContent = 'ثبت‌نام بسته شد';
+                    mainButton.disabled = true;
+                } else {
+                    mainButton.textContent = 'ثبت‌نام';
+                }
+            } else {
+                mainButton = document.createElement('a');
+                mainButton.href = event.detailPage;
+                mainButton.className = 'btn btn-secondary';
+                mainButton.textContent = 'اطلاعات بیشتر';
+                if (isPast) mainButton.classList.add('disabled');
+            }
+            actionsContainer.appendChild(mainButton);
+            
             let scheduleData = [];
             if (event.schedule) {
                 try {
@@ -405,45 +445,7 @@ export const renderEventsPage = () => {
                 if (isPast) scheduleButton.disabled = true;
                 actionsContainer.appendChild(scheduleButton);
             }
-            
-            const mainActionWrapper = document.createElement('div');
-            mainActionWrapper.className = 'main-action-wrapper';
-
-            let mainButton;
-            if (event.registrationLink) {
-                mainButton = document.createElement('button');
-                mainButton.className = 'btn btn-primary btn-event-register';
-                mainButton.dataset.eventId = event.id;
-                
-                if (isPast) {
-                    mainButton.textContent = 'پایان یافته';
-                    mainButton.disabled = true;
-                } else if (isFull) {
-                    mainButton.textContent = 'ظرفیت تکمیل';
-                    mainButton.disabled = true;
-                } else if (regStatus === 'not_started') {
-                    mainButton.textContent = 'ثبت‌نام به‌زودی';
-                    mainButton.disabled = true;
-                    const countdownText = document.createElement('small');
-                    countdownText.className = 'countdown-text';
-                    countdownText.textContent = getTimeRemainingString(regStartDate);
-                    mainActionWrapper.appendChild(countdownText);
-                } else if (regStatus === 'ended') {
-                    mainButton.textContent = 'ثبت‌نام بسته شد';
-                    mainButton.disabled = true;
-                } else {
-                    mainButton.textContent = 'ثبت‌نام';
-                }
-            } else {
-                mainButton = document.createElement('a');
-                mainButton.href = event.detailPage;
-                mainButton.className = 'btn btn-secondary';
-                mainButton.textContent = 'اطلاعات بیشتر';
-                if (isPast) mainButton.classList.add('disabled');
-            }
-
-            mainActionWrapper.prepend(mainButton);
-            actionsContainer.appendChild(mainActionWrapper);
+            // <<-- END: NEW LOGIC FOR MAIN ACTION -->>
     
             grid.appendChild(cardElement);
         });
