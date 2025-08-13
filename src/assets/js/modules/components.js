@@ -294,7 +294,7 @@ const getRegistrationEndTimeString = (targetDate) => {
         return `کمتر از ${toPersianNumber(hours + 1)} ساعت تا پایان مهلت`;
     }
     // اگر کمتر از یک ساعت باقی مانده باشد
-    return 'مهلت ثبت‌نام امروز به پایان می‌رسد';
+    return 'امروز آخرین فرصت ثبت‌نام';
 };
 
 export const renderEventsPage = () => {
