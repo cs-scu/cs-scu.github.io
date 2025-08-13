@@ -508,7 +508,6 @@ const initializeEventsModule = async () => {
     let currentImageUrl = '';
     let dateRangePickerInstance = initializeDatepicker(); 
 
-    // <<-- START: NEW DATEPICKER INSTANCE FOR REGISTRATION RANGE -->>
     const regDateRangeInput = document.getElementById('registration-date-range');
     let regDateRangePicker = null;
 
@@ -521,7 +520,6 @@ const initializeEventsModule = async () => {
             dateFormat: "Y-m-d" 
         });
     }
-    // <<-- END: NEW DATEPICKER INSTANCE -->>
 
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
@@ -750,17 +748,18 @@ const initializeEventsModule = async () => {
     setupToggleSwitch(costInput, costToggle, 'رایگان');
     setupToggleSwitch(capacityInput, capacityToggle, '');
     
+    // <<-- START: CHANGE -->>
     if(detailPageInput) {
         detailPageInput.addEventListener('blur', () => {
-            if (hiddenIdInput.value) return; 
+            // Sanitize the input value by converting to lowercase, replacing spaces with hyphens,
+            // and removing invalid characters. This happens whether it's a new or existing event.
             let slug = detailPageInput.value.trim();
-            if (slug && !slug.startsWith('#/events/')) {
-                slug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-                const maxId = state.allEvents.reduce((max, event) => Math.max(max, event.id), 0);
-                detailPageInput.value = `#/events/${maxId + 1}-${slug}`;
-            }
+            // Allow Persian characters in the slug
+            slug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-_\u0600-\u06FF]/g, '');
+            detailPageInput.value = slug;
         });
     }
+    // <<-- END: CHANGE -->>
 
     const safeJsonStringify = (obj) => {
         try { return obj ? JSON.stringify(obj, null, 2) : ''; } catch (e) { return typeof obj === 'string' ? obj : ''; }
@@ -797,7 +796,7 @@ const initializeEventsModule = async () => {
         submitBtn.textContent = isEditing ? 'در حال آپلود و ویرایش...' : 'در حال آپلود و افزودن...';
 
         try {
-            const getEventDataFromForm = () => {
+            const getEventDataFromForm = (isEditing) => {
                 const [eventStartDate, eventEndDate] = dateRangePickerInstance.selectedDates;
                 const [regStartDate, regEndDate] = regDateRangePicker.selectedDates;
                 
@@ -834,6 +833,14 @@ const initializeEventsModule = async () => {
                 Object.keys(contactData).forEach(key => {
                     if (!contactData[key]) delete contactData[key];
                 });
+                
+                // <<-- START: CHANGE -->>
+                let detailPageValue = formData.get('detailPage').trim();
+                // Construct the full path ONLY if it's a new event and not already a full path.
+                if (!isEditing && detailPageValue && !detailPageValue.startsWith('#/events/')) {
+                    detailPageValue = `#/events/${detailPageValue}`;
+                }
+                // <<-- END: CHANGE -->>
 
                 return {
                     title: formData.get('title'),
@@ -846,7 +853,7 @@ const initializeEventsModule = async () => {
                     endDate: formatForSupabase(eventEndDate),
                     registrationStartDate: formatForSupabase(regStartDate),
                     registrationEndDate: formatForSupabase(regEndDate),
-                    detailPage: formData.get('detailPage') || '',
+                    detailPage: detailPageValue,
                     tag_ids: selectedTagIds,
                     content: parseJsonField('content'),
                     schedule: parseJsonField('schedule'),
@@ -880,7 +887,7 @@ const initializeEventsModule = async () => {
                 return finalImageUrl;
             };
 
-            const eventData = getEventDataFromForm();
+            const eventData = getEventDataFromForm(isEditing);
             const newSlug = eventData.detailPage.split('/').pop();
             eventData.image = await handleImageManagement(newSlug);
             
@@ -935,7 +942,15 @@ const initializeEventsModule = async () => {
                 document.getElementById('event-title').value = eventToEdit.title || '';
                 document.getElementById('event-summary').value = eventToEdit.summary || '';
                 document.getElementById('event-display-date').value = eventToEdit.displayDate || '';
-                document.getElementById('event-detail-page').value = eventToEdit.detailPage || '';
+                
+                // <<-- START: CHANGE -->>
+                // When editing, show only the slug part, not the full path
+                let slugToDisplay = eventToEdit.detailPage || '';
+                if (slugToDisplay.startsWith('#/events/')) {
+                    slugToDisplay = slugToDisplay.substring(9); // Remove '#/events/'
+                }
+                document.getElementById('event-detail-page').value = slugToDisplay;
+                // <<-- END: CHANGE -->>
                 
                 locationInput.value = eventToEdit.location || '';
                 locationToggle.checked = eventToEdit.location === 'آنلاین';
