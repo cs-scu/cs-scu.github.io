@@ -542,12 +542,10 @@ const initializeEventsModule = async () => {
     const fileNameDisplay = imageUploadControls ? imageUploadControls.querySelector('.file-name-display') : null;
     const fileClearBtn = imageUploadControls ? imageUploadControls.querySelector('.file-clear-btn') : null;
 
-    // <<-- START: NEW HELPER FUNCTION FOR PERSIAN NUMBERS -->>
     const toPersianNumber = (n) => {
         const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
         return String(n).replace(/[0-9]/g, (digit) => persianNumbers[digit]);
     };
-    // <<-- END: NEW HELPER FUNCTION -->>
     
     const togglePaymentFields = () => {
         if (!paymentInfoSection || !costToggle) return;
@@ -763,7 +761,6 @@ const initializeEventsModule = async () => {
         });
     }
 
-    // <<-- START: NEW LOGIC FOR COST INPUT FORMATTING -->>
     if (costInput) {
         costInput.addEventListener('input', () => {
             let value = costInput.value.replace(/[^۰-۹0-9]/g, '');
@@ -786,7 +783,6 @@ const initializeEventsModule = async () => {
             costInput.value = costInput.value.replace(/ تومان/g, '').replace(/,/g, '');
         });
     }
-    // <<-- END: NEW LOGIC FOR COST INPUT FORMATTING -->>
 
     const safeJsonStringify = (obj) => {
         try { return obj ? JSON.stringify(obj, null, 2) : ''; } catch (e) { return typeof obj === 'string' ? obj : ''; }
@@ -825,7 +821,7 @@ const initializeEventsModule = async () => {
         try {
             const getEventDataFromForm = (isEditing) => {
                 const [eventStartDate, eventEndDate] = dateRangePickerInstance.selectedDates;
-                const [regStartDate, regEndDate] = regDateRangePicker.selectedDates;
+                const [regStartDate, regEndDate] = regDateRangePicker ? regDateRangePicker.selectedDates : [];
                 
                 if (!eventStartDate || !eventEndDate) {
                     throw new Error("لطفاً بازه تاریخ اصلی رویداد را مشخص کنید.");
@@ -955,13 +951,16 @@ const initializeEventsModule = async () => {
                 updateFileNameDisplay(existingFileName);
                 imageUploadInput.required = false;
 
+                // <<-- START: CHANGE -->>
+                // Set the date for the flatpickr instances correctly
                 if (eventToEdit.startDate && eventToEdit.endDate && dateRangePickerInstance) {
-                    dateRangePickerInstance.setDate([eventToEdit.startDate, eventToEdit.endDate]);
+                    dateRangePickerInstance.setDate([eventToEdit.startDate, eventToEdit.endDate], true);
                 }
-
+                
                 if (eventToEdit.registrationStartDate && eventToEdit.registrationEndDate && regDateRangePicker) {
-                    regDateRangePicker.setDate([eventToEdit.registrationStartDate, eventToEdit.registrationEndDate]);
+                    regDateRangePicker.setDate([eventToEdit.registrationStartDate, eventToEdit.registrationEndDate], true);
                 }
+                // <<-- END: CHANGE -->>
 
                 document.getElementById('event-title').value = eventToEdit.title || '';
                 document.getElementById('event-summary').value = eventToEdit.summary || '';
