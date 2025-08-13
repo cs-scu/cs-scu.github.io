@@ -1,6 +1,6 @@
 // js/main.js
 import { state, dom } from './modules/state.js';
-import { loadMembers, getSession, onAuthStateChange, signOut, getProfile , loadTags } from './modules/api.js';
+import { loadMembers, getSession, onAuthStateChange, signOut, getProfile , loadTags ,getUserRegistrations} from './modules/api.js';
 import { initializeTheme } from './modules/theme.js';
 import { initializeGlobalUI, updateUserUI } from './modules/ui.js';
 import { initializeRouter } from './modules/router.js';
