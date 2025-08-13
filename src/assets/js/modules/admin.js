@@ -508,28 +508,20 @@ const initializeEventsModule = async () => {
     let currentImageUrl = '';
     let dateRangePickerInstance = initializeDatepicker(); 
 
-    // <<-- START: NEW DATEPICKER INSTANCES FOR REGISTRATION DATES -->>
-    const regStartDateInput = document.getElementById('registration-start-date');
-    const regEndDateInput = document.getElementById('registration-end-date');
-    let regStartDatePicker, regEndDatePicker;
+    // <<-- START: NEW DATEPICKER INSTANCE FOR REGISTRATION RANGE -->>
+    const regDateRangeInput = document.getElementById('registration-date-range');
+    let regDateRangePicker = null;
 
-    if (regStartDateInput) {
-        regStartDatePicker = flatpickr(regStartDateInput, { 
+    if (regDateRangeInput) {
+        regDateRangePicker = flatpickr(regDateRangeInput, { 
+            mode: "range",
             locale: "fa", 
             altInput: true, 
             altFormat: "Y/m/d", 
             dateFormat: "Y-m-d" 
         });
     }
-    if (regEndDateInput) {
-        regEndDatePicker = flatpickr(regEndDateInput, { 
-            locale: "fa", 
-            altInput: true, 
-            altFormat: "Y/m/d", 
-            dateFormat: "Y-m-d" 
-        });
-    }
-    // <<-- END: NEW DATEPICKER INSTANCES -->>
+    // <<-- END: NEW DATEPICKER INSTANCE -->>
 
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
@@ -781,8 +773,7 @@ const initializeEventsModule = async () => {
         updateFileNameDisplay('');
         imageUploadInput.required = true;
         if (dateRangePickerInstance) dateRangePickerInstance.clear();
-        if (regStartDatePicker) regStartDatePicker.clear();
-        if (regEndDatePicker) regEndDatePicker.clear();
+        if (regDateRangePicker) regDateRangePicker.clear();
         formTitle.textContent = 'درج رویداد جدید';
         submitBtn.textContent = 'افزودن رویداد';
         cancelBtn.style.display = 'none';
@@ -807,12 +798,15 @@ const initializeEventsModule = async () => {
 
         try {
             const getEventDataFromForm = () => {
-                if (!dateRangePickerInstance || dateRangePickerInstance.selectedDates.length < 2) {
-                    throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
+                const [eventStartDate, eventEndDate] = dateRangePickerInstance.selectedDates;
+                const [regStartDate, regEndDate] = regDateRangePicker.selectedDates;
+                
+                if (!eventStartDate || !eventEndDate) {
+                    throw new Error("لطفاً بازه تاریخ اصلی رویداد را مشخص کنید.");
                 }
-                const [startDate, endDate] = dateRangePickerInstance.selectedDates;
 
                 const formatForSupabase = (date) => {
+                    if (!date) return null;
                     const gregorianDate = date.gregoriandate || date;
                     const y = gregorianDate.getFullYear();
                     const m = String(gregorianDate.getMonth() + 1).padStart(2, '0');
@@ -848,10 +842,10 @@ const initializeEventsModule = async () => {
                     cost: costInput.value,
                     capacity: capacityValue,
                     displayDate: formData.get('displayDate'),
-                    startDate: formatForSupabase(startDate),
-                    endDate: formatForSupabase(endDate),
-                    registrationStartDate: formData.get('registrationStartDate') || null,
-                    registrationEndDate: formData.get('registrationEndDate') || null,
+                    startDate: formatForSupabase(eventStartDate),
+                    endDate: formatForSupabase(eventEndDate),
+                    registrationStartDate: formatForSupabase(regStartDate),
+                    registrationEndDate: formatForSupabase(regEndDate),
                     detailPage: formData.get('detailPage') || '',
                     tag_ids: selectedTagIds,
                     content: parseJsonField('content'),
@@ -934,11 +928,8 @@ const initializeEventsModule = async () => {
                     dateRangePickerInstance.setDate([eventToEdit.startDate, eventToEdit.endDate]);
                 }
 
-                if (eventToEdit.registrationStartDate && regStartDatePicker) {
-                    regStartDatePicker.setDate(eventToEdit.registrationStartDate);
-                }
-                if (eventToEdit.registrationEndDate && regEndDatePicker) {
-                    regEndDatePicker.setDate(eventToEdit.registrationEndDate);
+                if (eventToEdit.registrationStartDate && eventToEdit.registrationEndDate && regDateRangePicker) {
+                    regDateRangePicker.setDate([eventToEdit.registrationStartDate, eventToEdit.registrationEndDate]);
                 }
 
                 document.getElementById('event-title').value = eventToEdit.title || '';
