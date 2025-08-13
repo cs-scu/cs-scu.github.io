@@ -997,15 +997,22 @@ const initializeEventsModule = async () => {
                 locationInput.value = eventToEdit.location || '';
                 locationToggle.checked = eventToEdit.location === 'آنلاین';
                 locationToggle.dispatchEvent(new Event('change'));
-
-                costInput.value = eventToEdit.cost || '';
-                if (eventToEdit.cost && eventToEdit.cost !== 'رایگان') {
-                    costInput.dispatchEvent(new Event('blur'));
-                }
                 
+                // <<-- START: CORRECTED LOGIC FOR COST FIELD -->>
                 costToggle.checked = eventToEdit.cost === 'رایگان';
-                costToggle.dispatchEvent(new Event('change'));
+                if (costToggle.checked) {
+                    costInput.value = 'رایگان';
+                    costInput.disabled = true;
+                } else {
+                    costInput.value = eventToEdit.cost || '';
+                    costInput.disabled = false;
+                    // Trigger blur to format the number correctly
+                    if (costInput.value) {
+                         costInput.dispatchEvent(new Event('blur'));
+                    }
+                }
                 togglePaymentFields();
+                // <<-- END: CORRECTED LOGIC FOR COST FIELD -->>
                 
                 if (eventToEdit.capacity === -1) {
                     capacityToggle.checked = true;
