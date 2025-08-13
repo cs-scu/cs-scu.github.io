@@ -645,7 +645,6 @@ export const showEventModal = async (path) => {
     const isFull = !isUnlimited && (event.capacity - event.registrations_count <= 0);
     
     const now = new Date();
-    now.setHours(0,0,0,0);
     const regStartDate = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
     const regEndDate = event.registrationEndDate ? new Date(event.registrationEndDate) : null;
 
@@ -664,7 +663,7 @@ export const showEventModal = async (path) => {
 
     const costHTML = event.cost ? `
         <span class="event-meta-item">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
                 <path d="M12 18V6"></path>
@@ -673,9 +672,17 @@ export const showEventModal = async (path) => {
         </span>` : '';
 
     let actionsHTML = '';
-    if (event.registrationLink) {
-        const isPastEvent = new Date(event.endDate) < new Date();
-        
+    const isPastEvent = new Date(event.endDate) < new Date();
+    const userHasRegistered = state.userRegistrations.has(event.id);
+
+    // *** START: منطق جدید و یکپارچه برای دکمه اصلی ***
+    let mainButtonHTML = '';
+    if (userHasRegistered) {
+        mainButtonHTML = `
+            <button class="btn btn-secondary btn-event-register" data-event-id="${event.id}" style="flex-grow: 2;">
+                پیگیری ثبت‌نام
+            </button>`;
+    } else {
         let buttonText = 'ثبت‌نام در این رویداد';
         let buttonDisabled = '';
 
@@ -692,45 +699,38 @@ export const showEventModal = async (path) => {
             buttonText = 'ثبت‌نام بسته شد';
             buttonDisabled = 'disabled';
         }
-
-        let contactInfo = null;
-        try {
-            if (event.contact_link && typeof event.contact_link === 'string') {
-                contactInfo = JSON.parse(event.contact_link);
-            } else {
-                contactInfo = event.contact_link;
-            }
-        } catch (e) { console.error("Could not parse contact info JSON:", e); }
-
-        // <<-- START: CHANGE -->>
-        // The disabled state of the contact button is now only dependent on whether the event is in the past.
-        const contactButtonDisabled = isPastEvent ? 'disabled' : '';
-        const contactButton = (contactInfo && Object.keys(contactInfo).length > 0)
-            ? `
-                <div class="contact-widget-trigger-wrapper">
-                    <button id="contact-for-event-btn" class="btn btn-secondary" ${contactButtonDisabled}>پرسش درباره رویداد</button>
-                </div>
-            `
-            : `
-                <div class="contact-widget-trigger-wrapper">
-                    <button class="btn btn-secondary disabled" disabled>اطلاعات تماس موجود نیست</button>
-                </div>
-            `;
-        // <<-- END: CHANGE -->>
-
-        actionsHTML = `
-            <div class="event-modal-actions">
-                <button
-                    class="btn btn-primary btn-event-register"
-                    data-event-id="${event.id}"
-                    style="flex-grow: 2;"
-                    ${buttonDisabled}>
-                    ${buttonText}
-                </button>
-                ${contactButton}
-            </div>
-        `;
+        mainButtonHTML = `
+            <button class="btn btn-primary btn-event-register" data-event-id="${event.id}" style="flex-grow: 2;" ${buttonDisabled}>
+                ${buttonText}
+            </button>`;
     }
+    // *** END: پایان منطق جدید ***
+
+    let contactInfo = null;
+    try {
+        if (event.contact_link && typeof event.contact_link === 'string') {
+            contactInfo = JSON.parse(event.contact_link);
+        } else {
+            contactInfo = event.contact_link;
+        }
+    } catch (e) { console.error("Could not parse contact info JSON:", e); }
+
+    const contactButtonDisabled = isPastEvent ? 'disabled' : '';
+    const contactButton = (contactInfo && Object.keys(contactInfo).length > 0)
+        ? `<div class="contact-widget-trigger-wrapper">
+               <button id="contact-for-event-btn" class="btn btn-secondary" ${contactButtonDisabled}>پرسش درباره رویداد</button>
+           </div>`
+        : `<div class="contact-widget-trigger-wrapper">
+               <button class="btn btn-secondary disabled" disabled>اطلاعات تماس موجود نیست</button>
+           </div>`;
+    
+    actionsHTML = `
+        <div class="event-modal-actions">
+            ${mainButtonHTML}
+            ${contactButton}
+        </div>
+    `;
+
 
     const modalHtml = `
         <div class="content-box">
@@ -738,11 +738,11 @@ export const showEventModal = async (path) => {
                 <h1>${event.title}</h1>
                 <div class="event-modal-meta">
                      <span class="event-meta-item">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                         ${event.displayDate}
                     </span>
                     <span class="event-meta-item">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                         ${event.location}
                     </span>
                     ${costHTML}
@@ -773,20 +773,16 @@ export const showEventModal = async (path) => {
         contactBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const wrapper = contactBtn.parentElement;
-
             const existingWidget = wrapper.querySelector('.contact-widget');
             if (existingWidget) {
                 existingWidget.remove();
                 return;
             }
-
             let contactInfo = null;
             try {
                 contactInfo = (typeof event.contact_link === 'string') ? JSON.parse(event.contact_link) : event.contact_link;
             } catch (err) { console.error("Invalid contact JSON:", err); return; }
-
             if (!contactInfo) return;
-
             let contactItemsHTML = '';
             if (contactInfo.phone) { contactItemsHTML += `<a href="tel:${contactInfo.phone}" class="contact-widget-item"><div class="contact-widget-icon phone-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div><div class="contact-widget-info"><strong>تلفن</strong><span>${contactInfo.phone}</span></div></a>`; }
             if (contactInfo.telegram) { contactItemsHTML += `<a href="${contactInfo.telegram}" target="_blank" rel="noopener noreferrer" class="contact-widget-item"><div class="contact-widget-icon telegram-icon"><svg fill="#ffffff" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.114,9.291c.552-.552,1.1-1.84-1.2-.276-3.268,2.255-6.489,4.372-6.489,4.372a2.7,2.7,0,0,1-2.117.046c-1.38-.414-2.991-.966-2.991-.966s-1.1-.691.783-1.427c0,0,7.961-3.267,10.722-4.418,1.058-.46,4.647-1.932,4.647-1.932s1.657-.645,1.519.92c-.046.644-.414,2.9-.782,5.338-.553,3.451-1.151,7.225-1.151,7.225s-.092,1.058-.874,1.242a3.787,3.787,0,0,1-2.3-.828c-.184-.138-3.451-2.209-4.648-3.221a.872.872,0,0,1,.046-1.473C12.939,12.375,14.918,10.488,16.114,9.291Z"/></svg></div><div class="contact-widget-info"><strong>تلگرام</strong><span>ارسال پیام</span></div></a>`; }
