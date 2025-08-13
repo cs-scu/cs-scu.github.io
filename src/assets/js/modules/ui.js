@@ -702,10 +702,13 @@ export const showEventModal = async (path) => {
             }
         } catch (e) { console.error("Could not parse contact info JSON:", e); }
 
+        // <<-- START: CHANGE -->>
+        // The disabled state of the contact button is now only dependent on whether the event is in the past.
+        const contactButtonDisabled = isPastEvent ? 'disabled' : '';
         const contactButton = (contactInfo && Object.keys(contactInfo).length > 0)
             ? `
                 <div class="contact-widget-trigger-wrapper">
-                    <button id="contact-for-event-btn" class="btn btn-secondary" ${buttonDisabled}>پرسش درباره رویداد</button>
+                    <button id="contact-for-event-btn" class="btn btn-secondary" ${contactButtonDisabled}>پرسش درباره رویداد</button>
                 </div>
             `
             : `
@@ -713,6 +716,7 @@ export const showEventModal = async (path) => {
                     <button class="btn btn-secondary disabled" disabled>اطلاعات تماس موجود نیست</button>
                 </div>
             `;
+        // <<-- END: CHANGE -->>
 
         actionsHTML = `
             <div class="event-modal-actions">
