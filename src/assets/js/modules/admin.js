@@ -507,6 +507,7 @@ const initializeEventsModule = async () => {
     let selectedTagIds = [];
     let currentImageUrl = '';
     let dateRangePickerInstance = initializeDatepicker(); 
+    let eventBeingEdited = null; // برای نگهداری اطلاعات رویداد در حال ویرایش
 
     const regDateRangeInput = document.getElementById('registration-date-range');
     let regDateRangePicker = null;
@@ -792,6 +793,7 @@ const initializeEventsModule = async () => {
         eventForm.reset();
         hiddenIdInput.value = '';
         currentImageUrl = '';
+        eventBeingEdited = null;
         updateFileNameDisplay('');
         imageUploadInput.required = true;
         if (dateRangePickerInstance) dateRangePickerInstance.clear();
@@ -820,13 +822,6 @@ const initializeEventsModule = async () => {
 
         try {
             const getEventDataFromForm = (isEditing) => {
-                const [eventStartDate, eventEndDate] = dateRangePickerInstance.selectedDates;
-                const [regStartDate, regEndDate] = regDateRangePicker ? regDateRangePicker.selectedDates : [];
-                
-                if (!eventStartDate || !eventEndDate) {
-                    throw new Error("لطفاً بازه تاریخ اصلی رویداد را مشخص کنید.");
-                }
-
                 const formatForSupabase = (date) => {
                     if (!date) return null;
                     const gregorianDate = date.gregoriandate || date;
@@ -835,6 +830,29 @@ const initializeEventsModule = async () => {
                     const d = String(gregorianDate.getDate()).padStart(2, '0');
                     return `${y}-${m}-${d}`;
                 };
+                
+                let startDate, endDate, registrationStartDate, registrationEndDate;
+
+                if (isEditing && dateRangePickerInstance.selectedDates.length === 0) {
+                    startDate = eventBeingEdited.startDate;
+                    endDate = eventBeingEdited.endDate;
+                } else if (dateRangePickerInstance.selectedDates.length === 2) {
+                    startDate = formatForSupabase(dateRangePickerInstance.selectedDates[0]);
+                    endDate = formatForSupabase(dateRangePickerInstance.selectedDates[1]);
+                } else {
+                    throw new Error("لطفاً بازه تاریخ اصلی رویداد را مشخص کنید.");
+                }
+
+                if (isEditing && regDateRangePicker.selectedDates.length === 0) {
+                    registrationStartDate = eventBeingEdited.registrationStartDate;
+                    registrationEndDate = eventBeingEdited.registrationEndDate;
+                } else if (regDateRangePicker.selectedDates.length === 2) {
+                    registrationStartDate = formatForSupabase(regDateRangePicker.selectedDates[0]);
+                    registrationEndDate = formatForSupabase(regDateRangePicker.selectedDates[1]);
+                } else {
+                    registrationStartDate = null;
+                    registrationEndDate = null;
+                }
 
                 const parseJsonField = (fieldName) => {
                     const value = formData.get(fieldName);
@@ -869,10 +887,10 @@ const initializeEventsModule = async () => {
                     cost: costInput.value,
                     capacity: capacityValue,
                     displayDate: formData.get('displayDate'),
-                    startDate: formatForSupabase(eventStartDate),
-                    endDate: formatForSupabase(eventEndDate),
-                    registrationStartDate: formatForSupabase(regStartDate),
-                    registrationEndDate: formatForSupabase(regEndDate),
+                    startDate: startDate,
+                    endDate: endDate,
+                    registrationStartDate: registrationStartDate,
+                    registrationEndDate: registrationEndDate,
                     detailPage: detailPageValue,
                     tag_ids: selectedTagIds,
                     content: parseJsonField('content'),
@@ -944,23 +962,14 @@ const initializeEventsModule = async () => {
                 
                 resetForm();
 
+                eventBeingEdited = eventToEdit;
+
                 hiddenIdInput.value = eventToEdit.id;
                 
                 currentImageUrl = eventToEdit.image || '';
                 const existingFileName = currentImageUrl ? currentImageUrl.split('/').pop() : '';
                 updateFileNameDisplay(existingFileName);
                 imageUploadInput.required = false;
-
-                // <<-- START: CHANGE -->>
-                // Set the date for the flatpickr instances correctly
-                if (eventToEdit.startDate && eventToEdit.endDate && dateRangePickerInstance) {
-                    dateRangePickerInstance.setDate([eventToEdit.startDate, eventToEdit.endDate], true);
-                }
-                
-                if (eventToEdit.registrationStartDate && eventToEdit.registrationEndDate && regDateRangePicker) {
-                    regDateRangePicker.setDate([eventToEdit.registrationStartDate, eventToEdit.registrationEndDate], true);
-                }
-                // <<-- END: CHANGE -->>
 
                 document.getElementById('event-title').value = eventToEdit.title || '';
                 document.getElementById('event-summary').value = eventToEdit.summary || '';
