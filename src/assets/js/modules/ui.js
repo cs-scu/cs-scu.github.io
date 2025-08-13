@@ -1012,6 +1012,7 @@ const handleModalClick = async (e, eventData, scheduleData) => {
     }
 };
 
+// START: این تابع را به طور کامل جایگزین کنید
 export const showEventScheduleModal = (eventId) => {
     const event = state.allEvents.find(e => e.id == eventId);
     if (!event) return;
@@ -1053,60 +1054,26 @@ export const showEventScheduleModal = (eventId) => {
     `;
 
     scheduleData.forEach((session, index) => {
-        let addresHtml = '';
-        const isUrl = (address) => { try { new URL(address); return true; } catch (_) { return false; } }
-
-        if (session.addres) {
-            if (session.type === 'online' && isUrl(session.addres)) {
-                addresHtml = `
-                    <div class="accordion-row accordion-link-row">
-                        <div class="accordion-label-actions">
-                            <strong class="accordion-label">لینک جلسه:</strong>
-                            <div class="accordion-link-buttons">
-                                <button class="btn btn-secondary btn-copy-schedule-link" data-link="${session.addres}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                    <span>کپی</span>
-                                </button>
-                                <a href="${session.addres}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                                    <span>ورود</span>
-                                </a>
-                            </div>
-                        </div>
-                        <span class="accordion-link-text">${session.addres}</span>
-                    </div>
-                `;
-            } else {
-                addresHtml = `
-                    <div class="accordion-row">
-                        <strong class="accordion-label">مکان جلسه:</strong>
-                        <div class="accordion-content">${session.addres}</div>
-                    </div>
-                `;
-            }
-        }
-        
         scheduleHtml += `
             <div class="accordion-item">
                 <button class="accordion-header">
-                    <span>${session.session_name || `جلسه ${index + 1}`}</span>
+                    <span>${session.session || `جلسه ${index + 1}`}</span>
                     <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </button>
                 <div class="accordion-body">
                     <div class="accordion-body-content">
                         <div class="accordion-row">
-                            <strong class="accordion-label">موضوع:</strong>
-                            <div class="accordion-content">${session.topic || '---'}</div>
+                            <strong class="accordion-label">تاریخ:</strong>
+                            <div class="accordion-content">${session.date || '---'}</div>
                         </div>
                         <div class="accordion-row">
-                            <strong class="accordion-label">مدرس:</strong>
-                            <div class="accordion-content">${session.speaker || '---'}</div>
+                            <strong class="accordion-label">ساعت:</strong>
+                            <div class="accordion-content">${session.time || '---'}</div>
                         </div>
                         <div class="accordion-row">
-                            <strong class="accordion-label">زمان:</strong>
-                            <div class="accordion-content">${session.date || ''} ساعت ${session.time || ''}</div>
+                            <strong class="accordion-label">محل برگزاری:</strong>
+                            <div class="accordion-content">${session.venue || '---'}</div>
                         </div>
-                        ${addresHtml}
                     </div>
                 </div>
             </div>
@@ -1122,6 +1089,149 @@ export const showEventScheduleModal = (eventId) => {
     genericModalContent.currentHandler = (e) => handleModalClick(e, event, scheduleData);
     genericModalContent.addEventListener('click', genericModalContent.currentHandler);
 };
+
+// START: این تابع را نیز به طور کامل جایگزین کنید
+const handleModalClick = async (e, eventData, scheduleData) => {
+    const header = e.target.closest('.accordion-header');
+    if (header) {
+        header.parentElement.classList.toggle('is-open');
+        return;
+    }
+
+    const downloadBtn = e.target.closest('.btn-download-schedule');
+    if (downloadBtn) {
+        downloadBtn.disabled = true;
+        const downloadBtnSpan = downloadBtn.querySelector('span');
+        downloadBtnSpan.textContent = 'در حال آماده‌سازی...';
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+            const primaryColor = '#1a5c5d';
+            const textColor = '#2c3e50';
+            const mutedColor = '#7f8c8d';
+            const cardBgColor = '#ffffff';
+            const pageBgColor = '#f4f7f6';
+            const headerBgColor = '#eaf0f0';
+
+            const logoUrl = 'https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/ui/icons/favicon.png';
+            const logoResponse = await fetch(logoUrl);
+            if (!logoResponse.ok) throw new Error('فایل لوگو یافت نشد');
+            const logoBlob = await logoResponse.blob();
+            const logoBase64 = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.readAsDataURL(logoBlob);
+                reader.onloadend = () => resolve(reader.result);
+            });
+
+            const fontResponse = await fetch('assets/fonts/Vazirmatn-Regular.ttf');
+            const fontBlob = await fontResponse.blob();
+            const fontBase64 = await new Promise(resolve => {
+                const fontReader = new FileReader();
+                fontReader.readAsDataURL(fontBlob);
+                fontReader.onloadend = () => resolve(fontReader.result.split(',')[1]);
+            });
+
+            doc.addFileToVFS('Vazirmatn-Regular.ttf', fontBase64);
+            doc.addFont('Vazirmatn-Regular.ttf', 'Vazirmatn', 'normal');
+            doc.setFont('Vazirmatn');
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 15;
+
+            const addPageLayout = (pageNumber) => {
+                doc.setFillColor(pageBgColor);
+                doc.rect(0, 0, pageWidth, pageHeight, 'F');
+                doc.setFillColor(headerBgColor);
+                doc.rect(0, 0, pageWidth, 30, 'F');
+                doc.saveGraphicsState();
+                doc.setGState(new doc.GState({ opacity: 0.04 }));
+                doc.addImage(logoBase64, 'PNG', (pageWidth / 2) - 50, (pageHeight / 2) - 50, 100, 100);
+                doc.restoreGraphicsState();
+                doc.addImage(logoBase64, 'PNG', pageWidth - margin - 12, 9, 12, 12);
+                doc.setTextColor(textColor);
+                doc.setFontSize(10);
+                doc.text('انجمن علمی علوم کامپیوتر دانشگاه شهید چمران اهواز', pageWidth - margin - 15, 13, { align: 'right' });
+                doc.setFontSize(14);
+                doc.setTextColor(primaryColor);
+                doc.text(eventData.title, pageWidth - margin - 15, 22, { align: 'right' });
+                const footerY = pageHeight - 15;
+                doc.setDrawColor('#dddddd');
+                doc.setLineWidth(0.2);
+                doc.line(margin, footerY, pageWidth - margin, footerY);
+                const today = new Date().toLocaleDateString('fa-IR');
+                doc.setFontSize(9);
+                doc.setTextColor(mutedColor);
+                doc.text('cs-scu.ir', margin, footerY + 5, { align: 'left' });
+                doc.text(`صفحه ${pageNumber}`, pageWidth / 2, footerY + 5, { align: 'center' });
+                doc.text(`تاریخ تهیه: ${today}`, pageWidth - margin, footerY + 5, { align: 'right' });
+            };
+            
+            let currentPage = 1;
+            addPageLayout(currentPage);
+            let y = 45;
+
+            const drawSessionCard = (session, index) => {
+                const cardHeight = 48; // ارتفاع کارت کمتر شده چون اطلاعات کمتری دارد
+                if (y + cardHeight > pageHeight - 25) {
+                    doc.addPage();
+                    currentPage++;
+                    addPageLayout(currentPage);
+                    y = 45;
+                }
+
+                doc.setFillColor('#000000');
+                doc.setGState(new doc.GState({ opacity: 0.05 }));
+                doc.roundedRect(margin + 0.5, y + 0.5, pageWidth - (2 * margin), cardHeight, 3, 3, 'F');
+                doc.setGState(new doc.GState({ opacity: 1 }));
+
+                doc.setFillColor(cardBgColor);
+                doc.setDrawColor('#e0e0e0');
+                doc.setLineWidth(0.2);
+                doc.roundedRect(margin, y, pageWidth - (2 * margin), cardHeight, 3, 3, 'FD');
+
+                doc.setFillColor(primaryColor);
+                doc.roundedRect(pageWidth - margin - 3, y, 3, cardHeight, 1.5, 1.5, 'F');
+
+                doc.setFontSize(12);
+                doc.setTextColor(textColor);
+                doc.text(session.session || `جلسه ${index + 1}`, pageWidth - margin - 8, y + 12, { align: 'right' });
+                
+                const drawInfoRow = (label, value, yOffset, icon) => {
+                    const iconMap = { date: '📅', time: '🕒', venue: '📍' };
+                    const labelPart = `${iconMap[icon] || ''} ${label}`;
+                    const valuePart = value || '---';
+                    const rightEdge = pageWidth - margin - 8;
+                    doc.setFontSize(9);
+                    doc.setTextColor(mutedColor);
+                    doc.text(`${labelPart}:`, rightEdge, y + yOffset, { align: 'right' });
+                    const labelWidth = doc.getTextWidth(`${labelPart}: `);
+                    doc.setTextColor(textColor);
+                    doc.text(valuePart, rightEdge - labelWidth, y + yOffset, { align: 'right' });
+                };
+                
+                drawInfoRow('تاریخ', session.date, 24, 'date');
+                drawInfoRow('ساعت', session.time, 34, 'time');
+                drawInfoRow('محل برگزاری', session.venue, 44, 'venue');
+                
+                y += cardHeight + 8;
+            };
+            
+            scheduleData.forEach(drawSessionCard);
+            doc.save(`برنامه-${eventData.title.replace(/ /g, '-')}.pdf`);
+
+        } catch (error) {
+            console.error('خطا در ساخت فایل PDF:', error);
+            alert('مشکلی در ساخت فایل PDF به وجود آمد.');
+        } finally {
+            downloadBtnSpan.textContent = 'دانلود';
+            downloadBtn.disabled = false;
+        }
+    }
+};
+// END: پایان تابع جایگزین شده
 
 export const initializeGlobalUI = () => {
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
