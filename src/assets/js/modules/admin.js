@@ -1,7 +1,7 @@
 // src/assets/js/modules/admin.js
 
 import { state } from './state.js';
-import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags, addTag, updateTag, deleteTag, uploadEventImage, deleteEventImage, renameEventImage } from './api.js';
+import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags, addTag, updateTag, deleteTag, uploadEventImage, deleteEventImage, renameEventImage ,loadRegistrations, updateRegistrationStatus } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
 
 const toPersianNumber = (n) => {
@@ -128,6 +128,124 @@ const renderEventsList = (events) => {
             </table>
         </div>`;
 };
+
+// START: تابع جدید برای رندر لیست ثبت‌نام‌ها
+const renderRegistrationsList = (registrations) => {
+    const container = document.getElementById('registrations-admin-list');
+    if (!container) return;
+
+    if (!registrations || registrations.length === 0) {
+        container.innerHTML = '<p style="text-align: center; opacity: 0.8; padding: 2rem;">هیچ ثبت‌نامی برای نمایش یافت نشد.</p>';
+        return;
+    }
+
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'confirmed': return `<span class="tag" style="background-color: #28a745; color: white;">تایید شده</span>`;
+            case 'pending': return `<span class="tag" style="background-color: #ffc107; color: #333;">در انتظار</span>`;
+            case 'rejected': return `<span class="tag" style="background-color: #dc3545; color: white;">رد شده</span>`;
+            default: return `<span class="tag">${status}</span>`;
+        }
+    };
+
+    container.innerHTML = `
+        <div class="custom-table-wrapper">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>نام کامل</th>
+                        <th>رویداد</th>
+                        <th>کد دانشجویی</th>
+                        <th>ایمیل</th>
+                        <th>موبایل</th>
+                        <th>وضعیت</th>
+                        <th class="actions-header">عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${registrations.map(reg => `
+                        <tr data-registration-id="${reg.id}" data-search-terms="${(reg.full_name || '').toLowerCase()} ${(reg.events.title || '').toLowerCase()} ${(reg.email || '').toLowerCase()} ${reg.student_id || ''}">
+                            <td style="white-space: nowrap;">${reg.full_name || '---'}</td>
+                            <td>${reg.events.title || 'رویداد حذف شده'}</td>
+                            <td>${reg.student_id || '---'}</td>
+                            <td>${reg.email || '---'}</td>
+                            <td>${reg.phone_number || '---'}</td>
+                            <td class="status-cell">${getStatusBadge(reg.status)}</td>
+                            <td class="actions-cell">
+                                ${reg.status === 'pending' ? `
+                                    <button class="btn btn-success btn-sm update-status-btn" data-status="confirmed" title="تایید ثبت‌نام">✔️</button>
+                                    <button class="btn btn-danger btn-sm update-status-btn" data-status="rejected" title="رد ثبت‌نام">✖️</button>
+                                ` : `
+                                    <button class="btn btn-secondary btn-sm update-status-btn" data-status="pending" title="بازگردانی به حالت انتظار">🔄</button>
+                                `}
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>`;
+};
+// END: تابع جدید
+
+// START: تابع جدید برای مدیریت رویدادهای صفحه ثبت‌نام
+const initializeRegistrationsModule = () => {
+    const container = document.getElementById('admin-main-content');
+    if (!container) return;
+
+    const listContainer = container.querySelector('#registrations-admin-list');
+    const searchInput = container.querySelector('#registration-search');
+    const statusFilter = container.querySelector('#status-filter');
+
+    const filterAndRender = () => {
+        const searchTerm = (searchInput.value || '').toLowerCase().trim();
+        const status = statusFilter.value;
+        const allRows = listContainer.querySelectorAll('tbody tr');
+
+        allRows.forEach(row => {
+            const isSearchMatch = searchTerm === '' || (row.dataset.searchTerms || '').includes(searchTerm);
+            const statusCell = row.querySelector('.status-cell .tag');
+            const isStatusMatch = status === 'all' || (statusCell && statusCell.textContent.trim() === statusFilter.options[statusFilter.selectedIndex].text);
+            
+            row.style.display = isSearchMatch && isStatusMatch ? '' : 'none';
+        });
+    };
+    
+    searchInput.addEventListener('input', filterAndRender);
+    statusFilter.addEventListener('change', filterAndRender);
+
+    listContainer.addEventListener('click', async (e) => {
+        const button = e.target.closest('.update-status-btn');
+        if (!button) return;
+
+        const row = button.closest('tr');
+        const registrationId = row.dataset.registrationId;
+        const newStatus = button.dataset.status;
+        
+        button.innerHTML = '...';
+        button.disabled = true;
+
+        try {
+            const { data: updatedRegistration } = await updateRegistrationStatus(registrationId, newStatus);
+            // آپدیت UI بدون نیاز به بارگذاری مجدد کل لیست
+            const statusCell = row.querySelector('.status-cell');
+            const actionsCell = row.querySelector('.actions-cell');
+            renderRegistrationsList([updatedRegistration]); // رندر مجدد فقط همین یک سطر
+            
+            // جایگزینی محتوای سطر آپدیت شده
+            const newRowContent = document.querySelector(`tr[data-registration-id="${registrationId}"]`);
+            if(newRowContent) {
+                row.innerHTML = newRowContent.innerHTML;
+            }
+
+        } catch (error) {
+            alert('خطا در به‌روزرسانی وضعیت.');
+            // بازگرداندن دکمه به حالت اولیه در صورت خطا
+            button.innerHTML = newStatus === 'confirmed' ? '✔️' : (newStatus === 'rejected' ? '✖️' : '🔄');
+            button.disabled = false;
+        }
+    });
+};
+// END: تابع جدید
 
 
 // --- Event Handler Functions ---
@@ -1160,6 +1278,13 @@ const adminRoutes = {
         // FIX: The renderer now directly receives the events array from the router logic.
         renderer: renderEventsList,
         initializer: initializeEventsModule
+    },
+    '/admin/registrations': {
+    title: 'مدیریت ثبت‌نام‌ها',
+    html: 'admin-registrations.html',
+    loader: loadRegistrations,
+    renderer: renderRegistrationsList,
+    initializer: initializeRegistrationsModule
     }
 };
 

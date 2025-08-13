@@ -1,0 +1,17 @@
+<div class="admin-module-header">
+    <h2>مدیریت ثبت‌نام‌ها</h2>
+    <div class="filters-container" style="display: flex; gap: 1rem;">
+        <input type="text" id="registration-search" placeholder="جستجو (نام، رویداد، ایمیل...)" style="padding: 0.5rem; border-radius: 8px; border: 1px solid var(--glass-border-light);">
+        <select id="status-filter" style="padding: 0.5rem; border-radius: 8px; border: 1px solid var(--glass-border-light);">
+            <option value="all">همه وضعیت‌ها</option>
+            <option value="pending">در انتظار تایید</option>
+            <option value="confirmed">تایید شده</option>
+            <option value="rejected">رد شده</option>
+        </select>
+    </div>
+</div>
+<div class="content-box">
+    <p>در این بخش می‌توانید ثبت‌نام‌های انجام شده برای رویدادها را مدیریت، تایید یا رد کنید.</p>
+    <div id="registrations-admin-list">
+        </div>
+</div>

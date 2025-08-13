@@ -617,3 +617,48 @@ export const renameEventImage = async (oldImageUrl, newSlug) => {
         return oldImageUrl;
     }
 };
+
+// این توابع را به انتهای فایل api.js اضافه کنید
+
+// --- START: Event Registration Management Functions ---
+
+export const loadRegistrations = async () => {
+    try {
+        // با جدول رویدادها join می‌زنیم تا عنوان رویداد را هم داشته باشیم
+        const { data, error } = await supabaseClient
+            .from('event_registrations')
+            .select(`
+                *,
+                events (
+                    title
+                )
+            `)
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        // state.allRegistrations = data || []; // در فایل state.js این را اضافه خواهیم کرد
+        return data || [];
+    } catch (error) {
+        console.error("Failed to load registrations:", error);
+        throw error;
+    }
+};
+
+export const updateRegistrationStatus = async (registrationId, newStatus) => {
+    try {
+        const { data, error } = await supabaseClient
+            .from('event_registrations')
+            .update({ status: newStatus })
+            .eq('id', registrationId)
+            .select()
+            .single(); // برای بازگرداندن رکورد آپدیت شده
+
+        if (error) throw error;
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error updating registration status:', error);
+        return { data: null, error };
+    }
+};
+
+// --- END: Event Registration Management Functions ---
