@@ -245,6 +245,31 @@ export const renderMembersPage = () => {
     });
 };
 
+// <<-- START: NEW HELPER FUNCTION -->>
+const getTimeRemainingString = (targetDate) => {
+    const now = new Date();
+    const totalSeconds = (targetDate - now) / 1000;
+
+    if (totalSeconds <= 0) return '';
+
+    const days = Math.floor(totalSeconds / (3600 * 24));
+    const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+    if (days > 0) {
+        return `ثبت‌نام از ${toPersianNumber(days)} روز دیگر`;
+    }
+    if (hours > 0) {
+        return `ثبت‌نام از ${toPersianNumber(hours)} ساعت دیگر`;
+    }
+    if (minutes > 0) {
+        return `ثبت‌نام از ${toPersianNumber(minutes)} دقیقه دیگر`;
+    }
+    return 'ثبت‌نام به‌زودی';
+};
+// <<-- END: NEW HELPER FUNCTION -->>
+
+
 export const renderEventsPage = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -317,7 +342,6 @@ export const renderEventsPage = () => {
             const isFull = !isUnlimited && (event.capacity - event.registrations_count <= 0);
 
             const now = new Date();
-            now.setHours(0,0,0,0);
             const regStartDate = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
             const regEndDate = event.registrationEndDate ? new Date(event.registrationEndDate) : null;
 
@@ -403,7 +427,10 @@ export const renderEventsPage = () => {
                     mainButton.classList.add('disabled');
                     mainButton.disabled = true;
                 } else if (regStatus === 'not_started') {
-                    mainButton.textContent = 'ثبت‌نام به‌زودی';
+                    // <<-- START: CHANGE -->>
+                    // Use the new helper function to show a countdown.
+                    mainButton.textContent = getTimeRemainingString(regStartDate);
+                    // <<-- END: CHANGE -->>
                     mainButton.classList.add('disabled');
                     mainButton.disabled = true;
                 } else if (regStatus === 'ended') {
