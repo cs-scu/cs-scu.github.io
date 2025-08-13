@@ -9,28 +9,24 @@
             <form id="add-event-form">
                 <input type="hidden" id="event-id" name="id">
                 
+                >
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="event-title">عنوان رویداد</label>
-                        <input type="text" id="event-title" name="title" required>
+                        <input type="text" id="event-title" name="title" placeholder="عنوان رویداد" required>
                     </div>
                     <div class="form-group">
-                        <label for="event-detail-page">شناسه صفحه جزئیات (Slug)</label>
-                        <input type="text" id="event-detail-page" name="detailPage" placeholder="مثال: linux-essentials" required>
+                        <input type="text" id="event-detail-page" name="detailPage" placeholder="شناسه صفحه جزئیات (Slug)" required>
                     </div>
                 </div>
-
 
                 <div class="form-group">
-                    <label for="event-summary">خلاصه (متن کوتاه)</label>
-                    <textarea id="event-summary" name="summary" rows="2"></textarea>
+                    <textarea id="event-summary" name="summary" rows="2" placeholder="خلاصه (متن کوتاه)"></textarea>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="event-location">مکان</label>
                         <div class="input-with-toggle">
-                            <input type="text" id="event-location" name="location" placeholder="مکان برگزاری حضوری...">
+                            <input type="text" id="event-location" name="location" placeholder="مکان رویداد...">
                             <div class="toggle-switch-wrapper">
                                 <label for="toggle-location-online" class="toggle-label-text">آنلاین</label>
                                 <div class="toggle-switch">
@@ -44,9 +40,8 @@
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="event-cost">هزینه</label>
                         <div class="input-with-toggle">
-                            <input type="text" id="event-cost" name="cost" placeholder="مثال: ۲۰,۰۰۰ تومان">
+                            <input type="text" id="event-cost" name="cost" placeholder="هزینه رویداد (مثال: ۲۰,۰۰۰ تومان)">
                             <div class="toggle-switch-wrapper">
                                 <label for="toggle-cost-free" class="toggle-label-text">رایگان</label>
                                 <div class="toggle-switch">
@@ -57,9 +52,8 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="event-capacity">ظرفیت</label>
                         <div class="input-with-toggle">
-                            <input type="number" id="event-capacity" name="capacity" placeholder="تعداد شرکت‌کنندگان..." min="1">
+                            <input type="number" id="event-capacity" name="capacity" placeholder="ظرفیت رویداد..." min="1">
                             <div class="toggle-switch-wrapper">
                                 <label for="toggle-capacity-unlimited" class="toggle-label-text">نامحدود</label>
                                 <div class="toggle-switch">
@@ -75,39 +69,39 @@
                     <hr style="margin: 1.5rem 0;">
                     <h4 style="margin-bottom: 1rem;">اطلاعات پرداخت (اختیاری)</h4>
                     <div class="form-row">
-                        <div class="form-group"><label for="payment-name">نام صاحب حساب</label><input type="text" id="payment-name" name="payment_name"></div>
-                        <div class="form-group"><label for="payment-number">شماره کارت</label><input type="text" id="payment-number" name="payment_number" dir="ltr"></div>
+                        <div class="form-group"><input type="text" id="payment-name" name="payment_name" placeholder="نام صاحب حساب"></div>
+                        <div class="form-group"><input type="text" id="payment-number" name="payment_number" dir="ltr" placeholder="شماره کارت"></div>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group" style="flex: 1;">
-                        <label for="event-date-range-flatpickr">بازه تاریخ اصلی رویداد</label>
-                        <input type="text" id="event-date-range-flatpickr" name="dateRange" placeholder="انتخاب تاریخ شروع و پایان..." required>
+                        <input type="text" id="event-date-range-flatpickr" name="dateRange" placeholder="بازه تاریخ اصلی رویداد..." required>
                     </div>
                     <div class="form-group" style="flex: 2;">
-                        <label for="event-display-date">تاریخ نمایشی (متن دلخواه)</label>
-                        <input type="text" id="event-display-date" name="displayDate" placeholder="مثال: ۱۸ و ۱۹ تیر ۱۴۰۴ یا پاییز ۱۴۰۴" required>
+                        <input type="text" id="event-display-date" name="displayDate" placeholder="تاریخ نمایشی (مثال: ۱۸ و ۱۹ تیر ۱۴۰۴)" required>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="registration-date-range">بازه تاریخ ثبت‌نام</label>
-                    <input type="text" id="registration-date-range" name="registrationDateRange" placeholder="انتخاب بازه زمانی ثبت‌نام...">
+                    <input type="text" id="registration-date-range" name="registrationDateRange" placeholder="بازه تاریخ ثبت‌نام...">
                 </div>
+                >
 
                 <div>
                     <hr style="margin: 1.5rem 0;">
                     <h4 style="margin-bottom: 1rem;">اطلاعات تماس (اختیاری)</h4>
                     <div class="form-row">
-                        <div class="form-group"><label for="contact-phone">تلفن</label><input type="tel" id="contact-phone" name="contact_phone" dir="ltr"></div>
-                        <div class="form-group"><label for="contact-telegram">تلگرام (لینک کامل)</label><input type="url" id="contact-telegram" name="contact_telegram"></div>
-                        <div class="form-group"><label for="contact-whatsapp">واتساپ (لینک کامل)</label><input type="url" id="contact-whatsapp" name="contact_whatsapp"></div>
+                        <div class="form-group"><input type="tel" id="contact-phone" name="contact_phone" dir="ltr" placeholder="تلفن"></div>
+                        <div class="form-group"><input type="url" id="contact-telegram" name="contact_telegram" placeholder="تلگرام (آیدی یا شماره)"></div>
+                        <div class="form-group"><input type="url" id="contact-whatsapp" name="contact_whatsapp" placeholder="واتساپ (شماره)"></div>
                     </div>
                 </div>
                 
                 <div class="form-group" style="margin-top: 1.5rem;">
-                    <label>تصویر رویداد</label>
+                    > -->
+                    <h4 style="margin-bottom: 0.5rem; font-size: 1rem;">تصویر رویداد</h4>
+                    > -->
                     <div class="image-upload-wrapper">
                         <div class="image-upload-controls">
                             <input type="file" id="event-image-upload" name="imageFile" class="file-upload-input" accept="image/jpeg, image/png, image/webp">
@@ -122,7 +116,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label>تگ‌ها</label>
+                    > -->
+                    <h4 style="margin-bottom: 0.5rem; font-size: 1rem;">تگ‌ها</h4>
+                    > -->
                     <div class="tags-selection-area">
                         <div id="selected-tags-display" class="selected-tags-display">هیچ تگی انتخاب نشده است.</div>
                         <button type="button" id="open-tags-modal-btn" class="btn btn-secondary">انتخاب تگ‌ها</button>
@@ -130,13 +126,11 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="event-content">محتوای کامل صفحه (فرمت JSON)</label>
-                    <textarea id="event-content" name="content" rows="6" placeholder="محتوای کامل رویداد را در قالب JSON وارد کنید..."></textarea>
+                    <textarea id="event-content" name="content" rows="6" placeholder="محتوای کامل صفحه (فرمت JSON)..."></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="event-schedule">برنامه زمانی (فرمت JSON)</label>
-                    <textarea id="event-schedule" name="schedule" rows="5" placeholder="برنامه زمانی جلسات را در قالب JSON وارد کنید..."></textarea>
+                    <textarea id="event-schedule" name="schedule" rows="5" placeholder="برنامه زمانی جلسات (فرمت JSON)..."></textarea>
                 </div>
 
                 <div class="form-status"></div>
