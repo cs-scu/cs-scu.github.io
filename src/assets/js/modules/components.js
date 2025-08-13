@@ -392,8 +392,9 @@ export const renderEventsPage = () => {
             const actionsContainer = card.querySelector('.event-actions');
             actionsContainer.innerHTML = '';
 
-            // <<-- START: NEW LOGIC FOR MAIN ACTION -->>
-            // Note: The mainActionWrapper is no longer needed with the Grid layout
+            const buttonsWrapper = document.createElement('div');
+            buttonsWrapper.className = 'event-buttons-wrapper';
+
             let mainButton;
             if (event.registrationLink) {
                 mainButton = document.createElement('button');
@@ -409,7 +410,6 @@ export const renderEventsPage = () => {
                 } else if (regStatus === 'not_started') {
                     mainButton.textContent = 'ثبت‌نام به‌زودی';
                     mainButton.disabled = true;
-                    // The countdown text is added as a separate element to the grid
                     const countdownText = document.createElement('small');
                     countdownText.className = 'countdown-text';
                     countdownText.textContent = getTimeRemainingString(regStartDate);
@@ -427,7 +427,7 @@ export const renderEventsPage = () => {
                 mainButton.textContent = 'اطلاعات بیشتر';
                 if (isPast) mainButton.classList.add('disabled');
             }
-            actionsContainer.appendChild(mainButton);
+            buttonsWrapper.appendChild(mainButton);
             
             let scheduleData = [];
             if (event.schedule) {
@@ -443,9 +443,10 @@ export const renderEventsPage = () => {
                 scheduleButton.textContent = 'برنامه زمانی';
                 scheduleButton.dataset.eventId = event.id;
                 if (isPast) scheduleButton.disabled = true;
-                actionsContainer.appendChild(scheduleButton);
+                buttonsWrapper.appendChild(scheduleButton);
             }
-            // <<-- END: NEW LOGIC FOR MAIN ACTION -->>
+            
+            actionsContainer.prepend(buttonsWrapper);
     
             grid.appendChild(cardElement);
         });
