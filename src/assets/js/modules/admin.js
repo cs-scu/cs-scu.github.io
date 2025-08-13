@@ -129,7 +129,7 @@ const renderEventsList = (events) => {
         </div>`;
 };
 
-// START: تابع جدید برای رندر لیست ثبت‌نام‌ها
+
 const renderRegistrationsList = (registrations) => {
     const container = document.getElementById('registrations-admin-list');
     if (!container) return;
@@ -156,20 +156,31 @@ const renderRegistrationsList = (registrations) => {
                         <th>نام کامل</th>
                         <th>رویداد</th>
                         <th>کد دانشجویی</th>
-                        <th>ایمیل</th>
-                        <th>موبایل</th>
+                        <th>۴ رقم کارت</th>
+                        <th>زمان واریز</th>
                         <th>وضعیت</th>
                         <th class="actions-header">عملیات</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${registrations.map(reg => `
-                        <tr data-registration-id="${reg.id}" data-search-terms="${(reg.full_name || '').toLowerCase()} ${(reg.events.title || '').toLowerCase()} ${(reg.email || '').toLowerCase()} ${reg.student_id || ''}">
+                    ${registrations.map(reg => {
+                        // افزودن اطلاعات پرداخت به داده‌های جستجو
+                        const searchTerms = `
+                            ${(reg.full_name || '').toLowerCase()} 
+                            ${(reg.events.title || '').toLowerCase()} 
+                            ${(reg.email || '').toLowerCase()} 
+                            ${reg.student_id || ''}
+                            ${reg.card_last_four_digits || ''}
+                            ${reg.transaction_time || ''}
+                        `;
+
+                        return `
+                        <tr data-registration-id="${reg.id}" data-search-terms="${searchTerms.trim()}">
                             <td style="white-space: nowrap;">${reg.full_name || '---'}</td>
                             <td>${reg.events.title || 'رویداد حذف شده'}</td>
                             <td>${reg.student_id || '---'}</td>
-                            <td>${reg.email || '---'}</td>
-                            <td>${reg.phone_number || '---'}</td>
+                            <td>${reg.card_last_four_digits || '---'}</td>
+                            <td>${reg.transaction_time || '---'}</td>
                             <td class="status-cell">${getStatusBadge(reg.status)}</td>
                             <td class="actions-cell">
                                 ${reg.status === 'pending' ? `
@@ -180,12 +191,12 @@ const renderRegistrationsList = (registrations) => {
                                 `}
                             </td>
                         </tr>
-                    `).join('')}
+                    `}).join('')}
                 </tbody>
             </table>
         </div>`;
 };
-// END: تابع جدید
+
 
 // START: تابع جدید برای مدیریت رویدادهای صفحه ثبت‌نام
 const initializeRegistrationsModule = () => {
