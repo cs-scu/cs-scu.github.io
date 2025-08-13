@@ -288,7 +288,7 @@ export const getEventRegistration = async (eventId, userId) => {
             .select('*')
             .eq('event_id', eventId)
             .eq('user_id', userId)
-            .in('status', ['pending', 'confirmed'])
+            .in('status', ['pending', 'confirmed', 'rejected'])
             .single();
 
         if (error && error.code !== 'PGRST116') {
