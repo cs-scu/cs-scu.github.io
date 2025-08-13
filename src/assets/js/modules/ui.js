@@ -643,6 +643,18 @@ export const showEventModal = async (path) => {
     const isUnlimited = event.capacity === -1;
     const remainingCapacity = isUnlimited ? 'نامحدود' : toPersianNumber(event.capacity - event.registrations_count);
     const isFull = !isUnlimited && (event.capacity - event.registrations_count <= 0);
+    
+    const now = new Date();
+    now.setHours(0,0,0,0);
+    const regStartDate = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
+    const regEndDate = event.registrationEndDate ? new Date(event.registrationEndDate) : null;
+
+    let regStatus = 'open';
+    if (regStartDate && now < regStartDate) {
+        regStatus = 'not_started';
+    } else if (regEndDate && now > regEndDate) {
+        regStatus = 'ended';
+    }
 
     const capacityHTML = `
         <span class="event-meta-item">
@@ -673,6 +685,12 @@ export const showEventModal = async (path) => {
         } else if (isFull) {
             buttonText = 'ظرفیت تکمیل';
             buttonDisabled = 'disabled';
+        } else if (regStatus === 'not_started') {
+            buttonText = 'ثبت‌نام به‌زودی';
+            buttonDisabled = 'disabled';
+        } else if (regStatus === 'ended') {
+            buttonText = 'ثبت‌نام بسته شد';
+            buttonDisabled = 'disabled';
         }
 
         let contactInfo = null;
@@ -687,7 +705,7 @@ export const showEventModal = async (path) => {
         const contactButton = (contactInfo && Object.keys(contactInfo).length > 0)
             ? `
                 <div class="contact-widget-trigger-wrapper">
-                    <button id="contact-for-event-btn" class="btn btn-secondary" ${isPastEvent ? 'disabled' : ''}>پرسش درباره رویداد</button>
+                    <button id="contact-for-event-btn" class="btn btn-secondary" ${buttonDisabled}>پرسش درباره رویداد</button>
                 </div>
             `
             : `

@@ -506,8 +506,18 @@ const initializeEventsModule = async () => {
 
     let selectedTagIds = [];
     let currentImageUrl = '';
-    // FIX 1: The returned instance from the datepicker is now correctly assigned
     let dateRangePickerInstance = initializeDatepicker(); 
+
+    const regStartDateInput = document.getElementById('registration-start-date');
+    const regEndDateInput = document.getElementById('registration-end-date');
+    let regStartDatePicker, regEndDatePicker;
+
+    if (regStartDateInput) {
+        regStartDatePicker = flatpickr(regStartDateInput, { locale: "fa", altInput: true, altFormat: "Y/m/d", dateFormat: "Y-m-d" });
+    }
+    if (regEndDateInput) {
+        regEndDatePicker = flatpickr(regEndDateInput, { locale: "fa", altInput: true, altFormat: "Y/m/d", dateFormat: "Y-m-d" });
+    }
 
     const formTitle = document.getElementById('event-form-title');
     const submitBtn = document.getElementById('event-submit-btn');
@@ -519,12 +529,13 @@ const initializeEventsModule = async () => {
     const locationToggle = document.getElementById('toggle-location-online');
     const costInput = document.getElementById('event-cost');
     const costToggle = document.getElementById('toggle-cost-free');
+    const capacityInput = document.getElementById('event-capacity');
+    const capacityToggle = document.getElementById('toggle-capacity-unlimited');
     const detailPageInput = document.getElementById('event-detail-page');
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
     const paymentInfoSection = document.getElementById('payment-info-section');
     
-    // FIX 2: Scope element selectors to the event form to avoid conflicts
     const imageUploadControls = eventForm.querySelector('.image-upload-controls');
     const fileNameDisplay = imageUploadControls ? imageUploadControls.querySelector('.file-name-display') : null;
     const fileClearBtn = imageUploadControls ? imageUploadControls.querySelector('.file-clear-btn') : null;
@@ -733,6 +744,7 @@ const initializeEventsModule = async () => {
 
     setupToggleSwitch(locationInput, locationToggle, 'آنلاین');
     setupToggleSwitch(costInput, costToggle, 'رایگان');
+    setupToggleSwitch(capacityInput, capacityToggle, ''); // Empty value will be handled as -1
     
     if(detailPageInput) {
         detailPageInput.addEventListener('blur', () => {
@@ -756,14 +768,15 @@ const initializeEventsModule = async () => {
         currentImageUrl = '';
         updateFileNameDisplay('');
         imageUploadInput.required = true;
-        if (dateRangePickerInstance) {
-            dateRangePickerInstance.clear();
-        }
+        if (dateRangePickerInstance) dateRangePickerInstance.clear();
+        if (regStartDatePicker) regStartDatePicker.clear();
+        if (regEndDatePicker) regEndDatePicker.clear();
         formTitle.textContent = 'درج رویداد جدید';
         submitBtn.textContent = 'افزودن رویداد';
         cancelBtn.style.display = 'none';
         locationInput.disabled = false;
         costInput.disabled = false;
+        capacityInput.disabled = false;
         selectedTagIds = [];
         updateSelectedTagsDisplay();
         togglePaymentFields();
@@ -781,7 +794,6 @@ const initializeEventsModule = async () => {
         submitBtn.textContent = isEditing ? 'در حال آپلود و ویرایش...' : 'در حال آپلود و افزودن...';
 
         try {
-            // Helper function to gather and structure form data
             const getEventDataFromForm = () => {
                 if (!dateRangePickerInstance || dateRangePickerInstance.selectedDates.length < 2) {
                     throw new Error("لطفاً بازه تاریخ (شروع و پایان) را مشخص کنید.");
@@ -804,6 +816,9 @@ const initializeEventsModule = async () => {
                         throw new Error(`فرمت JSON در فیلد "${fieldName}" نامعتبر است.`);
                     }
                 };
+                
+                const isUnlimited = capacityToggle.checked;
+                const capacityValue = isUnlimited ? -1 : (parseInt(formData.get('capacity'), 10) || null);
 
                 const contactData = {
                     phone: formData.get('contact_phone'),
@@ -819,9 +834,12 @@ const initializeEventsModule = async () => {
                     summary: formData.get('summary'),
                     location: locationInput.value,
                     cost: costInput.value,
+                    capacity: capacityValue,
                     displayDate: formData.get('displayDate'),
                     startDate: formatForSupabase(startDate),
                     endDate: formatForSupabase(endDate),
+                    registrationStartDate: formData.get('registrationStartDate') || null,
+                    registrationEndDate: formData.get('registrationEndDate') || null,
                     detailPage: formData.get('detailPage') || '',
                     tag_ids: selectedTagIds,
                     content: parseJsonField('content'),
@@ -831,7 +849,6 @@ const initializeEventsModule = async () => {
                 };
             };
 
-            // Helper function to manage image logic
             const handleImageManagement = async (slug) => {
                 let finalImageUrl = currentImageUrl;
                 const imageFile = imageUploadInput.files[0];
@@ -857,7 +874,6 @@ const initializeEventsModule = async () => {
                 return finalImageUrl;
             };
 
-            // --- Main Logic Execution ---
             const eventData = getEventDataFromForm();
             const newSlug = eventData.detailPage.split('/').pop();
             eventData.image = await handleImageManagement(newSlug);
@@ -870,7 +886,6 @@ const initializeEventsModule = async () => {
                 showStatus(statusBox, 'رویداد با موفقیت افزوده شد.', 'success');
             }
 
-            // Refresh data and reset the form
             state.allEvents = [];
             await loadEvents();
             renderEventsList(state.allEvents);
@@ -904,12 +919,14 @@ const initializeEventsModule = async () => {
                 imageUploadInput.required = false;
 
                 if (eventToEdit.startDate && eventToEdit.endDate && dateRangePickerInstance) {
-                     const toJalali = (gregorianDate) => {
-                        const [y, m, d] = gregorianDate.split('-').map(Number);
-                        const j = persianDate.gregorianToJalali([y, m, d]);
-                        return `${j[0]}/${String(j[1]).padStart(2, '0')}/${String(j[2]).padStart(2, '0')}`;
-                    };
-                    dateRangePickerInstance.setValue(toJalali(eventToEdit.startDate), toJalali(eventToEdit.endDate));
+                    dateRangePickerInstance.setDate([eventToEdit.startDate, eventToEdit.endDate]);
+                }
+
+                if (eventToEdit.registrationStartDate && regStartDatePicker) {
+                    regStartDatePicker.setDate(eventToEdit.registrationStartDate);
+                }
+                if (eventToEdit.registrationEndDate && regEndDatePicker) {
+                    regEndDatePicker.setDate(eventToEdit.registrationEndDate);
                 }
 
                 document.getElementById('event-title').value = eventToEdit.title || '';
@@ -926,6 +943,16 @@ const initializeEventsModule = async () => {
                 costToggle.dispatchEvent(new Event('change'));
                 togglePaymentFields();
                 
+                if (eventToEdit.capacity === -1) {
+                    capacityToggle.checked = true;
+                    capacityInput.value = '';
+                    capacityInput.disabled = true;
+                } else {
+                    capacityToggle.checked = false;
+                    capacityInput.value = eventToEdit.capacity || '';
+                    capacityInput.disabled = false;
+                }
+
                 selectedTagIds = eventToEdit.tag_ids || [];
                 updateSelectedTagsDisplay();
 
