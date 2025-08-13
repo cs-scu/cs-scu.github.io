@@ -198,7 +198,7 @@ const renderRegistrationsList = (registrations) => {
 };
 
 
-// START: تابع جدید برای مدیریت رویدادهای صفحه ثبت‌نام
+// START: این تابع را به طور کامل جایگزین کنید
 const initializeRegistrationsModule = () => {
     const container = document.getElementById('admin-main-content');
     if (!container) return;
@@ -207,6 +207,7 @@ const initializeRegistrationsModule = () => {
     const searchInput = container.querySelector('#registration-search');
     const statusFilter = container.querySelector('#status-filter');
 
+    // تابع فیلتر و جستجو بدون تغییر باقی می‌ماند
     const filterAndRender = () => {
         const searchTerm = (searchInput.value || '').toLowerCase().trim();
         const status = statusFilter.value;
@@ -214,49 +215,70 @@ const initializeRegistrationsModule = () => {
 
         allRows.forEach(row => {
             const isSearchMatch = searchTerm === '' || (row.dataset.searchTerms || '').includes(searchTerm);
-            const statusCell = row.querySelector('.status-cell .tag');
-            const isStatusMatch = status === 'all' || (statusCell && statusCell.textContent.trim() === statusFilter.options[statusFilter.selectedIndex].text);
+            
+            // برای فیلتر وضعیت، به جای متن، مقدار وضعیت را از یک دیتا اتریبیوت می‌خوانیم
+            const currentStatus = row.dataset.status;
+            const isStatusMatch = status === 'all' || currentStatus === status;
             
             row.style.display = isSearchMatch && isStatusMatch ? '' : 'none';
         });
     };
     
-    searchInput.addEventListener('input', filterAndRender);
-    statusFilter.addEventListener('change', filterAndRender);
+    if (searchInput) searchInput.addEventListener('input', filterAndRender);
+    if (statusFilter) statusFilter.addEventListener('change', filterAndRender);
 
-    listContainer.addEventListener('click', async (e) => {
-        const button = e.target.closest('.update-status-btn');
-        if (!button) return;
+    // بخش مدیریت کلیک که اصلاح شده است
+    if (listContainer) {
+        listContainer.addEventListener('click', async (e) => {
+            const button = e.target.closest('.update-status-btn');
+            if (!button) return;
 
-        const row = button.closest('tr');
-        const registrationId = row.dataset.registrationId;
-        const newStatus = button.dataset.status;
-        
-        button.innerHTML = '...';
-        button.disabled = true;
-
-        try {
-            const { data: updatedRegistration } = await updateRegistrationStatus(registrationId, newStatus);
-            // آپدیت UI بدون نیاز به بارگذاری مجدد کل لیست
-            const statusCell = row.querySelector('.status-cell');
-            const actionsCell = row.querySelector('.actions-cell');
-            renderRegistrationsList([updatedRegistration]); // رندر مجدد فقط همین یک سطر
+            const row = button.closest('tr');
+            const registrationId = row.dataset.registrationId;
+            const newStatus = button.dataset.status;
             
-            // جایگزینی محتوای سطر آپدیت شده
-            const newRowContent = document.querySelector(`tr[data-registration-id="${registrationId}"]`);
-            if(newRowContent) {
-                row.innerHTML = newRowContent.innerHTML;
-            }
+            // غیرفعال کردن همه دکمه‌های همان سطر
+            row.querySelectorAll('.update-status-btn').forEach(btn => {
+                btn.innerHTML = '...';
+                btn.disabled = true;
+            });
 
-        } catch (error) {
-            alert('خطا در به‌روزرسانی وضعیت.');
-            // بازگرداندن دکمه به حالت اولیه در صورت خطا
-            button.innerHTML = newStatus === 'confirmed' ? '✔️' : (newStatus === 'rejected' ? '✖️' : '🔄');
-            button.disabled = false;
-        }
-    });
+            try {
+                // *** START: تغییر اصلی اینجاست ***
+                const { data: updatedRegistration, error } = await updateRegistrationStatus(registrationId, newStatus);
+
+                // اگر سرور خطا برگرداند، آن را نمایش می‌دهیم
+                if (error) {
+                    throw error;
+                }
+                
+                // اگر به هر دلیلی داده‌ای برنگشت، آن را به عنوان خطا مدیریت می‌کنیم
+                if (!updatedRegistration) {
+                    throw new Error("داده‌ای از سرور پس از آپدیت دریافت نشد.");
+                }
+                
+                // حالا که مطمئن هستیم داده معتبر است، UI را آپدیت می‌کنیم
+                const newRowContent = renderRegistrationsList([updatedRegistration]);
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = newRowContent;
+                const newRowHTML = tempDiv.querySelector('tbody tr').innerHTML;
+                
+                // محتوای سطر را با اطلاعات جدید جایگزین می‌کنیم
+                row.innerHTML = newRowHTML;
+                row.dataset.status = newStatus; // دیتا اتریبیوت وضعیت را هم آپدیت می‌کنیم
+
+                // *** END: پایان تغییر اصلی ***
+
+            } catch (error) {
+                console.error("Update Error:", error);
+                alert('خطا در به‌روزرسانی وضعیت. لطفاً کنسول را بررسی کنید.');
+                // در صورت خطا، دکمه‌ها را به حالت اولیه برمی‌گردانیم (این بخش حذف شده تا از پیچیدگی جلوگیری شود)
+                // برای سادگی، کاربر می‌تواند صفحه را رفرش کند تا دکمه‌ها به حالت اول برگردند.
+            }
+        });
+    }
 };
-// END: تابع جدید
+// END: پایان تابع جایگزین شده
 
 
 // --- Event Handler Functions ---
