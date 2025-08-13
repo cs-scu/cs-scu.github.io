@@ -130,6 +130,7 @@ const renderEventsList = (events) => {
 };
 
 
+// START: این تابع را به طور کامل جایگزین کنید
 const renderRegistrationsList = (registrations) => {
     const container = document.getElementById('registrations-admin-list');
     if (!container) return;
@@ -164,10 +165,14 @@ const renderRegistrationsList = (registrations) => {
                 </thead>
                 <tbody>
                     ${registrations.map(reg => {
-                        // افزودن اطلاعات پرداخت به داده‌های جستجو
+                        // *** START: تغییر اصلی اینجاست ***
+                        // ابتدا بررسی می‌کنیم reg.events وجود دارد یا خیر
+                        const eventTitle = reg.events ? reg.events.title : 'رویداد حذف شده';
+                        // *** END: پایان تغییر اصلی ***
+
                         const searchTerms = `
                             ${(reg.full_name || '').toLowerCase()} 
-                            ${(reg.events.title || '').toLowerCase()} 
+                            ${eventTitle.toLowerCase()} 
                             ${(reg.email || '').toLowerCase()} 
                             ${reg.student_id || ''}
                             ${reg.card_last_four_digits || ''}
@@ -175,9 +180,9 @@ const renderRegistrationsList = (registrations) => {
                         `;
 
                         return `
-                        <tr data-registration-id="${reg.id}" data-search-terms="${searchTerms.trim()}">
+                        <tr data-registration-id="${reg.id}" data-status="${reg.status}" data-search-terms="${searchTerms.trim()}">
                             <td style="white-space: nowrap;">${reg.full_name || '---'}</td>
-                            <td>${reg.events.title || 'رویداد حذف شده'}</td>
+                            <td>${eventTitle}</td>
                             <td>${reg.student_id || '---'}</td>
                             <td>${reg.card_last_four_digits || '---'}</td>
                             <td>${reg.transaction_time || '---'}</td>
@@ -196,7 +201,7 @@ const renderRegistrationsList = (registrations) => {
             </table>
         </div>`;
 };
-
+// END: پایان تابع جایگزین شده
 
 // START: این تابع را به طور کامل جایگزین کنید
 const initializeRegistrationsModule = () => {
