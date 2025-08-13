@@ -467,6 +467,7 @@ const populateGrid = (grid, events, isPast = false) => {
 };
 
 
+
 // END: پایان تابع جایگزین شده
     
     populateGrid(upcomingGrid, upcomingEvents, false);
