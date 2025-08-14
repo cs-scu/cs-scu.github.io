@@ -821,47 +821,74 @@ const initializeEventsModule = async () => {
         });
     };
     
-    const renderUnifiedTagsModal = () => {
-        const modalContent = document.getElementById('admin-generic-modal-content');
-        if (!modalContent) return;
-        
-        const sortedTags = Array.from(state.tagsMap.entries()).sort((a, b) => a[1].localeCompare(b[1], 'fa'));
+const renderUnifiedTagsModal = () => {
+    const modalContent = document.getElementById('admin-generic-modal-content');
+    if (!modalContent) return;
+    
+    const sortedTags = Array.from(state.tagsMap.entries()).sort((a, b) => a[1].localeCompare(b[1], 'fa'));
 
-        let tagsListHTML = '';
-        sortedTags.forEach(([id, name]) => {
-            const isChecked = selectedTagIds.includes(id);
-            tagsListHTML += `
-                <div class="tag-checkbox-item" data-tag-id="${id}">
-                    <div class="tag-list-item-actions">
-                        <button class="tag-action-btn delete-tag-btn" title="حذف"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
-                        <button class="tag-action-btn edit-tag-btn" title="ویرایش"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-                    </div>
-                    
-                    <div class="edit-tag-form">
-                        <input type="text" class="form-control" value="${name}">
-                        <button type="button" class="btn btn-primary btn-sm save-edit-btn">ذخیره</button>
-                        <button type="button" class="btn btn-secondary btn-sm cancel-edit-btn">لغو</button>
-                    </div>
+    let tagsListHTML = '';
+    sortedTags.forEach(([id, name]) => {
+        const isChecked = selectedTagIds.includes(id);
+        tagsListHTML += `
+            <div class="tag-checkbox-item" data-tag-id="${id}" data-tag-name="${name.toLowerCase()}">
+                <div class="tag-list-item-actions">
+                    <button class="tag-action-btn delete-tag-btn" title="حذف"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                    <button class="tag-action-btn edit-tag-btn" title="ویرایش"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                </div>
+                
+                <div class="edit-tag-form">
+                    <input type="text" class="form-control" value="${name}">
+                    <button type="button" class="btn btn-primary btn-sm save-edit-btn">ذخیره</button>
+                    <button type="button" class="btn btn-secondary btn-sm cancel-edit-btn">لغو</button>
+                </div>
 
-                    <label class="tag-name" for="modal-tag-${id}">${name}</label>
-                    
-                    <div class="modal-toggle-switch">
-                        <input type="checkbox" class="toggle-input" id="modal-tag-${id}" value="${id}" ${isChecked ? 'checked' : ''}>
-                        <label for="modal-tag-${id}" class="toggle-label"></label>
-                    </div>
-                </div>`;
-        });
-        
-        modalContent.innerHTML = `
-            <div class="tags-modal-container">
-                <h3>مدیریت و انتخاب تگ‌ها</h3>
-                <form class="add-tag-form" id="add-tag-form-modal"><input type="text" id="new-tag-name" class="form-control" placeholder="افزودن تگ جدید..."><button type="submit" class="btn btn-primary">افزودن</button></form>
-                <div class="tags-modal-list">${tagsListHTML || '<p style="text-align:center; opacity:0.8; padding: 1rem;">تگی یافت نشد.</p>'}</div>
-                <div class="tags-modal-actions">
-                    <button type="button" class="btn btn-primary btn-full" id="confirm-tags-btn">تایید انتخاب</button>
+                <label class="tag-name" for="modal-tag-${id}">${name}</label>
+                
+                <div class="modal-toggle-switch">
+                    <input type="checkbox" class="toggle-input" id="modal-tag-${id}" value="${id}" ${isChecked ? 'checked' : ''}>
+                    <label for="modal-tag-${id}" class="toggle-label"></label>
                 </div>
             </div>`;
-    };
+    });
+    
+    modalContent.innerHTML = `
+        <div class="tags-modal-container">
+            <h3>مدیریت و انتخاب تگ‌ها</h3>
+            <div class="tags-modal-header">
+                <input type="text" id="tag-search-input" class="form-control" placeholder="جستجوی تگ...">
+            </div>
+            <form class="add-tag-form" id="add-tag-form-modal"><input type="text" id="new-tag-name" class="form-control" placeholder="افزودن تگ جدید..."><button type="submit" class="btn btn-primary">افزودن</button></form>
+            <div class="tags-modal-list">${tagsListHTML || '<p style="text-align:center; opacity:0.8; padding: 1rem;" id="no-tags-message">تگی یافت نشد.</p>'}</div>
+            <div class="tags-modal-actions">
+                <button type="button" class="btn btn-primary btn-full" id="confirm-tags-btn">تایید انتخاب</button>
+            </div>
+        </div>`;
+
+    const searchInput = modalContent.querySelector('#tag-search-input');
+    const tagsList = modalContent.querySelector('.tags-modal-list');
+    const allTags = tagsList.querySelectorAll('.tag-checkbox-item');
+    const noTagsMessage = tagsList.querySelector('#no-tags-message');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            let visibleCount = 0;
+            allTags.forEach(tag => {
+                const tagName = tag.dataset.tagName || '';
+                const isMatch = tagName.includes(searchTerm);
+                // *** FIX: Use display property for filtering ***
+                tag.style.display = isMatch ? 'flex' : 'none';
+                if (isMatch) visibleCount++;
+            });
+
+            if (noTagsMessage) {
+                 noTagsMessage.textContent = visibleCount === 0 ? 'هیچ تگی مطابق با جستجوی شما یافت نشد.' : 'تگی یافت نشد.';
+                 noTagsMessage.style.display = (allTags.length === 0 || visibleCount === 0) ? 'block' : 'none';
+            }
+        });
+    }
+};
 
     const openTagsModal = () => {
         renderUnifiedTagsModal();

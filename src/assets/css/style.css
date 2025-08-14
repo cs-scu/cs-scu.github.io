@@ -3536,20 +3536,6 @@ body.light-theme .admin-main-header {
     background-color: #fff;
     border-bottom: 1px solid var(--glass-border-light);
 }
-.admin-header-title {
-    flex-grow: 1;
-    margin: 0;
-    font-size: 1.2rem;
-    text-align: right;
-}
-.mobile-admin-menu-toggle {
-    display: none;
-    background: none;
-    border: none;
-    color: inherit;
-    cursor: pointer;
-    padding: 0.5rem;
-}
 .mobile-admin-menu-toggle svg,
 #admin-global-refresh-btn svg {
     stroke: currentColor;
@@ -3592,6 +3578,7 @@ body.light-theme .admin-main-header {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
+    flex-wrap: wrap;
 }
 .admin-module-header h2 {
     margin: 0;
@@ -3725,16 +3712,6 @@ body.light-theme .custom-file-upload.is-dragging { border-color: var(--primary-c
 /* ================== RESPONSIVE OPTIMIZATIONS ================== */
 @media (max-width: 1024px) {
     .form-and-guidance-wrapper { grid-template-columns: 1fr; }
-}
-@media (max-width: 768px) {
-    .admin-main-content { padding: 1.5rem; }
-    .admin-main-content .form-row { flex-direction: column; gap: 1rem; }
-    .admin-main-header { justify-content: space-between; }
-    .admin-header-title { display: none; }
-    .mobile-admin-menu-toggle { display: block; }
-    .admin-sidebar { position: fixed; top: 0; right: 0; height: 100%; z-index: 3000; transform: translateX(100%); transition: transform 0.3s ease-in-out; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
-    .admin-sidebar.is-open { transform: translateX(0); }
-    body.admin-sidebar-is-open::after { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 2999; }
 }
 @media (max-width: 480px) {
     .admin-main-content { padding: 1rem; }
@@ -4664,4 +4641,122 @@ body.light-theme .filters-container select optgroup {
 
 .event-card.past-event .event-buttons-wrapper {
     justify-content: center; /* اطمینان از وسط‌چین بودن دکمه */
+}
+
+/* ================== ADMIN TAGS MODAL SEARCH STYLES ================== */
+.tags-modal-header {
+    margin-bottom: 1rem;
+}
+
+#tag-search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 50px !important; /* Makes it look like the add new tag input */
+}
+
+#no-tags-message {
+    text-align: center;
+    opacity: 0.8;
+    padding: 1rem;
+}
+
+/* ================== ADMIN TAGS MODAL VIRTUAL LIST (Non-Virtual Version) ================== */
+.tags-modal-list {
+    /* Define a fixed height and enable scrolling */
+    max-height: 320px; /* Adjust this value as needed */
+    overflow-y: auto;
+    
+    /* Improve scrollbar appearance on Webkit browsers */
+    -webkit-overflow-scrolling: touch;
+}
+
+.tags-modal-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tags-modal-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+body.dark-theme .tags-modal-list::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+body.light-theme .tags-modal-list::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+body.dark-theme .tags-modal-list::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+body.light-theme .tags-modal-list::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* ================== ADMIN ALWAYS-ON HAMBURGER MENU ================== */
+
+/* Always hide the main header title */
+.admin-header-title {
+    display: none;
+}
+
+/* Always show the hamburger menu button */
+.mobile-admin-menu-toggle {
+    display: block;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+/* Always set the main header to space-between for proper alignment */
+.admin-main-header {
+    justify-content: space-between;
+}
+
+/* Always treat the sidebar as a fixed, slide-out menu */
+.admin-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    z-index: 3000;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.admin-sidebar.is-open {
+    transform: translateX(0);
+}
+
+/* Style for the body overlay when the sidebar is open */
+body.admin-sidebar-is-open::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2999;
+}
+
+/* ================== ADMIN FILTERS UNIFIED SIZING ================== */
+
+/* Add flex properties to the input and select elements */
+.filters-container input,
+.filters-container select {
+    flex: 1; /* Allows elements to grow and shrink equally */
+    min-width: 200px; /* Ensures a minimum reasonable width before wrapping */
+}
+
+/* Ensure the search input has a balanced appearance */
+.filters-container input {
+    font-size: 0.95rem;
+    font-weight: bold;
+    padding-left: 1rem;
+    padding-right: 1rem;
 }
