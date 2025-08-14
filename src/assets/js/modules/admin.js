@@ -129,20 +129,35 @@ const renderEventsList = (events) => {
         </div>`;
 };
 
-
-const renderRegistrationRowHTML = (reg) => {
+const renderRegistrationRowHTML = (reg, isPast = false) => {
     const getStatusBadge = (status) => {
+        const pastClass = isPast ? 'is-past' : '';
         switch (status) {
-            case 'confirmed': return `<span class="tag" style="background-color: #28a745; color: white;">تایید شده</span>`;
-            case 'pending': return `<span class="tag" style="background-color: #ffc107; color: #333;">در انتظار</span>`;
-            case 'rejected': return `<span class="tag" style="background-color: #dc3545; color: white;">رد شده</span>`;
-            default: return `<span class="tag">${status}</span>`;
+            case 'confirmed': return `<span class="tag ${pastClass}" style="background-color: #28a745; color: white;">تایید شده</span>`;
+            case 'pending': return `<span class="tag ${pastClass}" style="background-color: #ffc107; color: #333;">در انتظار</span>`;
+            case 'rejected': return `<span class="tag ${pastClass}" style="background-color: #dc3545; color: white;">رد شده</span>`;
+            default: return `<span class="tag ${pastClass}">${status}</span>`;
         }
     };
 
     const eventTitle = reg.events ? reg.events.title : 'رویداد حذف شده';
-    
-    // محتوای داخل تگ <tr> را برمی‌گرداند
+
+    let actionsHTML = '';
+    if (isPast) {
+        actionsHTML = `<span class="actions-not-available">عملیات در دسترس نیست</span>`;
+    } else {
+        if (reg.status === 'pending') {
+            actionsHTML = `
+                <button class="btn btn-success btn-sm update-status-btn" data-status="confirmed" title="تایید ثبت‌نام">✔️</button>
+                <button class="btn btn-danger btn-sm update-status-btn" data-status="rejected" title="رد ثبت‌نام">✖️</button>
+            `;
+        } else {
+            actionsHTML = `
+                <button class="btn btn-secondary btn-sm-text update-status-btn" data-status="pending" title="بازگردانی به حالت انتظار">بازگردانی</button>
+            `;
+        }
+    }
+
     return `
         <td style="white-space: nowrap;">${reg.full_name || '---'}</td>
         <td>${eventTitle}</td>
@@ -150,16 +165,10 @@ const renderRegistrationRowHTML = (reg) => {
         <td>${reg.card_last_four_digits || '---'}</td>
         <td>${reg.transaction_time || '---'}</td>
         <td class="status-cell">${getStatusBadge(reg.status)}</td>
-        <td class="actions-cell">
-            ${reg.status === 'pending' ? `
-                <button class="btn btn-success btn-sm update-status-btn" data-status="confirmed" title="تایید ثبت‌نام">✔️</button>
-                <button class="btn btn-danger btn-sm update-status-btn" data-status="rejected" title="رد ثبت‌نام">✖️</button>
-            ` : `
-                <button class="btn btn-secondary btn-sm-text update-status-btn" data-status="pending" title="بازگردانی به حالت انتظار">بازگردانی</button>
-                `}
-        </td>
+        <td class="actions-cell">${actionsHTML}</td>
     `;
 };
+
 
 const renderRegistrationsList = (registrations) => {
     const container = document.getElementById('registrations-admin-list');
@@ -169,6 +178,9 @@ const renderRegistrationsList = (registrations) => {
         container.innerHTML = '<p style="text-align: center; opacity: 0.8; padding: 2rem;">هیچ ثبت‌نامی برای نمایش یافت نشد.</p>';
         return;
     }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     container.innerHTML = `
         <div class="custom-table-wrapper">
@@ -186,17 +198,22 @@ const renderRegistrationsList = (registrations) => {
                 </thead>
                 <tbody>
                     ${registrations.map(reg => {
+                        const event = state.allEvents.find(e => e.id === reg.event_id);
+                        const isPastEvent = event ? new Date(event.endDate) < today : false;
+
                         const eventTitle = reg.events ? reg.events.title : 'رویداد حذف شده';
                         const searchTerms = `${(reg.full_name || '').toLowerCase()} ${eventTitle.toLowerCase()} ${(reg.email || '').toLowerCase()} ${reg.student_id || ''} ${reg.card_last_four_digits || ''} ${reg.transaction_time || ''}`;
                         
-                        return `<tr data-registration-id="${reg.id}" data-status="${reg.status}" data-search-terms="${searchTerms.trim()}">
-                                    ${renderRegistrationRowHTML(reg)}
+                        return `<tr data-registration-id="${reg.id}" data-status="${reg.status}" data-search-terms="${searchTerms.trim()}" data-event-id="${reg.event_id}">
+                                    ${renderRegistrationRowHTML(reg, isPastEvent)}
                                 </tr>`;
                     }).join('')}
                 </tbody>
             </table>
         </div>`;
 };
+
+// src/assets/js/modules/admin.js
 
 const initializeRegistrationsModule = () => {
     const container = document.getElementById('admin-main-content');
@@ -205,23 +222,64 @@ const initializeRegistrationsModule = () => {
     const listContainer = container.querySelector('#registrations-admin-list');
     const searchInput = container.querySelector('#registration-search');
     const statusFilter = container.querySelector('#status-filter');
+    const eventFilter = container.querySelector('#event-filter');
+
+    const populateEventFilter = () => {
+        if (!eventFilter || !state.allEvents) return;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const upcomingEvents = state.allEvents
+            .filter(event => new Date(event.endDate) >= today)
+            .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+        const pastEvents = state.allEvents
+            .filter(event => new Date(event.endDate) < today)
+            .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
+
+        let optionsHTML = '<option value="all">همه رویدادها</option>';
+
+        if (upcomingEvents.length > 0) {
+            optionsHTML += '<optgroup label="رویدادهای در حال اجرا">';
+            upcomingEvents.forEach(event => {
+                optionsHTML += `<option value="${event.id}">${event.title}</option>`;
+            });
+            optionsHTML += '</optgroup>';
+        }
+
+        if (pastEvents.length > 0) {
+            optionsHTML += '<optgroup label="رویدادهای گذشته">';
+            pastEvents.forEach(event => {
+                optionsHTML += `<option value="${event.id}">${event.title}</option>`;
+            });
+            optionsHTML += '</optgroup>';
+        }
+        eventFilter.innerHTML = optionsHTML;
+    };
+
+    populateEventFilter();
 
     const filterAndRender = () => {
         const searchTerm = (searchInput.value || '').toLowerCase().trim();
         const status = statusFilter.value;
+        const eventId = eventFilter.value;
         const allRows = listContainer.querySelectorAll('tbody tr');
 
         allRows.forEach(row => {
             const isSearchMatch = searchTerm === '' || (row.dataset.searchTerms || '').includes(searchTerm);
-            const currentStatus = row.dataset.status;
-            const isStatusMatch = status === 'all' || currentStatus === status;
+            const isStatusMatch = status === 'all' || row.dataset.status === status;
+            const isEventMatch = eventId === 'all' || row.dataset.eventId == eventId;
             
-            row.style.display = isSearchMatch && isStatusMatch ? '' : 'none';
+            row.style.display = isSearchMatch && isStatusMatch && isEventMatch ? '' : 'none';
         });
     };
     
     if (searchInput) searchInput.addEventListener('input', filterAndRender);
     if (statusFilter) statusFilter.addEventListener('change', filterAndRender);
+    if (eventFilter) eventFilter.addEventListener('change', filterAndRender);
+
+    filterAndRender();
 
     if (listContainer) {
         listContainer.addEventListener('click', async (e) => {
@@ -232,11 +290,9 @@ const initializeRegistrationsModule = () => {
             const registrationId = row.dataset.registrationId;
             const newStatus = button.dataset.status;
             
-            // *** START: تغییر اصلی اینجاست ***
-            // عنوان رویداد را قبل از هر کاری از سطر فعلی می‌خوانیم و ذخیره می‌کنیم
+            const originalEventId = row.dataset.eventId; 
             const eventTitleCell = row.querySelector('td:nth-child(2)');
             const preservedEventTitle = eventTitleCell ? eventTitleCell.textContent : 'رویداد حذف شده';
-            // *** END: پایان تغییر اصلی ***
 
             row.querySelectorAll('.update-status-btn').forEach(btn => {
                 btn.innerHTML = '...';
@@ -248,22 +304,25 @@ const initializeRegistrationsModule = () => {
                 if (error) throw error;
                 if (!updatedRegistration) throw new Error("No data returned from server after update.");
                 
-                // اطلاعات رویداد را به صورت دستی به آبجکت برگشتی اضافه می‌کنیم
                 updatedRegistration.events = { title: preservedEventTitle };
 
-                row.innerHTML = renderRegistrationRowHTML(updatedRegistration);
-                row.dataset.status = newStatus;
+                const searchTerms = `${(updatedRegistration.full_name || '').toLowerCase()} ${preservedEventTitle.toLowerCase()} ${(updatedRegistration.email || '').toLowerCase()} ${updatedRegistration.student_id || ''} ${updatedRegistration.card_last_four_digits || ''} ${updatedRegistration.transaction_time || ''}`;
+                // **Corrected Block:** Re-render the entire row with all necessary data attributes
+                row.outerHTML = `<tr data-registration-id="${updatedRegistration.id}" data-status="${updatedRegistration.status}" data-search-terms="${searchTerms.trim()}" data-event-id="${originalEventId}">
+                                    ${renderRegistrationRowHTML(updatedRegistration)}
+                                 </tr>`;
 
             } catch (error) {
                 console.error("Update Error:", error);
                 alert('خطا در به‌روزرسانی وضعیت. لطفاً کنسول را بررسی کنید.');
-                // در صورت خطا، بهترین کار بارگذاری مجدد لیست است
                 const refreshedData = await loadRegistrations();
                 renderRegistrationsList(refreshedData);
             }
         });
     }
 };
+
+// src/assets/js/modules/admin.js
 
 const initializeGlobalRefreshButton = () => {
     const refreshBtn = document.getElementById('admin-global-refresh-btn');
@@ -283,8 +342,16 @@ const initializeGlobalRefreshButton = () => {
 
         try {
             const data = await route.loader();
-            const renderData = currentPath === '/admin/events' ? data[0] : data; // <<-- اینجا 'path' به 'currentPath' تغییر کرد
+            
+            // *** START: CORRECTED LOGIC ***
+            // This ensures the correct data slice is passed to renderers that expect it.
+            const renderData = (currentPath === '/admin/events' || currentPath === '/admin/registrations') 
+                ? data[0] 
+                : data;
+            // *** END: CORRECTED LOGIC ***
+
             route.renderer(renderData);
+            
             if (route.initializer) {
                 route.initializer();
             }
@@ -294,7 +361,7 @@ const initializeGlobalRefreshButton = () => {
             refreshBtn.innerHTML = checkIconSVG;
 
         } catch (error) {
-            console.error(`Error refreshing page ${path}:`, error);
+            console.error(`Error refreshing page ${currentPath}:`, error);
             refreshBtn.classList.remove('loading');
             refreshBtn.classList.add('error');
             refreshBtn.innerHTML = errorIconSVG;
@@ -1291,16 +1358,18 @@ const adminRoutes = {
         title: 'مدیریت رویدادها',
         html: 'admin-events.html',
         loader: () => Promise.all([loadEvents(), loadTags()]),
-        // FIX: The renderer now directly receives the events array from the router logic.
         renderer: renderEventsList,
         initializer: initializeEventsModule
     },
     '/admin/registrations': {
-    title: 'مدیریت ثبت‌نام‌ها',
-    html: 'admin-registrations.html',
-    loader: loadRegistrations,
-    renderer: renderRegistrationsList,
-    initializer: initializeRegistrationsModule
+        title: 'مدیریت ثبت‌نام‌ها',
+        html: 'admin-registrations.html',
+        // *** START: FIX ***
+        // رویدادها را به همراه ثبت‌نام‌ها بارگذاری می‌کنیم
+        loader: () => Promise.all([loadRegistrations(), loadEvents()]),
+        // *** END: FIX ***
+        renderer: renderRegistrationsList,
+        initializer: initializeRegistrationsModule
     }
 };
 
@@ -1326,13 +1395,15 @@ const loadAdminPage = async (path) => {
 
         setTimeout(() => {
             if (route.renderer) {
-                // FIX: Explicitly handle the data for the '/admin/events' route
-                if (path === '/admin/events') {
-                    // The loader for events returns [events, tags]. We only need the events array for the renderer.
+                // *** START: FIX ***
+                // مدیریت داده‌های آرایه‌ای برای هر دو صفحه رویدادها و ثبت‌نام‌ها
+                if (path === '/admin/events' || path === '/admin/registrations') {
+                    // هر دو loader یک آرایه برمی‌گردانند. renderer فقط به عضو اول (رویدادها یا ثبت‌نام‌ها) نیاز دارد
                     route.renderer(data[0]);
                 } else {
                     route.renderer(data);
                 }
+                // *** END: FIX ***
             }
             
             if (route.initializer) {

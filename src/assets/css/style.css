@@ -3687,7 +3687,7 @@ body.light-theme .custom-table thead { background-color: rgba(26, 92, 93, 0.04);
 .custom-table tbody tr:last-child td { border-bottom: none; }
 .custom-table .message-cell, .custom-table .summary-cell { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .custom-table .actions-header { width: 1%; }
-.custom-table .actions-cell { display: flex; gap: 0.5rem; }
+.custom-table .actions-cell { display: table-cell; gap: 0.5rem; }
 .actions-cell .btn.btn-sm { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem; width: 36px; height: 36px; }
 .actions-cell .btn.btn-sm .btn-text { display: none; }
 
@@ -4507,4 +4507,161 @@ body.light-theme .session-link-container { border-top-color: var(--glass-border-
 /* ================== SCHEDULE MODAL SIZE ADJUSTMENT ================== */
 #generic-modal.schedule-modal .modal-content {
     max-width: 500px;
+}
+
+
+/* ================== ADMIN FILTERS LAYOUT ================== */
+.filters-container {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap; /* Allows filters to wrap on smaller screens */
+}
+
+.filters-container input,
+.filters-container select {
+    padding: 0.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border-light);
+    background-color: transparent;
+    color: inherit;
+    font-family: inherit;
+}
+
+body.dark-theme .filters-container input,
+body.dark-theme .filters-container select {
+    border-color: var(--glass-border-dark);
+}
+
+/* src/assets/css/style.css */
+
+/* ================== ADMIN FILTERS DROPDOWN STYLES v2.0 ================== */
+.filters-container select {
+    /* Reset default browser styles */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    /* General styling */
+    padding: 0.5rem 0.5rem 0.5rem 2rem; /* ایجاد فضا برای آیکون سفارشی در سمت چپ */
+    font-size: 0.95rem;
+    font-weight: bold;
+    line-height: 1.5;
+    cursor: pointer;
+    background-repeat: no-repeat;
+    background-position: left 0.75rem center; /* موقعیت آیکون کشویی */
+    background-size: 16px 16px;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* --- Light Theme --- */
+body.light-theme .filters-container select {
+    background-color: #ffffff;
+    border: 1px solid #dcdcdc;
+    color: var(--text-color-light);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23333333' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+}
+
+body.light-theme .filters-container select:hover {
+    border-color: #b0b0b0;
+}
+
+body.light-theme .filters-container select:focus {
+    outline: none;
+    border-color: var(--primary-color-light-theme);
+    box-shadow: 0 0 0 3px rgba(26, 92, 93, 0.15);
+}
+
+/* --- Dark Theme --- */
+body.dark-theme .filters-container select {
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border-dark);
+    color: var(--text-color-dark);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='rgba(255,255,255,0.7)' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+}
+
+body.dark-theme .filters-container select:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(232, 195, 142, 0.5);
+}
+
+body.dark-theme .filters-container select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(232, 195, 142, 0.2);
+}
+
+/* Styling for options and optgroups (some browsers have limited support) */
+.filters-container select optgroup {
+    font-weight: bold;
+    font-style: italic;
+}
+
+.filters-container select option {
+    font-weight: normal;
+}
+
+body.dark-theme .filters-container select option {
+    background-color: #012a2b; /* Match dark theme background */
+    color: var(--text-color-dark);
+}
+
+/* ================== ADMIN FILTERS OPTGROUP FIX ================== */
+/* General styles for the separator */
+.filters-container select optgroup {
+    font-weight: bold;
+    font-style: italic;
+}
+
+/* Dark Theme Optgroup Style */
+body.dark-theme .filters-container select optgroup {
+    background-color: #012a2b; /* Match the option background */
+    color: #cccccc; /* A light gray, readable color for the label */
+}
+
+/* Light Theme Optgroup Style */
+body.light-theme .filters-container select optgroup {
+    background-color: #f0f2f5; /* Match the option background */
+    color: #555555; /* A darker gray for the label */
+}
+
+/* ================== ADMIN PAST EVENT REGISTRATION STYLES ================== */
+
+/* Make status tags for past events dimmer */
+.custom-table .tag.is-past {
+    opacity: 0.6;
+    filter: grayscale(50%); /* Slightly desaturate the colors */
+}
+
+/* Style for disabled action buttons in the admin table */
+.custom-table .actions-cell .btn:disabled {
+    cursor: not-allowed;
+    background-color: transparent !important; /* Remove background on disabled buttons */
+    opacity: 0.4;
+    pointer-events: none; /* Prevent clicks */
+    border-color: transparent !important; /* Hide border on icon buttons */
+}
+
+/* Ensure text color is muted on disabled text buttons like 'بازگردانی' */
+.custom-table .actions-cell .btn-sm-text:disabled {
+    color: inherit; /* Inherit the muted color */
+    text-decoration: none;
+}
+/* ================== ADMIN ACTIONS NOT AVAILABLE STYLE ================== */
+.actions-cell .actions-not-available {
+    font-size: 0.85rem;
+    font-style: italic;
+    opacity: 0.6;
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+/* ================== PAST EVENT CARD BUTTON STYLE ================== */
+.event-card.past-event .event-buttons-wrapper .btn {
+    width: 100%; /* دکمه عرض کامل را می‌گیرد */
+    filter: none; /* فیلترهای احتمالی دیگر را حذف می‌کند */
+    opacity: 0.7; /* کمی کم‌رنگ‌تر به نظر می‌رسد */
+    cursor: not-allowed;
+}
+
+.event-card.past-event .event-buttons-wrapper {
+    justify-content: center; /* اطمینان از وسط‌چین بودن دکمه */
 }

@@ -325,7 +325,8 @@ export const renderEventsPage = () => {
     };
     
 
-// START: این تابع را به طور کامل جایگزین کنید
+
+
 const populateGrid = (grid, events, isPast = false) => {
     grid.innerHTML = ''; // پاک کردن محتوای قبلی
     if (events.length === 0) {
@@ -417,81 +418,74 @@ const populateGrid = (grid, events, isPast = false) => {
         const buttonsWrapper = document.createElement('div');
         buttonsWrapper.className = 'event-buttons-wrapper';
 
-        let mainButton = document.createElement('button');
-        mainButton.className = 'btn btn-primary btn-event-register';
-        mainButton.dataset.eventId = event.id;
-
-        const userHasRegistered = state.userRegistrations.has(event.id);
-        
-        let countdownHTML = '';
-
-        if (userHasRegistered) {
-            mainButton.textContent = 'پیگیری ثبت‌نام';
-            mainButton.disabled = false;
-            
-            const registrationStatus = state.userRegistrations.get(event.id);
-            mainButton.classList.remove('btn-primary');
-            mainButton.classList.add(`btn-status-${registrationStatus}`);
-            
+        // *** START: UPDATED LOGIC FOR PAST EVENTS ***
+        if (isPast) {
+            buttonsWrapper.innerHTML = `<button class="btn btn-secondary" disabled>رویداد پایان یافته</button>`;
         } else {
-            if (isPast) {
-                mainButton.textContent = 'پایان یافته';
-                mainButton.disabled = true;
-            } else if (isFull) {
-                mainButton.textContent = 'ظرفیت تکمیل';
-                mainButton.disabled = true;
-            } else if (regStatus === 'not_started') {
-                mainButton.textContent = 'ثبت‌نام به‌زودی';
-                mainButton.disabled = true;
-                countdownHTML = `<small class="countdown-text">${getTimeRemainingString(regStartDate)}</small>`;
-            } else if (regStatus === 'ended') {
-                mainButton.textContent = 'پایان ثبت‌نام';
-                mainButton.disabled = true;
+            let mainButton = document.createElement('button');
+            mainButton.className = 'btn btn-primary btn-event-register';
+            mainButton.dataset.eventId = event.id;
+
+            const userHasRegistered = state.userRegistrations.has(event.id);
+            let countdownHTML = '';
+
+            if (userHasRegistered) {
+                mainButton.textContent = 'پیگیری ثبت‌نام';
+                mainButton.disabled = false;
+                const registrationStatus = state.userRegistrations.get(event.id);
+                mainButton.classList.remove('btn-primary');
+                mainButton.classList.add(`btn-status-${registrationStatus}`);
             } else {
-                mainButton.textContent = 'ثبت‌نام';
-                if (regStatus === 'open' && regEndDate) {
-                    countdownHTML = `<small class="countdown-text">${getRegistrationEndTimeString(regEndDate)}</small>`;
+                if (isFull) {
+                    mainButton.textContent = 'ظرفیت تکمیل';
+                    mainButton.disabled = true;
+                } else if (regStatus === 'not_started') {
+                    mainButton.textContent = 'ثبت‌نام به‌زودی';
+                    mainButton.disabled = true;
+                    countdownHTML = `<small class="countdown-text">${getTimeRemainingString(regStartDate)}</small>`;
+                } else if (regStatus === 'ended') {
+                    mainButton.textContent = 'پایان ثبت‌نام';
+                    mainButton.disabled = true;
+                } else {
+                    mainButton.textContent = 'ثبت‌نام';
+                    if (regStatus === 'open' && regEndDate) {
+                        countdownHTML = `<small class="countdown-text">${getRegistrationEndTimeString(regEndDate)}</small>`;
+                    }
                 }
             }
-        }
-        
-        let scheduleData = [];
-        if (event.schedule) { try { scheduleData = typeof event.schedule === 'string' ? JSON.parse(event.schedule) : event.schedule; } catch (e) {} }
-        
-        // *** START: منطق اصلی و جدید اینجاست ***
-        if (Array.isArray(scheduleData) && scheduleData.length > 0) {
-            const scheduleButton = document.createElement('button');
-            scheduleButton.className = 'btn btn-secondary btn-view-schedule';
-            scheduleButton.dataset.eventId = event.id;
-            if (isPast) scheduleButton.disabled = true;
 
-            // تشخیص آنلاین بودن رویداد و وضعیت کاربر
-            const userIsConfirmed = state.userRegistrations.get(event.id) === 'confirmed';
-            const isOnlineEvent = scheduleData.some(session => session.link);
+            buttonsWrapper.appendChild(mainButton);
+            
+            let scheduleData = [];
+            if (event.schedule) { try { scheduleData = typeof event.schedule === 'string' ? JSON.parse(event.schedule) : event.schedule; } catch (e) {} }
 
-            if (userIsConfirmed && isOnlineEvent) {
-                scheduleButton.textContent = 'ورود به جلسه';
-                scheduleButton.classList.replace('btn-secondary', 'btn-primary');
-            } else {
-                scheduleButton.textContent = 'برنامه جلسات';
+            if (Array.isArray(scheduleData) && scheduleData.length > 0) {
+                const scheduleButton = document.createElement('button');
+                scheduleButton.className = 'btn btn-secondary btn-view-schedule';
+                scheduleButton.dataset.eventId = event.id;
+
+                const userIsConfirmed = state.userRegistrations.get(event.id) === 'confirmed';
+                const isOnlineEvent = scheduleData.some(session => session.link);
+
+                if (userIsConfirmed && isOnlineEvent) {
+                    scheduleButton.textContent = 'ورود به جلسه';
+                    scheduleButton.classList.replace('btn-secondary', 'btn-primary');
+                } else {
+                    scheduleButton.textContent = 'برنامه جلسات';
+                }
+                buttonsWrapper.prepend(scheduleButton); // Add schedule button before main button
             }
 
-            buttonsWrapper.appendChild(scheduleButton);
+            if (countdownHTML) {
+                card.insertAdjacentHTML('beforeend', countdownHTML);
+            }
         }
-        // *** END: پایان منطق جدید ***
+        // *** END: UPDATED LOGIC FOR PAST EVENTS ***
         
-        buttonsWrapper.appendChild(mainButton);
-        actionsContainer.prepend(buttonsWrapper);
-
-        if (countdownHTML) {
-            card.insertAdjacentHTML('beforeend', countdownHTML);
-        }
-
+        actionsContainer.appendChild(buttonsWrapper);
         grid.appendChild(cardElement);
     });
 };
-// END: پایان تابع جایگزین شده
-
 
 
     
