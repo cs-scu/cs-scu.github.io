@@ -483,6 +483,7 @@ const initializeRegistrationsModule = () => {
                                     ${renderRegistrationRowHTML(updatedRegistration)}
                                  </tr>`;
 
+                                 
             } catch (error) {
                 console.error("Update Error:", error);
                 alert('خطا در به‌روزرسانی وضعیت. لطفاً کنسول را بررسی کنید.');
