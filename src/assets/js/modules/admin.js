@@ -1,7 +1,7 @@
 // src/assets/js/modules/admin.js
 
 import { state } from './state.js';
-import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags, addTag, updateTag, deleteTag, uploadEventImage, deleteEventImage, renameEventImage ,loadRegistrations, updateRegistrationStatus } from './api.js';
+import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags, addTag, updateTag, deleteTag, uploadEventImage, deleteEventImage, renameEventImage ,loadRegistrations, updateRegistrationStatus, loadNews, addNews, updateNews, deleteNews, uploadNewsImage, deleteNewsImage, renameNewsImage, loadMembers } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
 
 const toPersianNumber = (n) => {
@@ -21,6 +21,133 @@ const showStatus = (statusBox, message, type = 'error') => {
     statusBox.textContent = message;
     statusBox.className = `form-status ${type}`;
     statusBox.style.display = 'block';
+};
+
+const initializeSharedTagModal = () => {
+    const modal = document.getElementById('admin-generic-modal');
+    const modalContent = document.getElementById('admin-generic-modal-content');
+    if (!modal || !modalContent) return;
+
+    let activeSelectionCallback = null;
+
+    const renderModalContent = (currentSelectedIds = []) => {
+        const sortedTags = Array.from(state.tagsMap.entries()).sort((a, b) => a[1].localeCompare(b[1], 'fa'));
+        let tagsListHTML = sortedTags.map(([id, name]) => {
+            const isChecked = currentSelectedIds.includes(id);
+            return `
+                <div class="tag-checkbox-item" data-tag-id="${id}" data-tag-name="${name.toLowerCase()}">
+                    <div class="tag-list-item-actions">
+                        <button type="button" class="tag-action-btn delete-tag-btn" title="حذف">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                        <button type="button" class="tag-action-btn edit-tag-btn" title="ویرایش">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="edit-tag-form"><input type="text" class="form-control" value="${name}"><button type="button" class="btn btn-primary btn-sm save-edit-btn">ذخیره</button><button type="button" class="btn btn-secondary btn-sm cancel-edit-btn">لغو</button></div>
+                    <label class="tag-name" for="modal-tag-${id}">${name}</label>
+                    <div class="modal-toggle-switch"><input type="checkbox" class="toggle-input" id="modal-tag-${id}" value="${id}" ${isChecked ? 'checked' : ''}><label for="modal-tag-${id}" class="toggle-label"></label></div>
+                </div>`;
+        }).join('');
+        
+        modalContent.innerHTML = `
+            <div class="tags-modal-container">
+                <h3>مدیریت و انتخاب تگ‌ها</h3>
+                <div class="tags-modal-header"><input type="text" id="tag-search-input" class="form-control" placeholder="جستجوی تگ..."></div>
+                <form class="add-tag-form" id="add-tag-form-modal"><input type="text" id="new-tag-name" class="form-control" placeholder="افزودن تگ جدید..."><button type="submit" class="btn btn-primary">افزودن</button></form>
+                <div class="tags-modal-list">${tagsListHTML || '<p style="text-align:center; opacity:0.8; padding: 1rem;" id="no-tags-message">تگی یافت نشد.</p>'}</div>
+                <div class="tags-modal-actions"><button type="button" class="btn btn-primary btn-full" id="confirm-tags-btn">تایید انتخاب</button></div>
+            </div>`;
+    };
+
+    window.openTagsModal = (currentSelectedIds, callback) => {
+        activeSelectionCallback = callback;
+        renderModalContent(currentSelectedIds);
+        modal.classList.add('is-open');
+    };
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal || e.target.closest('.close-modal')) {
+            modal.classList.remove('is-open');
+        }
+        if (e.target.id === 'confirm-tags-btn') {
+            const checkedInputs = modal.querySelectorAll('input[type="checkbox"]:checked');
+            const selectedIds = Array.from(checkedInputs).map(input => parseInt(input.value, 10));
+            if (activeSelectionCallback) {
+                activeSelectionCallback(selectedIds);
+            }
+            modal.classList.remove('is-open');
+        }
+    });
+
+    modalContent.addEventListener('click', async (e) => {
+        const item = e.target.closest('.tag-checkbox-item');
+        if (!item) return;
+        const tagId = parseInt(item.dataset.tagId, 10);
+        if (e.target.closest('.delete-tag-btn')) {
+            if (confirm(`آیا از حذف تگ «${state.tagsMap.get(tagId)}» مطمئن هستید؟`)) {
+                try {
+                    await deleteTag(tagId); await loadTags();
+                    renderModalContent(Array.from(modal.querySelectorAll('input[type="checkbox"]:checked')).map(cb => parseInt(cb.value)));
+                } catch { alert('خطا در حذف تگ.'); }
+            }
+        } else if (e.target.closest('.edit-tag-btn')) {
+            item.classList.add('is-editing');
+        } else if (e.target.closest('.cancel-edit-btn')) {
+            item.classList.remove('is-editing');
+        } else if (e.target.closest('.save-edit-btn')) {
+            const newName = item.querySelector('input[type="text"]').value.trim();
+            if (newName && newName !== state.tagsMap.get(tagId)) {
+                try {
+                    await updateTag(tagId, newName); await loadTags();
+                    renderModalContent(Array.from(modal.querySelectorAll('input[type="checkbox"]:checked')).map(cb => parseInt(cb.value)));
+                } catch { alert('خطا در ویرایش تگ.'); }
+            } else { item.classList.remove('is-editing'); }
+        }
+    });
+    
+    // --- START: افزودن منطق جستجو ---
+    modalContent.addEventListener('input', (e) => {
+        if (e.target.id === 'tag-search-input') {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const tagsList = modalContent.querySelector('.tags-modal-list');
+            const allTags = tagsList.querySelectorAll('.tag-checkbox-item');
+            const noTagsMessage = tagsList.querySelector('#no-tags-message');
+            let visibleCount = 0;
+
+            allTags.forEach(tag => {
+                const tagName = tag.dataset.tagName || '';
+                const isMatch = tagName.includes(searchTerm);
+                tag.style.display = isMatch ? 'flex' : 'none';
+                if (isMatch) visibleCount++;
+            });
+
+            if (noTagsMessage) {
+                noTagsMessage.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+        }
+    });
+    // --- END: افزودن منطق جستجو ---
+
+    modalContent.addEventListener('submit', async (e) => {
+        if (e.target.id === 'add-tag-form-modal') {
+            e.preventDefault();
+            const input = document.getElementById('new-tag-name');
+            const newName = input.value.trim();
+            if (!newName) return;
+            try {
+                await addTag(newName);
+                input.value = ''; await loadTags();
+                renderModalContent(Array.from(modal.querySelectorAll('input[type="checkbox"]:checked')).map(cb => parseInt(cb.value)));
+            } catch { alert('خطا در افزودن تگ.'); }
+        }
+    });
 };
 
 // --- Renderer Functions ---
@@ -124,6 +251,50 @@ const renderEventsList = (events) => {
                             <td>${event.cost || '---'}</td>
                             <td>${event.location || '---'}</td>
                         </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>`;
+};
+
+const renderNewsList = (newsItems) => {
+    const container = document.getElementById('news-admin-list');
+    if (!container) return;
+    if (!newsItems || newsItems.length === 0) {
+        container.innerHTML = '<p style="text-align: center; opacity: 0.8;">هنوز هیچ خبری ثبت نشده است.</p>';
+        return;
+    }
+    container.innerHTML = `
+        <div class="custom-table-wrapper">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th class="actions-header">عملیات</th>
+                        <th>عنوان</th>
+                        <th>نویسنده</th>
+                        <th>تاریخ</th>
+                        <th>خلاصه</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${newsItems.map(item => {
+                        const author = state.membersMap.get(item.authorId);
+                        const authorName = author ? author.name : 'نامشخص';
+                        return `
+                        <tr>
+                            <td class="actions-cell">
+                                <button class="btn btn-secondary btn-sm edit-news-btn" data-id="${item.id}" title="ویرایش">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </button>
+                                <button class="btn btn-danger btn-sm delete-news-btn" data-id="${item.id}" title="حذف">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </td>
+                            <td>${item.title}</td>
+                            <td>${authorName}</td>
+                            <td>${item.date}</td>
+                            <td class="summary-cell" title="${item.summary || ''}">${item.summary || ''}</td>
+                        </tr>`;
+                    }).join('')}
                 </tbody>
             </table>
         </div>`;
@@ -343,12 +514,9 @@ const initializeGlobalRefreshButton = () => {
         try {
             const data = await route.loader();
             
-            // *** START: CORRECTED LOGIC ***
-            // This ensures the correct data slice is passed to renderers that expect it.
-            const renderData = (currentPath === '/admin/events' || currentPath === '/admin/registrations') 
+            const renderData = (currentPath === '/admin/events' || currentPath === '/admin/registrations' || currentPath === '/admin/news') 
                 ? data[0] 
                 : data;
-            // *** END: CORRECTED LOGIC ***
 
             route.renderer(renderData);
             
@@ -377,9 +545,6 @@ const initializeGlobalRefreshButton = () => {
 
 
 // src/assets/js/modules/admin.js
-
-// ... (کدهای قبلی)
-
 const initializeDatepicker = () => {
     const dateRangeInput = document.getElementById('event-date-range-flatpickr');
     const displayDateInput = document.getElementById('event-display-date');
@@ -701,6 +866,258 @@ const initializeJournalModule = () => {
 
 const initializeMessagesModule = () => { /* No specific JS needed */ };
 
+const initializeNewsModule = async () => {
+    const newsForm = document.getElementById('add-news-form');
+    if (!newsForm) return;
+
+    let selectedTagIds = [];
+    let currentImageUrl = '';
+
+    const formTitle = document.getElementById('news-form-title');
+    const submitBtn = document.getElementById('news-submit-btn');
+    const cancelBtn = document.getElementById('cancel-edit-btn');
+    const hiddenIdInput = document.getElementById('news-id');
+    const adminListContainer = document.getElementById('news-admin-list');
+    const imageUploadInput = document.getElementById('news-image-upload');
+    const authorSelect = document.getElementById('news-author');
+    const linkInput = document.getElementById('news-link');
+    const dateInput = document.getElementById('news-date');
+    const readingTimeInput = document.getElementById('news-reading-time');
+    const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
+    const selectedTagsDisplay = document.getElementById('selected-tags-display');
+
+    if (dateInput) {
+        flatpickr(dateInput, {
+            locale: "fa",
+            altInput: true,
+            altFormat: "j F Y",
+            dateFormat: "Y-m-d",
+            onClose: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    const jalaliDate = new instance.l10n.date(selectedDates[0]);
+                    const day = toPersianNumber(jalaliDate.getDate());
+                    const monthName = instance.l10n.months.longhand[jalaliDate.getMonth()];
+                    const year = toPersianNumber(jalaliDate.getFullYear());
+                    instance.input.value = `${day} ${monthName} ${year}`;
+                }
+            }
+        });
+    }
+
+    linkInput.addEventListener('blur', () => {
+        let slug = linkInput.value.trim().toLowerCase()
+                   .replace(/\s+/g, '-')
+                   .replace(/[^a-z0-9-_]/g, '');
+        linkInput.value = slug;
+    });
+
+    const parseReadingTime = (value) => {
+        const numericMatch = (value || '').match(/[\d۰-۹]+/);
+        return numericMatch ? numericMatch[0].replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)) : '';
+    };
+
+    readingTimeInput.addEventListener('focus', () => {
+        readingTimeInput.value = parseReadingTime(readingTimeInput.value);
+    });
+
+    readingTimeInput.addEventListener('blur', () => {
+        const value = readingTimeInput.value.trim();
+        if (value && !isNaN(value)) {
+            readingTimeInput.value = `${toPersianNumber(value)} دقیقه مطالعه`;
+        } else {
+            readingTimeInput.value = '';
+        }
+    });
+
+    if (authorSelect && state.membersMap.size > 0) {
+        authorSelect.innerHTML = '<option value="" disabled selected>انتخاب نویسنده...</option>';
+        Array.from(state.membersMap.values())
+            .sort((a, b) => a.id - b.id)
+            .forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.id;
+                option.textContent = member.name;
+                authorSelect.appendChild(option);
+            });
+    }
+    
+    const updateSelectedTagsDisplay = () => {
+        if (!selectedTagsDisplay) return;
+        selectedTagsDisplay.innerHTML = selectedTagIds.length > 0
+            ? selectedTagIds.map(id => `<span class="tag">${state.tagsMap.get(id) || '?'}</span>`).join('')
+            : 'هیچ تگی انتخاب نشده است.';
+    };
+
+    if (openTagsModalBtn) {
+        openTagsModalBtn.addEventListener('click', () => {
+            window.openTagsModal(selectedTagIds, (newSelectedIds) => {
+                selectedTagIds = newSelectedIds;
+                updateSelectedTagsDisplay();
+            });
+        });
+    }
+
+    const imageUploadControls = newsForm.querySelector('.image-upload-controls');
+    const fileNameDisplay = imageUploadControls?.querySelector('.file-name-display');
+    const fileClearBtn = imageUploadControls?.querySelector('.file-clear-btn');
+    const updateFileNameDisplay = (fileName) => {
+        if (!fileNameDisplay) return;
+        if (!fileName) {
+            fileNameDisplay.textContent = 'فایلی انتخاب نشده';
+            if(fileClearBtn) fileClearBtn.style.display = 'none';
+        } else {
+             fileNameDisplay.textContent = fileName;
+            if(fileClearBtn) fileClearBtn.style.display = 'inline-block';
+        }
+    };
+    if(imageUploadInput) { imageUploadInput.addEventListener('change', () => { const file = imageUploadInput.files[0]; updateFileNameDisplay(file ? file.name : ''); }); }
+    if(fileClearBtn) { fileClearBtn.addEventListener('click', () => { imageUploadInput.value = ''; updateFileNameDisplay(''); }); }
+    
+    const resetForm = () => {
+        newsForm.reset();
+        hiddenIdInput.value = '';
+        currentImageUrl = '';
+        imageUploadInput.required = true;
+        updateFileNameDisplay('');
+        formTitle.textContent = 'درج خبر جدید';
+        submitBtn.textContent = 'افزودن خبر';
+        cancelBtn.style.display = 'none';
+        selectedTagIds = [];
+        updateSelectedTagsDisplay();
+        if (dateInput._flatpickr) { dateInput._flatpickr.clear(); }
+        newsForm.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    newsForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const statusBox = newsForm.querySelector('.form-status');
+        const isEditing = hiddenIdInput.value;
+        hideStatus(statusBox);
+        submitBtn.disabled = true;
+        submitBtn.textContent = isEditing ? 'در حال ویرایش...' : 'در حال افزودن...';
+        try {
+            const formData = new FormData(newsForm);
+            const slug = formData.get('link').trim();
+
+            const readingTimeRawValue = formData.get('readingTime');
+            const numericReadingTime = parseReadingTime(readingTimeRawValue);
+            let formattedReadingTime = '';
+            if (numericReadingTime && !isNaN(numericReadingTime)) {
+                formattedReadingTime = `${toPersianNumber(numericReadingTime)} دقیقه مطالعه`;
+            }
+
+            let finalLink = '';
+            if (isEditing) {
+                finalLink = `#/news/${isEditing}-${slug}`;
+            } else {
+                const maxId = state.allNews.reduce((max, news) => Math.max(max, parseInt(news.id, 10)), 0);
+                const newId = maxId + 1;
+                finalLink = `#/news/${newId}-${slug}`;
+            }
+
+            const imageFile = formData.get('imageFile');
+            let imageUrl = currentImageUrl;
+
+            if (!slug) throw new Error("شناسه لینک (Slug) نمی‌تواند خالی باشد.");
+            if (imageFile && imageFile.size > 0) {
+                if (isEditing && currentImageUrl) await deleteNewsImage(currentImageUrl);
+                imageUrl = await uploadNewsImage(imageFile, slug);
+            } else if (isEditing && currentImageUrl) {
+                const oldFileName = currentImageUrl.split('/').pop();
+                const oldSlug = oldFileName.split('-').slice(0, -1).join('-').replace('covers/', '');
+                 if (slug !== oldSlug) imageUrl = await renameNewsImage(currentImageUrl, slug);
+            } else if (!isEditing) {
+                throw new Error("تصویر خبر الزامی است.");
+            }
+
+            const newsData = {
+                title: formData.get('title'),
+                summary: formData.get('summary'),
+                link: finalLink,
+                date: formData.get('date'),
+                readingTime: formattedReadingTime,
+                authorId: parseInt(formData.get('authorId'), 10),
+                tag_ids: selectedTagIds,
+                content: JSON.parse(formData.get('content')),
+                image: imageUrl
+            };
+
+            if (isEditing) {
+                await updateNews(isEditing, newsData);
+                showStatus(statusBox, 'خبر با موفقیت ویرایش شد.', 'success');
+            } else {
+                await addNews(newsData);
+                showStatus(statusBox, 'خبر با موفقیت افزوده شد.', 'success');
+            }
+            state.allNews = await loadNews();
+            renderNewsList(state.allNews);
+            resetForm();
+        } catch (error) {
+            showStatus(statusBox, `عملیات با خطا مواجه شد: ${error.message}`, 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = isEditing ? 'ذخیره تغییرات' : 'افزودن خبر';
+        }
+    });
+
+    if(cancelBtn) cancelBtn.addEventListener('click', resetForm);
+
+    adminListContainer.addEventListener('click', async (event) => {
+        const editBtn = event.target.closest('.edit-news-btn');
+        if (editBtn) {
+            const id = editBtn.dataset.id;
+            const newsItem = state.allNews.find(n => n.id == id);
+            if (!newsItem) return;
+
+            resetForm();
+
+            hiddenIdInput.value = newsItem.id;
+            currentImageUrl = newsItem.image || '';
+            imageUploadInput.required = false;
+            updateFileNameDisplay(currentImageUrl.split('/').pop());
+
+            document.getElementById('news-title').value = newsItem.title || '';
+            document.getElementById('news-summary').value = newsItem.summary || '';
+            
+            const linkParts = (newsItem.link || '').split('-');
+            const slugToDisplay = linkParts.length > 1 ? linkParts.slice(1).join('-') : (linkParts[0] || '').replace('#/news/', '');
+            document.getElementById('news-link').value = slugToDisplay;
+
+            if(dateInput._flatpickr) { dateInput._flatpickr.setDate(newsItem.date, true); } else { document.getElementById('news-date').value = newsItem.date || ''; }
+            
+            readingTimeInput.value = newsItem.readingTime || '';
+            document.getElementById('news-author').value = newsItem.authorId || '';
+            document.getElementById('news-content').value = JSON.stringify(newsItem.content, null, 2);
+            selectedTagIds = newsItem.tag_ids || [];
+            updateSelectedTagsDisplay();
+            
+            formTitle.textContent = 'ویرایش خبر';
+            submitBtn.textContent = 'ذخیره تغییرات';
+            cancelBtn.style.display = 'inline-block';
+            newsForm.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        const deleteBtn = event.target.closest('.delete-news-btn');
+        if (deleteBtn) {
+            const id = deleteBtn.dataset.id;
+            const newsToDelete = state.allNews.find(n => n.id == id);
+            if (!newsToDelete) return;
+            if (confirm('آیا از حذف این خبر مطمئن هستید؟ این عملیات غیرقابل بازگشت است.')) {
+                try {
+                    deleteBtn.disabled = true;
+                    if (newsToDelete.image) await deleteNewsImage(newsToDelete.image);
+                    await deleteNews(id);
+                    state.allNews = state.allNews.filter(n => n.id != id);
+                    renderNewsList(state.allNews);
+                } catch (error) {
+                    alert('خطا در حذف خبر.');
+                    deleteBtn.disabled = false;
+                }
+            }
+        }
+    });
+};
+
 const initializeEventsModule = async () => {
     const eventForm = document.getElementById('add-event-form');
     if (!eventForm) return;
@@ -736,21 +1153,35 @@ const initializeEventsModule = async () => {
     const capacityInput = document.getElementById('event-capacity');
     const capacityToggle = document.getElementById('toggle-capacity-unlimited');
     const detailPageInput = document.getElementById('event-detail-page');
-    const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
-    const selectedTagsDisplay = document.getElementById('selected-tags-display');
     const paymentInfoSection = document.getElementById('payment-info-section');
     const paymentNumberInput = document.getElementById('payment-number');
     const contactTelegramInput = document.getElementById('contact-telegram');
     const contactWhatsappInput = document.getElementById('contact-whatsapp');
-
     const imageUploadControls = eventForm.querySelector('.image-upload-controls');
     const fileNameDisplay = imageUploadControls ? imageUploadControls.querySelector('.file-name-display') : null;
     const fileClearBtn = imageUploadControls ? imageUploadControls.querySelector('.file-clear-btn') : null;
 
-    const toPersianNumber = (n) => {
-        const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-        return String(n).replace(/[0-9]/g, (digit) => persianNumbers[digit]);
+    // --- بخش تگ‌ها (متصل به مودال عمومی) ---
+    const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
+    const selectedTagsDisplay = document.getElementById('selected-tags-display');
+
+    const updateSelectedTagsDisplay = () => {
+        if (!selectedTagsDisplay) return;
+        selectedTagsDisplay.innerHTML = selectedTagIds.length > 0
+            ? selectedTagIds.map(id => `<span class="tag">${state.tagsMap.get(id) || '?'}</span>`).join('')
+            : 'هیچ تگی انتخاب نشده است.';
     };
+
+    if (openTagsModalBtn) {
+        openTagsModalBtn.addEventListener('click', () => {
+            // فراخوانی تابع عمومی مودال تگ‌ها
+            window.openTagsModal(selectedTagIds, (newSelectedIds) => {
+                selectedTagIds = newSelectedIds;
+                updateSelectedTagsDisplay();
+            });
+        });
+    }
+    // --- پایان بخش تگ‌ها ---
 
     const togglePaymentFields = () => {
         if (!paymentInfoSection || !costToggle) return;
@@ -765,21 +1196,7 @@ const initializeEventsModule = async () => {
             if(fileClearBtn) fileClearBtn.style.display = 'none';
             return;
         }
-        const maxChars = 10;
-        let displayName = fileName;
-        const lastDotIndex = fileName.lastIndexOf('.');
-        if (lastDotIndex > 0) {
-            const nameWithoutExt = fileName.substring(0, lastDotIndex);
-            const extension = fileName.substring(lastDotIndex);
-            if (nameWithoutExt.length > maxChars) {
-                displayName = nameWithoutExt.substring(0, maxChars) + '...' + extension;
-            }
-        } else {
-            if (fileName.length > maxChars) {
-                displayName = fileName.substring(0, maxChars) + '...';
-            }
-        }
-        fileNameDisplay.textContent = displayName;
+        fileNameDisplay.textContent = fileName;
         if(fileClearBtn) fileClearBtn.style.display = 'inline-block';
     };
 
@@ -802,170 +1219,6 @@ const initializeEventsModule = async () => {
             }
         });
     }
-    
-    const updateSelectedTagsDisplay = () => {
-        if (!selectedTagsDisplay) return;
-        if (selectedTagIds.length === 0) {
-            selectedTagsDisplay.innerHTML = 'هیچ تگی انتخاب نشده است.';
-            return;
-        }
-        selectedTagsDisplay.innerHTML = '';
-        selectedTagIds.forEach(id => {
-            const tagName = state.tagsMap.get(id);
-            if (tagName) {
-                const tagEl = document.createElement('span');
-                tagEl.className = 'tag';
-                tagEl.textContent = tagName;
-                selectedTagsDisplay.appendChild(tagEl);
-            }
-        });
-    };
-    
-const renderUnifiedTagsModal = () => {
-    const modalContent = document.getElementById('admin-generic-modal-content');
-    if (!modalContent) return;
-    
-    const sortedTags = Array.from(state.tagsMap.entries()).sort((a, b) => a[1].localeCompare(b[1], 'fa'));
-
-    let tagsListHTML = '';
-    sortedTags.forEach(([id, name]) => {
-        const isChecked = selectedTagIds.includes(id);
-        tagsListHTML += `
-            <div class="tag-checkbox-item" data-tag-id="${id}" data-tag-name="${name.toLowerCase()}">
-                <div class="tag-list-item-actions">
-                    <button class="tag-action-btn delete-tag-btn" title="حذف"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
-                    <button class="tag-action-btn edit-tag-btn" title="ویرایش"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-                </div>
-                
-                <div class="edit-tag-form">
-                    <input type="text" class="form-control" value="${name}">
-                    <button type="button" class="btn btn-primary btn-sm save-edit-btn">ذخیره</button>
-                    <button type="button" class="btn btn-secondary btn-sm cancel-edit-btn">لغو</button>
-                </div>
-
-                <label class="tag-name" for="modal-tag-${id}">${name}</label>
-                
-                <div class="modal-toggle-switch">
-                    <input type="checkbox" class="toggle-input" id="modal-tag-${id}" value="${id}" ${isChecked ? 'checked' : ''}>
-                    <label for="modal-tag-${id}" class="toggle-label"></label>
-                </div>
-            </div>`;
-    });
-    
-    modalContent.innerHTML = `
-        <div class="tags-modal-container">
-            <h3>مدیریت و انتخاب تگ‌ها</h3>
-            <div class="tags-modal-header">
-                <input type="text" id="tag-search-input" class="form-control" placeholder="جستجوی تگ...">
-            </div>
-            <form class="add-tag-form" id="add-tag-form-modal"><input type="text" id="new-tag-name" class="form-control" placeholder="افزودن تگ جدید..."><button type="submit" class="btn btn-primary">افزودن</button></form>
-            <div class="tags-modal-list">${tagsListHTML || '<p style="text-align:center; opacity:0.8; padding: 1rem;" id="no-tags-message">تگی یافت نشد.</p>'}</div>
-            <div class="tags-modal-actions">
-                <button type="button" class="btn btn-primary btn-full" id="confirm-tags-btn">تایید انتخاب</button>
-            </div>
-        </div>`;
-
-    const searchInput = modalContent.querySelector('#tag-search-input');
-    const tagsList = modalContent.querySelector('.tags-modal-list');
-    const allTags = tagsList.querySelectorAll('.tag-checkbox-item');
-    const noTagsMessage = tagsList.querySelector('#no-tags-message');
-
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
-            const searchTerm = searchInput.value.toLowerCase().trim();
-            let visibleCount = 0;
-            allTags.forEach(tag => {
-                const tagName = tag.dataset.tagName || '';
-                const isMatch = tagName.includes(searchTerm);
-                // *** FIX: Use display property for filtering ***
-                tag.style.display = isMatch ? 'flex' : 'none';
-                if (isMatch) visibleCount++;
-            });
-
-            if (noTagsMessage) {
-                 noTagsMessage.textContent = visibleCount === 0 ? 'هیچ تگی مطابق با جستجوی شما یافت نشد.' : 'تگی یافت نشد.';
-                 noTagsMessage.style.display = (allTags.length === 0 || visibleCount === 0) ? 'block' : 'none';
-            }
-        });
-    }
-};
-
-    const openTagsModal = () => {
-        renderUnifiedTagsModal();
-        document.getElementById('admin-generic-modal').classList.add('is-open');
-    };
-
-    document.getElementById('admin-generic-modal').addEventListener('click', async (e) => {
-        const modal = document.getElementById('admin-generic-modal');
-        if (e.target === modal || e.target.closest('.close-modal')) {
-            modal.classList.remove('is-open');
-        }
-        if (e.target.id === 'confirm-tags-btn') {
-            const checkedInputs = modal.querySelectorAll('input[type="checkbox"]:checked');
-            selectedTagIds = Array.from(checkedInputs).map(input => parseInt(input.value, 10));
-            updateSelectedTagsDisplay();
-            modal.classList.remove('is-open');
-        }
-        
-        const deleteBtn = e.target.closest('.delete-tag-btn');
-        if (deleteBtn) {
-            const item = deleteBtn.closest('.tag-checkbox-item');
-            const tagId = parseInt(item.dataset.tagId, 10);
-            const tagName = state.tagsMap.get(tagId);
-            if (confirm(`آیا از حذف تگ «${tagName}» مطمئن هستید؟ این تگ از تمام رویدادها نیز حذف خواهد شد.`)) {
-                try {
-                    await deleteTag(tagId);
-                    state.tagsMap.delete(tagId);
-                    selectedTagIds = selectedTagIds.filter(id => id !== tagId);
-                    updateSelectedTagsDisplay();
-                    renderUnifiedTagsModal();
-                } catch (error) { alert('خطا در حذف تگ.'); }
-            }
-        }
-
-        const editBtn = e.target.closest('.edit-tag-btn');
-        if (editBtn) {
-            const item = editBtn.closest('.tag-checkbox-item');
-            item.classList.add('is-editing');
-        }
-
-        const cancelEditBtn = e.target.closest('.edit-tag-form .cancel-edit-btn');
-        if (cancelEditBtn) {
-            cancelEditBtn.closest('.tag-checkbox-item').classList.remove('is-editing');
-        }
-
-        const saveBtn = e.target.closest('.save-edit-btn');
-        if (saveBtn) {
-            const item = saveBtn.closest('.tag-checkbox-item');
-            const tagId = parseInt(item.dataset.tagId, 10);
-            const newName = item.querySelector('input').value.trim();
-            if (newName && newName !== state.tagsMap.get(tagId)) {
-                try {
-                    const updatedTag = await updateTag(tagId, newName);
-                    state.tagsMap.set(updatedTag.id, updatedTag.name);
-                    renderUnifiedTagsModal();
-                } catch { alert('خطا در ویرایش تگ.'); }
-            } else {
-                item.classList.remove('is-editing');
-            }
-        }
-    });
-
-    document.getElementById('admin-generic-modal-content').addEventListener('submit', async (e) => {
-        if (e.target.id === 'add-tag-form-modal') {
-            e.preventDefault();
-            const input = document.getElementById('new-tag-name');
-            const newName = input.value.trim();
-            if (!newName) return;
-            try {
-                const newTag = await addTag(newName);
-                state.tagsMap.set(newTag.id, newTag.name);
-                renderUnifiedTagsModal();
-            } catch { alert('خطا در افزودن تگ.'); }
-        }
-    });
-
-    if (openTagsModalBtn) { openTagsModalBtn.addEventListener('click', openTagsModal); }
     
     const setupToggleSwitch = (input, toggle, value) => {
         if (!input || !toggle) return;
@@ -990,67 +1243,6 @@ const renderUnifiedTagsModal = () => {
             let slug = detailPageInput.value.trim();
             slug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-_\u0600-\u06FF]/g, '');
             detailPageInput.value = slug;
-        });
-    }
-
-    if (costInput) {
-        costInput.addEventListener('input', () => {
-            let value = costInput.value.replace(/[^۰-۹0-9]/g, '');
-            value = value.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-            if (value === '') {
-                costInput.value = '';
-                return;
-            }
-            const number = parseInt(value, 10);
-            costInput.value = toPersianNumber(number.toLocaleString('en-US'));
-        });
-
-        costInput.addEventListener('blur', () => {
-            if (costInput.value && !costInput.value.includes('تومان') && costInput.value !== 'رایگان') {
-                costInput.value += ' تومان';
-            }
-        });
-
-        costInput.addEventListener('focus', () => {
-            costInput.value = costInput.value.replace(/ تومان/g, '').replace(/,/g, '');
-        });
-    }
-
-    if (paymentNumberInput) {
-        paymentNumberInput.addEventListener('input', () => {
-            let value = paymentNumberInput.value.replace(/[^0-9]/g, '');
-            let formattedValue = '';
-            for (let i = 0; i < value.length; i++) {
-                if (i > 0 && i % 4 === 0) {
-                    formattedValue += '-';
-                }
-                formattedValue += value[i];
-            }
-            paymentNumberInput.value = formattedValue.substring(0, 19);
-        });
-    }
-
-    if (contactWhatsappInput) {
-        contactWhatsappInput.addEventListener('blur', () => {
-            let value = contactWhatsappInput.value.trim();
-            if (/^(09|989)\d{9}$/.test(value)) {
-                const phone = value.startsWith('09') ? `98${value.substring(1)}` : value;
-                contactWhatsappInput.value = `https://wa.me/${phone}`;
-            }
-        });
-    }
-
-    if (contactTelegramInput) {
-        contactTelegramInput.addEventListener('blur', () => {
-            let value = contactTelegramInput.value.trim();
-            if (/^(09|989)\d{9}$/.test(value)) {
-                const phone = value.startsWith('09') ? `+98${value.substring(1)}` : `+${value}`;
-                contactTelegramInput.value = `https://t.me/${phone}`;
-            } 
-            else if (value && !value.includes('t.me')) {
-                const username = value.startsWith('@') ? value.substring(1) : value;
-                contactTelegramInput.value = `https://t.me/${username}`;
-            }
         });
     }
 
@@ -1083,7 +1275,6 @@ const renderUnifiedTagsModal = () => {
         event.preventDefault();
         const statusBox = eventForm.querySelector('.form-status');
         const isEditing = hiddenIdInput.value;
-        const formData = new FormData(eventForm);
         
         hideStatus(statusBox);
         submitBtn.disabled = true;
@@ -1124,7 +1315,7 @@ const renderUnifiedTagsModal = () => {
                 }
 
                 const parseJsonField = (fieldName) => {
-                    const value = formData.get(fieldName);
+                    const value = new FormData(eventForm).get(fieldName);
                     try {
                         return value ? JSON.parse(value) : null;
                     } catch (e) {
@@ -1133,47 +1324,23 @@ const renderUnifiedTagsModal = () => {
                 };
                 
                 const isUnlimited = capacityToggle.checked;
-                const capacityValue = isUnlimited ? -1 : (parseInt(formData.get('capacity'), 10) || null);
-
-                const contactData = {
-                    phone: formData.get('contact_phone'),
-                    telegram: formData.get('contact_telegram'),
-                    whatsapp: formData.get('contact_whatsapp')
-                };
-                Object.keys(contactData).forEach(key => {
-                    if (!contactData[key]) delete contactData[key];
-                });
-                
-                let slug = formData.get('detailPage').trim();
-                let detailPageValue = '';
-                if (slug) {
-                    if (isEditing) {
-                        const eventId = hiddenIdInput.value;
-                        detailPageValue = `#/events/${eventId}-${slug}`;
-                    } else {
-                        const maxId = state.allEvents.reduce((max, event) => Math.max(max, event.id), 0);
-                        const newId = maxId + 1;
-                        detailPageValue = `#/events/${newId}-${slug}`;
-                    }
-                }
+                const capacityValue = isUnlimited ? -1 : (parseInt(new FormData(eventForm).get('capacity'), 10) || null);
 
                 return {
-                    title: formData.get('title'),
-                    summary: formData.get('summary'),
+                    title: new FormData(eventForm).get('title'),
+                    summary: new FormData(eventForm).get('summary'),
                     location: locationInput.value,
                     cost: costInput.value,
                     capacity: capacityValue,
-                    displayDate: formData.get('displayDate'),
+                    displayDate: new FormData(eventForm).get('displayDate'),
                     startDate: startDate,
                     endDate: endDate,
                     registrationStartDate: registrationStartDate,
                     registrationEndDate: registrationEndDate,
-                    detailPage: detailPageValue,
+                    detailPage: new FormData(eventForm).get('detailPage').trim(),
                     tag_ids: selectedTagIds,
                     content: parseJsonField('content'),
                     schedule: parseJsonField('schedule'),
-                    payment_card_number: (formData.get('payment_name') || formData.get('payment_number')) ? { name: formData.get('payment_name'), number: formData.get('payment_number') } : null,
-                    contact_link: Object.keys(contactData).length > 0 ? contactData : null,
                 };
             };
 
@@ -1203,7 +1370,7 @@ const renderUnifiedTagsModal = () => {
             };
 
             const eventData = getEventDataFromForm(isEditing);
-            const newSlug = eventData.detailPage.split('/').pop();
+            const newSlug = eventData.detailPage;
             eventData.image = await handleImageManagement(newSlug);
             
             if (isEditing) {
@@ -1214,8 +1381,7 @@ const renderUnifiedTagsModal = () => {
                 showStatus(statusBox, 'رویداد با موفقیت افزوده شد.', 'success');
             }
 
-            state.allEvents = [];
-            await loadEvents();
+            state.allEvents = await loadEvents();
             renderEventsList(state.allEvents);
             resetForm();
 
@@ -1249,53 +1415,25 @@ const renderUnifiedTagsModal = () => {
                 document.getElementById('event-title').value = eventToEdit.title || '';
                 document.getElementById('event-summary').value = eventToEdit.summary || '';
                 document.getElementById('event-display-date').value = eventToEdit.displayDate || '';
-                
-                let slugToDisplay = eventToEdit.detailPage || '';
-                const slugParts = slugToDisplay.split('-');
-                if (slugToDisplay.startsWith('#/events/') && slugParts.length > 1) {
-                    // Remove '#/events/ID-' part
-                    slugToDisplay = slugParts.slice(1).join('-');
-                }
-                document.getElementById('event-detail-page').value = slugToDisplay;
-                
+                document.getElementById('event-detail-page').value = (eventToEdit.detailPage || '').split('/').pop();
+
                 locationInput.value = eventToEdit.location || '';
                 locationToggle.checked = eventToEdit.location === 'آنلاین';
                 locationToggle.dispatchEvent(new Event('change'));
                 
                 costToggle.checked = eventToEdit.cost === 'رایگان';
-                if (costToggle.checked) {
-                    costInput.value = 'رایگان';
-                    costInput.disabled = true;
-                } else {
-                    costInput.value = eventToEdit.cost || '';
-                    costInput.disabled = false;
-                    if (costInput.value) {
-                         costInput.dispatchEvent(new Event('blur'));
-                    }
-                }
-                togglePaymentFields();
+                costToggle.dispatchEvent(new Event('change'));
+                costInput.value = eventToEdit.cost || '';
                 
-                if (eventToEdit.capacity === -1) {
-                    capacityToggle.checked = true;
-                    capacityInput.value = '';
-                    capacityInput.disabled = true;
-                } else {
-                    capacityToggle.checked = false;
-                    capacityInput.value = eventToEdit.capacity || '';
-                    capacityInput.disabled = false;
-                }
+                capacityToggle.checked = eventToEdit.capacity === -1;
+                capacityToggle.dispatchEvent(new Event('change'));
+                capacityInput.value = eventToEdit.capacity === -1 ? '' : (eventToEdit.capacity || '');
 
                 selectedTagIds = eventToEdit.tag_ids || [];
                 updateSelectedTagsDisplay();
 
                 document.getElementById('event-content').value = safeJsonStringify(eventToEdit.content);
                 document.getElementById('event-schedule').value = safeJsonStringify(eventToEdit.schedule);
-                
-                document.getElementById('payment-name').value = eventToEdit.payment_card_number?.name || '';
-                document.getElementById('payment-number').value = eventToEdit.payment_card_number?.number || '';
-                
-                contactTelegramInput.value = eventToEdit.contact_link?.telegram || '';
-                contactWhatsappInput.value = eventToEdit.contact_link?.whatsapp || '';
 
                 formTitle.textContent = 'ویرایش رویداد';
                 submitBtn.textContent = 'ذخیره تغییرات';
@@ -1365,37 +1503,40 @@ const initializeAdminLayout = () => {
     });
 };
 
-// --- Admin Panel Router ---
 const adminRoutes = {
     '/admin/messages': {
         title: 'پیام‌ها',
         html: 'admin-messages.html',
         loader: () => loadContacts(),
-        renderer: renderMessages,
+        renderer: renderMessages, // مستقیم به تابع ارجاع می‌دهیم
         initializer: initializeMessagesModule
+    },
+    '/admin/news': {
+        title: 'مدیریت اخبار',
+        html: 'admin-news.html',
+        loader: () => Promise.all([loadNews(), loadTags(), loadMembers()]),
+        renderer: renderNewsList, // اصلاح شد: مستقیم به تابع ارجاع می‌دهیم
+        initializer: initializeNewsModule
     },
     '/admin/journal': {
         title: 'مدیریت نشریه',
         html: 'admin-journal.html',
         loader: () => loadJournal(),
-        renderer: renderJournalList,
+        renderer: renderJournalList, // مستقیم به تابع ارجاع می‌دهیم
         initializer: initializeJournalModule
     },
     '/admin/events': {
         title: 'مدیریت رویدادها',
         html: 'admin-events.html',
         loader: () => Promise.all([loadEvents(), loadTags()]),
-        renderer: renderEventsList,
+        renderer: renderEventsList, // اصلاح شد: مستقیم به تابع ارجاع می‌دهیم
         initializer: initializeEventsModule
     },
     '/admin/registrations': {
         title: 'مدیریت ثبت‌نام‌ها',
         html: 'admin-registrations.html',
-        // *** START: FIX ***
-        // رویدادها را به همراه ثبت‌نام‌ها بارگذاری می‌کنیم
         loader: () => Promise.all([loadRegistrations(), loadEvents()]),
-        // *** END: FIX ***
-        renderer: renderRegistrationsList,
+        renderer: renderRegistrationsList, // اصلاح شد: مستقیم به تابع ارجاع می‌دهیم
         initializer: initializeRegistrationsModule
     }
 };
@@ -1422,15 +1563,16 @@ const loadAdminPage = async (path) => {
 
         setTimeout(() => {
             if (route.renderer) {
-                // *** START: FIX ***
-                // مدیریت داده‌های آرایه‌ای برای هر دو صفحه رویدادها و ثبت‌نام‌ها
-                if (path === '/admin/events' || path === '/admin/registrations') {
-                    // هر دو loader یک آرایه برمی‌گردانند. renderer فقط به عضو اول (رویدادها یا ثبت‌نام‌ها) نیاز دارد
-                    route.renderer(data[0]);
+                // **منطق کلیدی اصلاح‌شده:**
+                // بررسی می‌کنیم که آیا داده‌ی بازگشتی از لودر، آرایه‌ای است که خودش شامل آرایه‌های دیگر باشد
+                // (این حالت مخصوص Promise.all است).
+                if (Array.isArray(data) && (path === '/admin/news' || path === '/admin/events' || path === '/admin/registrations')) {
+                    // برای اخبار، رویدادها و ثبت‌نام‌ها، اولین آرایه (data[0]) را به رندرکننده می‌فرستیم.
+                    route.renderer(data[0]); 
                 } else {
+                    // برای بقیه صفحات (پیام‌ها، نشریه)، خود 'data' که یک آرایه ساده است را می‌فرستیم.
                     route.renderer(data);
                 }
-                // *** END: FIX ***
             }
             
             if (route.initializer) {
@@ -1444,11 +1586,12 @@ const loadAdminPage = async (path) => {
     }
 };
 
-// --- Main Execution Function ---
 document.addEventListener('DOMContentLoaded', async () => {
     initializeAdminTheme();
     initializeAdminLayout();
     initializeGlobalRefreshButton();
+    initializeSharedTagModal(); 
+
 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {

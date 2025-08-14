@@ -1,0 +1,96 @@
+<div class="admin-module-header">
+    <h2>مدیریت اخبار</h2>
+</div>
+
+<div class="form-and-guidance-wrapper">
+    <div class="form-container">
+        <div class="content-box">
+            <h3 id="news-form-title" class="admin-section-subtitle">درج یا ویرایش خبر</h3>
+            <form id="add-news-form">
+                <input type="hidden" id="news-id" name="id">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" id="news-title" name="title" placeholder="عنوان خبر" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="news-link" name="link" placeholder="شناسه لینک (hello-world)" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <textarea id="news-summary" name="summary" rows="2" placeholder="خلاصه (متن کوتاه برای کارت خبر)" required></textarea>
+                </div>
+                <br>
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" id="news-date" name="date" placeholder="تاریخ نمایش (مثال: ۲۷ تیر ۱۴۰۴)" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="news-reading-time" name="readingTime" placeholder="زمان مطالعه (فقط عدد)" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <select id="news-author" name="authorId" required>
+                            <option value="" disabled selected>انتخاب نویسنده...</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <h4 style="margin-bottom: 0.5rem; font-size: 1rem;">تصویر خبر</h4>
+                    <div class="image-upload-wrapper">
+                        <div class="image-upload-controls">
+                            <input type="file" id="news-image-upload" name="imageFile" class="file-upload-input" accept="image/jpeg, image/png, image/webp" required>
+                            <label for="news-image-upload" class="btn btn-secondary file-select-btn">انتخاب تصویر</label>
+                            <button type="button" class="btn btn-danger file-clear-btn" style="display: none;">حذف</button>
+                            <span class="file-name-display">فایلی انتخاب نشده</span>
+                        </div>
+                    </div>
+                    <small class="form-note" style="display: block; margin-top: 0.5rem; opacity: 0.8;">
+                        در حالت ویرایش، فقط در صورتی تصویر جدید انتخاب کنید که قصد تغییر آن را دارید.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <h4 style="margin-bottom: 0.5rem; font-size: 1rem;">تگ‌ها</h4>
+                    <div class="tags-selection-area">
+                        <div id="selected-tags-display" class="selected-tags-display">هیچ تگی انتخاب نشده است.</div>
+                        <button type="button" id="open-tags-modal-btn" class="btn btn-secondary">انتخاب تگ‌ها</button>
+                    </div>
+                </div>
+                <br>
+                <div class="form-group">
+                    <textarea id="news-content" name="content" rows="8" placeholder="محتوای کامل خبر (فرمت JSON)..." required></textarea>
+                </div>
+
+                <div class="form-status"></div>
+                <div class="form-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary" id="news-submit-btn">افزودن خبر</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;">انصراف</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="content-box" style="margin-top: 2rem;">
+            <h3 class="admin-section-subtitle">لیست اخبار</h3>
+            <div id="news-admin-list">
+            </div>
+        </div>
+    </div>
+    
+    <div class="guidance-container">
+        <div class="content-box">
+            <h3 class="admin-section-subtitle">راهنمای محتوا</h3>
+            <div class="guidance-content">
+                <h4>محتوای JSON</h4>
+                <p>محتوای خبر باید در قالب آرایه‌ای از آبجکت‌های JSON وارد شود. برای ساختار صحیح می‌توانید از <a href="https://github.com/rastikerdar/vazirmatn" target="_blank">این راهنما</a> کمک بگیرید یا یک نمونه از اخبار قبلی را کپی و ویرایش کنید.</p>
+                <h4>تصویر خبر</h4>
+                <ul>
+                    <li><strong>ابعاد پیشنهادی:</strong> ۱۲۰۰ (عرض) در ۶۳۰ (ارتفاع) پیکسل.</li>
+                    <li><strong>فرمت بهینه:</strong> WebP.</li>
+                    <li><strong>حجم ایده‌آل:</strong> کمتر از ۱۵۰ کیلوبایت.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

@@ -130,11 +130,12 @@ export const getBaseUrl = () => {
     return `${supabaseProjectUrl}/storage/v1/object/public/${bucketName}/`;
 };
 export const loadMembers = async () => {
-    if (state.membersMap.size > 0) return;
+    if (state.membersMap.size > 0) return state.membersMap;
     try {
         const { data: members, error } = await supabaseClient.from('members').select('*');
         if (error) throw error;
         members.forEach(member => state.membersMap.set(member.id, member));
+        return state.membersMap;
     } catch (error) {
         console.error("Failed to load members:", error);
     }
@@ -146,7 +147,7 @@ export const loadTags = async () => {
         if (error) throw error;
         state.tagsMap.clear();
         (data || []).forEach(tag => state.tagsMap.set(tag.id, tag.name));
-        return state.tagsMap; // **اصلاح کلیدی: داده‌ها باید بازگردانده شوند**
+        return state.tagsMap;
     } catch (error) {
         console.error('Error loading tags:', error);
         throw error;
@@ -159,7 +160,7 @@ export const addTag = async (tagName) => {
             .from('tags')
             .insert({ name: tagName })
             .select()
-            .single(); // .single() برای بازگرداندن آبجکت تگ جدید
+            .single();
         if (error) throw error;
         return data;
     } catch (error) {
@@ -186,11 +187,10 @@ export const updateTag = async (tagId, newName) => {
 
 export const deleteTag = async (tagId) => {
     try {
-        // ابتدا تگ را از تمام رویدادهایی که از آن استفاده کرده‌اند، حذف می‌کنیم
         const { data: events, error: fetchError } = await supabaseClient
             .from('events')
             .select('id, tag_ids')
-            .filter('tag_ids', 'cs', `{${tagId}}`); // بررسی می‌کند که آیا tagId در آرایه tag_ids وجود دارد یا نه
+            .filter('tag_ids', 'cs', `{${tagId}}`); 
 
         if (fetchError) throw fetchError;
 
@@ -205,7 +205,6 @@ export const deleteTag = async (tagId) => {
             await Promise.all(updates);
         }
 
-        // سپس خود تگ را حذف می‌کنیم
         const { error: deleteError } = await supabaseClient
             .from('tags')
             .delete()
@@ -221,11 +220,7 @@ export const deleteTag = async (tagId) => {
 
 export const loadEvents = async () => {
     try {
-        // <<-- START: MAJOR CHANGE - Using RPC instead of direct select -->>
-        // This RPC call fetches all events and joins the confirmed registration count.
         const { data, error } = await supabaseClient.rpc('get_events_with_registration_count');
-        // <<-- END: MAJOR CHANGE -->>
-
         if (error) throw error;
         state.allEvents = data || [];
         return state.allEvents;
@@ -235,16 +230,14 @@ export const loadEvents = async () => {
     }
 };
 export const loadJournal = async () => {
-    // The cache check was also corrected to return the cached data.
-    if (state.allJournalIssues.length > 0) return state.allJournalIssues; // <<-- این خط اصلاح شد
+    if (state.allJournalIssues.length > 0) return state.allJournalIssues;
     try {
         const { data, error } = await supabaseClient.from('journal').select('*');
         if (error) throw error;
         state.allJournalIssues = data || [];
-        return state.allJournalIssues; // <<-- این خط اضافه شد
+        return state.allJournalIssues;
     } catch (error) {
         console.error("Failed to load journal issues:", error);
-        // Throwing the error ensures the calling function knows something went wrong.
         throw error;
     }
 };
@@ -272,7 +265,7 @@ export const loadContacts = async () => {
             .order('created_at', { ascending: false });
         if (error) throw error;
         state.allContacts = data || [];
-        return state.allContacts; // <<-- این خط اضافه شد
+        return state.allContacts;
     } catch (error) {
         console.error("Failed to load contacts (api.js):", error);
         throw error;
@@ -324,6 +317,111 @@ export const getUserProvider = async (email) => {
     }
     return { data, error: null };
 };
+
+// --- News Functions ---
+export const loadNews = async () => {
+    try {
+        const { data, error } = await supabaseClient
+            .from('news')
+            .select('*')
+            .order('id', { ascending: false });
+        if (error) throw error;
+        state.allNews = data || [];
+        return state.allNews;
+    } catch (error) {
+        console.error("Failed to load news:", error);
+        throw error;
+    }
+};
+
+export const addNews = async (newsData) => {
+    try {
+        const { error } = await supabaseClient.from('news').insert([newsData]);
+        if (error) throw error;
+        return { error: null };
+    } catch (error) {
+        console.error('Error adding news:', error);
+        throw error;
+    }
+};
+
+export const updateNews = async (id, newsData) => {
+    try {
+        const { error } = await supabaseClient.from('news').update(newsData).eq('id', id);
+        if (error) throw error;
+        return { error: null };
+    } catch (error) {
+        console.error('Error updating news:', error);
+        throw error;
+    }
+};
+
+export const deleteNews = async (id) => {
+    try {
+        const { error } = await supabaseClient.from('news').delete().eq('id', id);
+        if (error) throw error;
+        return { error: null };
+    } catch (error) {
+        console.error('Error deleting news:', error);
+        throw error;
+    }
+};
+
+export const uploadNewsImage = async (file, slug) => {
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+    const extension = file.name.split('.').pop();
+    const fileName = `covers/${slug}-${timestamp}.${extension}`;
+
+    try {
+        const { error } = await supabaseClient.storage.from('news-assets').upload(fileName, file, { upsert: true });
+        if (error) throw error;
+        const { data } = supabaseClient.storage.from('news-assets').getPublicUrl(fileName);
+        return data.publicUrl;
+    } catch (error) {
+        console.error('Error uploading news image:', error);
+        throw error;
+    }
+};
+
+export const deleteNewsImage = async (imageUrl) => {
+    if (!imageUrl) return;
+    try {
+        const urlParts = imageUrl.split('/news-assets/');
+        const filePath = urlParts[1];
+        if (filePath) {
+            await supabaseClient.storage.from('news-assets').remove([filePath]);
+        }
+    } catch (error) {
+        console.error('Failed to delete old news image:', error.message);
+    }
+};
+
+export const renameNewsImage = async (oldImageUrl, newSlug) => {
+    if (!oldImageUrl || !newSlug) return oldImageUrl;
+    try {
+        const urlParts = oldImageUrl.split('/news-assets/');
+        const oldFilePath = urlParts[1];
+        if (!oldFilePath) return oldImageUrl;
+
+        const oldFileName = oldFilePath.split('/').pop();
+        const extension = oldFileName.split('.').pop();
+        const timestamp = oldFileName.match(/(\d{8})/)[0];
+        const newFilePath = `covers/${newSlug}-${timestamp}.${extension}`;
+        
+        if (oldFilePath === newFilePath) return oldImageUrl;
+
+        const { error } = await supabaseClient.storage.from('news-asset').move(oldFilePath, newFilePath);
+        if (error) throw error;
+        
+        const { data } = supabaseClient.storage.from('news-asset').getPublicUrl(newFilePath);
+        return data.publicUrl;
+    } catch (error) {
+        console.error('Error renaming news image:', error);
+        return oldImageUrl;
+    }
+};
+
 
 // --- Like and Comment Functions ---
 export const getComments = async (newsId, userId) => {
@@ -426,7 +524,7 @@ export const addJournalEntry = async (entryData) => {
     try {
         const { data, error } = await supabaseClient
             .from('journal')
-            .insert([entryData]); // داده‌ها باید به صورت آرایه ارسال شوند
+            .insert([entryData]);
         
         if (error) throw error;
         return { data, error: null };
@@ -466,14 +564,12 @@ export const deleteJournalEntry = async (id) => {
     }
 };
 
-// --- START: NEW FUNCTION ---
 export const deleteJournalFiles = async (fileUrls) => {
     const validUrls = fileUrls.filter(url => !!url);
     if (validUrls.length === 0) {
-        return; // No files to delete
+        return;
     }
     try {
-        // Extract the path from the full URL, e.g., "covers/ju-1-timestamp.jpg"
         const filePaths = validUrls.map(url => {
             const urlParts = url.split('/journal-assets/');
             return urlParts.length > 1 ? urlParts[1] : null;
@@ -486,7 +582,6 @@ export const deleteJournalFiles = async (fileUrls) => {
                 .remove(filePaths);
 
             if (error) {
-                // Log the error but don't stop the process
                 console.error("Error deleting storage files:", error);
             } else {
                 console.log("Associated files deleted successfully from storage:", data);
@@ -496,9 +591,7 @@ export const deleteJournalFiles = async (fileUrls) => {
         console.error("An exception occurred while trying to delete files from storage:", e);
     }
 };
-// --- END: NEW FUNCTION ---
 
-// --- START: EVENT MANAGEMENT FUNCTIONS ---
 export const addEvent = async (eventData) => {
     try {
         const { error } = await supabaseClient.from('events').insert([eventData]);
@@ -531,17 +624,15 @@ export const deleteEvent = async (id) => {
         return { error };
     }
 };
-// START: توابع جدید مدیریت تصویر رویداد با باکت اختصاصی
+
 export const uploadEventImage = async (file, slug) => {
     if (!file || !slug) return null;
 
-    // ساخت بخش تاریخ از سال تا ثانیه
     const now = new Date();
     const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}` +
                       `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
     
     const extension = file.name.split('.').pop();
-    // **تغییر اصلی: ساخت نام فایل بر اساس الگوی جدید**
     const fileName = `covers/ev-${slug}-${timestamp}.${extension}`;
 
     try {
@@ -564,12 +655,11 @@ export const uploadEventImage = async (file, slug) => {
 export const deleteEventImage = async (imageUrl) => {
     if (!imageUrl) return;
     try {
-        // **منطق جدید برای پیدا کردن مسیر فایل در باکت جدید**
         const urlParts = imageUrl.split('/event-assets/');
         const filePath = urlParts[1];
         if (filePath) {
             await supabaseClient.storage
-                .from('event-assets') // **تغییر اصلی: نام باکت جدید**
+                .from('event-assets')
                 .remove([filePath]);
         }
     } catch (error) {
@@ -586,26 +676,22 @@ export const renameEventImage = async (oldImageUrl, newSlug) => {
         const oldFilePath = urlParts[1];
         if (!oldFilePath) return oldImageUrl;
 
-        // استخراج نام فایل قدیمی و ساختن نام جدید
         const oldFileName = oldFilePath.split('/').pop();
         const extension = oldFileName.split('.').pop();
-        const timestamp = oldFileName.match(/(\d{14})/)[0]; // پیدا کردن بخش تاریخ ۱۴ رقمی
+        const timestamp = oldFileName.match(/(\d{14})/)[0];
         const newFileName = `covers/ev-${newSlug}-${timestamp}.${extension}`;
         const newFilePath = `covers/ev-${newSlug}-${timestamp}.${extension}`;
-
-        // اگر نام جدید با نام قدیم یکی بود، کاری انجام نده
+        
         if (oldFilePath === newFilePath) {
             return oldImageUrl;
         }
 
-        // تغییر نام فایل در استوریج
         const { error: moveError } = await supabaseClient.storage
             .from('event-assets')
             .move(oldFilePath, newFilePath);
 
         if (moveError) throw moveError;
 
-        // دریافت URL عمومی جدید
         const { data } = supabaseClient.storage
             .from('event-assets')
             .getPublicUrl(newFilePath);
@@ -613,18 +699,12 @@ export const renameEventImage = async (oldImageUrl, newSlug) => {
         return data.publicUrl;
     } catch (error) {
         console.error('Error renaming event image:', error);
-        // در صورت بروز خطا، همان URL قدیمی را برمی‌گردانیم تا لینک نشکند
         return oldImageUrl;
     }
 };
 
-// این توابع را به انتهای فایل api.js اضافه کنید
-
-// --- START: Event Registration Management Functions ---
-
 export const loadRegistrations = async () => {
     try {
-        // با جدول رویدادها join می‌زنیم تا عنوان رویداد را هم داشته باشیم
         const { data, error } = await supabaseClient
             .from('event_registrations')
             .select(`
@@ -636,7 +716,6 @@ export const loadRegistrations = async () => {
             .order('created_at', { ascending: false });
         
         if (error) throw error;
-        // state.allRegistrations = data || []; // در فایل state.js این را اضافه خواهیم کرد
         return data || [];
     } catch (error) {
         console.error("Failed to load registrations:", error);
@@ -651,7 +730,7 @@ export const updateRegistrationStatus = async (registrationId, newStatus) => {
             .update({ status: newStatus })
             .eq('id', registrationId)
             .select()
-            .single(); // برای بازگرداندن رکورد آپدیت شده
+            .single();
 
         if (error) throw error;
         return { data, error: null };
@@ -661,15 +740,12 @@ export const updateRegistrationStatus = async (registrationId, newStatus) => {
     }
 };
 
-// --- END: Event Registration Management Functions ---
-
-// --- START: تابع جدید برای دریافت ثبت‌نام‌های کاربر ---
 export const getUserRegistrations = async (userId) => {
     if (!userId) return [];
     try {
         const { data, error } = await supabaseClient
             .from('event_registrations')
-            .select('event_id, status') // فقط ستون‌های مورد نیاز را می‌گیریم
+            .select('event_id, status')
             .eq('user_id', userId);
         if (error) throw error;
         return data || [];
@@ -678,4 +754,3 @@ export const getUserRegistrations = async (userId) => {
         return [];
     }
 };
-// --- END: پایان تابع جدید ---
