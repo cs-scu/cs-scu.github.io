@@ -3484,6 +3484,10 @@ body.dark-theme .admin-sidebar {
     background-color: var(--background-color-dark);
     border-color: var(--glass-border-dark);
 }
+body.light-theme .admin-sidebar {
+    background-color: var(--background-color-light);
+    border-color: var(--glass-border-light);
+}
 .sidebar-header {
     text-align: center;
     margin-bottom: 2rem;
