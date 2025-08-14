@@ -4235,3 +4235,243 @@ body.light-theme .schedule-card-session-name {
     stroke-width: 2;
     opacity: 0.7;
 }
+
+/* ================== EVENT CARD COUNTDOWN STYLE ================== */
+.event-card .countdown-text {
+    display: block; /* Ensure it takes its own line */
+    width: 100%;
+    text-align: center;
+    padding: 0.75rem 1.5rem; /* Add padding to separate it from the footer */
+    font-size: 0.8rem;
+    font-weight: bold;
+    opacity: 0.9;
+    background-color: rgba(128, 128, 128, 0.05); /* A very subtle background */
+    border-top: 1px solid; /* A separator line */
+    margin-top: auto; /* Pushes the countdown to the bottom */
+}
+
+body.dark-theme .event-card .countdown-text {
+    border-top-color: var(--glass-border-dark);
+    color: var(--primary-color);
+}
+
+body.light-theme .event-card .countdown-text {
+    border-top-color: var(--glass-border-light);
+    color: var(--primary-color-light-theme);
+}
+
+/* Adjust footer padding since the countdown text is now outside of it */
+.event-card-footer {
+    padding-bottom: 0.75rem;
+}
+
+/* ================== DYNAMIC STATUS BUTTON COLORS ================== */
+.btn.btn-status-pending {
+    background-color: #ffc10720; /* زرد */
+    color: #ffc107 !important;
+    border-color: #ffc107;
+}
+
+.btn.btn-status-confirmed {
+    background-color: #28a74520; /* سبز */
+    color: #28a745 !important;
+    border-color: #28a745;
+}
+
+.btn.btn-status-rejected {
+    background-color: #dc354520; /* قرمز */
+    color: #dc3545 !important;
+    border-color: #dc3545;
+}
+
+/* Hover effect for new status buttons */
+.btn.btn-status-pending:hover { background-color: #e0a800; border-color: #e0a800; }
+.btn.btn-status-confirmed:hover { background-color: #218838; border-color: #218838; }
+.btn.btn-status-rejected:hover { background-color: #c82333; border-color: #c82333; }
+
+/* ================== SESSION LINK BUTTONS STYLE v2.0 ================== */
+.session-link-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* متن و دکمه‌ها را از هم جدا می‌کند */
+    gap: 1rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid;
+}
+body.dark-theme .session-link-container { border-top-color: var(--glass-border-dark); }
+body.light-theme .session-link-container { border-top-color: var(--glass-border-light); }
+
+.session-link-label {
+    font-size: 1rem;
+    font-weight: bold;
+    flex-shrink: 0; /* از کوچک شدن متن جلوگیری می‌کند */
+}
+
+.session-link-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* استایل دکمه اصلی "ورود به جلسه" */
+.btn-join-session {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+body.dark-theme .btn-join-session {
+    background-color: var(--primary-color);
+    color: var(--background-color-dark) !important;
+}
+body.light-theme .btn-join-session {
+    background-color: var(--primary-color-light-theme);
+    color: #fff !important;
+}
+.btn-join-session:hover {
+    filter: brightness(1.1);
+}
+.btn-join-session svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* استایل دکمه دایره‌ای "کپی" */
+.btn-copy-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid;
+    background-color: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: inherit;
+}
+body.dark-theme .btn-copy-link {
+    border-color: var(--glass-border-dark);
+}
+body.light-theme .btn-copy-link {
+    border-color: var(--glass-border-light);
+}
+body.dark-theme .btn-copy-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary-color);
+}
+body.light-theme .btn-copy-link:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: var(--primary-color-light-theme);
+}
+.btn-copy-link svg {
+    width: 20px;
+    height: 20px;
+}
+/* کلاس برای نمایش بازخورد پس از کپی */
+.btn-copy-link.copied {
+    border-color: #28a745 !important;
+    color: #28a745 !important;
+}
+
+/* ================== FINAL SCHEDULE CARD STYLES (v3.1 Centered & Max-Width) ================== */
+.schedule-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center; /* <<-- این خط کارت‌ها را در مرکز افقی قرار می‌دهد */
+}
+
+.schedule-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 1px solid;
+    width: 100%; /* <<-- عرض کارت را به اندازه والد محدود می‌کند */
+    max-width: 430px; /* <<-- حداکثر عرض کارت به ۴۳۰ پیکسل محدود می‌شود */
+}
+
+body.dark-theme .schedule-card {
+    border-color: var(--glass-border-dark);
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+body.light-theme .schedule-card {
+    border-color: var(--glass-border-light);
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.schedule-card-session-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid;
+    width: 100%;
+}
+
+body.dark-theme .schedule-card-session-name {
+    color: var(--primary-color);
+    border-bottom-color: var(--glass-border-dark);
+}
+
+body.light-theme .schedule-card-session-name {
+    color: var(--primary-color-light-theme);
+    border-bottom-color: var(--glass-border-light);
+}
+
+.schedule-card-body {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+}
+
+.schedule-card-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    align-items: center;
+}
+
+.schedule-card-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+
+.schedule-card-item svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    stroke-width: 2;
+    opacity: 0.7;
+}
+
+.session-link-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid;
+}
+
+body.dark-theme .session-link-container { border-top-color: var(--glass-border-dark); }
+body.light-theme .session-link-container { border-top-color: var(--glass-border-light); }
+
+/* ================== SCHEDULE MODAL SIZE ADJUSTMENT ================== */
+#generic-modal.schedule-modal .modal-content {
+    max-width: 500px;
+}

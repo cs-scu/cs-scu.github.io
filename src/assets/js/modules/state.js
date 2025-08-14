@@ -10,6 +10,7 @@ export const state = {
     membersMap: new Map(),
     tagsMap: new Map(), // <-- این خط اضافه شود
     userRegistrations: new Map(),
+    activeTimers: [],
     allEvents: [],
     allJournalIssues: [],
     allCourses: [],

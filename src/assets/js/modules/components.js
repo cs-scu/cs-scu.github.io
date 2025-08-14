@@ -245,7 +245,6 @@ export const renderMembersPage = () => {
     });
 };
 
-// تابع کمکی برای محاسبه و نمایش زمان باقی‌مانده
 const getTimeRemainingString = (targetDate) => {
     const now = new Date();
     const totalSeconds = (targetDate - now) / 1000;
@@ -256,45 +255,49 @@ const getTimeRemainingString = (targetDate) => {
     const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
 
+    if (days >= 7) {
+        const weeks = Math.floor(days / 7);
+        return `${toPersianNumber(weeks)} هفته تا شروع ثبت‌نام`;
+    }
     if (days > 0) {
-        return `شروع تا ${toPersianNumber(days)} روز دیگر`;
+        return `${toPersianNumber(days)} روز تا شروع ثبت‌نام`;
     }
     if (hours > 0) {
-        return `شروع تا ${toPersianNumber(hours)} ساعت دیگر`;
+        return `${toPersianNumber(hours)} ساعت تا شروع ثبت‌نام`;
     }
     if (minutes > 0) {
-        return `شروع تا ${toPersianNumber(minutes)} دقیقه دیگر`;
+        return `${toPersianNumber(minutes)} دقیقه تا شروع ثبت‌نام`;
     }
     return 'ثبت‌نام به‌زودی آغاز می‌شود';
 };
 
 const getRegistrationEndTimeString = (targetDate) => {
     const now = new Date();
-    // برای محاسبه دقیق روز، ساعت پایان را به انتهای روز (23:59:59) منتقل می‌کنیم
     const endOfDay = new Date(targetDate);
     endOfDay.setHours(23, 59, 59, 999);
 
     const totalSeconds = (endOfDay - now) / 1000;
-    console.log(totalSeconds)
 
-    if (totalSeconds <= 0) return ''; // اگر مهلت تمام شده، چیزی نمایش نمی‌دهیم
+    if (totalSeconds <= 0) return ''; 
 
     const days = Math.floor(totalSeconds / (3600 * 24));
     const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
-    console.log(days)
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
 
-    if (days >= 2) {
-        return `پایان مهلت تا ${toPersianNumber(days)} روز دیگر`;
+    if (days >= 7) {
+        const weeks = Math.floor(days / 7);
+        return `${toPersianNumber(weeks)} هفته تا پایان مهلت ثبت‌نام`;
     }
-    if (days === 1) {
-        return `کمتر از ۲ روز تا پایان مهلت`;
+    if (days > 0) {
+        return `${toPersianNumber(days)} روز تا پایان مهلت ثبت‌نام`;
     }
-    // اگر کمتر از یک روز باقی مانده باشد
     if (hours > 0) {
-        return `کمتر از ${toPersianNumber(hours + 1)} ساعت تا پایان مهلت`;
+        return `${toPersianNumber(hours)} ساعت تا پایان مهلت ثبت‌نام`;
     }
-    // اگر کمتر از یک ساعت باقی مانده باشد
-    return 'امروز آخرین فرصت ثبت‌نام';
+    if (minutes > 0) {
+        return `${toPersianNumber(minutes)} دقیقه تا پایان مهلت ثبت‌نام`;
+    }
+    return 'مهلت ثبت‌نام رو به اتمام است!';
 };
 
 export const renderEventsPage = () => {
@@ -321,10 +324,10 @@ export const renderEventsPage = () => {
         highlighter.style.transform = `translateX(${activeTab.offsetLeft}px)`;
     };
     
-    // تابع اصلی برای ساخت و نمایش کارت‌های رویداد در یک گرید مشخص
+
 // START: این تابع را به طور کامل جایگزین کنید
-    const populateGrid = (grid, events, isPast = false) => {
-    grid.innerHTML = '';
+const populateGrid = (grid, events, isPast = false) => {
+    grid.innerHTML = ''; // پاک کردن محتوای قبلی
     if (events.length === 0) {
         grid.innerHTML = '<p class="no-events-message">در حال حاضر رویدادی در این دسته وجود ندارد.</p>';
         return;
@@ -371,13 +374,10 @@ export const renderEventsPage = () => {
 
         const now = new Date();
         const regStartDate = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
-        
-        // *** START: تغییر اصلی اینجاست ***
         const regEndDate = event.registrationEndDate ? new Date(event.registrationEndDate) : null;
         if (regEndDate) {
-            regEndDate.setHours(23, 59, 59, 999); // تاریخ پایان را به انتهای روز منتقل می‌کنیم
+            regEndDate.setHours(23, 59, 59, 999);
         }
-        // *** END: پایان تغییر ***
 
         let regStatus = 'open';
         if (regStartDate && now < regStartDate) {
@@ -422,11 +422,17 @@ export const renderEventsPage = () => {
         mainButton.dataset.eventId = event.id;
 
         const userHasRegistered = state.userRegistrations.has(event.id);
+        
+        let countdownHTML = '';
 
         if (userHasRegistered) {
             mainButton.textContent = 'پیگیری ثبت‌نام';
             mainButton.disabled = false;
-            mainButton.classList.replace('btn-primary', 'btn-secondary');
+            
+            const registrationStatus = state.userRegistrations.get(event.id);
+            mainButton.classList.remove('btn-primary');
+            mainButton.classList.add(`btn-status-${registrationStatus}`);
+            
         } else {
             if (isPast) {
                 mainButton.textContent = 'پایان یافته';
@@ -437,37 +443,49 @@ export const renderEventsPage = () => {
             } else if (regStatus === 'not_started') {
                 mainButton.textContent = 'ثبت‌نام به‌زودی';
                 mainButton.disabled = true;
-                const countdownText = document.createElement('small');
-                countdownText.className = 'countdown-text';
-                countdownText.textContent = getTimeRemainingString(regStartDate);
-                actionsContainer.appendChild(countdownText);
+                countdownHTML = `<small class="countdown-text">${getTimeRemainingString(regStartDate)}</small>`;
             } else if (regStatus === 'ended') {
                 mainButton.textContent = 'پایان ثبت‌نام';
                 mainButton.disabled = true;
             } else {
                 mainButton.textContent = 'ثبت‌نام';
                 if (regStatus === 'open' && regEndDate) {
-                    const countdownText = document.createElement('small');
-                    countdownText.className = 'countdown-text';
-                    countdownText.textContent = getRegistrationEndTimeString(regEndDate);
-                    actionsContainer.appendChild(countdownText);
+                    countdownHTML = `<small class="countdown-text">${getRegistrationEndTimeString(regEndDate)}</small>`;
                 }
             }
         }
         
         let scheduleData = [];
         if (event.schedule) { try { scheduleData = typeof event.schedule === 'string' ? JSON.parse(event.schedule) : event.schedule; } catch (e) {} }
+        
+        // *** START: منطق اصلی و جدید اینجاست ***
         if (Array.isArray(scheduleData) && scheduleData.length > 0) {
             const scheduleButton = document.createElement('button');
             scheduleButton.className = 'btn btn-secondary btn-view-schedule';
-            scheduleButton.textContent = 'برنامه زمانی';
             scheduleButton.dataset.eventId = event.id;
             if (isPast) scheduleButton.disabled = true;
+
+            // تشخیص آنلاین بودن رویداد و وضعیت کاربر
+            const userIsConfirmed = state.userRegistrations.get(event.id) === 'confirmed';
+            const isOnlineEvent = scheduleData.some(session => session.link);
+
+            if (userIsConfirmed && isOnlineEvent) {
+                scheduleButton.textContent = 'ورود به جلسه';
+                scheduleButton.classList.replace('btn-secondary', 'btn-primary');
+            } else {
+                scheduleButton.textContent = 'برنامه جلسات';
+            }
+
             buttonsWrapper.appendChild(scheduleButton);
         }
+        // *** END: پایان منطق جدید ***
         
         buttonsWrapper.appendChild(mainButton);
         actionsContainer.prepend(buttonsWrapper);
+
+        if (countdownHTML) {
+            card.insertAdjacentHTML('beforeend', countdownHTML);
+        }
 
         grid.appendChild(cardElement);
     });
@@ -476,7 +494,6 @@ export const renderEventsPage = () => {
 
 
 
-// END: پایان تابع جایگزین شده
     
     populateGrid(upcomingGrid, upcomingEvents, false);
     populateGrid(pastGrid, pastEvents, true);
