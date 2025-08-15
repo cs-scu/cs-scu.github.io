@@ -1,5 +1,3 @@
-// src/assets/js/modules/admin.js
-
 import { state } from './state.js';
 import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags, addTag, updateTag, deleteTag, uploadEventImage, deleteEventImage, renameEventImage ,loadRegistrations, updateRegistrationStatus, loadNews, addNews, updateNews, deleteNews, uploadNewsImage, deleteNewsImage, renameNewsImage, loadMembers } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
@@ -113,7 +111,6 @@ const initializeSharedTagModal = () => {
         }
     });
     
-    // --- START: افزودن منطق جستجو ---
     modalContent.addEventListener('input', (e) => {
         if (e.target.id === 'tag-search-input') {
             const searchTerm = e.target.value.toLowerCase().trim();
@@ -134,7 +131,6 @@ const initializeSharedTagModal = () => {
             }
         }
     });
-    // --- END: افزودن منطق جستجو ---
 
     modalContent.addEventListener('submit', async (e) => {
         if (e.target.id === 'add-tag-form-modal') {
@@ -341,7 +337,6 @@ const renderRegistrationRowHTML = (reg, isPast = false) => {
     `;
 };
 
-
 const renderRegistrationsList = (registrations) => {
     const container = document.getElementById('registrations-admin-list');
     if (!container) return;
@@ -384,8 +379,6 @@ const renderRegistrationsList = (registrations) => {
             </table>
         </div>`;
 };
-
-// src/assets/js/modules/admin.js
 
 const initializeRegistrationsModule = () => {
     const container = document.getElementById('admin-main-content');
@@ -479,7 +472,7 @@ const initializeRegistrationsModule = () => {
                 updatedRegistration.events = { title: preservedEventTitle };
 
                 const searchTerms = `${(updatedRegistration.full_name || '').toLowerCase()} ${preservedEventTitle.toLowerCase()} ${(updatedRegistration.email || '').toLowerCase()} ${updatedRegistration.student_id || ''} ${updatedRegistration.card_last_four_digits || ''} ${updatedRegistration.transaction_time || ''}`;
-                // **Corrected Block:** Re-render the entire row with all necessary data attributes
+                
                 row.outerHTML = `<tr data-registration-id="${updatedRegistration.id}" data-status="${updatedRegistration.status}" data-search-terms="${searchTerms.trim()}" data-event-id="${originalEventId}">
                                     ${renderRegistrationRowHTML(updatedRegistration)}
                                  </tr>`;
@@ -494,8 +487,6 @@ const initializeRegistrationsModule = () => {
         });
     }
 };
-
-// src/assets/js/modules/admin.js
 
 const initializeGlobalRefreshButton = () => {
     const refreshBtn = document.getElementById('admin-global-refresh-btn');
@@ -545,15 +536,12 @@ const initializeGlobalRefreshButton = () => {
     });
 };
 
-
-// src/assets/js/modules/admin.js
 const initializeDatepicker = () => {
     const dateRangeInput = document.getElementById('event-date-range-flatpickr');
     const displayDateInput = document.getElementById('event-display-date');
 
     let rangeInstance = null;
-
-    // Instance 1: For the main event date range (system date). This remains independent.
+    
     if (dateRangeInput) {
         rangeInstance = flatpickr(dateRangeInput, {
             mode: "range",
@@ -564,7 +552,6 @@ const initializeDatepicker = () => {
         });
     }
 
-    // Instance 2: For the display date, with logic to convert the selected range into a Persian text string.
     if (displayDateInput) {
         flatpickr(displayDateInput, {
             mode: "range",
@@ -583,15 +570,12 @@ const initializeDatepicker = () => {
                         return nextDay.toDateString() === endDate.toDateString();
                     };
                     
-                    // <<-- START: CHANGE -->>
-                    // Convert numbers to Persian before creating the string
                     const startDay = toPersianNumber(instance.formatDate(start, "j"));
                     const endDay = toPersianNumber(instance.formatDate(end, "j"));
                     const startMonthName = instance.formatDate(start, "F");
                     const endMonthName = instance.formatDate(end, "F");
                     const startYear = toPersianNumber(instance.formatDate(start, "Y"));
                     const endYear = toPersianNumber(instance.formatDate(end, "Y"));
-                    // <<-- END: CHANGE -->>
                     
                     let displayString = "";
 
@@ -621,13 +605,11 @@ const initializeDatepicker = () => {
     return rangeInstance;
 };
 
-
-
 const initializeJournalModule = () => {
     const journalForm = document.getElementById('add-journal-form');
     if (!journalForm) return;
 
-    let issueBeingEdited = null; // Holds the full object of the journal issue being edited
+    let issueBeingEdited = null; 
 
     const formTitle = document.getElementById('journal-form-title');
     const submitBtn = document.getElementById('journal-submit-btn');
@@ -713,7 +695,7 @@ const initializeJournalModule = () => {
         coverFileInput.dispatchEvent(new Event('change'));
         journalFileInput.dispatchEvent(new Event('change'));
         hiddenIdInput.value = '';
-        issueBeingEdited = null; // Clear the reference to the edited issue
+        issueBeingEdited = null; 
         formTitle.textContent = 'درج نشریه جدید';
         submitBtn.textContent = 'افزودن نشریه';
         cancelBtn.style.display = 'none';
@@ -780,9 +762,11 @@ const initializeJournalModule = () => {
             if (isEditing) {
                 await updateJournalEntry(issueBeingEdited.id, entryData);
                 showStatus(statusBox, 'نشریه با موفقیت ویرایش شد.', 'success');
+                setTimeout(() => { hideStatus(statusBox); resetForm(); }, 4000);
             } else {
                 await addJournalEntry(entryData);
                 showStatus(statusBox, 'نشریه با موفقیت افزوده شد.', 'success');
+                setTimeout(() => { hideStatus(statusBox); resetForm(); }, 4000);
             }
             
             if (oldFilesToDelete.length > 0) {
@@ -791,14 +775,16 @@ const initializeJournalModule = () => {
 
             state.allJournalIssues = await loadJournal();
             renderJournalList(state.allJournalIssues);
-            resetForm();
 
         } catch (error) {
             console.error("Error during journal submission:", error);
             showStatus(statusBox, `عملیات با خطا مواجه شد: ${error.message}`, 'error');
+            setTimeout(() => hideStatus(statusBox), 4000);
         } finally {
             submitBtn.disabled = false;
-            submitBtn.textContent = isEditing ? 'ذخیره تغییرات' : 'افزودن نشریه';
+            if (isEditing) {
+                submitBtn.textContent = 'ذخیره تغییرات';
+            }
         }
     });
 
@@ -806,14 +792,12 @@ const initializeJournalModule = () => {
 
     adminListContainer.addEventListener('click', async (event) => {
         const editBtn = event.target.closest('.edit-journal-btn');
-        const deleteBtn = event.target.closest('.delete-journal-btn');
-
         if (editBtn) {
             const id = editBtn.dataset.id;
             const issue = state.allJournalIssues.find(j => j.id == id);
             if (!issue) return;
 
-            issueBeingEdited = issue; // Store the full issue object
+            issueBeingEdited = issue; 
             
             hiddenIdInput.value = issue.id;
             document.getElementById('journal-title').value = issue.title || '';
@@ -830,6 +814,7 @@ const initializeJournalModule = () => {
             journalForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
+        const deleteBtn = event.target.closest('.delete-journal-btn');
         if (deleteBtn) {
             const id = deleteBtn.dataset.id;
             const issueToDelete = state.allJournalIssues.find(j => j.id == id);
@@ -854,7 +839,6 @@ const initializeJournalModule = () => {
                     alert('خطا در حذف نشریه.');
                     console.error("Deletion Error:", error);
                 } finally {
-                    deleteBtn.textContent = ''; // Or some other non-text indicator
                     deleteBtn.disabled = false;
                 }
             }
@@ -1076,6 +1060,8 @@ const initializeNewsModule = async () => {
                 }
 
                 showStatus(statusBox, 'خبر با موفقیت ویرایش شد.', 'success');
+                setTimeout(() => { hideStatus(statusBox); resetForm(); }, 4000);
+
             } else {
                 const dateValue = dateInput._flatpickr.altInput.value;
                 if (!dateValue) throw new Error("تاریخ خبر الزامی است.");
@@ -1092,16 +1078,19 @@ const initializeNewsModule = async () => {
                 await updateNews(newNews.id, { image: finalImageUrl, link: finalLink });
                 
                 showStatus(statusBox, 'خبر با موفقیت افزوده شد.', 'success');
+                setTimeout(() => { hideStatus(statusBox); resetForm(); }, 4000);
             }
 
             state.allNews = await loadNews();
             renderNewsList(state.allNews);
-            resetForm();
         } catch (error) {
             showStatus(statusBox, `عملیات با خطا مواجه شد: ${error.message}`, 'error');
+            setTimeout(() => hideStatus(statusBox), 4000);
         } finally {
             submitBtn.disabled = false;
-            submitBtn.textContent = isEditing ? 'ذخیره تغییرات' : 'افزودن خبر';
+            if (isEditing) {
+                submitBtn.textContent = 'ذخیره تغییرات';
+            }
         }
     });
 
@@ -1126,9 +1115,6 @@ const initializeNewsModule = async () => {
             const slugToDisplay = (newsItem.link || '').replace(`#/news/${id}-`, '');
             document.getElementById('news-link').value = slugToDisplay;
             
-            // The date field is now intentionally left blank on edit.
-            // It is cleared by resetForm() and no longer repopulated.
-
             readingTimeInput.value = newsItem.readingTime || '';
             
             authorSelect.value = newsItem.authorId || '';
@@ -1141,6 +1127,7 @@ const initializeNewsModule = async () => {
             cancelBtn.style.display = 'inline-block';
             newsForm.scrollIntoView({ behavior: 'smooth' });
         }
+
         const deleteBtn = event.target.closest('.delete-news-btn');
         if (deleteBtn) {
             const id = deleteBtn.dataset.id;
@@ -1322,7 +1309,6 @@ const initializeEventsModule = async () => {
         fileNameDisplay.textContent = hasFile ? fileName : 'فایلی انتخاب نشده';
         fileSelectBtn.textContent = isEditing && hasFile ? 'تغییر تصویر' : 'انتخاب تصویر';
         
-        // Hide delete button if in edit mode. Otherwise, show it only if a file is selected.
         fileClearBtn.style.display = isEditing ? 'none' : (hasFile ? 'inline-block' : 'none');
     };
 
@@ -1331,7 +1317,7 @@ const initializeEventsModule = async () => {
             const file = imageUploadInput.files[0];
             if (file) {
                 if (currentImageUrl) {
-                    imageUrlToDelete = currentImageUrl; // Mark old image for deletion
+                    imageUrlToDelete = currentImageUrl; 
                 }
                 updateImageUploadUI(file.name);
             }
@@ -1341,7 +1327,6 @@ const initializeEventsModule = async () => {
     if (fileClearBtn) {
         fileClearBtn.addEventListener('click', () => {
             imageUploadInput.value = '';
-            // No need to manage imageUrlToDelete here, as this button is hidden in edit mode
             updateImageUploadUI('');
         });
     }
@@ -1391,7 +1376,7 @@ const initializeEventsModule = async () => {
     eventForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const statusBox = eventForm.querySelector('.form-status');
-        const isEditing = hiddenIdInput.value;
+        const isEditing = !!eventBeingEdited;
         hideStatus(statusBox);
         submitBtn.disabled = true;
         submitBtn.textContent = isEditing ? 'در حال ویرایش...' : 'در حال افزودن...';
@@ -1404,19 +1389,19 @@ const initializeEventsModule = async () => {
                 let [startDate, endDate] = [null, null];
                 if (dateRangePickerInstance.selectedDates.length === 2) {
                     [startDate, endDate] = [formatForSupabase(dateRangePickerInstance.selectedDates[0]), formatForSupabase(dateRangePickerInstance.selectedDates[1])];
-                } else if (isEditing && eventBeingEdited) {
+                } else if (isEditing) {
                     [startDate, endDate] = [eventBeingEdited.startDate, eventBeingEdited.endDate];
                 }
 
                 let [regStartDate, regEndDate] = [null, null];
                 if (regDateRangePicker.selectedDates.length === 2) {
                     [regStartDate, regEndDate] = [formatForSupabase(regDateRangePicker.selectedDates[0]), formatForSupabase(regDateRangePicker.selectedDates[1])];
-                } else if (isEditing && eventBeingEdited) {
+                } else if (isEditing) {
                     [regStartDate, regEndDate] = [eventBeingEdited.registrationStartDate, eventBeingEdited.registrationEndDate];
                 }
                 
                 let displayDateValue = formData.get('displayDate');
-                if (!displayDateValue && isEditing && eventBeingEdited) {
+                if (!displayDateValue && isEditing) {
                     displayDateValue = eventBeingEdited.displayDate;
                 }
 
@@ -1464,18 +1449,19 @@ const initializeEventsModule = async () => {
                 let finalImageUrl = currentImageUrl;
                 if (imageFile && imageFile.size > 0) {
                     const { filePath: tempPath } = await uploadEventImage(imageFile, rawSlug);
-                    finalImageUrl = await renameEventImage(tempPath, isEditing, rawSlug);
+                    finalImageUrl = await renameEventImage(tempPath, eventBeingEdited.id, rawSlug);
                 }
                 
                 eventData.image = finalImageUrl;
-                eventData.detailPage = `#/events/${isEditing}-${rawSlug}`;
-                await updateEvent(isEditing, eventData);
+                eventData.detailPage = `#/events/${eventBeingEdited.id}-${rawSlug}`;
+                await updateEvent(eventBeingEdited.id, eventData);
 
                 if (imageUrlToDelete) {
                     await deleteEventImage(imageUrlToDelete);
                 }
 
                 showStatus(statusBox, 'رویداد با موفقیت ویرایش شد.', 'success');
+                setTimeout(() => { hideStatus(statusBox); resetForm(); }, 4000);
             } else {
                 if (!imageFile) throw new Error("تصویر رویداد الزامی است.");
                 const { publicUrl: tempUrl, filePath: tempPath } = await uploadEventImage(imageFile, rawSlug);
@@ -1485,15 +1471,18 @@ const initializeEventsModule = async () => {
                 const finalImageUrl = await renameEventImage(tempPath, newEvent.id, rawSlug);
                 await updateEvent(newEvent.id, { image: finalImageUrl, detailPage: `#/events/${newEvent.id}-${rawSlug}` });
                 showStatus(statusBox, 'رویداد با موفقیت افزوده شد.', 'success');
+                setTimeout(() => { hideStatus(statusBox); resetForm(); }, 4000);
             }
             state.allEvents = await loadEvents();
             renderEventsList(state.allEvents);
-            resetForm();
         } catch (error) {
             showStatus(statusBox, `عملیات با خطا مواجه شد: ${error.message}`, 'error');
+            setTimeout(() => hideStatus(statusBox), 4000);
         } finally {
             submitBtn.disabled = false;
-            submitBtn.textContent = isEditing ? 'ذخیره تغییرات' : 'افزودن رویداد';
+            if (isEditing) {
+                submitBtn.textContent = 'ذخیره تغییرات';
+            }
         }
     });
 
@@ -1622,35 +1611,35 @@ const adminRoutes = {
         title: 'پیام‌ها',
         html: 'admin-messages.html',
         loader: () => loadContacts(),
-        renderer: renderMessages, // مستقیم به تابع ارجاع می‌دهیم
+        renderer: renderMessages,
         initializer: initializeMessagesModule
     },
     '/admin/news': {
         title: 'مدیریت اخبار',
         html: 'admin-news.html',
         loader: () => Promise.all([loadNews(), loadTags(), loadMembers()]),
-        renderer: renderNewsList, // اصلاح شد: مستقیم به تابع ارجاع می‌دهیم
+        renderer: (data) => renderNewsList(data[0]),
         initializer: initializeNewsModule
     },
     '/admin/journal': {
         title: 'مدیریت نشریه',
         html: 'admin-journal.html',
         loader: () => loadJournal(),
-        renderer: renderJournalList, // مستقیم به تابع ارجاع می‌دهیم
+        renderer: renderJournalList,
         initializer: initializeJournalModule
     },
     '/admin/events': {
         title: 'مدیریت رویدادها',
         html: 'admin-events.html',
         loader: () => Promise.all([loadEvents(), loadTags()]),
-        renderer: renderEventsList, // اصلاح شد: مستقیم به تابع ارجاع می‌دهیم
+        renderer: (data) => renderEventsList(data[0]),
         initializer: initializeEventsModule
     },
     '/admin/registrations': {
         title: 'مدیریت ثبت‌نام‌ها',
         html: 'admin-registrations.html',
         loader: () => Promise.all([loadRegistrations(), loadEvents()]),
-        renderer: renderRegistrationsList, // اصلاح شد: مستقیم به تابع ارجاع می‌دهیم
+        renderer: (data) => renderRegistrationsList(data[0]),
         initializer: initializeRegistrationsModule
     }
 };
@@ -1677,16 +1666,7 @@ const loadAdminPage = async (path) => {
 
         setTimeout(() => {
             if (route.renderer) {
-                // **منطق کلیدی اصلاح‌شده:**
-                // بررسی می‌کنیم که آیا داده‌ی بازگشتی از لودر، آرایه‌ای است که خودش شامل آرایه‌های دیگر باشد
-                // (این حالت مخصوص Promise.all است).
-                if (Array.isArray(data) && (path === '/admin/news' || path === '/admin/events' || path === '/admin/registrations')) {
-                    // برای اخبار، رویدادها و ثبت‌نام‌ها، اولین آرایه (data[0]) را به رندرکننده می‌فرستیم.
-                    route.renderer(data[0]); 
-                } else {
-                    // برای بقیه صفحات (پیام‌ها، نشریه)، خود 'data' که یک آرایه ساده است را می‌فرستیم.
-                    route.renderer(data);
-                }
+                route.renderer(data);
             }
             
             if (route.initializer) {
@@ -1705,7 +1685,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeAdminLayout();
     initializeGlobalRefreshButton();
     initializeSharedTagModal(); 
-
 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
