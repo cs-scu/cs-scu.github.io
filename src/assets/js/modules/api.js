@@ -336,9 +336,14 @@ export const loadNews = async () => {
 
 export const addNews = async (newsData) => {
     try {
-        const { error } = await supabaseClient.from('news').insert([newsData]);
+        const { data, error } = await supabaseClient
+            .from('news')
+            .insert([newsData])
+            .select()  // <-- این خط باعث می‌شود رکورد جدید بازگردانده شود
+            .single(); // <-- این خط نتیجه را از آرایه به یک آبجکت تبدیل می‌کند
+
         if (error) throw error;
-        return { error: null };
+        return { data, error: null }; // <-- اکنون data شامل اطلاعات خبر جدید است
     } catch (error) {
         console.error('Error adding news:', error);
         throw error;
@@ -367,22 +372,38 @@ export const deleteNews = async (id) => {
     }
 };
 
-export const uploadNewsImage = async (file, slug) => {
-    const now = new Date();
-    const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-    const extension = file.name.split('.').pop();
-    const fileName = `covers/${slug}-${timestamp}.${extension}`;
+// در فایل src/assets/js/modules/api.js
 
-    try {
-        const { error } = await supabaseClient.storage.from('news-assets').upload(fileName, file, { upsert: true });
-        if (error) throw error;
-        const { data } = supabaseClient.storage.from('news-assets').getPublicUrl(fileName);
-        return data.publicUrl;
-    } catch (error) {
-        console.error('Error uploading news image:', error);
-        throw error;
-    }
-};
+// در فایل src/assets/js/modules/api.js
+
+// در فایل: src/assets/js/modules/api.js
+
+export async function uploadNewsImage(file, slug, newsId) {
+    if (!newsId) throw new Error("ID is required to name the news image file.");
+
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+    const extension = file.name.split('.').pop();
+    
+    // ساخت نام نهایی و مسیر آپلود به صورت مستقیم
+    const fileName = `covers/nw-${newsId}-${slug}-${timestamp}.${extension}`;
+
+    const { error } = await supabaseClient.storage
+        .from('news-assets')
+        .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+        });
+
+    if (error) throw error;
+
+    const { data: publicUrlData } = supabaseClient.storage
+        .from('news-assets')
+        .getPublicUrl(fileName);
+
+    // فقط URL عمومی نهایی را برمی‌گردانیم
+    return publicUrlData.publicUrl;
+}
 
 export const deleteNewsImage = async (imageUrl) => {
     if (!imageUrl) return;
@@ -594,12 +615,17 @@ export const deleteJournalFiles = async (fileUrls) => {
 
 export const addEvent = async (eventData) => {
     try {
-        const { error } = await supabaseClient.from('events').insert([eventData]);
+        // MODIFIED: Chained .select().single() to get the new record back.
+        const { data, error } = await supabaseClient
+            .from('events')
+            .insert([eventData])
+            .select()
+            .single();
         if (error) throw error;
-        return { error: null };
+        return { data, error: null };
     } catch (error) {
         console.error('Error adding event:', error);
-        return { error };
+        return { data: null, error };
     }
 };
 
@@ -633,20 +659,21 @@ export const uploadEventImage = async (file, slug) => {
                       `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
     
     const extension = file.name.split('.').pop();
-    const fileName = `covers/ev-${slug}-${timestamp}.${extension}`;
+    const tempFileName = `temp/ev-${slug}-${timestamp}.${extension}`; // Upload to a temp folder
 
     try {
         const { error: uploadError } = await supabaseClient.storage
             .from('event-assets')
-            .upload(fileName, file, { upsert: true });
+            .upload(tempFileName, file, { upsert: true });
 
         if (uploadError) throw uploadError;
 
         const { data } = supabaseClient.storage
             .from('event-assets')
-            .getPublicUrl(fileName);
+            .getPublicUrl(tempFileName);
         
-        return data.publicUrl;
+        // Return both URL and the path for the renaming step
+        return { publicUrl: data.publicUrl, filePath: tempFileName };
     } catch (error) {
         console.error('Error uploading event image:', error);
         throw error;
@@ -668,22 +695,30 @@ export const deleteEventImage = async (imageUrl) => {
 };
 
 
-export const renameEventImage = async (oldImageUrl, newSlug) => {
-    if (!oldImageUrl || !newSlug) return oldImageUrl;
+export const renameEventImage = async (oldImageUrlOrPath, eventId, newSlug) => {
+    if (!oldImageUrlOrPath || !eventId || !newSlug) return oldImageUrlOrPath;
 
     try {
-        const urlParts = oldImageUrl.split('/event-assets/');
-        const oldFilePath = urlParts[1];
-        if (!oldFilePath) return oldImageUrl;
+        let oldFilePath = oldImageUrlOrPath;
+        if (oldImageUrlOrPath.includes('/event-assets/')) {
+            const urlParts = oldImageUrlOrPath.split('/event-assets/');
+            oldFilePath = urlParts[1];
+        }
+
+        if (!oldFilePath) return oldImageUrlOrPath;
 
         const oldFileName = oldFilePath.split('/').pop();
         const extension = oldFileName.split('.').pop();
-        const timestamp = oldFileName.match(/(\d{14})/)[0];
-        const newFileName = `covers/ev-${newSlug}-${timestamp}.${extension}`;
-        const newFilePath = `covers/ev-${newSlug}-${timestamp}.${extension}`;
+        const timestampMatch = oldFileName.match(/(\d{14})/);
+        if (!timestampMatch) throw new Error('Could not extract timestamp from filename.');
+        const timestamp = timestampMatch[0];
+
+        // Construct the final, correct file path: covers/ev-[id]-[slug]-[timestamp].ext
+        const newFilePath = `covers/ev-${eventId}-${newSlug}-${timestamp}.${extension}`;
         
         if (oldFilePath === newFilePath) {
-            return oldImageUrl;
+            const { data } = supabaseClient.storage.from('event-assets').getPublicUrl(oldFilePath);
+            return data.publicUrl;
         }
 
         const { error: moveError } = await supabaseClient.storage
@@ -699,7 +734,7 @@ export const renameEventImage = async (oldImageUrl, newSlug) => {
         return data.publicUrl;
     } catch (error) {
         console.error('Error renaming event image:', error);
-        return oldImageUrl;
+        return oldImageUrlOrPath;
     }
 };
 
