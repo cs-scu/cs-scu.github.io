@@ -4899,3 +4899,14 @@ body.dark-theme .course-card-chart.is-prereq {
 body.light-theme .course-card-chart.is-prereq {
     background-color: rgba(0, 0, 0, 0.04);
 }
+
+/* Styling for Admin Panel Tables */
+.custom-table-wrapper {
+    overflow-x: auto; /* Enable horizontal scrolling */
+}
+
+.custom-table td.message-cell {
+    white-space: nowrap; 
+    min-width: min-content;
+    max-width: max-content;    
+}
