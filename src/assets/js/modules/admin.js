@@ -5,6 +5,7 @@ import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry,
 import { initializeAdminTheme } from './admin-theme.js';
 
 const toPersianNumber = (n) => {
+    if (n === null || n === undefined) return '';
     const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
     return String(n).replace(/[0-9]/g, (digit) => persianNumbers[digit]);
 };
@@ -881,6 +882,7 @@ const initializeNewsModule = async () => {
 
     let selectedTagIds = [];
     let currentImageUrl = '';
+    let imageUrlToDelete = null; 
 
     const formTitle = document.getElementById('news-form-title');
     const submitBtn = document.getElementById('news-submit-btn');
@@ -895,19 +897,35 @@ const initializeNewsModule = async () => {
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
 
+    const parsePersianDateString = (persianDate) => {
+        if (!persianDate) return null;
+        const months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+        const toEng = (str) => String(str).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+    
+        const parts = persianDate.split(' ');
+        if (parts.length !== 3) return null;
+    
+        const day = parseInt(toEng(parts[0]), 10);
+        const monthIndex = months.indexOf(parts[1]);
+        const year = parseInt(toEng(parts[2]), 10);
+    
+        if (isNaN(day) || monthIndex === -1 || isNaN(year)) return null;
+    
+        return `${year}/${monthIndex + 1}/${day}`;
+    };
+
     if (dateInput) {
         flatpickr(dateInput, {
             locale: "fa",
             altInput: true,
-            altFormat: "j F Y", // فرمت نمایشی که ذخیره خواهد شد
-            dateFormat: "Y-m-d", // این فرمت دیگر مستقیماً ذخیره نمی‌شود
+            altFormat: "j F Y", 
+            dateFormat: "Y/m/d", 
             onClose: function(selectedDates, dateStr, instance) {
                 if (selectedDates.length > 0) {
                     const jalaliDate = new instance.l10n.date(selectedDates[0]);
                     const day = toPersianNumber(jalaliDate.getDate());
                     const monthName = instance.l10n.months.longhand[jalaliDate.getMonth()];
                     const year = toPersianNumber(jalaliDate.getFullYear());
-                    // مقدار نهایی که کاربر می‌بیند و در دیتابیس ذخیره می‌شود
                     instance.altInput.value = `${day} ${monthName} ${year}`;
                 }
             }
@@ -941,13 +959,19 @@ const initializeNewsModule = async () => {
     }
 
     if (authorSelect && state.membersMap.size > 0) {
-        authorSelect.innerHTML = '<option value="" disabled selected>انتخاب نویسنده...</option>';
+        authorSelect.innerHTML = '<option value="" disabled>انتخاب نویسنده...</option>';
         Array.from(state.membersMap.values()).sort((a, b) => a.id - b.id).forEach(member => {
             const option = document.createElement('option');
             option.value = member.id;
             option.textContent = member.name;
             authorSelect.appendChild(option);
         });
+    }
+
+    const currentUserProfile = Array.from(state.membersMap.values()).find(m => m.user_id === state.user.id);
+    if (currentUserProfile) {
+        authorSelect.value = currentUserProfile.id;
+        authorSelect.disabled = true;
     }
 
     const updateSelectedTagsDisplay = () => {
@@ -969,25 +993,34 @@ const initializeNewsModule = async () => {
     const imageUploadControls = newsForm.querySelector('.image-upload-controls');
     const fileNameDisplay = imageUploadControls?.querySelector('.file-name-display');
     const fileClearBtn = imageUploadControls?.querySelector('.file-clear-btn');
+    const fileSelectBtn = imageUploadControls?.querySelector('.file-select-btn');
 
-    const updateFileNameDisplay = (fileName) => {
-        if (!fileNameDisplay) return;
-        if (!fileName) {
-            fileNameDisplay.textContent = 'فایلی انتخاب نشده';
-            if(fileClearBtn) fileClearBtn.style.display = 'none';
-        } else {
-             fileNameDisplay.textContent = fileName;
-            if(fileClearBtn) fileClearBtn.style.display = 'inline-block';
-        }
+    const updateImageUploadUI = (fileName) => {
+        if (!fileNameDisplay || !fileSelectBtn || !fileClearBtn) return;
+        const isEditing = !!hiddenIdInput.value;
+        const hasFile = !!fileName;
+
+        fileNameDisplay.textContent = hasFile ? fileName : 'فایلی انتخاب نشده';
+        fileSelectBtn.textContent = isEditing && hasFile ? 'تغییر تصویر' : 'انتخاب تصویر';
+        fileClearBtn.style.display = isEditing ? 'none' : (hasFile ? 'inline-block' : 'none');
     };
 
-    if(imageUploadInput) { imageUploadInput.addEventListener('change', () => { const file = imageUploadInput.files[0]; updateFileNameDisplay(file ? file.name : ''); }); }
+    if(imageUploadInput) { 
+        imageUploadInput.addEventListener('change', () => { 
+            const file = imageUploadInput.files[0]; 
+            if (file) {
+                if (currentImageUrl) {
+                    imageUrlToDelete = currentImageUrl; 
+                }
+                updateImageUploadUI(file.name);
+            }
+        }); 
+    }
 
     if(fileClearBtn) {
         fileClearBtn.addEventListener('click', () => {
             imageUploadInput.value = '';
-            currentImageUrl = '';
-            updateFileNameDisplay('');
+            updateImageUploadUI('');
         });
     }
 
@@ -995,18 +1028,24 @@ const initializeNewsModule = async () => {
         newsForm.reset();
         hiddenIdInput.value = '';
         currentImageUrl = '';
+        imageUrlToDelete = null;
+        updateImageUploadUI('');
         imageUploadInput.required = true;
-        updateFileNameDisplay('');
         formTitle.textContent = 'درج خبر جدید';
         submitBtn.textContent = 'افزودن خبر';
         cancelBtn.style.display = 'none';
         selectedTagIds = [];
         updateSelectedTagsDisplay();
+
+        if (currentUserProfile) {
+            authorSelect.value = currentUserProfile.id;
+            authorSelect.disabled = true;
+        } else {
+            authorSelect.disabled = false;
+        }
+
         if (dateInput && dateInput._flatpickr) { 
             dateInput._flatpickr.clear(); 
-            if (dateInput._flatpickr.altInput) {
-                dateInput._flatpickr.altInput.value = '';
-            }
         }
         newsForm.scrollIntoView({ behavior: 'smooth' });
     };
@@ -1033,16 +1072,17 @@ const initializeNewsModule = async () => {
                 formattedReadingTime = `${toPersianNumber(numericReadingTime)} دقیقه مطالعه`;
             }
             
-            // **اصلاح کلیدی**: مقدار تاریخ از فیلد نمایشی خوانده می‌شود
             const dateValue = dateInput._flatpickr.altInput.value;
             if (!dateValue) throw new Error("تاریخ خبر الزامی است.");
+
+            const authorId = isEditing ? parseInt(formData.get('authorId'), 10) : currentUserProfile.id;
 
             const newsData = {
                 title: formData.get('title'),
                 summary: formData.get('summary'),
-                date: dateValue, // ذخیره مستقیم فرمت فارسی
+                date: dateValue,
                 readingTime: formattedReadingTime,
-                authorId: parseInt(formData.get('authorId'), 10),
+                authorId: authorId,
                 tag_ids: selectedTagIds,
                 content: JSON.parse(formData.get('content')),
             };
@@ -1050,15 +1090,17 @@ const initializeNewsModule = async () => {
             if (isEditing) {
                 let finalImageUrl = currentImageUrl;
                 if (imageFile && imageFile.size > 0) {
-                    if (currentImageUrl) await deleteNewsImage(currentImageUrl);
                     finalImageUrl = await uploadNewsImage(imageFile, slug, isEditing);
-                } else if (!currentImageUrl) {
-                    throw new Error("تصویر خبر الزامی است.");
                 }
                 
                 newsData.image = finalImageUrl;
                 newsData.link = `#/news/${isEditing}-${slug}`;
                 await updateNews(isEditing, newsData);
+
+                if (imageUrlToDelete && imageUrlToDelete !== finalImageUrl) {
+                    await deleteNewsImage(imageUrlToDelete);
+                }
+
                 showStatus(statusBox, 'خبر با موفقیت ویرایش شد.', 'success');
             } else {
                 if (!imageFile) throw new Error("تصویر خبر الزامی است.");
@@ -1093,25 +1135,31 @@ const initializeNewsModule = async () => {
             const id = editBtn.dataset.id;
             const newsItem = state.allNews.find(n => n.id == id);
             if (!newsItem) return;
-            resetForm();
+
+            resetForm(); 
+            
             hiddenIdInput.value = newsItem.id;
             currentImageUrl = newsItem.image || '';
-            imageUploadInput.required = false;
-            updateFileNameDisplay(currentImageUrl ? currentImageUrl.split('/').pop() : '');
+            imageUploadInput.required = !currentImageUrl;
+            updateImageUploadUI(currentImageUrl ? currentImageUrl.split('/').pop() : '');
+            
             document.getElementById('news-title').value = newsItem.title || '';
             document.getElementById('news-summary').value = newsItem.summary || '';
             const slugToDisplay = (newsItem.link || '').replace(`#/news/${id}-`, '');
             document.getElementById('news-link').value = slugToDisplay;
             
-            // **اصلاح کلیدی**: مقدار تاریخ فارسی مستقیماً در فیلد نمایشی قرار می‌گیرد
             if(dateInput._flatpickr) {
-                dateInput._flatpickr.altInput.value = newsItem.date || '';
-                // تلاش برای همگام‌سازی تقویم (ممکن است به دلیل فرمت فارسی کار نکند)
-                dateInput._flatpickr.setDate(newsItem.date, false);
+                const parsableDate = parsePersianDateString(newsItem.date);
+                if (parsableDate) {
+                    dateInput._flatpickr.setDate(parsableDate, true); 
+                }
             }
 
             readingTimeInput.value = newsItem.readingTime || '';
-            document.getElementById('news-author').value = newsItem.authorId || '';
+            
+            authorSelect.disabled = false; // Enable for editing
+            authorSelect.value = newsItem.authorId || '';
+
             document.getElementById('news-content').value = JSON.stringify(newsItem.content, null, 2);
             selectedTagIds = newsItem.tag_ids || [];
             updateSelectedTagsDisplay();
@@ -1147,6 +1195,7 @@ const initializeEventsModule = async () => {
 
     let selectedTagIds = [];
     let currentImageUrl = '';
+    let imageUrlToDelete = null;
     let dateRangePickerInstance = initializeDatepicker();
     let eventBeingEdited = null;
 
@@ -1179,14 +1228,67 @@ const initializeEventsModule = async () => {
     const detailPageInput = document.getElementById('event-detail-page');
     const instructorInput = document.getElementById('event-instructor');
     const paymentInfoSection = document.getElementById('payment-info-section');
+    const paymentNumberInput = document.getElementById('payment-number');
     const contactPhoneInput = document.getElementById('contact-phone');
     const contactTelegramInput = document.getElementById('contact-telegram');
     const contactWhatsappInput = document.getElementById('contact-whatsapp');
     const imageUploadControls = eventForm.querySelector('.image-upload-controls');
     const fileNameDisplay = imageUploadControls ? imageUploadControls.querySelector('.file-name-display') : null;
     const fileClearBtn = imageUploadControls ? imageUploadControls.querySelector('.file-clear-btn') : null;
+    const fileSelectBtn = imageUploadControls ? imageUploadControls.querySelector('.file-select-btn') : null;
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
+
+    const toEnglishNumber = (str) => {
+        if (str === null || str === undefined) return '';
+        const persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        return String(str).replace(/ تومان/g, '').replace(/٬|,/g, '').trim().split('').map(c => english[persian.indexOf(c)] || c).join('');
+    };
+
+    const formatNumber = (num) => {
+        if (num === null || num === undefined || num === '') return '';
+        const number = Number(num);
+        if (isNaN(number)) return '';
+        return new Intl.NumberFormat('fa-IR').format(number);
+    };
+
+    if (costInput) {
+        costInput.addEventListener('input', (e) => {
+            if (costToggle.checked) return;
+            const sanitizedValue = toEnglishNumber(e.target.value).replace(/[^0-9]/g, '');
+            e.target.value = formatNumber(sanitizedValue);
+        });
+    
+        costInput.addEventListener('focus', (e) => {
+            if (costToggle.checked) return;
+            e.target.value = toEnglishNumber(e.target.value);
+        });
+    
+        costInput.addEventListener('blur', (e) => {
+            if (costToggle.checked || !e.target.value) return;
+            const numericValue = toEnglishNumber(e.target.value);
+            if (numericValue && !isNaN(numericValue)) {
+                e.target.value = `${formatNumber(numericValue)} تومان`;
+            } else {
+                e.target.value = '';
+            }
+        });
+    }
+
+    if (paymentNumberInput) {
+        paymentNumberInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/[^0-9-]/g, '').replace(/-/g, '');
+            let formattedValue = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) {
+                    formattedValue += '-';
+                }
+                formattedValue += value[i];
+            }
+            e.target.value = formattedValue;
+        });
+    }
 
     const updateSelectedTagsDisplay = () => {
         if (!selectedTagsDisplay) return;
@@ -1206,35 +1308,25 @@ const initializeEventsModule = async () => {
 
     const setupSmartContactInputs = () => {
         const sanitizePhoneNumber = (phone) => {
-            let sanitized = phone.trim().replace(/[^\d+]/g, '');
-            sanitized = sanitized.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-            
+            let sanitized = phone.trim().replace(/[^\d+]/g, '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
             if (sanitized.startsWith('+98')) return sanitized.substring(3);
             if (sanitized.startsWith('0098')) return sanitized.substring(4);
             if (sanitized.startsWith('0')) return sanitized.substring(1);
             return sanitized;
         };
-
         if (contactTelegramInput) {
             contactTelegramInput.addEventListener('blur', () => {
                 let value = contactTelegramInput.value.trim();
                 if (!value || value.startsWith('https://t.me/')) return;
-                
-                if (value.startsWith('@')) {
-                    value = `https://t.me/${value.substring(1)}`;
-                } else {
-                    const phone = sanitizePhoneNumber(value);
-                    if (/^9\d{9}$/.test(phone)) value = `https://t.me/+98${phone}`;
-                }
+                if (value.startsWith('@')) value = `https://t.me/${value.substring(1)}`;
+                else { const phone = sanitizePhoneNumber(value); if (/^9\d{9}$/.test(phone)) value = `https://t.me/+98${phone}`; }
                 contactTelegramInput.value = value;
             });
         }
-
         if (contactWhatsappInput) {
             contactWhatsappInput.addEventListener('blur', () => {
                 let value = contactWhatsappInput.value.trim();
                 if (!value || value.startsWith('https://wa.me/')) return;
-                
                 const phone = sanitizePhoneNumber(value);
                 if (/^9\d{9}$/.test(phone)) value = `https://wa.me/98${phone}`;
                 contactWhatsappInput.value = value;
@@ -1249,63 +1341,74 @@ const initializeEventsModule = async () => {
     };
     if(costToggle) costToggle.addEventListener('change', togglePaymentFields);
 
-    const updateFileNameDisplay = (fileName) => {
-        if (!fileNameDisplay) return;
-        if (!fileName) {
-            fileNameDisplay.textContent = 'فایلی انتخاب نشده';
-            if(fileClearBtn) fileClearBtn.style.display = 'none';
-            return;
-        }
-        fileNameDisplay.textContent = fileName;
-        if(fileClearBtn) fileClearBtn.style.display = 'inline-block';
+    const updateImageUploadUI = (fileName) => {
+        if (!fileNameDisplay || !fileSelectBtn || !fileClearBtn) return;
+        const isEditing = !!hiddenIdInput.value;
+        const hasFile = !!fileName;
+
+        fileNameDisplay.textContent = hasFile ? fileName : 'فایلی انتخاب نشده';
+        fileSelectBtn.textContent = isEditing && hasFile ? 'تغییر تصویر' : 'انتخاب تصویر';
+        
+        // Hide delete button if in edit mode. Otherwise, show it only if a file is selected.
+        fileClearBtn.style.display = isEditing ? 'none' : (hasFile ? 'inline-block' : 'none');
     };
 
-    if(imageUploadInput) imageUploadInput.addEventListener('change', () => updateFileNameDisplay(imageUploadInput.files[0] ? imageUploadInput.files[0].name : ''));
-    if(fileClearBtn) fileClearBtn.addEventListener('click', () => { 
-        imageUploadInput.value = ''; 
-        currentImageUrl = ''; // very important for validation
-        updateFileNameDisplay(''); 
-    });
-    
-    const setupToggleSwitch = (input, toggle, value) => {
-        if (!input || !toggle) return;
-        toggle.addEventListener('change', () => {
-            input.disabled = toggle.checked;
-            input.value = toggle.checked ? value : '';
-            if(!toggle.checked) input.focus();
+    if (imageUploadInput) {
+        imageUploadInput.addEventListener('change', () => {
+            const file = imageUploadInput.files[0];
+            if (file) {
+                if (currentImageUrl) {
+                    imageUrlToDelete = currentImageUrl; // Mark old image for deletion
+                }
+                updateImageUploadUI(file.name);
+            }
         });
-    };
+    }
 
-    setupToggleSwitch(locationInput, locationToggle, 'آنلاین');
-    setupToggleSwitch(costInput, costToggle, 'رایگان');
-    setupToggleSwitch(capacityInput, capacityToggle, '');
-
-    if(detailPageInput) {
-        detailPageInput.addEventListener('blur', () => {
-            detailPageInput.value = detailPageInput.value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-_]/g, '');
+    if (fileClearBtn) {
+        fileClearBtn.addEventListener('click', () => {
+            imageUploadInput.value = '';
+            // No need to manage imageUrlToDelete here, as this button is hidden in edit mode
+            updateImageUploadUI('');
         });
     }
     
-    const safeJsonStringify = (obj) => {
-        try { return obj ? JSON.stringify(obj, null, 2) : ''; } catch (e) { return typeof obj === 'string' ? obj : ''; }
+    const setupToggleSwitch = (input, toggle, options = {}) => {
+        if (!input || !toggle) return;
+        const { placeholderOnCheck = '' } = options;
+        const originalPlaceholder = input.placeholder;
+        toggle.addEventListener('change', () => {
+            input.disabled = toggle.checked;
+            input.value = '';
+            input.placeholder = toggle.checked ? placeholderOnCheck : originalPlaceholder;
+            if (!toggle.checked) input.focus();
+        });
     };
     
+    setupToggleSwitch(locationInput, locationToggle, { placeholderOnCheck: 'آنلاین' });
+    setupToggleSwitch(costInput, costToggle, { placeholderOnCheck: 'رایگان' });
+    setupToggleSwitch(capacityInput, capacityToggle, { placeholderOnCheck: 'نامحدود' });
 
+    if(detailPageInput) detailPageInput.addEventListener('blur', () => { detailPageInput.value = detailPageInput.value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-_]/g, ''); });
+    
+    const safeJsonStringify = (obj) => { try { return obj ? JSON.stringify(obj, null, 2) : ''; } catch (e) { return typeof obj === 'string' ? obj : ''; } };
+    
     const resetForm = () => {
         eventForm.reset();
         hiddenIdInput.value = '';
         currentImageUrl = '';
+        imageUrlToDelete = null;
         eventBeingEdited = null;
-        updateFileNameDisplay('');
+        updateImageUploadUI('');
         imageUploadInput.required = true;
         if (dateRangePickerInstance) dateRangePickerInstance.clear();
         if (regDateRangePicker) regDateRangePicker.clear();
+        const displayDateInput = document.getElementById('event-display-date');
+        if (displayDateInput && displayDateInput._flatpickr) displayDateInput._flatpickr.clear();
         formTitle.textContent = 'درج رویداد جدید';
         submitBtn.textContent = 'افزودن رویداد';
         cancelBtn.style.display = 'none';
-        locationInput.disabled = false;
-        costInput.disabled = false;
-        capacityInput.disabled = false;
+        [locationToggle, costToggle, capacityToggle].forEach(toggle => { if (toggle) { toggle.checked = false; toggle.dispatchEvent(new Event('change')); } });
         selectedTagIds = [];
         updateSelectedTagsDisplay();
         togglePaymentFields();
@@ -1316,7 +1419,6 @@ const initializeEventsModule = async () => {
         event.preventDefault();
         const statusBox = eventForm.querySelector('.form-status');
         const isEditing = hiddenIdInput.value;
-        
         hideStatus(statusBox);
         submitBtn.disabled = true;
         submitBtn.textContent = isEditing ? 'در حال ویرایش...' : 'در حال افزودن...';
@@ -1326,10 +1428,27 @@ const initializeEventsModule = async () => {
                 const formData = new FormData(eventForm);
                 const formatForSupabase = (date) => date ? new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 10) : null;
                 
-                const [startDate, endDate] = dateRangePickerInstance.selectedDates.length === 2 ? [formatForSupabase(dateRangePickerInstance.selectedDates[0]), formatForSupabase(dateRangePickerInstance.selectedDates[1])] : [eventBeingEdited?.startDate, eventBeingEdited?.endDate];
-                const [regStartDate, regEndDate] = regDateRangePicker.selectedDates.length === 2 ? [formatForSupabase(regDateRangePicker.selectedDates[0]), formatForSupabase(regDateRangePicker.selectedDates[1])] : [eventBeingEdited?.registrationStartDate, eventBeingEdited?.registrationEndDate];
+                let [startDate, endDate] = [null, null];
+                if (dateRangePickerInstance.selectedDates.length === 2) {
+                    [startDate, endDate] = [formatForSupabase(dateRangePickerInstance.selectedDates[0]), formatForSupabase(dateRangePickerInstance.selectedDates[1])];
+                } else if (isEditing && eventBeingEdited) {
+                    [startDate, endDate] = [eventBeingEdited.startDate, eventBeingEdited.endDate];
+                }
+
+                let [regStartDate, regEndDate] = [null, null];
+                if (regDateRangePicker.selectedDates.length === 2) {
+                    [regStartDate, regEndDate] = [formatForSupabase(regDateRangePicker.selectedDates[0]), formatForSupabase(regDateRangePicker.selectedDates[1])];
+                } else if (isEditing && eventBeingEdited) {
+                    [regStartDate, regEndDate] = [eventBeingEdited.registrationStartDate, eventBeingEdited.registrationEndDate];
+                }
+                
+                let displayDateValue = formData.get('displayDate');
+                if (!displayDateValue && isEditing && eventBeingEdited) {
+                    displayDateValue = eventBeingEdited.displayDate;
+                }
 
                 if (!startDate || !endDate) throw new Error("بازه تاریخ اصلی رویداد الزامی است.");
+                if (!displayDateValue) throw new Error("بازه برگزاری جلسات الزامی است.");
 
                 const parseJsonField = (fieldName) => {
                     const value = formData.get(fieldName);
@@ -1339,22 +1458,24 @@ const initializeEventsModule = async () => {
                 const capacityValue = capacityToggle.checked ? -1 : (parseInt(formData.get('capacity'), 10) || null);
                 const contactInfo = { phone: formData.get('contact_phone').trim(), telegram: formData.get('contact_telegram').trim(), whatsapp: formData.get('contact_whatsapp').trim() };
                 const paymentInfo = { name: formData.get('payment_name').trim(), number: formData.get('payment_number').trim() };
+                
+                let costValue = costToggle.checked ? 'رایگان' : costInput.value;
+                if (!costToggle.checked) {
+                    const numericValue = toEnglishNumber(costValue);
+                    if (numericValue && !isNaN(numericValue)) costValue = `${formatNumber(numericValue)} تومان`;
+                    else costValue = '';
+                }
+                
+                const locationValue = locationToggle.checked ? 'آنلاین' : locationInput.value;
 
                 return {
-                    title: formData.get('title'),
-                    summary: formData.get('summary'),
+                    title: formData.get('title'), summary: formData.get('summary'),
                     instructor_name: formData.get('instructor_name').trim() || null,
-                    location: locationInput.value,
-                    cost: costInput.value,
-                    capacity: capacityValue,
-                    displayDate: formData.get('displayDate'),
-                    startDate, endDate,
-                    registrationStartDate: regStartDate,
-                    registrationEndDate: regEndDate,
-                    detailPage: formData.get('detailPage').trim(),
-                    tag_ids: selectedTagIds,
-                    content: parseJsonField('content'),
-                    schedule: parseJsonField('schedule'),
+                    location: locationValue, cost: costValue, capacity: capacityValue,
+                    displayDate: displayDateValue, startDate, endDate,
+                    registrationStartDate: regStartDate, registrationEndDate: regEndDate,
+                    detailPage: formData.get('detailPage').trim(), tag_ids: selectedTagIds,
+                    content: parseJsonField('content'), schedule: parseJsonField('schedule'),
                     contact_link: Object.values(contactInfo).some(v => v) ? contactInfo : null,
                     payment_card_number: (paymentInfo.name && paymentInfo.number) ? paymentInfo : null
                 };
@@ -1368,44 +1489,33 @@ const initializeEventsModule = async () => {
 
             if (isEditing) {
                 let finalImageUrl = currentImageUrl;
-                
                 if (imageFile && imageFile.size > 0) {
-                    if (currentImageUrl) await deleteEventImage(currentImageUrl);
                     const { filePath: tempPath } = await uploadEventImage(imageFile, rawSlug);
                     finalImageUrl = await renameEventImage(tempPath, isEditing, rawSlug);
-                } else if (!currentImageUrl) {
-                    throw new Error("تصویر رویداد الزامی است. لطفاً یک تصویر جدید انتخاب کنید.");
-                } else {
-                    const oldFileName = currentImageUrl.split('/').pop();
-                    const oldSlugMatch = oldFileName.match(/ev-\d+-(.*)-\d{14}/);
-                    const oldSlug = oldSlugMatch ? oldSlugMatch[1] : null;
-
-                    if (oldSlug && rawSlug !== oldSlug) {
-                        finalImageUrl = await renameEventImage(currentImageUrl, isEditing, rawSlug);
-                    }
                 }
                 
                 eventData.image = finalImageUrl;
                 eventData.detailPage = `#/events/${isEditing}-${rawSlug}`;
                 await updateEvent(isEditing, eventData);
+
+                if (imageUrlToDelete) {
+                    await deleteEventImage(imageUrlToDelete);
+                }
+
                 showStatus(statusBox, 'رویداد با موفقیت ویرایش شد.', 'success');
             } else {
                 if (!imageFile) throw new Error("تصویر رویداد الزامی است.");
                 const { publicUrl: tempUrl, filePath: tempPath } = await uploadEventImage(imageFile, rawSlug);
                 eventData.image = tempUrl;
-                delete eventData.detailPage; 
-                
+                delete eventData.detailPage;
                 const { data: newEvent } = await addEvent(eventData);
                 const finalImageUrl = await renameEventImage(tempPath, newEvent.id, rawSlug);
-
                 await updateEvent(newEvent.id, { image: finalImageUrl, detailPage: `#/events/${newEvent.id}-${rawSlug}` });
                 showStatus(statusBox, 'رویداد با موفقیت افزوده شد.', 'success');
             }
-
             state.allEvents = await loadEvents();
             renderEventsList(state.allEvents);
             resetForm();
-
         } catch (error) {
             showStatus(statusBox, `عملیات با خطا مواجه شد: ${error.message}`, 'error');
         } finally {
@@ -1429,45 +1539,43 @@ const initializeEventsModule = async () => {
 
                 hiddenIdInput.value = eventToEdit.id;
                 currentImageUrl = eventToEdit.image || '';
-                updateFileNameDisplay(currentImageUrl ? currentImageUrl.split('/').pop() : '');
-                imageUploadInput.required = false;
+                imageUploadInput.required = !currentImageUrl;
+                updateImageUploadUI(currentImageUrl ? currentImageUrl.split('/').pop() : '');
 
                 document.getElementById('event-title').value = eventToEdit.title || '';
                 document.getElementById('event-summary').value = eventToEdit.summary || '';
-                document.getElementById('event-instructor').value = eventToEdit.instructor_name || '';
-                document.getElementById('event-display-date').value = eventToEdit.displayDate || '';
+                instructorInput.value = eventToEdit.instructor_name || '';
                 document.getElementById('event-detail-page').value = (eventToEdit.detailPage || '').replace(`#/events/${id}-`, '');
                 
-                locationInput.value = eventToEdit.location || '';
-                locationToggle.checked = eventToEdit.location === 'آنلاین';
-                locationToggle.dispatchEvent(new Event('change'));
-                
-                costInput.value = eventToEdit.cost || '';
-                costToggle.checked = eventToEdit.cost === 'رایگان';
-                costToggle.dispatchEvent(new Event('change'));
-                
-                capacityInput.value = eventToEdit.capacity === -1 ? '' : (eventToEdit.capacity || '');
-                capacityToggle.checked = eventToEdit.capacity === -1;
-                capacityToggle.dispatchEvent(new Event('change'));
+                const isOnline = eventToEdit.location === 'آنلاین';
+                locationToggle.checked = isOnline;
+                locationInput.disabled = isOnline;
+                locationInput.value = isOnline ? '' : (eventToEdit.location || '');
+                locationInput.placeholder = isOnline ? 'آنلاین' : 'مکان رویداد...';
 
-                if (dateRangePickerInstance) dateRangePickerInstance.setDate([eventToEdit.startDate, eventToEdit.endDate], false);
-                if (regDateRangePicker && eventToEdit.registrationStartDate) regDateRangePicker.setDate([eventToEdit.registrationStartDate, eventToEdit.registrationEndDate], false);
+                const isFree = eventToEdit.cost === 'رایگان';
+                costToggle.checked = isFree;
+                costInput.disabled = isFree;
+                costInput.value = isFree ? '' : (eventToEdit.cost || '');
+                costInput.placeholder = isFree ? 'رایگان' : 'هزینه رویداد (تومان)';
+
+                const isUnlimited = eventToEdit.capacity === -1;
+                capacityToggle.checked = isUnlimited;
+                capacityInput.disabled = isUnlimited;
+                capacityInput.value = isUnlimited ? '' : (eventToEdit.capacity || '');
+                capacityInput.placeholder = isUnlimited ? 'نامحدود' : 'ظرفیت رویداد...';
 
                 selectedTagIds = eventToEdit.tag_ids || [];
                 updateSelectedTagsDisplay();
-
                 document.getElementById('event-content').value = safeJsonStringify(eventToEdit.content);
                 document.getElementById('event-schedule').value = safeJsonStringify(eventToEdit.schedule);
-
                 const contactInfo = eventToEdit.contact_link || {};
                 contactPhoneInput.value = contactInfo.phone || '';
                 contactTelegramInput.value = contactInfo.telegram || '';
                 contactWhatsappInput.value = contactInfo.whatsapp || '';
-
                 const paymentInfo = eventToEdit.payment_card_number || {};
                 document.getElementById('payment-name').value = paymentInfo.name || '';
-                document.getElementById('payment-number').value = paymentInfo.number || '';
-
+                paymentNumberInput.value = paymentInfo.number || '';
                 formTitle.textContent = 'ویرایش رویداد';
                 submitBtn.textContent = 'ذخیره تغییرات';
                 cancelBtn.style.display = 'inline-block';
@@ -1479,7 +1587,6 @@ const initializeEventsModule = async () => {
                 const id = deleteBtn.dataset.id;
                 const eventToDelete = state.allEvents.find(e => e.id == id);
                 if (!eventToDelete) return;
-
                 if (confirm('آیا از حذف این رویداد مطمئن هستید؟ تصویر آن نیز حذف خواهد شد.')) {
                     try {
                         deleteBtn.disabled = true;
