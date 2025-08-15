@@ -627,6 +627,8 @@ const initializeJournalModule = () => {
     const journalForm = document.getElementById('add-journal-form');
     if (!journalForm) return;
 
+    let issueBeingEdited = null; // Holds the full object of the journal issue being edited
+
     const formTitle = document.getElementById('journal-form-title');
     const submitBtn = document.getElementById('journal-submit-btn');
     const cancelBtn = document.getElementById('cancel-edit-btn');
@@ -711,6 +713,7 @@ const initializeJournalModule = () => {
         coverFileInput.dispatchEvent(new Event('change'));
         journalFileInput.dispatchEvent(new Event('change'));
         hiddenIdInput.value = '';
+        issueBeingEdited = null; // Clear the reference to the edited issue
         formTitle.textContent = 'درج نشریه جدید';
         submitBtn.textContent = 'افزودن نشریه';
         cancelBtn.style.display = 'none';
@@ -722,7 +725,7 @@ const initializeJournalModule = () => {
     journalForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const statusBox = journalForm.querySelector('.form-status');
-        const isEditing = hiddenIdInput.value;
+        const isEditing = !!issueBeingEdited;
         const formData = new FormData(journalForm);
         
         hideStatus(statusBox);
@@ -733,79 +736,59 @@ const initializeJournalModule = () => {
             const coverFile = formData.get('coverFile');
             const journalFile = formData.get('journalFile');
             
-            const originalIssue = isEditing ? state.allJournalIssues.find(j => j.id == isEditing) : null;
             const oldFilesToDelete = [];
 
-            let finalCoverUrl = originalIssue ? originalIssue.coverUrl : null;
-            let finalFileUrl = originalIssue ? originalIssue.fileUrl : null;
+            let finalCoverUrl = isEditing ? issueBeingEdited.coverUrl : null;
+            let finalFileUrl = isEditing ? issueBeingEdited.fileUrl : null;
 
             const uploadFile = async (file, folder) => {
                 if (!file || file.size === 0) return null;
-
                 const issueNumber = formData.get('issueNumber') || 'NA';
                 const now = new Date();
                 const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
                 const extension = file.name.split('.').pop();
                 const fileName = `${folder}/ju-${issueNumber}-${timestamp}.${extension}`;
-
-                const { error: uploadError } = await supabaseClient.storage
-                    .from('journal-assets')
-                    .upload(fileName, file, { upsert: true });
-
+                const { error: uploadError } = await supabaseClient.storage.from('journal-assets').upload(fileName, file, { upsert: true });
                 if (uploadError) throw uploadError;
-
-                const { data } = supabaseClient.storage
-                    .from('journal-assets')
-                    .getPublicUrl(fileName);
-                
+                const { data } = supabaseClient.storage.from('journal-assets').getPublicUrl(fileName);
                 return data.publicUrl;
             };
             
-            // مرحله ۱: بررسی فایل کاور جدید
             if (coverFile && coverFile.size > 0) {
-                // اگر فایل جدیدی انتخاب شده بود، URL قدیمی را به لیست حذف اضافه کن
-                if (originalIssue && originalIssue.coverUrl) {
-                    oldFilesToDelete.push(originalIssue.coverUrl);
+                if (isEditing && issueBeingEdited.coverUrl) {
+                    oldFilesToDelete.push(issueBeingEdited.coverUrl);
                 }
-                // فایل جدید را آپلود و URL آن را در متغیر نهایی ذخیره کن
                 finalCoverUrl = await uploadFile(coverFile, 'covers');
             }
 
-            // مرحله ۲: بررسی فایل PDF جدید
             if (journalFile && journalFile.size > 0) {
-                // اگر فایل جدیدی انتخاب شده بود، URL قدیمی را به لیست حذف اضافه کن
-                if (originalIssue && originalIssue.fileUrl) {
-                    oldFilesToDelete.push(originalIssue.fileUrl);
+                if (isEditing && issueBeingEdited.fileUrl) {
+                    oldFilesToDelete.push(issueBeingEdited.fileUrl);
                 }
-                // فایل جدید را آپلود و URL آن را در متغیر نهایی ذخیره کن
                 finalFileUrl = await uploadFile(journalFile, 'files');
             }
 
-            // مرحله ۳: آماده‌سازی داده‌ها برای ارسال به دیتابیس
             const entryData = {
                 title: formData.get('title'),
                 issueNumber: formData.get('issueNumber') ? parseInt(formData.get('issueNumber'), 10) : null,
                 date: formData.get('date'),
                 summary: formData.get('summary'),
-                coverUrl: finalCoverUrl, // استفاده از URL نهایی (جدید یا قدیمی)
-                fileUrl: finalFileUrl   // استفاده از URL نهایی (جدید یا قدیمی)
+                coverUrl: finalCoverUrl,
+                fileUrl: finalFileUrl
             };
             
-            // مرحله ۴: به‌روزرسانی یا درج در دیتابیس
             if (isEditing) {
-                await updateJournalEntry(isEditing, entryData);
+                await updateJournalEntry(issueBeingEdited.id, entryData);
                 showStatus(statusBox, 'نشریه با موفقیت ویرایش شد.', 'success');
             } else {
                 await addJournalEntry(entryData);
                 showStatus(statusBox, 'نشریه با موفقیت افزوده شد.', 'success');
             }
             
-            // مرحله ۵: پس از موفقیت دیتابیس، فایل‌های قدیمی را از باکت حذف کن
             if (oldFilesToDelete.length > 0) {
                 await deleteJournalFiles(oldFilesToDelete);
             }
 
-            // مرحله ۶: به‌روزرسانی رابط کاربری
             state.allJournalIssues = await loadJournal();
             renderJournalList(state.allJournalIssues);
             resetForm();
@@ -829,6 +812,8 @@ const initializeJournalModule = () => {
             const id = editBtn.dataset.id;
             const issue = state.allJournalIssues.find(j => j.id == id);
             if (!issue) return;
+
+            issueBeingEdited = issue; // Store the full issue object
             
             hiddenIdInput.value = issue.id;
             document.getElementById('journal-title').value = issue.title || '';
@@ -857,8 +842,10 @@ const initializeJournalModule = () => {
 
                     await deleteJournalEntry(id);
 
-                    const filesToDelete = [issueToDelete.coverUrl, issueToDelete.fileUrl];
-                    await deleteJournalFiles(filesToDelete);
+                    const filesToDelete = [issueToDelete.coverUrl, issueToDelete.fileUrl].filter(Boolean);
+                    if (filesToDelete.length > 0) {
+                        await deleteJournalFiles(filesToDelete);
+                    }
 
                     state.allJournalIssues = state.allJournalIssues.filter(j => j.id != id);
                     renderJournalList(state.allJournalIssues);
@@ -866,7 +853,8 @@ const initializeJournalModule = () => {
                 } catch (error) {
                     alert('خطا در حذف نشریه.');
                     console.error("Deletion Error:", error);
-                    deleteBtn.textContent = 'حذف';
+                } finally {
+                    deleteBtn.textContent = ''; // Or some other non-text indicator
                     deleteBtn.disabled = false;
                 }
             }
