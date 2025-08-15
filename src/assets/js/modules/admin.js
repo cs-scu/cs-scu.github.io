@@ -919,23 +919,6 @@ const initializeNewsModule = async () => {
 
     populateAuthors();
     
-    const parsePersianDateString = (persianDate) => {
-        if (!persianDate) return null;
-        const months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
-        const toEng = (str) => String(str).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-    
-        const parts = persianDate.split(' ');
-        if (parts.length !== 3) return null;
-    
-        const day = parseInt(toEng(parts[0]), 10);
-        const monthIndex = months.indexOf(parts[1]);
-        const year = parseInt(toEng(parts[2]), 10);
-    
-        if (isNaN(day) || monthIndex === -1 || isNaN(year)) return null;
-    
-        return `${year}/${monthIndex + 1}/${day}`;
-    };
-
     if (dateInput) {
         flatpickr(dateInput, {
             locale: "fa",
@@ -1042,7 +1025,7 @@ const initializeNewsModule = async () => {
         cancelBtn.style.display = 'none';
         selectedTagIds = [];
         updateSelectedTagsDisplay();
-        populateAuthors(); // Set default author on reset
+        populateAuthors(); 
         if (dateInput && dateInput._flatpickr) { 
             dateInput._flatpickr.clear(); 
         }
@@ -1071,16 +1054,12 @@ const initializeNewsModule = async () => {
                 formattedReadingTime = `${toPersianNumber(numericReadingTime)} دقیقه مطالعه`;
             }
             
-            const dateValue = dateInput._flatpickr.altInput.value;
-            if (!dateValue) throw new Error("تاریخ خبر الزامی است.");
-
             const authorId = parseInt(formData.get('authorId'), 10);
             if (!authorId) throw new Error("نویسنده انتخاب نشده است.");
 
             const newsData = {
                 title: formData.get('title'),
                 summary: formData.get('summary'),
-                date: dateValue,
                 readingTime: formattedReadingTime,
                 authorId: authorId,
                 tag_ids: selectedTagIds,
@@ -1088,6 +1067,13 @@ const initializeNewsModule = async () => {
             };
 
             if (isEditing) {
+                const originalNewsItem = state.allNews.find(n => n.id == isEditing);
+                const newDateValue = dateInput._flatpickr.altInput.value;
+
+                if (newDateValue && newDateValue !== originalNewsItem.date) {
+                    newsData.date = newDateValue;
+                }
+
                 let finalImageUrl = currentImageUrl;
                 if (imageFile && imageFile.size > 0) {
                     finalImageUrl = await uploadNewsImage(imageFile, slug, isEditing);
@@ -1103,6 +1089,10 @@ const initializeNewsModule = async () => {
 
                 showStatus(statusBox, 'خبر با موفقیت ویرایش شد.', 'success');
             } else {
+                const dateValue = dateInput._flatpickr.altInput.value;
+                if (!dateValue) throw new Error("تاریخ خبر الزامی است.");
+                newsData.date = dateValue;
+
                 if (!imageFile) throw new Error("تصویر خبر الزامی است.");
                 
                 const { data: newNews } = await addNews(newsData);
@@ -1148,12 +1138,8 @@ const initializeNewsModule = async () => {
             const slugToDisplay = (newsItem.link || '').replace(`#/news/${id}-`, '');
             document.getElementById('news-link').value = slugToDisplay;
             
-            if(dateInput._flatpickr) {
-                const parsableDate = parsePersianDateString(newsItem.date);
-                if (parsableDate) {
-                    dateInput._flatpickr.setDate(parsableDate, true); 
-                }
-            }
+            // The date field is now intentionally left blank on edit.
+            // It is cleared by resetForm() and no longer repopulated.
 
             readingTimeInput.value = newsItem.readingTime || '';
             
