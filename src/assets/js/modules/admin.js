@@ -882,7 +882,7 @@ const initializeNewsModule = async () => {
 
     let selectedTagIds = [];
     let currentImageUrl = '';
-    let imageUrlToDelete = null; 
+    let imageUrlToDelete = null;
 
     const formTitle = document.getElementById('news-form-title');
     const submitBtn = document.getElementById('news-submit-btn');
@@ -897,6 +897,28 @@ const initializeNewsModule = async () => {
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
 
+    const populateAuthors = () => {
+        if (!authorSelect) return;
+        authorSelect.innerHTML = '<option value="" disabled>انتخاب نویسنده...</option>';
+        const membersWithUsers = Array.from(state.membersMap.values()).filter(m => m.uuid);
+        
+        membersWithUsers.forEach(member => {
+            const option = document.createElement('option');
+            option.value = member.id;
+            option.textContent = member.name;
+            authorSelect.appendChild(option);
+        });
+
+        const currentUserProfile = membersWithUsers.find(m => m.uuid === state.user.id);
+        if (currentUserProfile) {
+            authorSelect.value = currentUserProfile.id;
+        } else {
+            authorSelect.selectedIndex = 0;
+        }
+    };
+
+    populateAuthors();
+    
     const parsePersianDateString = (persianDate) => {
         if (!persianDate) return null;
         const months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
@@ -957,23 +979,7 @@ const initializeNewsModule = async () => {
             }
         });
     }
-
-    if (authorSelect && state.membersMap.size > 0) {
-        authorSelect.innerHTML = '<option value="" disabled>انتخاب نویسنده...</option>';
-        Array.from(state.membersMap.values()).sort((a, b) => a.id - b.id).forEach(member => {
-            const option = document.createElement('option');
-            option.value = member.id;
-            option.textContent = member.name;
-            authorSelect.appendChild(option);
-        });
-    }
-
-    const currentUserProfile = Array.from(state.membersMap.values()).find(m => m.user_id === state.user.id);
-    if (currentUserProfile) {
-        authorSelect.value = currentUserProfile.id;
-        authorSelect.disabled = true;
-    }
-
+    
     const updateSelectedTagsDisplay = () => {
         if (!selectedTagsDisplay) return;
         selectedTagsDisplay.innerHTML = selectedTagIds.length > 0
@@ -1036,14 +1042,7 @@ const initializeNewsModule = async () => {
         cancelBtn.style.display = 'none';
         selectedTagIds = [];
         updateSelectedTagsDisplay();
-
-        if (currentUserProfile) {
-            authorSelect.value = currentUserProfile.id;
-            authorSelect.disabled = true;
-        } else {
-            authorSelect.disabled = false;
-        }
-
+        populateAuthors(); // Set default author on reset
         if (dateInput && dateInput._flatpickr) { 
             dateInput._flatpickr.clear(); 
         }
@@ -1075,7 +1074,8 @@ const initializeNewsModule = async () => {
             const dateValue = dateInput._flatpickr.altInput.value;
             if (!dateValue) throw new Error("تاریخ خبر الزامی است.");
 
-            const authorId = isEditing ? parseInt(formData.get('authorId'), 10) : currentUserProfile.id;
+            const authorId = parseInt(formData.get('authorId'), 10);
+            if (!authorId) throw new Error("نویسنده انتخاب نشده است.");
 
             const newsData = {
                 title: formData.get('title'),
@@ -1157,7 +1157,6 @@ const initializeNewsModule = async () => {
 
             readingTimeInput.value = newsItem.readingTime || '';
             
-            authorSelect.disabled = false; // Enable for editing
             authorSelect.value = newsItem.authorId || '';
 
             document.getElementById('news-content').value = JSON.stringify(newsItem.content, null, 2);

@@ -132,8 +132,12 @@ export const getBaseUrl = () => {
 export const loadMembers = async () => {
     if (state.membersMap.size > 0) return state.membersMap;
     try {
-        const { data: members, error } = await supabaseClient.from('members').select('*');
+        const { data: members, error } = await supabaseClient
+            .from('members')
+            .select('*')
+            .not('uuid', 'is', null); // Corrected from user_id to uuid
         if (error) throw error;
+        state.membersMap.clear();
         members.forEach(member => state.membersMap.set(member.id, member));
         return state.membersMap;
     } catch (error) {
