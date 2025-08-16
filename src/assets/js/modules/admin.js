@@ -2,6 +2,8 @@ import { state } from './state.js';
 import { supabaseClient, getProfile, loadContacts, loadJournal, addJournalEntry, updateJournalEntry, deleteJournalEntry, deleteJournalFiles, loadEvents, addEvent, updateEvent, deleteEvent, loadTags, addTag, updateTag, deleteTag, uploadEventImage, deleteEventImage, renameEventImage ,loadRegistrations, updateRegistrationStatus, loadNews, addNews, updateNews, deleteNews, uploadNewsImage, deleteNewsImage, renameNewsImage, loadMembers } from './api.js';
 import { initializeAdminTheme } from './admin-theme.js';
 
+let adminPreviewInterval = null;
+
 const toPersianNumber = (n) => {
     if (n === null || n === undefined) return '';
     const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
@@ -21,6 +23,12 @@ const showStatus = (statusBox, message, type = 'error') => {
     statusBox.className = `form-status ${type}`;
     statusBox.style.display = 'block';
 };
+
+const debounce = (func, delay = 250) => {
+    let timeoutId;
+    return (...args) => { clearTimeout(timeoutId); timeoutId = setTimeout(() => { func.apply(this, args); }, delay); };
+};
+
 
 const initializeSharedTagModal = () => {
     const modal = document.getElementById('admin-generic-modal');
@@ -256,7 +264,9 @@ const renderEventsList = (events) => {
 const renderNewsList = (newsItems) => {
     const container = document.getElementById('news-admin-list');
     if (!container) return;
-    if (!newsItems || newsItems.length === 0) {
+    const itemsToRender = newsItems.sort((a, b) => b.id - a.id).slice(0, 10);
+
+    if (!itemsToRender || itemsToRender.length === 0) {
         container.innerHTML = '<p style="text-align: center; opacity: 0.8;">هنوز هیچ خبری ثبت نشده است.</p>';
         return;
     }
@@ -268,12 +278,10 @@ const renderNewsList = (newsItems) => {
                         <th class="actions-header">عملیات</th>
                         <th>عنوان</th>
                         <th>نویسنده</th>
-                        <th>تاریخ</th>
-                        <th>خلاصه</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${newsItems.map(item => {
+                    ${itemsToRender.map(item => {
                         const author = state.membersMap.get(item.authorId);
                         const authorName = author ? author.name : 'نامشخص';
                         return `
@@ -288,8 +296,6 @@ const renderNewsList = (newsItems) => {
                             </td>
                             <td>${item.title}</td>
                             <td>${authorName}</td>
-                            <td>${item.date}</td>
-                            <td class="summary-cell" title="${item.summary || ''}">${item.summary || ''}</td>
                         </tr>`;
                     }).join('')}
                 </tbody>
@@ -855,6 +861,7 @@ const initializeNewsModule = async () => {
     let selectedTagIds = [];
     let currentImageUrl = '';
     let imageUrlToDelete = null;
+    let lastActiveTableCell = null; // To track the last clicked cell in any table
 
     const formTitle = document.getElementById('news-form-title');
     const submitBtn = document.getElementById('news-submit-btn');
@@ -868,6 +875,140 @@ const initializeNewsModule = async () => {
     const readingTimeInput = document.getElementById('news-reading-time');
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
+    const visualEditorContainer = document.getElementById('visual-editor-container');
+    const visualEditorControls = document.getElementById('visual-editor-controls');
+    const jsonTextarea = document.getElementById('news-content');
+    const livePreviewContainer = document.querySelector('.live-preview-container');
+    const livePreviewContent = document.getElementById('live-preview-content');
+
+    const parseInlineMarkdown = (text) => {
+        if (!text) return '';
+        const sanitizer = document.createElement('div');
+        sanitizer.textContent = text;
+        let sanitizedText = sanitizer.innerHTML;
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>');
+        sanitizedText = sanitizedText.replace(/\[(.*?)\]\((.*?)\)/g, (match, linkText, url) => {
+            if (url.startsWith('javascript:')) return `[${linkText}]()`;
+            if (url.startsWith('@')) return `<a href="#/${url.substring(1)}">${linkText}</a>`;
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
+        });
+        sanitizedText = sanitizedText.replace(/\\(\*)/g, '$1');
+        return sanitizedText;
+    };
+
+    const renderJsonContentForPreview = (blocks) => {
+        if (!Array.isArray(blocks)) return '<p>محتوای این خبر به درستی بارگذاری نشد.</p>';
+        let html = '';
+        blocks.forEach(block => {
+            switch (block.type) {
+                case 'header': html += `<h${block.data.level}>${block.data.text}</h${block.data.level}>`; break;
+                case 'paragraph': html += `<p>${parseInlineMarkdown(block.data.text)}</p>`; break;
+                case 'list': html += `<${block.data.style === 'ordered' ? 'ol' : 'ul'}>${block.data.items.map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('')}</${block.data.style === 'ordered' ? 'ol' : 'ul'}>`; break;
+                case 'image': html += `<figure><img src="${block.data.url}" alt="${block.data.caption || 'Image'}">${block.data.caption ? `<figcaption>${block.data.caption}</figcaption>` : ''}</figure>`; break;
+                case 'quote': html += `<blockquote><p>${block.data.text}</p>${block.data.caption ? `<cite>${block.data.caption}</cite>` : ''}</blockquote>`; break;
+                case 'code':
+                    const lang = block.data.language || '';
+                    const code = block.data.code.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    html += `<div class="code-block-wrapper"><div class="code-block-header"><span class="language-name">${lang}</span><button class="copy-code-btn" title="کپی"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button></div><pre><code>${code}</code></pre></div>`;
+                    break;
+                case 'table':
+                    const headers = block.data.withHeadings ? `<thead><tr>${block.data.content[0].map(c => `<th>${c}</th>`).join('')}</tr></thead>` : '';
+                    const rows = block.data.withHeadings ? block.data.content.slice(1) : block.data.content;
+                    const body = `<tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>`;
+                    html += `<div class="table-wrapper"><table class="content-table">${headers}${body}</table></div>`;
+                    break;
+                case 'video':
+                    let tabsHTML = '', playersHTML = '';
+                    const hasYoutube = block.data.YoutubeUrl && block.data.YoutubeUrl.trim() !== '';
+                    const hasAparat = block.data.AparatUrl && block.data.AparatUrl.trim() !== '';
+                    let isFirstPlatform = true;
+
+                    if (hasAparat) {
+                        const aparatIdMatch = block.data.AparatUrl.match(/(?:\/v\/|\/embed\/)([a-zA-Z0-9]+)/);
+                        if (aparatIdMatch) {
+                            const embedUrl = `https://www.aparat.com/video/video/embed/videohash/${aparatIdMatch[1]}/vt/frame`;
+                            tabsHTML += `<button class="platform-btn active" data-platform="aparat" title="پخش از آپارات"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M14.412 12.022l-.414 1.832c-.16.712-.597 1.33-1.214 1.72-.555.351-1.215.49-1.86.397l-.215-.04-1.817-.41c2.326-.274 4.328-1.605 5.52-3.499zM8 1.262c3.72 0 6.737 3.017 6.737 6.738 0 3.72-3.016 6.737-6.737 6.737S1.263 11.72 1.263 8 4.279 1.263 8 1.263zM.478 8.893c.263 2.23 1.497 4.16 3.266 5.367l.233.153-1.832-.414c-.712-.16-1.33-.597-1.72-1.214-.35-.555-.49-1.215-.397-1.86l.04-.215.41-1.817zm9.206.371c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.685 1.684 1.685.93 0 1.684-.755 1.684-1.685s-.754-1.684-1.684-1.684zM5.052 8c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.684 1.684 1.684.93 0 1.685-.754 1.685-1.684C6.737 8.754 5.982 8 5.052 8zm3.374-.746c-.263-.154-.59-.154-.853 0-.263.155-.422.44-.415.746.01.457.384.823.842.823.458 0 .831-.366.841-.824.007-.305-.152-.59-.415-.745zm2.521-2.623c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.685 1.684 1.685.93 0 1.685-.754 1.685-1.685 0-.93-.755-1.684-1.685-1.684zm1.075-3.044l1.832.414c1.427.322 2.343 1.7 2.11 3.125l-.032.164-.41 1.817c-.275-2.325-1.606-4.327-3.5-5.52zM6.315 3.368c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.685 1.684 1.685.93 0 1.685-.755 1.685-1.685s-.754-1.684-1.685-1.684zM5.076.028l.215.04 1.817.41C4.878.74 2.948 1.975 1.74 3.744l-.153.233.414-1.832c.16-.712.598-1.33 1.215-1.72.555-.35 1.215-.49 1.86-.397z"></path></svg></button>`;
+                            playersHTML += `<div class="video-wrapper active" data-platform="aparat"><iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe></div>`;
+                            isFirstPlatform = false;
+                        }
+                    }
+                    if(hasYoutube) {
+                        const youtubeIdMatch = block.data.YoutubeUrl.match(/(?:v=|\/embed\/|youtu\.be\/)([\w-]{11})/);
+                        if (youtubeIdMatch) {
+                            const embedUrl = `https://www.youtube-nocookie.com/embed/${youtubeIdMatch[1]}`;
+                            tabsHTML += `<button class="platform-btn ${isFirstPlatform ? 'active' : ''}" data-platform="youtube" title="پخش از یوتیوب"><svg fill="#000000" width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21.593 7.203a2.506 2.506 0 0 0-1.762-1.766C18.265 5.007 12 5 12 5s-6.264-.007-7.831.404a2.56 2.56 0 0 0-1.766 1.778c-.413 1.566-.417 4.814-.417 4.814s-.004 3.264.406 4.814c.23.857.905 1.534 1.763 1.765 1.582.43 7.83.437 7.83.437s6.265.007 7.831-.403a2.515 2.515 0 0 0 1.767-1.763c.414-1.565.417-4.812.417-4.812s.02-3.265-.407-4.831zM9.996 15.005l.005-6 5.207 3.005-5.212 2.995z"/></svg></button>`;
+                            playersHTML += `<div class="video-wrapper ${isFirstPlatform ? 'active' : ''}" data-platform="youtube"><iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe></div>`;
+                        }
+                    }
+
+                    if(tabsHTML) {
+                        const videoTitle = block.data.title ? `<h3 class="video-title">${block.data.title}</h3>` : '';
+                        const videoDesc = block.data.description ? `<p class="video-description">${parseInlineMarkdown(block.data.description)}</p>` : '';
+                        const tabsContainer = (hasAparat && hasYoutube) ? `<div class="video-tabs-container"><div class="video-tab-highlighter"></div>${tabsHTML}</div>` : '';
+                        html += `<div class="video-container">${videoTitle}<div class="video-player-area">${playersHTML}</div><div class="video-controls-container">${videoDesc}${tabsContainer}</div></div>`;
+                    }
+                    break;
+                default: console.warn('Unknown block type:', block.type);
+            }
+        });
+        return html;
+    };
+
+    const updateLivePreview = () => {
+        if (!livePreviewContent) return;
+        try {
+            const contentJson = JSON.parse(jsonTextarea.value || '[]');
+            if (contentJson.length === 0) {
+                livePreviewContent.innerHTML = '<p class="preview-placeholder">محتوای شما در اینجا نمایش داده می‌شود...</p>';
+            } else {
+                livePreviewContent.innerHTML = renderJsonContentForPreview(contentJson);
+            }
+        } catch (e) {
+            livePreviewContent.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش محتوا...</p>';
+        }
+    };
+
+    const debouncedUpdatePreview = debounce(updateLivePreview, 0);
+
+    visualEditorContainer.addEventListener('input', () => {
+        serializeEditor();
+        debouncedUpdatePreview();
+    });
+    jsonTextarea.addEventListener('input', debouncedUpdatePreview);
+    
+    if (adminPreviewInterval) clearInterval(adminPreviewInterval);
+    adminPreviewInterval = setInterval(() => {
+        serializeEditor();
+        updateLivePreview();
+    }, 1000);
+
+    if (livePreviewContent) {
+        livePreviewContent.addEventListener('click', (e) => {
+            const platformBtn = e.target.closest('.platform-btn');
+            if (!platformBtn) return;
+
+            const container = platformBtn.closest('.video-container');
+            if (!container) return;
+
+            const targetPlatform = platformBtn.dataset.platform;
+            const tabs = container.querySelectorAll('.platform-btn');
+            const players = container.querySelectorAll('.video-wrapper');
+            const highlighter = container.querySelector('.video-tab-highlighter');
+
+            tabs.forEach(t => t.classList.remove('active'));
+            platformBtn.classList.add('active');
+
+            players.forEach(player => {
+                player.classList.toggle('active', player.dataset.platform === targetPlatform);
+            });
+
+            if (highlighter) {
+                highlighter.style.width = `${platformBtn.offsetWidth}px`;
+                highlighter.style.transform = `translateX(${platformBtn.offsetLeft}px)`;
+            }
+        });
+    }
 
     const populateAuthors = () => {
         if (!authorSelect) return;
@@ -896,16 +1037,7 @@ const initializeNewsModule = async () => {
             locale: "fa",
             altInput: true,
             altFormat: "j F Y", 
-            dateFormat: "Y/m/d", 
-            onClose: function(selectedDates, dateStr, instance) {
-                if (selectedDates.length > 0) {
-                    const jalaliDate = new instance.l10n.date(selectedDates[0]);
-                    const day = toPersianNumber(jalaliDate.getDate());
-                    const monthName = instance.l10n.months.longhand[jalaliDate.getMonth()];
-                    const year = toPersianNumber(jalaliDate.getFullYear());
-                    instance.altInput.value = `${day} ${monthName} ${year}`;
-                }
-            }
+            dateFormat: "Y/m/d",
         });
     }
 
@@ -985,6 +1117,386 @@ const initializeNewsModule = async () => {
         });
     }
 
+    // --- VISUAL EDITOR LOGIC (TEXT-BASED ICONS) ---
+    const renderEditorBlock = (type, data = {}) => {
+        const blockId = `block-${Date.now()}-${Math.random()}`;
+        const block = document.createElement('div');
+        block.className = 'editor-block';
+        block.id = blockId;
+        block.dataset.type = type;
+
+        const mainControls = `
+            <div class="editor-block-controls main-controls">
+                <button type="button" class="move-block-up" title="انتقال به بالا"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
+                <button type="button" class="move-block-down" title="انتقال به پایین"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></button>
+                <button type="button" class="delete-block-btn" title="حذف بلوک"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+            </div>`;
+
+        let typeSpecificControls = '';
+        let fields = '';
+        const formatControls = `
+            <div class="header-format-selector">
+                <button type="button" class="format-btn" data-format="bold" title="بولد"><b>B</b></button>
+                <button type="button" class="format-btn" data-format="italic" title="ایتالیک"><i>I</i></button>
+                <button type="button" class="format-btn" data-format="link" title="افزودن لینک"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg></button>
+            </div>`;
+
+        switch (type) {
+            case 'header':
+                const level = data.level || 1;
+                typeSpecificControls = `
+                    <div class="editor-block-controls type-controls">
+                        <div class="header-level-selector">
+                             <input type="hidden" class="block-data" data-key="level" value="${level}">
+                             <button type="button" class="level-btn ${level == 1 ? 'active' : ''}" data-level="1" title="H1">A</button>
+                             <button type="button" class="level-btn ${level == 2 ? 'active' : ''}" data-level="2" title="H2">A</button>
+                             <button type="button" class="level-btn ${level == 3 ? 'active' : ''}" data-level="3" title="H3">A</button>
+                        </div>
+                        <div class="control-separator"></div>
+                        ${formatControls}
+                    </div>`;
+                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن تیتر...">${data.text || ''}</div></div>`;
+                break;
+            case 'paragraph':
+                typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
+                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن پاراگراف...">${data.text || ''}</div></div>`;
+                break;
+            case 'list':
+                const style = data.style || 'unordered';
+                typeSpecificControls = `
+                    <div class="editor-block-controls type-controls">
+                        <div class="list-style-selector">
+                            <input type="hidden" class="block-data" data-key="style" value="${style}">
+                            <button type="button" class="list-style-btn ${style === 'unordered' ? 'active' : ''}" data-style="unordered" title="لیست نقطه‌ای">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                            </button>
+                            <button type="button" class="list-style-btn ${style === 'ordered' ? 'active' : ''}" data-style="ordered" title="لیست عددی">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6H8M21 12H8M21 18H8M4 6h1v4M4 12h1v6M4.2 18H4l.2 2H5"/></svg>
+                            </button>
+                        </div>
+                        <div class="control-separator"></div>
+                        ${formatControls}
+                    </div>`;
+                const items = Array.isArray(data.items) ? data.items.join('<br>') : '';
+                fields = `<div class="form-group"><div class="content-editable block-data" data-key="items" contenteditable="true" placeholder="هر آیتم در یک خط...">${items}</div></div>`;
+                break;
+            case 'quote':
+                typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
+                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن نقل‌قول...">${data.text || ''}</div></div><div class="form-group"><input type="text" class="block-data" data-key="caption" placeholder="منبع (اختیاری)" value="${data.caption || ''}"></div>`;
+                break;
+            case 'image':
+                typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
+                fields = `<div class="form-row"><div class="form-group" style="flex: 2;"><input type="url" class="block-data" data-key="url" placeholder="آدرس تصویر..." value="${data.url || ''}"></div><div class="form-group" style="flex: 3;"><div class="content-editable block-data" data-key="caption" contenteditable="true" placeholder="کپشن (اختیاری)...">${data.caption || ''}</div></div></div>`;
+                break;
+            case 'table':
+                const content = data.content || [['عنوان ۱', 'عنوان ۲'], ['متن ۱', 'متن ۲']];
+                const hasHeadings = data.withHeadings !== false;
+                
+                let tableHTML = `<table class="editor-table block-data" data-key="content">`;
+                if (hasHeadings && content.length > 0) {
+                    tableHTML += `<thead><tr>${content[0].map(cell => `<th contenteditable="true">${cell}</th>`).join('')}</tr></thead>`;
+                }
+                tableHTML += `<tbody>`;
+                const startIndex = hasHeadings ? 1 : 0;
+                for (let i = startIndex; i < content.length; i++) {
+                    tableHTML += `<tr>${content[i].map(cell => `<td contenteditable="true">${cell}</td>`).join('')}</tr>`;
+                }
+                tableHTML += `</tbody></table>`;
+
+                typeSpecificControls = `
+                    <div class="editor-block-controls type-controls">
+                         <div class="table-controls">
+                            <label class="table-heading-toggle"><input type="checkbox" class="block-data" data-key="withHeadings" ${hasHeadings ? 'checked' : ''}>سربرگ</label>
+                            <div class="control-separator"></div>
+                            ${formatControls}
+                            <div class="control-separator"></div>
+                            <button type="button" class="table-op-btn add-row-btn" title="افزودن سطر">
+                                <span class="table-op-icon">=</span>
+                            </button>
+                            <button type="button" class="table-op-btn add-col-btn" title="افزودن ستون">
+                                <span class="table-op-icon rotate-90">=</span>
+                            </button>
+                            <div class="control-separator"></div>
+                            <button type="button" class="table-op-btn delete-row-btn" title="حذف سطر">
+                               <span class="table-op-icon">=</span>
+                            </button>
+                            <button type="button" class="table-op-btn delete-col-btn" title="حذف ستون">
+                               <span class="table-op-icon rotate-90">=</span>
+                            </button>
+                         </div>
+                    </div>`;
+                fields = `<div class="table-editor-wrapper">${tableHTML}</div>`;
+                break;
+            case 'video':
+                typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
+                fields = `<div class="form-group"><div class="content-editable block-data" data-key="title" contenteditable="true" placeholder="عنوان ویدیو (اختیاری)...">${data.title || ''}</div></div><div class="form-row"><div class="form-group"><input type="url" class="block-data" data-key="AparatUrl" placeholder="لینک آپارات..." value="${data.AparatUrl || ''}"></div><div class="form-group"><input type="url" class="block-data" data-key="YoutubeUrl" placeholder="لینک یوتیوب..." value="${data.YoutubeUrl || ''}"></div></div><div class="form-group"><div class="content-editable block-data" data-key="description" contenteditable="true" placeholder="توضیحات ویدیو (اختیاری)...">${data.description || ''}</div></div>`;
+                break;
+            case 'code':
+                fields = `<div class="form-row"><div class="form-group" style="flex-grow: 1;"><textarea class="block-data" data-key="code" placeholder="کد شما...">${data.code || ''}</textarea></div><div class="form-group"><input type="text" class="block-data" data-key="language" placeholder="زبان (مثال: js)" value="${data.language || ''}"></div></div>`;
+                break;
+        }
+        block.innerHTML = mainControls + typeSpecificControls + fields;
+        return block;
+    };
+    
+    const addBlockToEditor = (type, data = {}) => {
+        const blockElement = renderEditorBlock(type, data);
+        visualEditorContainer.appendChild(blockElement);
+    };
+
+    const serializeEditor = () => {
+        const blocks = [];
+        visualEditorContainer.querySelectorAll('.editor-block').forEach(block => {
+            const type = block.dataset.type;
+            const data = {};
+            if (type === 'table') {
+                const tableEl = block.querySelector('.editor-table');
+                const content = [];
+                const ths = tableEl.querySelectorAll('thead th');
+                if (ths.length > 0) {
+                    content.push(Array.from(ths).map(th => th.innerHTML));
+                }
+                tableEl.querySelectorAll('tbody tr').forEach(tr => {
+                    content.push(Array.from(tr.querySelectorAll('td')).map(td => td.innerHTML));
+                });
+                data.content = content;
+                data.withHeadings = block.querySelector('[data-key="withHeadings"]').checked;
+            } else {
+                 block.querySelectorAll('.block-data').forEach(input => {
+                    const key = input.dataset.key;
+                    if (input.classList.contains('content-editable')) {
+                        if (key === 'items') {
+                            data[key] = input.innerHTML.split(/<div>|<br>|&nbsp;/).map(item => {
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = item;
+                                return tempDiv.textContent || tempDiv.innerText || '';
+                            }).map(item => item.trim()).filter(Boolean);
+                        } else {
+                            data[key] = input.innerHTML;
+                        }
+                    } else if (input.type === 'checkbox') {
+                        data[key] = input.checked;
+                    } else {
+                        data[key] = input.value;
+                    }
+                });
+            }
+            blocks.push({ type, data });
+        });
+        jsonTextarea.value = JSON.stringify(blocks, null, 2);
+    };
+
+    const loadNewsItemInEditor = (newsItem) => {
+        visualEditorContainer.innerHTML = '';
+        try {
+            const content = newsItem.content;
+            if (Array.isArray(content)) {
+                content.forEach(block => addBlockToEditor(block.type, block.data));
+            }
+        } catch (e) {
+            console.error("Error parsing news content for editor:", e);
+        }
+    };
+    
+    const updateFormatButtonStates = (editableDiv) => {
+        if (!editableDiv) return;
+        const block = editableDiv.closest('.editor-block');
+        if (!block) return;
+        
+        const isBold = document.queryCommandState('bold');
+        const isItalic = document.queryCommandState('italic');
+
+        const boldBtn = block.querySelector('.format-btn[data-format="bold"]');
+        const italicBtn = block.querySelector('.format-btn[data-format="italic"]');
+
+        if (boldBtn) boldBtn.classList.toggle('active', isBold);
+        if (italicBtn) italicBtn.classList.toggle('active', isItalic);
+    };
+
+    visualEditorContainer.addEventListener('focusin', (e) => {
+        if (e.target.matches('td, th')) {
+            lastActiveTableCell = e.target;
+        }
+    });
+    
+    visualEditorContainer.addEventListener('keyup', (e) => {
+        if (e.target.isContentEditable) {
+            updateFormatButtonStates(e.target);
+        }
+    });
+
+    visualEditorContainer.addEventListener('mouseup', (e) => {
+        if (e.target.isContentEditable) {
+            setTimeout(() => updateFormatButtonStates(e.target), 1);
+        }
+    });
+
+    visualEditorContainer.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button.format-btn')) {
+            e.preventDefault();
+        }
+    });
+    
+    visualEditorContainer.addEventListener('change', (e) => {
+        if (e.target.matches('[data-key="withHeadings"]')) {
+            const table = e.target.closest('.editor-block').querySelector('.editor-table');
+            let firstRow = table.rows[0];
+             if (!firstRow && table.tBodies[0] && table.tBodies[0].rows.length > 0) {
+                firstRow = table.tBodies[0].rows[0];
+            }
+            if (!firstRow) return;
+
+            const newTag = e.target.checked ? 'th' : 'td';
+            
+            const newRow = document.createElement('tr');
+            Array.from(firstRow.cells).forEach(cell => {
+                const newCell = document.createElement(newTag);
+                newCell.innerHTML = cell.innerHTML;
+                newCell.contentEditable = true;
+                newRow.appendChild(newCell);
+            });
+            
+            if (e.target.checked) {
+                let thead = table.tHead;
+                if (!thead) {
+                    thead = table.createTHead();
+                }
+                thead.innerHTML = '';
+                thead.appendChild(newRow);
+                if (table.tBodies[0]) table.tBodies[0].deleteRow(0);
+            } else {
+                let tbody = table.tBodies[0];
+                if(!tbody) {
+                     tbody = document.createElement('tbody');
+                     table.appendChild(tbody);
+                }
+                if (table.tHead) table.tHead.innerHTML = '';
+                tbody.insertBefore(newRow, tbody.firstChild);
+            }
+        }
+    });
+
+    visualEditorContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+
+        const block = btn.closest('.editor-block');
+        if (!block) return;
+
+        const table = block.querySelector('table');
+
+        if (btn.classList.contains('delete-block-btn')) {
+            block.remove();
+        } else if (btn.classList.contains('move-block-up')) {
+            if (block.previousElementSibling) {
+                visualEditorContainer.insertBefore(block, block.previousElementSibling);
+            }
+        } else if (btn.classList.contains('move-block-down')) {
+            if (block.nextElementSibling) {
+                visualEditorContainer.insertBefore(block.nextElementSibling, block);
+            }
+        } else if (btn.classList.contains('level-btn')) {
+            const newLevel = btn.dataset.level;
+            const levelInput = block.querySelector('input[data-key="level"]');
+            if (levelInput) levelInput.value = newLevel;
+            
+            block.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        } else if (btn.classList.contains('list-style-btn')) {
+            const newStyle = btn.dataset.style;
+            const styleInput = block.querySelector('input[data-key="style"]');
+            if (styleInput) styleInput.value = newStyle;
+
+            block.querySelectorAll('.list-style-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        } else if (btn.classList.contains('format-btn')) {
+            const format = btn.dataset.format;
+            const selection = window.getSelection();
+            const editableElement = selection.focusNode?.parentElement.closest('[contenteditable="true"]');
+            
+            if (!editableElement) return;
+
+            editableElement.focus();
+
+            if (format === 'link') {
+                const selectionText = selection.toString().trim();
+                if (!selectionText) {
+                    alert('لطفاً ابتدا قسمتی از متن را برای لینک کردن انتخاب کنید.');
+                    return;
+                }
+                const url = prompt('آدرس لینک را وارد کنید:', 'https://');
+                if (url) {
+                    document.execCommand('createLink', false, url);
+                }
+            } else {
+                document.execCommand(format, false, null);
+            }
+            updateFormatButtonStates(editableElement);
+        } else if (btn.classList.contains('add-row-btn')) {
+            const newRow = table.tBodies[0].insertRow();
+            const cellCount = table.rows[0]?.cells.length || 2;
+            for (let i = 0; i < cellCount; i++) {
+                const newCell = newRow.insertCell();
+                newCell.contentEditable = true;
+            }
+        } else if (btn.classList.contains('add-col-btn')) {
+            if (table.tHead) {
+                const newHeaderCell = document.createElement('th');
+                newHeaderCell.contentEditable = true;
+                table.tHead.rows[0].appendChild(newHeaderCell);
+            }
+            Array.from(table.tBodies[0].rows).forEach(row => {
+                const newCell = row.insertCell();
+                newCell.contentEditable = true;
+            });
+        } else if (btn.classList.contains('delete-row-btn')) {
+            if (!lastActiveTableCell || !block.contains(lastActiveTableCell)) {
+                alert('برای حذف، ابتدا یک سلول از سطر مورد نظر را انتخاب کنید.');
+                return;
+            }
+            if (table.rows.length <= 2) return;
+            
+            const rowToDelete = lastActiveTableCell.parentElement;
+            const withHeadings = block.querySelector('[data-key="withHeadings"]').checked;
+            const isHeaderRow = withHeadings && rowToDelete.parentElement.tagName === 'THEAD';
+
+            if (isHeaderRow && table.tBodies[0]?.rows.length > 0) {
+                const firstBodyRow = table.tBodies[0].rows[0];
+                const newHeaderRow = table.tHead.rows[0];
+                newHeaderRow.innerHTML = '';
+                Array.from(firstBodyRow.cells).forEach(cell => {
+                    const newTh = document.createElement('th');
+                    newTh.innerHTML = cell.innerHTML;
+                    newTh.contentEditable = true;
+                    newHeaderRow.appendChild(newTh);
+                });
+                firstBodyRow.remove();
+            } else {
+                rowToDelete.remove();
+            }
+            lastActiveTableCell = null;
+        } else if (btn.classList.contains('delete-col-btn')) {
+            if (!lastActiveTableCell || !block.contains(lastActiveTableCell)) {
+                alert('برای حذف، ابتدا یک سلول از ستون مورد نظر را انتخاب کنید.');
+                return;
+            }
+            if (table.rows[0].cells.length <= 2) return;
+
+            const colIndex = lastActiveTableCell.cellIndex;
+            Array.from(table.rows).forEach(row => {
+                if (row.cells[colIndex]) row.deleteCell(colIndex);
+            });
+            lastActiveTableCell = null;
+        }
+    });
+    
+    visualEditorControls.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (btn && btn.dataset.type) {
+            addBlockToEditor(btn.dataset.type);
+        }
+    });
+    
     const resetForm = () => {
         newsForm.reset();
         hiddenIdInput.value = '';
@@ -997,6 +1509,8 @@ const initializeNewsModule = async () => {
         cancelBtn.style.display = 'none';
         selectedTagIds = [];
         updateSelectedTagsDisplay();
+        visualEditorContainer.innerHTML = '';
+        jsonTextarea.value = '';
         populateAuthors(); 
         if (dateInput && dateInput._flatpickr) { 
             dateInput._flatpickr.clear(); 
@@ -1006,6 +1520,7 @@ const initializeNewsModule = async () => {
 
     newsForm.addEventListener('submit', async (event) => {
         event.preventDefault();
+        serializeEditor(); 
         const statusBox = newsForm.querySelector('.form-status');
         const isEditing = hiddenIdInput.value;
         hideStatus(statusBox);
@@ -1028,6 +1543,13 @@ const initializeNewsModule = async () => {
             
             const authorId = parseInt(formData.get('authorId'), 10);
             if (!authorId) throw new Error("نویسنده انتخاب نشده است.");
+            
+            let contentJson;
+            try {
+                contentJson = JSON.parse(formData.get('content'));
+            } catch(e) {
+                throw new Error("ساختار محتوای وارد شده صحیح نیست. لطفاً آن را بررسی کنید.");
+            }
 
             const newsData = {
                 title: formData.get('title'),
@@ -1035,7 +1557,7 @@ const initializeNewsModule = async () => {
                 readingTime: formattedReadingTime,
                 authorId: authorId,
                 tag_ids: selectedTagIds,
-                content: JSON.parse(formData.get('content')),
+                content: contentJson,
             };
 
             if (isEditing) {
@@ -1060,8 +1582,6 @@ const initializeNewsModule = async () => {
                 }
 
                 showStatus(statusBox, 'خبر با موفقیت ویرایش شد.', 'success');
-                setTimeout(() => { hideStatus(statusBox); resetForm(); }, 4000);
-
             } else {
                 const dateValue = dateInput._flatpickr.altInput.value;
                 if (!dateValue) throw new Error("تاریخ خبر الزامی است.");
@@ -1078,19 +1598,18 @@ const initializeNewsModule = async () => {
                 await updateNews(newNews.id, { image: finalImageUrl, link: finalLink });
                 
                 showStatus(statusBox, 'خبر با موفقیت افزوده شد.', 'success');
-                setTimeout(() => { hideStatus(statusBox); resetForm(); }, 4000);
             }
-
+            
+            setTimeout(() => { hideStatus(statusBox); resetForm(); }, 2000);
             state.allNews = await loadNews();
             renderNewsList(state.allNews);
+
         } catch (error) {
             showStatus(statusBox, `عملیات با خطا مواجه شد: ${error.message}`, 'error');
             setTimeout(() => hideStatus(statusBox), 4000);
         } finally {
             submitBtn.disabled = false;
-            if (isEditing) {
-                submitBtn.textContent = 'ذخیره تغییرات';
-            }
+            submitBtn.textContent = isEditing ? 'ذخیره تغییرات' : 'افزودن خبر';
         }
     });
 
@@ -1119,7 +1638,8 @@ const initializeNewsModule = async () => {
             
             authorSelect.value = newsItem.authorId || '';
 
-            document.getElementById('news-content').value = JSON.stringify(newsItem.content, null, 2);
+            loadNewsItemInEditor(newsItem);
+            
             selectedTagIds = newsItem.tag_ids || [];
             updateSelectedTagsDisplay();
             formTitle.textContent = 'ویرایش خبر';
@@ -1653,6 +2173,11 @@ const loadAdminPage = async (path) => {
         return;
     }
     
+    if (adminPreviewInterval) {
+        clearInterval(adminPreviewInterval);
+        adminPreviewInterval = null;
+    }
+
     if (headerTitle) headerTitle.textContent = route.title;
     mainContent.innerHTML = '<p class="loading-message">در حال بارگذاری...</p>';
     

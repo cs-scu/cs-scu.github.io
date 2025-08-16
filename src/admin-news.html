@@ -2,8 +2,8 @@
     <h2>مدیریت اخبار</h2>
 </div>
 
-<div class="form-and-guidance-wrapper">
-    <div class="form-container">
+<div class="editor-dashboard-wrapper">
+    <div class="dashboard-main">
         <div class="content-box">
             <h3 id="news-form-title" class="admin-section-subtitle">درج یا ویرایش خبر</h3>
             <form id="add-news-form">
@@ -24,7 +24,7 @@
                 <br>
                 <div class="form-row">
                     <div class="form-group">
-                        <input type="text" id="news-date" name="date" placeholder="تاریخ نمایش (مثال: ۲۷ تیر ۱۴۰۴)" required>
+                        <input type="text" id="news-date" name="news-date" class="form-control" placeholder="تاریخ را انتخاب کنید..." required>
                     </div>
                     <div class="form-group">
                         <input type="text" id="news-reading-time" name="readingTime" placeholder="زمان مطالعه (فقط عدد)" inputmode="numeric">
@@ -60,8 +60,21 @@
                 </div>
                 <br>
                 <div class="form-group">
-                    <textarea id="news-content" name="content" rows="8" placeholder="محتوای کامل خبر (فرمت JSON)..." required></textarea>
+                    <h4 style="margin-bottom: 0.5rem; font-size: 1rem;">محتوای خبر</h4>
+                    <div id="visual-editor-controls">
+                        <button type="button" class="btn btn-sm btn-secondary" data-type="header">تیتر</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-type="paragraph">پاراگراف</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-type="list">لیست</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-type="quote">نقل‌قول</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-type="image">تصویر</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-type="table">جدول</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-type="video">ویدیو</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-type="code">کد</button>
+                    </div>
+                    <div id="visual-editor-container" class="visual-editor-container"></div>
+                    <textarea id="news-content" name="content" rows="8" style="display: none;" required></textarea>
                 </div>
+
 
                 <div class="form-status"></div>
                 <div class="form-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
@@ -70,26 +83,19 @@
                 </div>
             </form>
         </div>
-
-        <div class="content-box" style="margin-top: 2rem;">
-            <h3 class="admin-section-subtitle">لیست اخبار</h3>
-            <div id="news-admin-list">
-            </div>
-        </div>
     </div>
     
-    <div class="guidance-container">
+    <div class="dashboard-sidebar">
         <div class="content-box">
-            <h3 class="admin-section-subtitle">راهنمای محتوا</h3>
-            <div class="guidance-content">
-                <h4>محتوای JSON</h4>
-                <p>محتوای خبر باید در قالب آرایه‌ای از آبجکت‌های JSON وارد شود. برای ساختار صحیح می‌توانید از <a href="https://github.com/rastikerdar/vazirmatn" target="_blank">این راهنما</a> کمک بگیرید یا یک نمونه از اخبار قبلی را کپی و ویرایش کنید.</p>
-                <h4>تصویر خبر</h4>
-                <ul>
-                    <li><strong>ابعاد پیشنهادی:</strong> ۱۲۰۰ (عرض) در ۶۳۰ (ارتفاع) پیکسل.</li>
-                    <li><strong>فرمت بهینه:</strong> WebP.</li>
-                    <li><strong>حجم ایده‌آل:</strong> کمتر از ۱۵۰ کیلوبایت.</li>
-                </ul>
+            <h3 class="admin-section-subtitle">اخیرترین اخبار</h3>
+            <div id="news-admin-list-wrapper">
+                <div id="news-admin-list"></div>
+            </div>
+        </div>
+        <div class="content-box">
+            <h3 class="admin-section-subtitle">پیش‌نمایش زنده</h3>
+            <div id="live-preview-content" class="news-content-area">
+                <p class="preview-placeholder">محتوای شما در اینجا نمایش داده می‌شود...</p>
             </div>
         </div>
     </div>
