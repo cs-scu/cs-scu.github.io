@@ -861,7 +861,7 @@ const initializeNewsModule = async () => {
     let selectedTagIds = [];
     let currentImageUrl = '';
     let imageUrlToDelete = null;
-    let lastActiveTableCell = null; // To track the last clicked cell in any table
+    let lastActiveTableCell = null; 
 
     const formTitle = document.getElementById('news-form-title');
     const submitBtn = document.getElementById('news-submit-btn');
@@ -881,51 +881,101 @@ const initializeNewsModule = async () => {
     const livePreviewContainer = document.querySelector('.live-preview-container');
     const livePreviewContent = document.getElementById('live-preview-content');
 
+    const serializeEditor = () => {
+        const blocks = [];
+        visualEditorContainer.querySelectorAll('.editor-block').forEach(block => {
+            const type = block.dataset.type;
+            const data = {};
+            if (type === 'table') {
+                const tableEl = block.querySelector('.editor-table');
+                const content = [];
+                const ths = tableEl.querySelectorAll('thead th');
+                if (ths.length > 0) {
+                    content.push(Array.from(ths).map(th => th.innerHTML));
+                }
+                tableEl.querySelectorAll('tbody tr').forEach(tr => {
+                    content.push(Array.from(tr.querySelectorAll('td')).map(td => td.innerHTML));
+                });
+                data.content = content;
+                data.withHeadings = block.querySelector('[data-key="withHeadings"]').checked;
+            } else {
+                 block.querySelectorAll('.block-data').forEach(input => {
+                    const key = input.dataset.key;
+                    if (input.classList.contains('content-editable')) {
+                        if (key === 'items') {
+                            const content = input.innerHTML.replace(/<div>/g, '\n').replace(/<br\s*\/?>/g, '\n');
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = content;
+                            data[key] = (tempDiv.textContent || tempDiv.innerText || '')
+                                .split('\n')
+                                .map(item => item.trim())
+                                .filter(Boolean);
+                        } else {
+                            data[key] = input.innerHTML;
+                        }
+                    } else if (input.type === 'checkbox') {
+                        data[key] = input.checked;
+                    } else {
+                        data[key] = input.value;
+                    }
+                });
+            }
+            blocks.push({ type, data });
+        });
+        jsonTextarea.value = JSON.stringify(blocks, null, 2);
+    };
+    
     const parseInlineMarkdown = (text) => {
         if (!text) return '';
         const sanitizer = document.createElement('div');
-        sanitizer.textContent = text;
-        let sanitizedText = sanitizer.innerHTML;
-        sanitizedText = sanitizedText.replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        sanitizedText = sanitizedText.replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>');
-        sanitizedText = sanitizedText.replace(/\[(.*?)\]\((.*?)\)/g, (match, linkText, url) => {
-            if (url.startsWith('javascript:')) return `[${linkText}]()`;
-            if (url.startsWith('@')) return `<a href="#/${url.substring(1)}">${linkText}</a>`;
-            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
-        });
-        sanitizedText = sanitizedText.replace(/\\(\*)/g, '$1');
-        return sanitizedText;
+        sanitizer.innerHTML = text; 
+        const sanitizedText = sanitizer.textContent || sanitizer.innerText || '';
+    
+        return sanitizedText
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/\[(.*?)\]\((.*?)\)/g, (match, linkText, url) => {
+                if (url.startsWith('javascript:')) return `[${linkText}]()`;
+                if (url.startsWith('@')) return `<a href="#/${url.substring(1)}">${linkText}</a>`;
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
+            })
+            .replace(/\\(\*)/g, '$1');
     };
 
     const renderJsonContentForPreview = (blocks) => {
         if (!Array.isArray(blocks)) return '<p>محتوای این خبر به درستی بارگذاری نشد.</p>';
         let html = '';
         blocks.forEach(block => {
+            const data = block.data || {};
             switch (block.type) {
-                case 'header': html += `<h${block.data.level}>${block.data.text}</h${block.data.level}>`; break;
-                case 'paragraph': html += `<p>${parseInlineMarkdown(block.data.text)}</p>`; break;
-                case 'list': html += `<${block.data.style === 'ordered' ? 'ol' : 'ul'}>${block.data.items.map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('')}</${block.data.style === 'ordered' ? 'ol' : 'ul'}>`; break;
-                case 'image': html += `<figure><img src="${block.data.url}" alt="${block.data.caption || 'Image'}">${block.data.caption ? `<figcaption>${block.data.caption}</figcaption>` : ''}</figure>`; break;
-                case 'quote': html += `<blockquote><p>${block.data.text}</p>${block.data.caption ? `<cite>${block.data.caption}</cite>` : ''}</blockquote>`; break;
+                case 'header': html += `<h${data.level}>${parseInlineMarkdown(data.text)}</h${data.level}>`; break;
+                case 'paragraph': html += `<p>${parseInlineMarkdown(data.text)}</p>`; break;
+                case 'list': html += `<${data.style === 'ordered' ? 'ol' : 'ul'}>${(data.items || []).map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('')}</${data.style === 'ordered' ? 'ol' : 'ul'}>`; break;
+                case 'image': html += `<figure><img src="${data.url || ''}" alt="${data.caption || 'Image'}">${data.caption ? `<figcaption>${parseInlineMarkdown(data.caption)}</figcaption>` : ''}</figure>`; break;
+                case 'quote': html += `<blockquote><p>${parseInlineMarkdown(data.text)}</p>${data.caption ? `<cite>${parseInlineMarkdown(data.caption)}</cite>` : ''}</blockquote>`; break;
                 case 'code':
-                    const lang = block.data.language || '';
-                    const code = block.data.code.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    const lang = data.language || '';
+                    const code = (data.code || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     html += `<div class="code-block-wrapper"><div class="code-block-header"><span class="language-name">${lang}</span><button class="copy-code-btn" title="کپی"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button></div><pre><code>${code}</code></pre></div>`;
                     break;
                 case 'table':
-                    const headers = block.data.withHeadings ? `<thead><tr>${block.data.content[0].map(c => `<th>${c}</th>`).join('')}</tr></thead>` : '';
-                    const rows = block.data.withHeadings ? block.data.content.slice(1) : block.data.content;
+                    const content = data.content || [];
+                    const headers = data.withHeadings && content.length > 0 ? `<thead><tr>${content[0].map(c => `<th>${c}</th>`).join('')}</tr></thead>` : '';
+                    const rows = data.withHeadings ? content.slice(1) : content;
                     const body = `<tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>`;
                     html += `<div class="table-wrapper"><table class="content-table">${headers}${body}</table></div>`;
                     break;
                 case 'video':
                     let tabsHTML = '', playersHTML = '';
-                    const hasYoutube = block.data.YoutubeUrl && block.data.YoutubeUrl.trim() !== '';
-                    const hasAparat = block.data.AparatUrl && block.data.AparatUrl.trim() !== '';
+                    const hasYoutube = data.YoutubeUrl && data.YoutubeUrl.trim() !== '';
+                    const hasAparat = data.AparatUrl && data.AparatUrl.trim() !== '';
                     let isFirstPlatform = true;
 
                     if (hasAparat) {
-                        const aparatIdMatch = block.data.AparatUrl.match(/(?:\/v\/|\/embed\/)([a-zA-Z0-9]+)/);
+                        const aparatIdMatch = data.AparatUrl.match(/(?:\/v\/|\/embed\/)([a-zA-Z0-9]+)/);
                         if (aparatIdMatch) {
                             const embedUrl = `https://www.aparat.com/video/video/embed/videohash/${aparatIdMatch[1]}/vt/frame`;
                             tabsHTML += `<button class="platform-btn active" data-platform="aparat" title="پخش از آپارات"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M14.412 12.022l-.414 1.832c-.16.712-.597 1.33-1.214 1.72-.555.351-1.215.49-1.86.397l-.215-.04-1.817-.41c2.326-.274 4.328-1.605 5.52-3.499zM8 1.262c3.72 0 6.737 3.017 6.737 6.738 0 3.72-3.016 6.737-6.737 6.737S1.263 11.72 1.263 8 4.279 1.263 8 1.263zM.478 8.893c.263 2.23 1.497 4.16 3.266 5.367l.233.153-1.832-.414c-.712-.16-1.33-.597-1.72-1.214-.35-.555-.49-1.215-.397-1.86l.04-.215.41-1.817zm9.206.371c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.685 1.684 1.685.93 0 1.684-.755 1.684-1.685s-.754-1.684-1.684-1.684zM5.052 8c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.684 1.684 1.684.93 0 1.685-.754 1.685-1.684C6.737 8.754 5.982 8 5.052 8zm3.374-.746c-.263-.154-.59-.154-.853 0-.263.155-.422.44-.415.746.01.457.384.823.842.823.458 0 .831-.366.841-.824.007-.305-.152-.59-.415-.745zm2.521-2.623c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.685 1.684 1.685.93 0 1.685-.754 1.685-1.685 0-.93-.755-1.684-1.685-1.684zm1.075-3.044l1.832.414c1.427.322 2.343 1.7 2.11 3.125l-.032.164-.41 1.817c-.275-2.325-1.606-4.327-3.5-5.52zM6.315 3.368c-.93 0-1.684.754-1.684 1.684 0 .93.754 1.685 1.684 1.685.93 0 1.685-.755 1.685-1.685s-.754-1.684-1.685-1.684zM5.076.028l.215.04 1.817.41C4.878.74 2.948 1.975 1.74 3.744l-.153.233.414-1.832c.16-.712.598-1.33 1.215-1.72.555-.35 1.215-.49 1.86-.397z"></path></svg></button>`;
@@ -934,7 +984,7 @@ const initializeNewsModule = async () => {
                         }
                     }
                     if(hasYoutube) {
-                        const youtubeIdMatch = block.data.YoutubeUrl.match(/(?:v=|\/embed\/|youtu\.be\/)([\w-]{11})/);
+                        const youtubeIdMatch = data.YoutubeUrl.match(/(?:v=|\/embed\/|youtu\.be\/)([\w-]{11})/);
                         if (youtubeIdMatch) {
                             const embedUrl = `https://www.youtube-nocookie.com/embed/${youtubeIdMatch[1]}`;
                             tabsHTML += `<button class="platform-btn ${isFirstPlatform ? 'active' : ''}" data-platform="youtube" title="پخش از یوتیوب"><svg fill="#000000" width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21.593 7.203a2.506 2.506 0 0 0-1.762-1.766C18.265 5.007 12 5 12 5s-6.264-.007-7.831.404a2.56 2.56 0 0 0-1.766 1.778c-.413 1.566-.417 4.814-.417 4.814s-.004 3.264.406 4.814c.23.857.905 1.534 1.763 1.765 1.582.43 7.83.437 7.83.437s6.265.007 7.831-.403a2.515 2.515 0 0 0 1.767-1.763c.414-1.565.417-4.812.417-4.812s.02-3.265-.407-4.831zM9.996 15.005l.005-6 5.207 3.005-5.212 2.995z"/></svg></button>`;
@@ -943,8 +993,8 @@ const initializeNewsModule = async () => {
                     }
 
                     if(tabsHTML) {
-                        const videoTitle = block.data.title ? `<h3 class="video-title">${block.data.title}</h3>` : '';
-                        const videoDesc = block.data.description ? `<p class="video-description">${parseInlineMarkdown(block.data.description)}</p>` : '';
+                        const videoTitle = data.title ? `<h3 class="video-title">${parseInlineMarkdown(data.title)}</h3>` : '';
+                        const videoDesc = data.description ? `<p class="video-description">${parseInlineMarkdown(data.description)}</p>` : '';
                         const tabsContainer = (hasAparat && hasYoutube) ? `<div class="video-tabs-container"><div class="video-tab-highlighter"></div>${tabsHTML}</div>` : '';
                         html += `<div class="video-container">${videoTitle}<div class="video-player-area">${playersHTML}</div><div class="video-controls-container">${videoDesc}${tabsContainer}</div></div>`;
                     }
@@ -956,6 +1006,7 @@ const initializeNewsModule = async () => {
     };
 
     const updateLivePreview = () => {
+        serializeEditor(); 
         if (!livePreviewContent) return;
         try {
             const contentJson = JSON.parse(jsonTextarea.value || '[]');
@@ -968,21 +1019,14 @@ const initializeNewsModule = async () => {
             livePreviewContent.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش محتوا...</p>';
         }
     };
-
-    const debouncedUpdatePreview = debounce(updateLivePreview, 0);
-
-    visualEditorContainer.addEventListener('input', () => {
-        serializeEditor();
-        debouncedUpdatePreview();
-    });
-    jsonTextarea.addEventListener('input', debouncedUpdatePreview);
     
-    if (adminPreviewInterval) clearInterval(adminPreviewInterval);
-    adminPreviewInterval = setInterval(() => {
-        serializeEditor();
-        updateLivePreview();
-    }, 1000);
+    const debouncedUpdatePreview = debounce(updateLivePreview, 200);
 
+    visualEditorContainer.addEventListener('input', debouncedUpdatePreview);
+    visualEditorContainer.addEventListener('click', () => {
+        setTimeout(debouncedUpdatePreview, 0); 
+    });
+    
     if (livePreviewContent) {
         livePreviewContent.addEventListener('click', (e) => {
             const platformBtn = e.target.closest('.platform-btn');
@@ -1242,48 +1286,6 @@ const initializeNewsModule = async () => {
     const addBlockToEditor = (type, data = {}) => {
         const blockElement = renderEditorBlock(type, data);
         visualEditorContainer.appendChild(blockElement);
-    };
-
-    const serializeEditor = () => {
-        const blocks = [];
-        visualEditorContainer.querySelectorAll('.editor-block').forEach(block => {
-            const type = block.dataset.type;
-            const data = {};
-            if (type === 'table') {
-                const tableEl = block.querySelector('.editor-table');
-                const content = [];
-                const ths = tableEl.querySelectorAll('thead th');
-                if (ths.length > 0) {
-                    content.push(Array.from(ths).map(th => th.innerHTML));
-                }
-                tableEl.querySelectorAll('tbody tr').forEach(tr => {
-                    content.push(Array.from(tr.querySelectorAll('td')).map(td => td.innerHTML));
-                });
-                data.content = content;
-                data.withHeadings = block.querySelector('[data-key="withHeadings"]').checked;
-            } else {
-                 block.querySelectorAll('.block-data').forEach(input => {
-                    const key = input.dataset.key;
-                    if (input.classList.contains('content-editable')) {
-                        if (key === 'items') {
-                            data[key] = input.innerHTML.split(/<div>|<br>|&nbsp;/).map(item => {
-                                const tempDiv = document.createElement('div');
-                                tempDiv.innerHTML = item;
-                                return tempDiv.textContent || tempDiv.innerText || '';
-                            }).map(item => item.trim()).filter(Boolean);
-                        } else {
-                            data[key] = input.innerHTML;
-                        }
-                    } else if (input.type === 'checkbox') {
-                        data[key] = input.checked;
-                    } else {
-                        data[key] = input.value;
-                    }
-                });
-            }
-            blocks.push({ type, data });
-        });
-        jsonTextarea.value = JSON.stringify(blocks, null, 2);
     };
 
     const loadNewsItemInEditor = (newsItem) => {
