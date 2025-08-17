@@ -79,30 +79,35 @@
                 </div>
             </form>
         </div>
-    </div>
-    
-    <div class="dashboard-sidebar">
-        <div class="content-box">
+        <div class="content-box" style="margin-top: 2rem;">
             <h3 class="admin-section-subtitle">اخیرترین اخبار</h3>
             <div id="news-admin-list-wrapper">
                 <div id="news-admin-list"></div>
             </div>
         </div>
-        <div class="content-box">
-            <div class="preview-header">
-                <h3 class="admin-section-subtitle">پیش‌نمایش زنده</h3>
-                <div class="form-group">
-                    <select id="preview-refresh-rate" class="form-control">
-                        <option value="0">به‌روزرسانی دستی</option>
-                        <option value="1000" selected>هر ۱ ثانیه</option>
-                        <option value="3000">هر ۳ ثانیه</option>
-                        <option value="5000">هر ۵ ثانیه</option>
-                    </select>
-                </div>
-            </div>
-            <div id="live-preview-content" class="news-content-area">
-                <p class="preview-placeholder">محتوای شما در اینجا نمایش داده می‌شود...</p>
-            </div>
-        </div>
     </div>
 </div>
+
+<div id="live-preview-widget" class="live-preview-widget">
+    <div class="preview-header">
+        <h3 class="admin-section-subtitle">پیش‌نمایش زنده</h3>
+        <div class="form-group">
+            <select id="preview-refresh-rate" class="form-control">
+                <option value="0">به‌روزرسانی دستی</option>
+                <option value="1000" selected>هر ۱ ثانیه</option>
+                <option value="3000">هر ۳ ثانیه</option>
+                <option value="5000">هر ۵ ثانیه</option>
+            </select>
+        </div>
+    </div>
+    <div id="live-preview-content" class="news-content-area">
+        <p class="preview-placeholder">محتوای شما در اینجا نمایش داده می‌شود...</p>
+    </div>
+</div>
+
+<button id="toggle-preview-fab" class="btn-fab" title="پیش‌نمایش زنده">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+</button>

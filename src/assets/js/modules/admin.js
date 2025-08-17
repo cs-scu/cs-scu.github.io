@@ -1454,7 +1454,7 @@ const initializeNewsModule = async () => {
         }
     });
 
-    visualEditorContainer.addEventListener('click', (e) => {
+visualEditorContainer.addEventListener('click', (e) => {
         const btn = e.target.closest('button');
         if (!btn) return;
 
@@ -1465,13 +1465,60 @@ const initializeNewsModule = async () => {
 
         if (btn.classList.contains('delete-block-btn')) {
             block.remove();
-        } else if (btn.classList.contains('move-block-up')) {
-            if (block.previousElementSibling) {
-                visualEditorContainer.insertBefore(block, block.previousElementSibling);
+} else if (btn.classList.contains('move-block-up')) {
+            const sibling = block.previousElementSibling;
+            if (sibling) {
+                // FIRST: Get original positions
+                const blockRect = block.getBoundingClientRect();
+                const siblingRect = sibling.getBoundingClientRect();
+
+                // LAST: Swap the elements in the DOM
+                visualEditorContainer.insertBefore(block, sibling);
+                
+                // Read the new positions
+                const newBlockRect = block.getBoundingClientRect();
+                const newSiblingRect = sibling.getBoundingClientRect();
+
+                // INVERT: Move elements back to their old visual position without animation
+                block.style.transition = 'none';
+                sibling.style.transition = 'none';
+                block.style.transform = `translateY(${blockRect.top - newBlockRect.top}px)`;
+                sibling.style.transform = `translateY(${siblingRect.top - newSiblingRect.top}px)`;
+
+                // PLAY: In the next frame, remove the transform and apply the transition
+                requestAnimationFrame(() => {
+                    block.style.transition = 'transform 0.3s ease';
+                    sibling.style.transition = 'transform 0.3s ease';
+                    block.style.transform = '';
+                    sibling.style.transform = '';
+                });
             }
         } else if (btn.classList.contains('move-block-down')) {
-            if (block.nextElementSibling) {
-                visualEditorContainer.insertBefore(block.nextElementSibling, block);
+            const sibling = block.nextElementSibling;
+            if (sibling) {
+                // FIRST
+                const blockRect = block.getBoundingClientRect();
+                const siblingRect = sibling.getBoundingClientRect();
+
+                // LAST
+                visualEditorContainer.insertBefore(sibling, block);
+                
+                const newBlockRect = block.getBoundingClientRect();
+                const newSiblingRect = sibling.getBoundingClientRect();
+
+                // INVERT
+                block.style.transition = 'none';
+                sibling.style.transition = 'none';
+                block.style.transform = `translateY(${blockRect.top - newBlockRect.top}px)`;
+                sibling.style.transform = `translateY(${siblingRect.top - newSiblingRect.top}px)`;
+
+                // PLAY
+                requestAnimationFrame(() => {
+                    block.style.transition = 'transform 0.3s ease';
+                    sibling.style.transition = 'transform 0.3s ease';
+                    block.style.transform = '';
+                    sibling.style.transform = '';
+                });
             }
         } else if (btn.classList.contains('level-btn')) {
             const newLevel = btn.dataset.level;
@@ -1745,6 +1792,15 @@ const initializeNewsModule = async () => {
             }
         }
     });
+
+    const togglePreviewFab = document.getElementById('toggle-preview-fab');
+    const previewWidget = document.getElementById('live-preview-widget');
+
+    if (togglePreviewFab && previewWidget) {
+        togglePreviewFab.addEventListener('click', () => {
+            previewWidget.classList.toggle('is-open');
+        });
+    }
 };
 
 const initializeEventsModule = async () => {
