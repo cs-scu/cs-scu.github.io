@@ -5807,3 +5807,53 @@ body.admin-preview-is-open {
     background-color: var(--primary-color-darker);
 }
 .session-link-btn svg { width: 16px; height: 16px; }
+
+/* ================== ADMIN SCHEDULE TIME INPUT STYLES ================== */
+.time-range-group {
+    display: flex;
+    flex-direction: column;
+}
+.time-range-group label {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    align-self: flex-start; /* Ensure label is at the top */
+}
+.time-range-inputs {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--glass-border-dark);
+    border-radius: 8px;
+    overflow: hidden;
+    width: 100%;
+    transition: border-color 0.2s;
+}
+body.light-theme .time-range-inputs {
+    border-color: var(--glass-border-light);
+}
+.time-range-inputs:focus-within {
+    border-color: var(--primary-color);
+}
+body.light-theme .time-range-inputs:focus-within {
+    border-color: var(--primary-color-light-theme);
+}
+.time-range-inputs .time-input {
+    flex: 1;
+    border: none;
+    background-color: transparent;
+    padding: 0.8rem;
+    font-size: 1rem;
+    text-align: center;
+    color: inherit;
+    font-family: inherit;
+    width: 100%; /* Ensure it takes available space */
+}
+.time-range-inputs .time-input:focus {
+    outline: none;
+}
+.time-range-separator {
+    font-weight: bold;
+    font-size: 1.2rem;
+    padding: 0 0.5rem;
+    opacity: 0.7;
+}

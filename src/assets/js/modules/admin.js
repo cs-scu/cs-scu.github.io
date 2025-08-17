@@ -2342,6 +2342,7 @@ const renderSessionItem = (session = {}, index) => {
 
         const icon_delete = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 
+        // START: HTML Change - Using a wrapper for time inputs
         sessionDiv.innerHTML = `
             <div class="schedule-item-header">
                 <span class="session-counter">جلسه ${sessionCount}</span>
@@ -2351,12 +2352,88 @@ const renderSessionItem = (session = {}, index) => {
             </div>
             <div class="schedule-item-fields">
                 <div class="form-group"><input type="text" data-key="session" placeholder="عنوان جلسه" value="${session.session || ''}"></div>
-                <div class="form-group"><input type="text" data-key="date" placeholder="تاریخ (۱۴۰۳/۰۸/۱۰)" value="${session.date || ''}"></div>
-                <div class="form-group"><input type="text" data-key="time" placeholder="زمان (۱۶:۰۰ - ۱۸:۰۰)" value="${session.time || ''}"></div>
+                <div class="form-group"><input type="text" data-key="date" placeholder="تاریخ (مثال: ۲۸ مرداد)" value="${session.date || ''}"></div>
+                <div class="form-group time-range-group">
+                    <div class="time-range-inputs">
+                        <input type="text" class="time-input" data-part="start" placeholder="۱۶:۰۰" maxlength="5">
+                        <span class="time-range-separator">-</span>
+                        <input type="text" class="time-input" data-part="end" placeholder="۱۸:۰۰" maxlength="5">
+                        <input type="hidden" data-key="time" value="${session.time || ''}">
+                    </div>
+                </div>
                 <div class="form-group"><input type="text" data-key="venue" placeholder="مکان" value="${session.venue || ''}"></div>
                 <div class="form-group"><input type="url" data-key="link" placeholder="لینک جلسه" value="${session.link || ''}"></div>
             </div>
         `;
+        // END: HTML Change
+
+        // --- Persian Date Logic (Unchanged) ---
+        const dateInput = sessionDiv.querySelector('input[data-key="date"]');
+        const enforcePersianOnly = (e) => {
+            let value = e.target.value;
+            value = value.replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d])
+                         .replace(/[٠-٩]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+            value = value.replace(/[^۰-۹\u0600-\u06FF\s]/g, '');
+            e.target.value = value;
+        };
+        dateInput.addEventListener('input', enforcePersianOnly);
+
+        // --- START: NEW DUAL-FIELD TIME LOGIC ---
+        const startTimeInput = sessionDiv.querySelector('.time-input[data-part="start"]');
+        const endTimeInput = sessionDiv.querySelector('.time-input[data-part="end"]');
+        const hiddenTimeInput = sessionDiv.querySelector('input[data-key="time"]');
+        
+        // Populate inputs if editing an existing session
+        if (session.time && session.time.includes(' - ')) {
+            const [start, end] = session.time.split(' - ');
+            startTimeInput.value = start;
+            endTimeInput.value = end;
+        }
+
+        const formatTimeValue = (input) => {
+            let value = input.value;
+            // Convert numbers to Persian and allow only valid characters
+            value = value.replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d])
+                         .replace(/[٠-٩]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d])
+                         .replace(/[^۰-۹:]/g, '');
+            
+            // Auto-add colon
+            if (value.length === 2 && !value.includes(':')) {
+                value += ':';
+            }
+            if (value.length > 5) {
+                value = value.slice(0, 5);
+            }
+            input.value = value;
+        };
+
+        const updateHiddenInput = () => {
+            const start = startTimeInput.value.trim();
+            const end = endTimeInput.value.trim();
+            const regex = /^[۰-۹]{2}:[۰-۹]{2}$/;
+            // Only combine if both parts are valid
+            if (regex.test(start) && regex.test(end)) {
+                hiddenTimeInput.value = `${start} - ${end}`;
+            } else {
+                hiddenTimeInput.value = '';
+            }
+        };
+
+        [startTimeInput, endTimeInput].forEach(input => {
+            input.addEventListener('input', (e) => {
+                formatTimeValue(e.target);
+                updateHiddenInput();
+            });
+            input.addEventListener('blur', (e) => {
+                 const regex = /^[۰-۹]{2}:[۰-۹]{2}$/;
+                 if(e.target.value.trim() !== '' && !regex.test(e.target.value)){
+                     e.target.value = ''; // Clear if invalid
+                     updateHiddenInput();
+                 }
+            });
+        });
+        // --- END: NEW LOGIC ---
+
         scheduleEditorContainer.appendChild(sessionDiv);
     };
 
