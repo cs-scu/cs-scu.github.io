@@ -1168,6 +1168,8 @@ body.light-theme .news-content-area h2, body.light-theme .event-content-area h2 
 /* --- استایل پاراگراف و لینک‌ها --- */
 .news-content-area p, .event-content-area p {
     margin-bottom: 1.5rem;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .news-content-area a {
@@ -5257,6 +5259,8 @@ body.light-theme .editor-table th, body.light-theme .editor-table td {
     padding: 1.5rem;
     font-size: 1rem; /* Adjust font size for preview */
     line-height: 1.7;
+    max-width: 40vw;
+
 }
 
 #live-preview-content::-webkit-scrollbar {
@@ -5387,4 +5391,70 @@ body.light-theme #live-preview-content::-webkit-scrollbar-thumb {
        overflow-y: visible; /* Let content determine height */
        height: auto;
     }
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--glass-border-dark);
+}
+body.light-theme .preview-header {
+    border-bottom-color: var(--glass-border-light);
+}
+
+.preview-header .admin-section-subtitle {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-size: 1.1rem;
+}
+
+.preview-header .form-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0;
+}
+
+.preview-header .form-group select {
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    background-color: rgba(128,128,128,0.1);
+}
+
+/* --- Block Fields & Content --- */
+.editor-block .form-group { margin-bottom: 0.5rem; }
+.editor-block .form-row { align-items: center; }
+.editor-block input, .editor-block textarea, .editor-block select { font-size: 0.95rem; }
+.editor-block textarea { min-height: 80px; resize: vertical; }
+
+.content-editable {
+    border: 1px solid var(--glass-border-dark);
+    padding: 0.8rem;
+    border-radius: 8px;
+    min-height: 40px;
+    color: inherit;
+    width: 100%;
+    white-space: pre-wrap; 
+    word-wrap: break-word; 
+}
+.content-editable:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+body.light-theme .content-editable { border-color: var(--glass-border-light); }
+body.light-theme .content-editable:focus { border-color: var(--primary-color-light-theme); }
+.content-editable[placeholder]:empty:before {
+    content: attr(placeholder);
+    color: #888; 
+    opacity: 0.7;
+}
+.content-editable a {
+    text-decoration: underline;
+    color: #8ab4f8;
 }

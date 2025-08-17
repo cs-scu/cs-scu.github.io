@@ -862,6 +862,7 @@ const initializeNewsModule = async () => {
     let currentImageUrl = '';
     let imageUrlToDelete = null;
     let lastActiveTableCell = null; 
+    let lastRenderedJson = '';
 
     const formTitle = document.getElementById('news-form-title');
     const submitBtn = document.getElementById('news-submit-btn');
@@ -880,6 +881,7 @@ const initializeNewsModule = async () => {
     const jsonTextarea = document.getElementById('news-content');
     const livePreviewContainer = document.querySelector('.live-preview-container');
     const livePreviewContent = document.getElementById('live-preview-content');
+    const refreshRateSelect = document.getElementById('preview-refresh-rate');
 
     const serializeEditor = () => {
         const blocks = [];
@@ -903,13 +905,7 @@ const initializeNewsModule = async () => {
                     const key = input.dataset.key;
                     if (input.classList.contains('content-editable')) {
                         if (key === 'items') {
-                            const content = input.innerHTML.replace(/<div>/g, '\n').replace(/<br\s*\/?>/g, '\n');
-                            const tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = content;
-                            data[key] = (tempDiv.textContent || tempDiv.innerText || '')
-                                .split('\n')
-                                .map(item => item.trim())
-                                .filter(Boolean);
+                             data[key] = (input.innerText || '').split('\n').map(item => item.trim()).filter(Boolean);
                         } else {
                             data[key] = input.innerHTML;
                         }
@@ -946,29 +942,55 @@ const initializeNewsModule = async () => {
     };
 
     const renderJsonContentForPreview = (blocks) => {
-        if (!Array.isArray(blocks)) return '<p>محتوای این خبر به درستی بارگذاری نشد.</p>';
-        let html = '';
+        const container = document.createElement('div');
+        if (!Array.isArray(blocks)) {
+            container.innerHTML = '<p>محتوای این خبر به درستی بارگذاری نشد.</p>';
+            return container;
+        }
+    
         blocks.forEach(block => {
             const data = block.data || {};
+            let element;
             switch (block.type) {
-                case 'header': html += `<h${data.level}>${parseInlineMarkdown(data.text)}</h${data.level}>`; break;
-                case 'paragraph': html += `<p>${parseInlineMarkdown(data.text)}</p>`; break;
-                case 'list': html += `<${data.style === 'ordered' ? 'ol' : 'ul'}>${(data.items || []).map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('')}</${data.style === 'ordered' ? 'ol' : 'ul'}>`; break;
-                case 'image': html += `<figure><img src="${data.url || ''}" alt="${data.caption || 'Image'}">${data.caption ? `<figcaption>${parseInlineMarkdown(data.caption)}</figcaption>` : ''}</figure>`; break;
-                case 'quote': html += `<blockquote><p>${parseInlineMarkdown(data.text)}</p>${data.caption ? `<cite>${parseInlineMarkdown(data.caption)}</cite>` : ''}</blockquote>`; break;
+                case 'header':
+                    element = document.createElement(`h${data.level || 1}`);
+                    element.innerHTML = parseInlineMarkdown(data.text);
+                    break;
+                case 'paragraph':
+                    element = document.createElement('p');
+                    element.innerHTML = parseInlineMarkdown(data.text);
+                    break;
+                case 'list':
+                    element = document.createElement(data.style === 'ordered' ? 'ol' : 'ul');
+                    element.innerHTML = (data.items || []).map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('');
+                    break;
+                case 'image':
+                    element = document.createElement('figure');
+                    element.innerHTML = `<img src="${data.url || ''}" alt="${data.caption || 'Image'}">${data.caption ? `<figcaption>${parseInlineMarkdown(data.caption)}</figcaption>` : ''}`;
+                    break;
+                case 'quote':
+                    element = document.createElement('blockquote');
+                    element.innerHTML = `<p>${parseInlineMarkdown(data.text)}</p>${data.caption ? `<cite>${parseInlineMarkdown(data.caption)}</cite>` : ''}</blockquote>`;
+                    break;
                 case 'code':
                     const lang = data.language || '';
                     const code = (data.code || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    html += `<div class="code-block-wrapper"><div class="code-block-header"><span class="language-name">${lang}</span><button class="copy-code-btn" title="کپی"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button></div><pre><code>${code}</code></pre></div>`;
+                    element = document.createElement('div');
+                    element.className = 'code-block-wrapper';
+                    element.innerHTML = `<div class="code-block-header"><span class="language-name">${lang}</span><button class="copy-code-btn" title="کپی"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button></div><pre><code>${code}</code></pre>`;
                     break;
                 case 'table':
                     const content = data.content || [];
                     const headers = data.withHeadings && content.length > 0 ? `<thead><tr>${content[0].map(c => `<th>${c}</th>`).join('')}</tr></thead>` : '';
                     const rows = data.withHeadings ? content.slice(1) : content;
                     const body = `<tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>`;
-                    html += `<div class="table-wrapper"><table class="content-table">${headers}${body}</table></div>`;
+                    element = document.createElement('div');
+                    element.className = 'table-wrapper';
+                    element.innerHTML = `<table class="content-table">${headers}${body}</table>`;
                     break;
                 case 'video':
+                    element = document.createElement('div');
+                    element.className = 'video-container';
                     let tabsHTML = '', playersHTML = '';
                     const hasYoutube = data.YoutubeUrl && data.YoutubeUrl.trim() !== '';
                     const hasAparat = data.AparatUrl && data.AparatUrl.trim() !== '';
@@ -996,32 +1018,83 @@ const initializeNewsModule = async () => {
                         const videoTitle = data.title ? `<h3 class="video-title">${parseInlineMarkdown(data.title)}</h3>` : '';
                         const videoDesc = data.description ? `<p class="video-description">${parseInlineMarkdown(data.description)}</p>` : '';
                         const tabsContainer = (hasAparat && hasYoutube) ? `<div class="video-tabs-container"><div class="video-tab-highlighter"></div>${tabsHTML}</div>` : '';
-                        html += `<div class="video-container">${videoTitle}<div class="video-player-area">${playersHTML}</div><div class="video-controls-container">${videoDesc}${tabsContainer}</div></div>`;
+                        element.innerHTML = `${videoTitle}<div class="video-player-area">${playersHTML}</div><div class="video-controls-container">${videoDesc}${tabsContainer}</div>`;
                     }
                     break;
                 default: console.warn('Unknown block type:', block.type);
             }
+            if (element) container.appendChild(element);
         });
-        return html;
+        return container;
     };
+    
+    const diffAndUpdateDOM = (oldNode, newNode) => {
+        const oldChildren = Array.from(oldNode.children);
+        const newChildren = Array.from(newNode.children);
+        const maxLen = Math.max(oldChildren.length, newChildren.length);
 
+        for (let i = 0; i < maxLen; i++) {
+            const oldChild = oldChildren[i];
+            const newChild = newChildren[i];
+
+            if (!newChild) {
+                oldNode.removeChild(oldChild);
+            } else if (!oldChild) {
+                oldNode.appendChild(newChild);
+            } else if (oldChild.tagName !== newChild.tagName || oldChild.className !== newChild.className) {
+                oldNode.replaceChild(newChild, oldChild);
+            } else if (oldChild.innerHTML !== newChild.innerHTML) {
+                if (oldChild.querySelector('iframe')) {
+                    const oldIframe = oldChild.querySelector('iframe');
+                    const newIframe = newChild.querySelector('iframe');
+                    if (!newIframe || oldIframe.src !== newIframe.src) {
+                        oldNode.replaceChild(newChild, oldChild);
+                    }
+                } else {
+                    oldChild.innerHTML = newChild.innerHTML;
+                }
+            }
+        }
+    };
+    
     const updateLivePreview = () => {
-        serializeEditor(); 
+        serializeEditor();
+        const currentJson = jsonTextarea.value;
+    
+        if (currentJson === lastRenderedJson) return;
+    
         if (!livePreviewContent) return;
         try {
-            const contentJson = JSON.parse(jsonTextarea.value || '[]');
+            const contentJson = JSON.parse(currentJson || '[]');
+            
             if (contentJson.length === 0) {
-                livePreviewContent.innerHTML = '<p class="preview-placeholder">محتوای شما در اینجا نمایش داده می‌شود...</p>';
+                if(livePreviewContent.innerHTML !== '<p class="preview-placeholder">محتوای شما در اینجا نمایش داده می‌شود...</p>') {
+                    livePreviewContent.innerHTML = '<p class="preview-placeholder">محتوای شما در اینجا نمایش داده می‌شود...</p>';
+                }
             } else {
-                livePreviewContent.innerHTML = renderJsonContentForPreview(contentJson);
+                const newContentNode = renderJsonContentForPreview(contentJson);
+                diffAndUpdateDOM(livePreviewContent, newContentNode);
             }
+            lastRenderedJson = currentJson; 
         } catch (e) {
             livePreviewContent.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش محتوا...</p>';
         }
     };
     
-    const debouncedUpdatePreview = debounce(updateLivePreview, 200);
+    if (adminPreviewInterval) clearInterval(adminPreviewInterval);
+    
+    const setupAutoRefresh = () => {
+        if (adminPreviewInterval) clearInterval(adminPreviewInterval);
+        const rate = parseInt(refreshRateSelect.value, 10);
+        if (rate > 0) {
+            adminPreviewInterval = setInterval(updateLivePreview, rate);
+        }
+    };
 
+    refreshRateSelect.addEventListener('change', setupAutoRefresh);
+    setupAutoRefresh(); 
+
+    const debouncedUpdatePreview = debounce(updateLivePreview, 200);
     visualEditorContainer.addEventListener('input', debouncedUpdatePreview);
     visualEditorContainer.addEventListener('click', () => {
         setTimeout(debouncedUpdatePreview, 0); 
@@ -1053,6 +1126,9 @@ const initializeNewsModule = async () => {
             }
         });
     }
+    
+    updateLivePreview();
+
 
     const populateAuthors = () => {
         if (!authorSelect) return;
