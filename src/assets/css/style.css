@@ -5545,4 +5545,265 @@ body.dark-theme .live-preview-widget {
     margin-right: auto;
 }
 }
+/*------------------------------------------------------------------
+[16. Admin Preview Modal] - FINAL THEMED STYLING
+*/
+.admin-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1050;
+    opacity: 0;
+    visibility: hidden;
+    background-color: rgba(1, 42, 43, 0.7); /* Semi-transparent overlay */
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
 
+.admin-preview-modal.is-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.admin-preview-content {
+    position: absolute;
+    top: 0;
+    left: -100%; 
+    width: 85%;
+    max-width: 900px;
+    height: 100%;
+    /* FIX: Uses the correct variable for the site's main background color */
+    background-color: var(--background-color-dark);
+    box-shadow: 5px 0 25px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    transition: left 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+body.dark-theme .admin-preview-content {
+    background-color: var(--background-color-dark);
+}
+body.light-theme .admin-preview-content {
+    background-color: var(--background-color-light);
+}
+
+.admin-preview-modal.is-visible .admin-preview-content {
+    left: 0; 
+}
+
+.admin-preview-content .preview-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+    /* Uses the alternate background for distinction */
+    background-color: var(--background-alt-color); 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.admin-preview-content .preview-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--heading-color);
+}
+
+.admin-preview-body {
+    padding: 1rem 2.5rem 2rem;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+/* Base styles for preview content */
+#live-preview-event-content {
+    padding-bottom: 2rem;
+    color: var(--text-color);
+}
+#live-preview-event-content h1, 
+#live-preview-event-content h2, 
+#live-preview-event-content h3, 
+#live-preview-event-content h4 {
+    color: var(--heading-color);
+    font-weight: 700;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.4;
+}
+#live-preview-event-content p { line-height: 1.8; margin-bottom: 1.25rem; }
+#live-preview-event-content a { color: var(--primary-color); text-decoration: none; border-bottom: 1px dashed; transition: all 0.2s ease; }
+#live-preview-event-content a:hover { border-bottom-style: solid; }
+#live-preview-event-content ul, #live-preview-event-content ol { padding-right: 20px; margin-bottom: 1.25rem; line-height: 1.9; }
+#live-preview-event-content blockquote { border-right: 4px solid var(--primary-color); padding: 1rem 1.5rem; margin: 2.5rem 0; font-style: italic; background-color: var(--background-alt-color); border-radius: 0 8px 8px 0; color: var(--text-color-light); }
+
+body.admin-preview-is-open {
+    overflow: hidden;
+}
+
+/*------------------------------------------------------------------
+[17. Schedule Editor & Preview Cards] - FINAL THEMED STYLING
+*/
+
+/* --- Schedule Editor on Main Form --- */
+
+.schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+#schedule-editor-container .schedule-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem; /* Increased padding */
+    border: 1px solid var(--border-color);
+    border-radius: 12px; /* Softer radius */
+    margin-bottom: 1.5rem; /* Increased separation */
+    background-color: var(--background-alt-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* A more noticeable shadow */
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+:root[data-theme="dark"] #schedule-editor-container .schedule-item {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+#schedule-editor-container .schedule-item:focus-within {
+     border-color: var(--primary-color); /* Use main primary color on focus */
+     box-shadow: 0 0 0 3px var(--glass-border-dark);
+}
+
+.schedule-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.session-counter {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--heading-color);
+}
+
+.schedule-item-fields {
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.schedule-item-fields .form-group {
+    margin: 0;
+}
+
+.schedule-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.schedule-item-controls button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color);
+    opacity: 0.6;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s, color 0.2s;
+}
+.schedule-item-controls button:hover { opacity: 1; }
+.schedule-item-controls button.delete-session-btn:hover { color: var(--danger-color); }
+/* --- Session Cards in Preview Panel --- */
+
+.preview-section-divider {
+    margin: 2rem 0;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    line-height: 0.1em;
+}
+
+.preview-section-divider h4 {
+    background-color: var(--background-color);
+    padding: 0 1rem;
+    color: var(--text-color-light);
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+.preview-session-card {
+    background-color: var(--background-alt-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.preview-session-card h5 {
+    font-size: 1.2rem;
+    color: var(--heading-color);
+    margin: 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.preview-session-card .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    font-size: 0.95rem;
+}
+
+.preview-session-card .info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-color);
+}
+
+.preview-session-card .info-item svg {
+    width: 18px;
+    height: 18px;
+    color: var(--primary-color);
+    flex-shrink: 0;
+}
+
+.session-link-container {
+    margin-top: 0.5rem;
+    text-align: left;
+}
+
+.session-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--primary-color);
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+:root[data-theme="dark"] .session-link-btn {
+    color: var(--background-color-dark);
+}
+:root[data-theme="light"] .session-link-btn {
+    color: #fff;
+}
+
+.session-link-btn:hover {
+    background-color: var(--primary-color-darker);
+}
+.session-link-btn svg { width: 16px; height: 16px; }

@@ -1852,6 +1852,21 @@ const initializeEventsModule = async () => {
     const fileSelectBtn = imageUploadControls ? imageUploadControls.querySelector('.file-select-btn') : null;
     const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
+    
+    // START: Editor variables
+    const visualEditorContainer = document.getElementById('visual-editor-container-event');
+    const visualEditorControls = document.getElementById('visual-editor-controls-event');
+    const contentTextarea = document.getElementById('event-content');
+    
+    const previewModal = document.getElementById('admin-preview-modal');
+    const livePreviewEventContent = document.getElementById('live-preview-event-content');
+    const livePreviewScheduleCards = document.getElementById('live-preview-schedule-cards');
+    const togglePreviewFab = document.getElementById('toggle-preview-fab');
+
+    const scheduleEditorContainer = document.getElementById('schedule-editor-container');
+    const scheduleTextarea = document.getElementById('event-schedule');
+    const addSessionBtn = document.getElementById('add-session-btn');
+    // END: Editor variables
 
     const toEnglishNumber = (str) => {
         if (str === null || str === undefined) return '';
@@ -2005,6 +2020,388 @@ const initializeEventsModule = async () => {
     
     const safeJsonStringify = (obj) => { try { return obj ? JSON.stringify(obj, null, 2) : ''; } catch (e) { return typeof obj === 'string' ? obj : ''; } };
     
+    // START: Visual & Schedule Editor Logic
+    const serializeEventEditor = () => {
+        const blocks = [];
+        visualEditorContainer.querySelectorAll('.editor-block').forEach(block => {
+            const type = block.dataset.type;
+            const data = {};
+            block.querySelectorAll('.block-data').forEach(input => {
+                const key = input.dataset.key;
+                if (input.classList.contains('content-editable')) {
+                    if (key === 'items') {
+                        data[key] = (input.innerText || '').split('\n').map(item => item.trim()).filter(Boolean);
+                    } else {
+                        data[key] = input.innerHTML;
+                    }
+                } else {
+                    data[key] = input.value;
+                }
+            });
+            blocks.push({ type, data });
+        });
+        contentTextarea.value = JSON.stringify(blocks, null, 2);
+    };
+
+    const renderEventEditorBlock = (type, data = {}) => {
+        const blockId = `event-block-${Date.now()}-${Math.random()}`;
+        const block = document.createElement('div');
+        block.className = 'editor-block';
+        block.id = blockId;
+        block.dataset.type = type;
+
+        const mainControls = `
+            <div class="editor-block-controls main-controls">
+                <button type="button" class="move-block-up" title="انتقال به بالا"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
+                <button type="button" class="move-block-down" title="انتقال به پایین"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></button>
+                <button type="button" class="delete-block-btn" title="حذف بلوک"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+            </div>`;
+
+        let typeSpecificControls = '';
+        let fields = '';
+        const formatControls = `
+            <div class="header-format-selector">
+                <button type="button" class="format-btn" data-format="bold" title="بولد"><b>B</b></button>
+                <button type="button" class="format-btn" data-format="italic" title="ایتالیک"><i>I</i></button>
+                <button type="button" class="format-btn" data-format="link" title="افزودن لینک"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg></button>
+            </div>`;
+
+        switch (type) {
+             case 'header':
+                const level = data.level || 2;
+                typeSpecificControls = `<div class="editor-block-controls type-controls"><div class="header-level-selector"><input type="hidden" class="block-data" data-key="level" value="${level}"><button type="button" class="level-btn ${level == 2 ? 'active' : ''}" data-level="2" title="H2">A</button><button type="button" class="level-btn ${level == 3 ? 'active' : ''}" data-level="3" title="H3">A</button></div><div class="control-separator"></div>${formatControls}</div>`;
+                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن تیتر...">${data.text || ''}</div></div>`;
+                break;
+            case 'paragraph':
+                typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
+                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن پاراگراف...">${data.text || ''}</div></div>`;
+                break;
+            case 'list':
+                const style = data.style || 'unordered';
+                typeSpecificControls = `<div class="editor-block-controls type-controls"><div class="list-style-selector"><input type="hidden" class="block-data" data-key="style" value="${style}"><button type="button" class="list-style-btn ${style === 'unordered' ? 'active' : ''}" data-style="unordered" title="لیست نقطه‌ای"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button><button type="button" class="list-style-btn ${style === 'ordered' ? 'active' : ''}" data-style="ordered" title="لیست عددی"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6H8M21 12H8M21 18H8M4 6h1v4M4 12h1v6M4.2 18H4l.2 2H5"/></svg></button></div><div class="control-separator"></div>${formatControls}</div>`;
+                const items = Array.isArray(data.items) ? data.items.join('\n') : '';
+                fields = `<div class="form-group"><div class="content-editable block-data" data-key="items" contenteditable="true" placeholder="هر آیتم در یک خط...">${items}</div></div>`;
+                break;
+            case 'quote':
+                typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
+                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن نقل‌قول...">${data.text || ''}</div></div><div class="form-group"><input type="text" class="block-data" data-key="caption" placeholder="منبع (اختیاری)" value="${data.caption || ''}"></div>`;
+                break;
+            case 'image':
+                typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
+                fields = `<div class="form-row"><div class="form-group" style="flex: 2;"><input type="url" class="block-data" data-key="url" placeholder="آدرس تصویر..." value="${data.url || ''}"></div><div class="form-group" style="flex: 3;"><div class="content-editable block-data" data-key="caption" contenteditable="true" placeholder="کپشن (اختیاری)...">${data.caption || ''}</div></div></div>`;
+                break;
+        }
+        block.innerHTML = mainControls + typeSpecificControls + fields;
+        return block;
+    };
+    
+    const addBlockToEventEditor = (type, data = {}) => {
+        const blockElement = renderEventEditorBlock(type, data);
+        visualEditorContainer.appendChild(blockElement);
+    };
+
+    const loadEventInEditor = (eventItem) => {
+        visualEditorContainer.innerHTML = '';
+        try {
+            let content = eventItem.content;
+            if (typeof content === 'string' && content.trim()) {
+                content = JSON.parse(content);
+            }
+            if (Array.isArray(content)) {
+                content.forEach(block => addBlockToEventEditor(block.type, block.data));
+            }
+        } catch (e) {
+            console.error("Error parsing event content for editor:", e);
+        }
+    };
+    
+    visualEditorControls.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (btn && btn.dataset.type) {
+            addBlockToEventEditor(btn.dataset.type);
+        }
+    });
+
+    visualEditorContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+
+        const block = btn.closest('.editor-block');
+        if (!block) return;
+        
+        const handleMove = (block, sibling, insertBefore) => {
+            const blockRect = block.getBoundingClientRect();
+            const siblingRect = sibling.getBoundingClientRect();
+
+            if (insertBefore) {
+                visualEditorContainer.insertBefore(block, sibling);
+            } else {
+                visualEditorContainer.insertBefore(sibling, block);
+            }
+            
+            const newBlockRect = block.getBoundingClientRect();
+            const newSiblingRect = sibling.getBoundingClientRect();
+
+            block.style.transition = 'none';
+            sibling.style.transition = 'none';
+            block.style.transform = `translateY(${blockRect.top - newBlockRect.top}px)`;
+            sibling.style.transform = `translateY(${siblingRect.top - newSiblingRect.top}px)`;
+
+            requestAnimationFrame(() => {
+                block.style.transition = 'transform 0.3s ease';
+                sibling.style.transition = 'transform 0.3s ease';
+                block.style.transform = '';
+                sibling.style.transform = '';
+            });
+        };
+
+        if (btn.classList.contains('delete-block-btn')) { block.remove(); }
+        else if (btn.classList.contains('move-block-up') && block.previousElementSibling) { handleMove(block, block.previousElementSibling, true); }
+        else if (btn.classList.contains('move-block-down') && block.nextElementSibling) { handleMove(block, block.nextElementSibling, false); }
+        else if (btn.classList.contains('format-btn')) {
+            e.preventDefault();
+            const format = btn.dataset.format;
+            const editableElement = block.querySelector('[contenteditable="true"]');
+            if (!editableElement) return;
+            editableElement.focus();
+            if (format === 'link') {
+                const url = prompt('آدرس لینک را وارد کنید:', 'https://');
+                if (url) document.execCommand('createLink', false, url);
+            } else {
+                document.execCommand(format, false, null);
+            }
+        }
+        else if (btn.classList.contains('level-btn')) {
+            block.querySelector('input[data-key="level"]').value = btn.dataset.level;
+            block.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        } else if (btn.classList.contains('list-style-btn')) {
+            block.querySelector('input[data-key="style"]').value = btn.dataset.style;
+            block.querySelectorAll('.list-style-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+    });
+
+    const parseInlineMarkdown = (text) => {
+        if (!text) return '';
+        const sanitizer = document.createElement('div');
+        sanitizer.innerHTML = text; 
+        const sanitizedText = sanitizer.textContent || sanitizer.innerText || '';
+    
+        return sanitizedText
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/\[(.*?)\]\((.*?)\)/g, `<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>`)
+            .replace(/\\(\*)/g, '$1');
+    };
+
+    const renderJsonContentForPreview = (blocks) => {
+        const container = document.createElement('div');
+        if (!Array.isArray(blocks)) {
+            container.innerHTML = '<p>محتوای این رویداد به درستی بارگذاری نشد.</p>';
+            return container;
+        }
+    
+        blocks.forEach(block => {
+            const data = block.data || {};
+            let element;
+            switch (block.type) {
+                case 'header':
+                    element = document.createElement(`h${data.level || 1}`);
+                    element.innerHTML = parseInlineMarkdown(data.text);
+                    break;
+                case 'paragraph':
+                    element = document.createElement('p');
+                    element.innerHTML = parseInlineMarkdown(data.text);
+                    break;
+                case 'list':
+                    element = document.createElement(data.style === 'ordered' ? 'ol' : 'ul');
+                    element.innerHTML = (data.items || []).map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('');
+                    break;
+                case 'image':
+                    element = document.createElement('figure');
+                    element.innerHTML = `<img src="${data.url || ''}" alt="${data.caption || 'Image'}">${data.caption ? `<figcaption>${parseInlineMarkdown(data.caption)}</figcaption>` : ''}`;
+                    break;
+                case 'quote':
+                    element = document.createElement('blockquote');
+                    element.innerHTML = `<p>${parseInlineMarkdown(data.text)}</p>${data.caption ? `<cite>${parseInlineMarkdown(data.caption)}</cite>` : ''}</blockquote>`;
+                    break;
+            }
+            if (element) container.appendChild(element);
+        });
+        return container;
+    };
+    
+    const renderScheduleForPreview = (schedule) => {
+        if (!Array.isArray(schedule) || schedule.length === 0) {
+            livePreviewScheduleCards.innerHTML = '<p class="preview-placeholder">جلسه‌ای برای نمایش وجود ندارد.</p>';
+            return;
+        }
+
+        livePreviewScheduleCards.innerHTML = '';
+        const icon_calendar = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
+        const icon_clock = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
+        const icon_pin = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
+        const icon_link = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>`;
+
+        schedule.forEach(session => {
+            if (!session.session || !session.session.trim()) return;
+
+            const card = document.createElement('div');
+            card.className = 'preview-session-card';
+            
+            let infoGridHtml = '<div class="info-grid">';
+            if (session.date) infoGridHtml += `<div class="info-item">${icon_calendar} <span>${session.date}</span></div>`;
+            if (session.time) infoGridHtml += `<div class="info-item">${icon_clock} <span>${session.time}</span></div>`;
+            if (session.venue) infoGridHtml += `<div class="info-item">${icon_pin} <span>${session.venue}</span></div>`;
+            infoGridHtml += '</div>';
+
+            let linkHtml = '';
+            if (session.link) {
+                linkHtml = `
+                    <div class="session-link-container">
+                        <a href="${session.link}" target="_blank" class="session-link-btn">
+                            ${icon_link}
+                            <span>ورود به جلسه</span>
+                        </a>
+                    </div>
+                `;
+            }
+
+            card.innerHTML = `
+                <h5>${session.session}</h5>
+                ${infoGridHtml}
+                ${linkHtml}
+            `;
+            livePreviewScheduleCards.appendChild(card);
+        });
+        
+        if(livePreviewScheduleCards.children.length === 0){
+             livePreviewScheduleCards.innerHTML = '<p class="preview-placeholder">جلسه‌ای برای نمایش وجود ندارد.</p>';
+        }
+    };
+
+    const updateLivePreview = () => {
+        // Update Event Content Preview
+        serializeEventEditor();
+        const contentJsonStr = contentTextarea.value;
+        try {
+            const contentJson = JSON.parse(contentJsonStr || '[]');
+            if (contentJson.length === 0) {
+                 livePreviewEventContent.innerHTML = '<p class="preview-placeholder">محتوایی برای نمایش وجود ندارد...</p>';
+            } else {
+                const newContentNode = renderJsonContentForPreview(contentJson);
+                livePreviewEventContent.innerHTML = '';
+                livePreviewEventContent.appendChild(newContentNode);
+            }
+        } catch (e) {
+            livePreviewEventContent.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش محتوا...</p>';
+        }
+
+        // Update Schedule Cards Preview
+        serializeSchedule();
+        const scheduleJsonStr = scheduleTextarea.value;
+        try {
+            const scheduleJson = JSON.parse(scheduleJsonStr || '[]');
+            renderScheduleForPreview(scheduleJson);
+        } catch(e) {
+            livePreviewScheduleCards.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش جلسات...</p>';
+        }
+    };
+    
+    const togglePreviewModal = () => {
+        const isOpen = previewModal.classList.contains('is-visible');
+        if (!isOpen) {
+            updateLivePreview();
+        }
+        previewModal.classList.toggle('is-visible');
+        document.body.classList.toggle('admin-preview-is-open');
+    };
+
+    if (togglePreviewFab) togglePreviewFab.addEventListener('click', togglePreviewModal);
+    if (previewModal) previewModal.addEventListener('click', (e) => { 
+        if (e.target === previewModal) {
+            togglePreviewModal();
+        }
+    });
+
+    const reorderSessionNumbers = () => {
+        scheduleEditorContainer.querySelectorAll('.schedule-item').forEach((item, index) => {
+            const counter = item.querySelector('.session-counter');
+            if (counter) counter.textContent = `جلسه ${index + 1}`;
+        });
+    };
+
+const renderSessionItem = (session = {}, index) => {
+        const sessionCount = index || (scheduleEditorContainer.children.length + 1);
+        const sessionDiv = document.createElement('div');
+        sessionDiv.className = 'schedule-item';
+
+        const icon_delete = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+
+        sessionDiv.innerHTML = `
+            <div class="schedule-item-header">
+                <span class="session-counter">جلسه ${sessionCount}</span>
+                <div class="schedule-item-controls">
+                    <button type="button" class="delete-session-btn" title="حذف جلسه">${icon_delete}</button>
+                </div>
+            </div>
+            <div class="schedule-item-fields">
+                <div class="form-group"><input type="text" data-key="session" placeholder="عنوان جلسه" value="${session.session || ''}"></div>
+                <div class="form-group"><input type="text" data-key="date" placeholder="تاریخ (۱۴۰۳/۰۸/۱۰)" value="${session.date || ''}"></div>
+                <div class="form-group"><input type="text" data-key="time" placeholder="زمان (۱۶:۰۰ - ۱۸:۰۰)" value="${session.time || ''}"></div>
+                <div class="form-group"><input type="text" data-key="venue" placeholder="مکان" value="${session.venue || ''}"></div>
+                <div class="form-group"><input type="url" data-key="link" placeholder="لینک جلسه" value="${session.link || ''}"></div>
+            </div>
+        `;
+        scheduleEditorContainer.appendChild(sessionDiv);
+    };
+
+    const loadSchedule = (scheduleData) => {
+        scheduleEditorContainer.innerHTML = '';
+        if (Array.isArray(scheduleData)) {
+            scheduleData.forEach((session, index) => renderSessionItem(session, index + 1));
+        }
+    };
+
+    const serializeSchedule = () => {
+        const sessions = [];
+        scheduleEditorContainer.querySelectorAll('.schedule-item').forEach(item => {
+            const sessionData = {};
+            item.querySelectorAll('input').forEach(input => {
+                sessionData[input.dataset.key] = input.value.trim();
+            });
+            if (Object.values(sessionData).some(val => val)) {
+                sessions.push(sessionData);
+            }
+        });
+        scheduleTextarea.value = JSON.stringify(sessions, null, 2);
+    };
+
+    if (addSessionBtn) {
+        addSessionBtn.addEventListener('click', () => {
+            renderSessionItem();
+        });
+    }
+
+    if (scheduleEditorContainer) {
+        scheduleEditorContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const item = btn.closest('.schedule-item');
+            if (!item) return;
+
+            if (btn.classList.contains('delete-session-btn')) {
+                item.remove();
+                reorderSessionNumbers();
+            }
+        });
+    }
+    // END: Editor Logic
+
     const resetForm = () => {
         eventForm.reset();
         hiddenIdInput.value = '';
@@ -2024,11 +2421,17 @@ const initializeEventsModule = async () => {
         selectedTagIds = [];
         updateSelectedTagsDisplay();
         togglePaymentFields();
+        visualEditorContainer.innerHTML = '';
+        contentTextarea.value = '';
+        scheduleEditorContainer.innerHTML = '';
+        scheduleTextarea.value = '';
         eventForm.scrollIntoView({ behavior: 'smooth' });
     };
 
     eventForm.addEventListener('submit', async (event) => {
         event.preventDefault();
+        serializeEventEditor();
+        serializeSchedule();
         const statusBox = eventForm.querySelector('.form-status');
         const isEditing = !!eventBeingEdited;
         hideStatus(statusBox);
@@ -2183,8 +2586,6 @@ const initializeEventsModule = async () => {
 
                 selectedTagIds = eventToEdit.tag_ids || [];
                 updateSelectedTagsDisplay();
-                document.getElementById('event-content').value = safeJsonStringify(eventToEdit.content);
-                document.getElementById('event-schedule').value = safeJsonStringify(eventToEdit.schedule);
                 const contactInfo = eventToEdit.contact_link || {};
                 contactPhoneInput.value = contactInfo.phone || '';
                 contactTelegramInput.value = contactInfo.telegram || '';
@@ -2192,6 +2593,10 @@ const initializeEventsModule = async () => {
                 const paymentInfo = eventToEdit.payment_card_number || {};
                 document.getElementById('payment-name').value = paymentInfo.name || '';
                 paymentNumberInput.value = paymentInfo.number || '';
+                
+                loadEventInEditor(eventToEdit);
+                loadSchedule(eventToEdit.schedule);
+
                 formTitle.textContent = 'ویرایش رویداد';
                 submitBtn.textContent = 'ذخیره تغییرات';
                 cancelBtn.style.display = 'inline-block';

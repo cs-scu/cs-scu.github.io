@@ -2,14 +2,14 @@
     <h2>مدیریت رویدادها</h2>
 </div>
 
-<div class="form-and-guidance-wrapper">
-    <div class="form-container">
+<div class="editor-dashboard-wrapper">
+    <div class="dashboard-main">
         <div class="content-box">
             <h3 id="event-form-title" class="admin-section-subtitle">درج یا ویرایش رویداد</h3>
             <form id="add-event-form">
                 <input type="hidden" id="event-id" name="id">
                 
-                <div class="form-row">
+                 <div class="form-row">
                     <div class="form-group">
                         <input type="text" id="event-title" name="title" placeholder="عنوان رویداد" required>
                     </div>
@@ -38,7 +38,6 @@
                         </div>
                     </div>
                 </div>
-                
                 <div class="form-row">
                     <div class="form-group">
                         <div class="input-with-toggle">
@@ -65,7 +64,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div id="payment-info-section">
                     <div class="form-row">
                         <div class="form-group" style="flex-grow: 3;"><input type="text" id="payment-name" name="payment_name" placeholder="نام صاحب حساب"></div>
@@ -93,7 +91,6 @@
                         <div class="form-group"><input type="url" id="contact-whatsapp" name="contact_whatsapp" placeholder="واتساپ (شماره)"></div>
                     </div>
                 </div>
-                
                 <div class="form-group" style="margin-top: 1.5rem;">
                     <h4 style="margin-bottom: 0.5rem; font-size: 1rem;">تصویر رویداد</h4>
                     <div class="image-upload-wrapper">
@@ -108,7 +105,6 @@
                         در حالت ویرایش، فقط در صورتی تصویر جدید انتخاب کنید که قصد تغییر آن را دارید.
                     </small>
                 </div>
-
                 <div class="form-group">
                     <h4 style="margin-bottom: 0.5rem; font-size: 1rem;">تگ‌ها</h4>
                     <div class="tags-selection-area">
@@ -118,13 +114,26 @@
                 </div>
                 <br><br>
                 <div class="form-group">
-                    <textarea id="event-content" name="content" rows="6" placeholder="محتوای کامل صفحه (فرمت JSON)..."></textarea>
+                    <h4 style="margin-bottom: 0.5rem; font-size: 1rem;">محتوای صفحه رویداد</h4>
+                    <div id="visual-editor-controls-event">
+                        <button type="button" class="btn btn-sm btn-secondary" data-type="header">تیتر</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-type="paragraph">پاراگراف</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-type="list">لیست</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-type="quote">نقل‌قول</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-type="image">تصویر</button>
+                    </div>
+                    <div id="visual-editor-container-event" class="visual-editor-container"></div>
+                    <textarea id="event-content" name="content" rows="6" style="display: none;"></textarea>
                 </div>
                 <br><br>
                 <div class="form-group">
-                    <textarea id="event-schedule" name="schedule" rows="5" placeholder="برنامه زمانی جلسات (فرمت JSON)..."></textarea>
+                    <div class="schedule-header">
+                        <h4 style="margin: 0; font-size: 1rem;">برنامه زمانی جلسات</h4>
+                        <button type="button" id="add-session-btn" class="btn btn-sm btn-secondary">افزودن جلسه</button>
+                    </div>
+                    <div id="schedule-editor-container"></div>
+                    <textarea id="event-schedule" name="schedule" rows="5" style="display: none;"></textarea>
                 </div>
-
                 <div class="form-status"></div>
                 <div class="form-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
                     <button type="submit" class="btn btn-primary" id="event-submit-btn">افزودن رویداد</button>
@@ -132,27 +141,35 @@
                 </div>
             </form>
         </div>
-
         <div class="content-box" style="margin-top: 2rem;">
             <h3 class="admin-section-subtitle">لیست رویدادها</h3>
-            <div id="events-admin-list">
-                </div>
+            <div id="events-admin-list"></div>
         </div>
     </div>
-    
-    <div class="guidance-container">
-        <div class="content-box">
-            <h3 class="admin-section-subtitle">راهنمای آپلود</h3>
-            <div class="guidance-content">
-                <h4>تصویر رویداد</h4>
-                <p>برای بهترین نمایش، لطفاً مشخصات زیر را برای تصویر کاور رعایت کنید:</p>
-                <ul>
-                    <li><strong>ابعاد پیشنهادی:</strong> ۱۲۰۰ (عرض) در ۶۳۰ (ارتفاع) پیکسل.</li>
-                    <li><strong>نسبت تصویر:</strong> ۱.۹۱ به ۱ (افقی).</li>
-                    <li><strong>فرمت بهینه:</strong> WebP.</li>
-                    <li><strong>حجم ایده‌آل:</strong> کمتر از ۱۵۰ کیلوبایت.</li>
-                </ul>
+</div>
+
+<div id="admin-preview-modal" class="admin-preview-modal">
+    <div class="admin-preview-content">
+        <div class="preview-header">
+            <h3>پیش‌نمایش زنده</h3>
+        </div>
+        <div class="admin-preview-body">
+            <div id="live-preview-event-content" class="article-content">
+                <p class="preview-placeholder">محتوای رویداد اینجا نمایش داده می‌شود...</p>
+            </div>
+            <div class="preview-section-divider">
+                <h4>پیش‌نمایش جلسات</h4>
+            </div>
+            <div id="live-preview-schedule-cards" class="preview-schedule-cards-container">
+                <p class="preview-placeholder">کارت‌های جلسات اینجا نمایش داده می‌شود...</p>
             </div>
         </div>
     </div>
 </div>
+
+
+<button id="toggle-preview-fab" class="btn-fab" title="پیش‌نمایش زنده">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
+    </svg>
+</button>
