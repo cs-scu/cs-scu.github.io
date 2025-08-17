@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" media="print" onload="this.media='all'; document.documentElement.classList.add('fonts-loaded');">
-    <link rel="stylesheet" href="assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="assets/css/style.css?v=1.3">
 </head>
 <body class="admin-panel-body">
 
@@ -53,6 +53,10 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
                 <h2 class="admin-header-title"></h2>
+                <button id="open-uploader-btn" class="btn btn-secondary btn-icon-only" title="مدیریت فایل‌ها">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <span class="desktop-only">مدیریت فایل‌ها</span>
+                </button>
                 <button id="admin-global-refresh-btn" class="btn btn-secondary btn-icon-only" title="بارگذاری مجدد">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
                     <span class="desktop-only">بارگذاری مجدد</span>
@@ -64,15 +68,66 @@
         </div>
     </div>
 
-    <div id="admin-generic-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="close-modal" title="بستن">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-            <div id="admin-generic-modal-content">
+                <div id="admin-uploader-modal" class="modal-overlay">
+                    <div class="modal-content" style="width: 80%; max-width: 900px; height: 70vh;">
+                        <button class="close-modal" title="بستن">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                        <div class="uploader-modal-container">
+                            <div class="file-browser-header">
+                                <nav id="file-browser-breadcrumbs" class="file-browser-breadcrumbs"></nav>
+                                <div class="file-browser-controls">
+                                    <div class="control-group sort-controls">
+                                        <label for="sort-by">مرتب‌سازی:</label>
+                                        <select id="sort-by" class="form-control-sm">
+                                            <option value="name">نام</option>
+                                            <option value="updated_at">تاریخ</option>
+                                            <option value="size">حجم</option>
+                                        </select>
+                                        <button id="sort-order-btn" class="btn btn-secondary btn-icon-only btn-sm" title="تغییر ترتیب">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M18 13l-6 6M6 13l6 6"/></svg>
+                                        </button>
+                                    </div>
+                                    <div class="control-group file-actions">
+                                        <button id="create-folder-btn" class="btn btn-secondary btn-sm">پوشه جدید</button>
+                                        <button id="upload-file-btn" class="btn btn-primary btn-sm">آپلود فایل</button>
+                                        <input type="file" id="admin-file-input" class="file-upload-input" multiple hidden>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="file-browser-list" class="file-browser-list grid-view">
+                                </div>
+                            <div id="upload-progress-area" class="upload-progress-area"></div>
+                            <div class="file-browser-footer">
+                                <span id="selected-file-info">فایلی انتخاب نشده</span>
+                                <button id="copy-selected-link-btn" class="btn btn-secondary" disabled>کپی لینک</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
         </div>
     </div>
+
+<div id="file-browser-context-menu" class="context-menu">
+    <button data-action="copy-url">کپی URL</button>
+    <button data-action="rename">تغییر نام</button>
+    <button data-action="delete" class="danger">حذف</button>
+</div>
+
+<div id="image-lightbox-overlay" class="lightbox-overlay">
+    <span class="lightbox-close-btn">&times;</span>
+    <img class="lightbox-content" id="lightbox-image">
+</div>
+
+<div id="admin-generic-modal" class="modal-overlay">
+    <div class="modal-content">
+        <button class="close-modal" title="بستن">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <div id="admin-generic-modal-content"></div>
+    </div>
+</div>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/vendor/flatpickr.min.js"></script>

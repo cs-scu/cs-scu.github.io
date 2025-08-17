@@ -155,6 +155,253 @@ const initializeSharedTagModal = () => {
     });
 };
 
+const initializeUploaderModal = () => {
+    const BUCKET_NAME = 'assets';
+    const uploaderModal = document.getElementById('admin-uploader-modal');
+    const openUploaderBtn = document.getElementById('open-uploader-btn');
+    if (!uploaderModal || !openUploaderBtn) return;
+
+    // --- STATE ---
+    let currentPath = '';
+    let selectedItem = null;
+    let sortOptions = { column: 'name', order: 'asc' };
+
+    // --- DOM ELEMENTS ---
+    const closeModalBtn = uploaderModal.querySelector('.close-modal');
+    const breadcrumbsContainer = document.getElementById('file-browser-breadcrumbs');
+    const fileListContainer = document.getElementById('file-browser-list');
+    const createFolderBtn = document.getElementById('create-folder-btn');
+    const uploadFileBtn = document.getElementById('upload-file-btn');
+    const fileInput = document.getElementById('admin-file-input');
+    const selectedFileInfo = document.getElementById('selected-file-info');
+    const copySelectedLinkBtn = document.getElementById('copy-selected-link-btn');
+    const contextMenu = document.getElementById('file-browser-context-menu');
+    const uploadProgressArea = document.getElementById('upload-progress-area');
+    const sortBySelect = document.getElementById('sort-by');
+    const sortOrderBtn = document.getElementById('sort-order-btn');
+    const lightboxOverlay = document.getElementById('image-lightbox-overlay');
+    const lightboxImage = document.getElementById('lightbox-image');
+    const lightboxCloseBtn = document.querySelector('.lightbox-close-btn');
+
+    // --- ICONS & HELPERS ---
+    const FOLDER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
+    const FILE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`;
+
+    const formatBytes = (bytes, decimals = 2) => {
+        if (!bytes || bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    };
+
+    // --- CORE LOGIC ---
+    const fetchFiles = async () => {
+        fileListContainer.innerHTML = '<table class="list-view-table"><tbody><tr><td colspan="3" style="text-align:center;"><p class="loading-message">در حال بارگذاری...</p></td></tr></tbody></table>';
+        const apiSortColumn = sortOptions.column === 'size' ? 'name' : sortOptions.column;
+
+        const { data, error } = await supabaseClient.storage.from(BUCKET_NAME).list(currentPath, {
+            sortBy: { column: apiSortColumn, order: sortOptions.order },
+        });
+
+        if (error) {
+            fileListContainer.innerHTML = `<table class="list-view-table"><tbody><tr><td colspan="3"><p style="color:red;">خطا: ${error.message}</p></td></tr></tbody></table>`;
+            return;
+        }
+
+        if (sortOptions.column === 'size') {
+            data.sort((a, b) => {
+                const sizeA = a.metadata?.size ?? 0;
+                const sizeB = b.metadata?.size ?? 0;
+                return sortOptions.order === 'asc' ? sizeA - sizeB : sizeB - sizeA;
+            });
+        }
+
+        renderFiles(data);
+        renderBreadcrumbs(currentPath);
+    };
+
+    const navigateTo = (path) => {
+        currentPath = path;
+        deselectItem();
+        fetchFiles();
+    };
+
+    const deselectItem = () => {
+        const selected = fileListContainer.querySelector('.selected');
+        if (selected) selected.classList.remove('selected');
+        selectedItem = null;
+        selectedFileInfo.textContent = 'فایلی انتخاب نشده';
+        copySelectedLinkBtn.disabled = true;
+    };
+
+    // --- RENDER LOGIC ---
+    const renderBreadcrumbs = (path) => {
+        const parts = path.split('/').filter(Boolean);
+        let html = `<span class="breadcrumb-item" data-path="">ریشه</span>`;
+        let current = '';
+        parts.forEach(part => {
+            current += `${part}/`;
+            html += `<span class="breadcrumb-item" data-path="${current}">${part}</span>`;
+        });
+        breadcrumbsContainer.innerHTML = html;
+    };
+
+    const renderFiles = (files) => {
+        if (!files || files.length === 0) {
+            fileListContainer.innerHTML = '<table class="list-view-table"><tbody><tr><td colspan="3" style="text-align:center; opacity:0.8;">این پوشه خالی است.</td></tr></tbody></table>';
+            return;
+        }
+        
+        let tableRows = '';
+        files.forEach(item => {
+            const isFolder = item.id === null;
+            const isImage = !isFolder && item.metadata?.mimetype?.startsWith('image/');
+            const lastModified = isFolder ? '---' : new Date(item.updated_at).toLocaleDateString('fa-IR');
+            const size = isFolder ? '---' : formatBytes(item.metadata?.size);
+            const icon = isFolder ? FOLDER_ICON : FILE_ICON;
+
+            tableRows += `
+                <tr data-name="${item.name}" data-is-folder="${isFolder}" data-is-image="${isImage}">
+                    <td><div class="list-view-item-name"><div class="item-icon">${icon}</div><span class="item-name">${item.name}</span></div></td>
+                    <td>${lastModified}</td>
+                    <td>${size}</td>
+                </tr>`;
+        });
+        
+        fileListContainer.innerHTML = `<table class="list-view-table"><thead><tr><th>نام</th><th>تاریخ ویرایش</th><th>حجم</th></tr></thead><tbody>${tableRows}</tbody></table>`;
+    };
+
+    // --- HANDLERS ---
+    const openModal = () => {
+        uploaderModal.classList.add('is-open');
+        uploadProgressArea.innerHTML = '';
+        navigateTo('');
+    };
+    
+    const closeModal = () => uploaderModal.classList.remove('is-open');
+
+    const handleFileClick = (e) => {
+        const target = e.target.closest('tr[data-name]');
+        if (!target || e.detail > 1) return;
+
+        deselectItem();
+        selectedItem = {
+            element: target,
+            name: target.dataset.name,
+            isFolder: target.dataset.isFolder === 'true',
+            path: `${currentPath}${target.dataset.name}`
+        };
+        target.classList.add('selected');
+        selectedFileInfo.textContent = selectedItem.name;
+        copySelectedLinkBtn.disabled = selectedItem.isFolder;
+    };
+
+    const handleFileDoubleClick = (e) => {
+        const target = e.target.closest('tr[data-name]');
+        if (!target) return;
+
+        if (target.dataset.isFolder === 'true') {
+            navigateTo(`${currentPath}${target.dataset.name}/`);
+        } else if (target.dataset.isImage === 'true') {
+            const { data: { publicUrl } } = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(`${currentPath}${target.dataset.name}`);
+            lightboxImage.src = publicUrl;
+            lightboxOverlay.classList.add('visible');
+        }
+    };
+    
+    const closeLightbox = () => {
+        lightboxOverlay.classList.remove('visible');
+        lightboxImage.src = '';
+    };
+
+    const handleCreateFolder = async () => {
+        const folderName = prompt("نام پوشه جدید را وارد کنید:");
+        if (!folderName || folderName.includes('/')) return;
+        const { error } = await supabaseClient.storage.from(BUCKET_NAME).upload(`${currentPath}${folderName}/.placeholder`, new Blob(['']));
+        if (error) alert(`خطا: ${error.message}`);
+        else fetchFiles();
+    };
+
+    const handleFileUpload = async (files) => {
+        for (const file of files) {
+            const progressId = `progress-${file.name}-${Date.now()}`;
+            const progressElement = document.createElement('div');
+            progressElement.id = progressId;
+            progressElement.className = 'upload-progress-container';
+            progressElement.innerHTML = `<div class="file-info"><span>${file.name}</span><span class="upload-percentage">0%</span></div><div class="progress-bar"><div class="progress-bar-inner"></div></div>`;
+            uploadProgressArea.appendChild(progressElement);
+
+            const { error } = await supabaseClient.storage.from(BUCKET_NAME).upload(`${currentPath}${file.name}`, file, { upsert: false });
+            
+            const uploadedItem = document.getElementById(progressId);
+            if (!uploadedItem) continue;
+            const percentageSpan = uploadedItem.querySelector('.upload-percentage');
+            const progressBarInner = uploadedItem.querySelector('.progress-bar-inner');
+
+            if (error) {
+                percentageSpan.textContent = 'خطا';
+                percentageSpan.style.color = 'red';
+            } else {
+                percentageSpan.textContent = 'کامل شد';
+                progressBarInner.style.width = '100%';
+                progressBarInner.style.backgroundColor = 'var(--success-color)';
+                setTimeout(() => uploadedItem.remove(), 5000);
+            }
+        }
+        fetchFiles();
+    };
+    
+    const handleSortChange = () => {
+        sortOptions.column = sortBySelect.value;
+        sortOptions.order = sortOrderBtn.classList.contains('asc') ? 'asc' : 'desc';
+        fetchFiles();
+    };
+    
+    const showContextMenu = (e) => {
+        e.preventDefault();
+        const target = e.target.closest('tr[data-name]');
+        if (!target) return;
+        handleFileClick({ target, detail: 1 });
+        contextMenu.style.display = 'block';
+        contextMenu.style.left = `${e.pageX}px`;
+        contextMenu.style.top = `${e.pageY}px`;
+    };
+    
+    const hideContextMenu = () => { if(contextMenu) contextMenu.style.display = 'none'; };
+
+    // --- ATTACHING LISTENERS ---
+    openUploaderBtn.addEventListener('click', openModal);
+    closeModalBtn.addEventListener('click', closeModal);
+    uploaderModal.addEventListener('click', (e) => { if (e.target === uploaderModal) closeModal(); });
+    fileListContainer.addEventListener('click', handleFileClick);
+    fileListContainer.addEventListener('dblclick', handleFileDoubleClick);
+    fileListContainer.addEventListener('contextmenu', showContextMenu);
+    breadcrumbsContainer.addEventListener('click', (e) => { if (e.target.classList.contains('breadcrumb-item')) navigateTo(e.target.dataset.path); });
+    createFolderBtn.addEventListener('click', handleCreateFolder);
+    uploadFileBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => handleFileUpload(fileInput.files));
+    copySelectedLinkBtn.addEventListener('click', () => {
+        if (selectedItem && !selectedItem.isFolder) {
+            const { data } = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(selectedItem.path);
+            navigator.clipboard.writeText(data.publicUrl).then(() => alert('URL کپی شد.'));
+        }
+    });
+    sortBySelect.addEventListener('change', handleSortChange);
+    sortOrderBtn.addEventListener('click', () => {
+        sortOrderBtn.classList.toggle('asc');
+        handleSortChange();
+    });
+    document.addEventListener('click', hideContextMenu);
+    contextMenu.addEventListener('click', (e) => { if(e.target.dataset.action) hideContextMenu(); });
+    lightboxCloseBtn.addEventListener('click', closeLightbox);
+    lightboxOverlay.addEventListener('click', (e) => { if (e.target === lightboxOverlay) closeLightbox(); });
+    ['dragenter','dragover','dragleave','drop'].forEach(ev=>fileListContainer.addEventListener(ev, e=>{e.preventDefault();e.stopPropagation();}));
+    ['dragenter','dragover'].forEach(ev=>fileListContainer.addEventListener(ev,()=>fileListContainer.classList.add('is-dragging')));
+    ['dragleave','drop'].forEach(ev=>fileListContainer.addEventListener(ev,()=>fileListContainer.classList.remove('is-dragging')));
+    fileListContainer.addEventListener('drop', (e) => handleFileUpload(e.dataTransfer.files));
+};
 // --- Renderer Functions ---
 const renderMessages = (contacts) => {
     const wrapper = document.getElementById('admin-content-wrapper');
@@ -2754,7 +3001,7 @@ const adminRoutes = {
         title: 'مدیریت اخبار',
         html: 'admin-news.html',
         loader: () => Promise.all([loadNews(), loadTags(), loadMembers()]),
-        renderer: (data) => renderNewsList(data[0]),
+        renderer: renderNewsList, // CORRECTED: No longer wraps in (data) => func(data[0])
         initializer: initializeNewsModule
     },
     '/admin/journal': {
@@ -2768,14 +3015,14 @@ const adminRoutes = {
         title: 'مدیریت رویدادها',
         html: 'admin-events.html',
         loader: () => Promise.all([loadEvents(), loadTags()]),
-        renderer: (data) => renderEventsList(data[0]),
+        renderer: renderEventsList, // CORRECTED: No longer wraps in (data) => func(data[0])
         initializer: initializeEventsModule
     },
     '/admin/registrations': {
         title: 'مدیریت ثبت‌نام‌ها',
         html: 'admin-registrations.html',
         loader: () => Promise.all([loadRegistrations(), loadEvents()]),
-        renderer: (data) => renderRegistrationsList(data[0]),
+        renderer: renderRegistrationsList, // CORRECTED: No longer wraps in (data) => func(data[0])
         initializer: initializeRegistrationsModule
     }
 };
@@ -2807,9 +3054,12 @@ const loadAdminPage = async (path) => {
 
         setTimeout(() => {
             if (route.renderer) {
-                route.renderer(data);
+                // This logic correctly extracts the primary data array (e.g., events, news)
+                const dataToRender = (path === '/admin/events' || path === '/admin/registrations' || path === '/admin/news') 
+                    ? data[0] 
+                    : data;
+                route.renderer(dataToRender);
             }
-            
             if (route.initializer) {
                 route.initializer();
             }
@@ -2825,7 +3075,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeAdminTheme();
     initializeAdminLayout();
     initializeGlobalRefreshButton();
-    initializeSharedTagModal(); 
+    initializeSharedTagModal();
+    initializeUploaderModal(); 
 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {

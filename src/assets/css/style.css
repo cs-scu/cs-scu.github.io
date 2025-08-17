@@ -5857,3 +5857,343 @@ body.light-theme .time-range-inputs:focus-within {
     padding: 0 0.5rem;
     opacity: 0.7;
 }
+
+/* Existing styles... */
+
+/* ================== ADMIN ALWAYS-ON HAMBURGER MENU ================== */
+
+/* Always hide the main header title */
+.admin-header-title {
+    display: none;
+}
+
+/* Always show the hamburger menu button */
+.mobile-admin-menu-toggle {
+    display: block;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+/* Always set the main header to space-between for proper alignment */
+.admin-main-header {
+    justify-content: space-between;
+}
+
+/* Always treat the sidebar as a fixed, slide-out menu */
+.admin-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    z-index: 3000;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.admin-sidebar.is-open {
+    transform: translateX(0);
+}
+
+/* Style for the body overlay when the sidebar is open */
+body.admin-sidebar-is-open::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2999;
+}
+
+/* ================== ADMIN FILTERS UNIFIED SIZING ================== */
+
+/* Add flex properties to the input and select elements */
+.filters-container input,
+.filters-container select {
+    flex: 1; /* Allows elements to grow and shrink equally */
+    min-width: 200px; /* Ensures a minimum reasonable width before wrapping */
+}
+
+/* Ensure the search input has a balanced appearance */
+.filters-container input {
+    font-size: 0.95rem;
+    font-weight: bold;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+
+/* ================== Uploader Modal (Refactored) ================== */
+
+/* --- Main Layout --- */
+.uploader-modal-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* --- Header & Controls --- */
+.file-browser-header {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1.5rem;
+    border-bottom: 1px solid var(--glass-border-dark);
+    flex-shrink: 0;
+    gap: 1rem;
+}
+body.light-theme .file-browser-header {
+    border-bottom-color: var(--glass-border-light);
+}
+
+.file-browser-breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    flex-grow: 1; /* Take available space */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.breadcrumb-item {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.breadcrumb-item:hover {
+    color: var(--primary-color);
+}
+body.light-theme .breadcrumb-item:hover {
+    color: var(--primary-color-light-theme);
+}
+.breadcrumb-item:not(:last-child)::after {
+    content: '/';
+    margin-right: 0.5rem;
+    opacity: 0.5;
+}
+
+.file-browser-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.sort-controls label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+#sort-order-btn svg {
+    transition: transform 0.2s ease-in-out;
+}
+#sort-order-btn.asc svg {
+    transform: rotate(180deg);
+}
+
+/* --- File List Area --- */
+.file-browser-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    position: relative;
+    padding: 0; /* list-view doesn't need padding */
+}
+
+/* Drag & Drop Overlay */
+.file-browser-list.is-dragging::after {
+    content: 'فایل‌ها را برای آپلود اینجا رها کنید';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    border: 2px dashed var(--primary-color);
+    z-index: 10;
+}
+
+/* --- List View Table --- */
+.list-view-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.list-view-table th,
+.list-view-table td {
+    padding: 0.75rem 1.5rem;
+    text-align: right;
+    border-bottom: 1px solid var(--glass-border-dark);
+    white-space: nowrap;
+}
+body.light-theme .list-view-table th,
+body.light-theme .list-view-table td {
+    border-bottom-color: var(--glass-border-light);
+}
+.list-view-table th {
+    background-color: var(--background-color-secondary);
+    font-weight: bold;
+    font-size: 0.9rem;
+    position: sticky; /* Make header sticky */
+    top: 0;
+}
+.list-view-table tr {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.list-view-table tr:hover {
+    background-color: var(--background-color-secondary);
+}
+.list-view-table tr.selected {
+    background-color: rgba(232, 195, 142, 0.2);
+}
+body.light-theme .list-view-table tr.selected {
+    background-color: rgba(26, 92, 93, 0.1);
+}
+
+.list-view-item-name {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.list-view .item-name {
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Icon & Preview Styling --- */
+.item-icon {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    background-color: var(--background-color-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.item-icon > * { /* Targets both <img> and <svg> */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.item-icon svg {
+    padding: 4px;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+.item-preview-img {
+    object-fit: cover;
+}
+
+/* --- Upload Progress, Footer, Context Menu --- */
+.upload-progress-area {
+    flex-shrink: 0;
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 0.5rem 1.5rem;
+    background-color: var(--background-color-secondary);
+    border-top: 1px solid var(--glass-border-dark);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+body.light-theme .upload-progress-area {
+    background-color: var(--background-color-tertiary);
+    border-top-color: var(--glass-border-light);
+}
+.upload-progress-container { width: 100%; }
+.file-info { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.5rem; }
+.progress-bar { width: 100%; height: 8px; background-color: rgba(128, 128, 128, 0.2); border-radius: 4px; overflow: hidden; }
+.progress-bar-inner { width: 0%; height: 100%; background-color: var(--primary-color); border-radius: 4px; transition: width 0.3s ease; }
+body.light-theme .progress-bar-inner { background-color: var(--primary-color-light-theme); }
+
+.file-browser-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid var(--glass-border-dark);
+    flex-shrink: 0;
+}
+body.light-theme .file-browser-footer {
+    border-top-color: var(--glass-border-light);
+}
+#selected-file-info {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    direction: ltr;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.context-menu {
+    position: fixed;
+    z-index: 10000;
+    background-color: var(--background-color-secondary);
+    border-radius: 8px;
+    padding: 0.5rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    display: none;
+    border: 1px solid var(--glass-border-dark);
+    min-width: 150px;
+}
+body.light-theme .context-menu { border-color: var(--glass-border-light); }
+.context-menu button {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: none;
+    text-align: right;
+    cursor: pointer;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    border-radius: 6px;
+}
+.context-menu button:hover { background-color: var(--background-color-tertiary); }
+.context-menu button.danger:hover { background-color: rgba(220, 53, 69, 0.2); color: #dc3545; }
+
+/* --- Image Lightbox --- */
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 4000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+.lightbox-overlay.visible { display: flex; }
+.lightbox-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.lightbox-close-btn:hover { color: #bbb; }
+.lightbox-content {
+    max-width: 90%;
+    max-height: 90%;
+    animation: zoomIn 0.3s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes zoomIn { from { transform: scale(0.8); } to { transform: scale(1); } }
