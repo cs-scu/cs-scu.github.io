@@ -6177,8 +6177,11 @@ body.light-theme .file-browser-footer {
     display: flex;
     flex-direction: row-reverse; /* دکمه آپلود را در skt راست قرار می‌دهد */
     align-items: center;
-    gap: 0.75rem;
     z-index: 10;
+}
+
+.uploader-fab-container > .btn-fab + .btn-fab {
+    margin-right: 0.75rem;
 }
 
 .btn-fab {
