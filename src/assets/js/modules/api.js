@@ -30,11 +30,23 @@ export const signInWithPassword = async (email, password) => {
     return await supabaseClient.auth.signInWithPassword({ email, password });
 };
 
-export const signInWithGoogle = async () => {
-    const { error } = await supabaseClient.auth.signInWithOAuth({
+export const signInWithGoogle = async (emailHint = null) => {
+    const options = {
         provider: 'google',
-    });
-    return { error };
+        options: {
+            redirectTo: window.location.origin,
+        },
+    };
+
+    // اگر ایمیل راهنما وجود داشت، آن را به درخواست اضافه می‌کنیم
+    if (emailHint) {
+        options.options.queryParams = {
+            login_hint: emailHint,
+        };
+    }
+
+    const { data, error } = await supabaseClient.auth.signInWithOAuth(options);
+    return { data, error };
 };
 
 export const updateUserPassword = async (newPassword) => {

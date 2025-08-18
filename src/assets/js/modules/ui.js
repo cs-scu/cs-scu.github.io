@@ -366,7 +366,8 @@ export const initializeAuthForm = () => {
                     if (provider === 'google') {
                         // <<-- START: EDITED SECTION -->>
                         hideStatus(statusBox);
-                        const { error } = await signInWithGoogle();
+                        // ایمیل کاربر را به عنوان راهنما به تابع پاس می‌دهیم
+                        const { error } = await signInWithGoogle(currentEmail);
                         if (error) {
                             showStatus(statusBox, getFriendlyAuthError(error));
                             submitBtn.textContent = 'ادامه';
