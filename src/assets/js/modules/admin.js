@@ -337,10 +337,24 @@ const initializeUploaderModal = () => {
         else fetchFiles();
     };
 
-const handleFileUpload = (files) => {
+const handleFileUpload = async (files) => {
         // Get Supabase credentials from the existing client
         const supabaseUrl = supabaseClient.storage.url;
         const supabaseKey = supabaseClient.storage.headers.apikey;
+
+        // Get the current user session to ensure authentication
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+
+        if (sessionError || !session) {
+            console.error('Authentication Error:', sessionError?.message || 'No active session');
+            // Optionally, display an error to the user
+            alert('خطای احراز هویت. لطفاً دوباره وارد شوید.');
+            // You might want to redirect to the login page here
+            // window.location.href = '/login.html';
+            return;
+        }
+
+        const accessToken = session.access_token;
 
         for (const file of files) {
             const progressId = `progress-${file.name}-${Date.now()}`;
@@ -366,9 +380,11 @@ const handleFileUpload = (files) => {
 
             xhr.open('POST', uploadUrl, true);
 
+            // Use the public anon key for 'apikey' header
             xhr.setRequestHeader('apikey', supabaseKey);
-            xhr.setRequestHeader('Authorization', `Bearer ${supabaseKey}`);
-            xhr.setRequestHeader('x-upsert', 'false');
+            // Use the user's access token for the 'Authorization' header
+            xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+            xhr.setRequestHeader('x-upsert', 'false'); // Or 'true' to allow overwriting
             xhr.setRequestHeader('Content-Type', file.type);
 
             xhr.upload.onprogress = (event) => {
@@ -397,7 +413,12 @@ const handleFileUpload = (files) => {
                     if (percentageSpan && progressBarInner) {
                         try {
                             const response = JSON.parse(xhr.responseText);
-                            percentageSpan.textContent = `خطا: ${response.message || 'Upload failed'}`;
+                            // Provide a more specific error for JWT issues
+                            if (response.message === 'Invalid JWT' || response.error === 'Invalid JWT') {
+                                percentageSpan.textContent = `خطا: نشست نامعتبر. لطفاً دوباره وارد شوید.`;
+                            } else {
+                                percentageSpan.textContent = `خطا: ${response.message || 'Upload failed'}`;
+                            }
                         } catch (e) {
                             percentageSpan.textContent = `خطا: ${xhr.statusText}`;
                         }
