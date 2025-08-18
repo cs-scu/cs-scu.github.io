@@ -424,7 +424,9 @@ const initializeUploaderModal = () => {
     });
     document.addEventListener('click', hideContextMenu);
     contextMenu.addEventListener('click', (e) => { if(e.target.dataset.action) hideContextMenu(); });
-    lightboxCloseBtn.addEventListener('click', closeLightbox);
+    if (lightboxCloseBtn) {
+        lightboxCloseBtn.addEventListener('click', closeLightbox);
+    }
     lightboxOverlay.addEventListener('click', (e) => { if (e.target === lightboxOverlay) closeLightbox(); });
     ['dragenter','dragover','dragleave','drop'].forEach(ev=>fileListContainer.addEventListener(ev, e=>{e.preventDefault();e.stopPropagation();}));
     ['dragenter','dragover'].forEach(ev=>fileListContainer.addEventListener(ev,()=>fileListContainer.classList.add('is-dragging')));
