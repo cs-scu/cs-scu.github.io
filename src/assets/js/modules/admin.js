@@ -224,7 +224,7 @@ const initializeUploaderModal = () => {
 
     const navigateTo = (path) => {
         currentPath = path;
-        backBtn.disabled = path === ''; // Disable if at root
+        backBtn.disabled = path === '';
         deselectItem();
         fetchFiles();
     };
@@ -375,7 +375,7 @@ const initializeUploaderModal = () => {
     const showContextMenu = (e) => {
         e.preventDefault();
         const target = e.target.closest('tr[data-name]');
-        if (!target) return;
+        if (!target || !contextMenu) return; // Add null check for contextMenu
         handleFileClick({ target, detail: 1 });
         contextMenu.style.display = 'block';
         contextMenu.style.left = `${e.pageX}px`;
@@ -387,7 +387,7 @@ const initializeUploaderModal = () => {
     const handleGoBack = () => {
         if (currentPath === '') return;
         const parts = currentPath.split('/').filter(Boolean);
-        parts.pop(); // Remove the last directory
+        parts.pop();
         const newPath = parts.join('/') + (parts.length > 0 ? '/' : '');
         navigateTo(newPath);
     };
@@ -400,7 +400,10 @@ const initializeUploaderModal = () => {
     fileListContainer.addEventListener('click', handleFileClick);
     fileListContainer.addEventListener('dblclick', handleFileDoubleClick);
     fileListContainer.addEventListener('contextmenu', showContextMenu);
-    breadcrumbsContainer.addEventListener('click', (e) => { if (e.target.closest('.breadcrumb-item')) navigateTo(e.target.closest('.breadcrumb-item').dataset.path); });
+    breadcrumbsContainer.addEventListener('click', (e) => { 
+        const breadcrumbItem = e.target.closest('.breadcrumb-item');
+        if (breadcrumbItem) navigateTo(breadcrumbItem.dataset.path); 
+    });
     createFolderBtn.addEventListener('click', handleCreateFolder);
     uploadFileBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', () => handleFileUpload(fileInput.files));
@@ -415,8 +418,16 @@ const initializeUploaderModal = () => {
         sortOrderBtn.classList.toggle('asc');
         handleSortChange();
     });
+    
     document.addEventListener('click', hideContextMenu);
-    contextMenu.addEventListener('click', (e) => { if(e.target.dataset.action) hideContextMenu(); });
+    
+    // START: Robust Context Menu Listener
+    if (contextMenu) {
+        contextMenu.addEventListener('click', (e) => { 
+            if(e.target.dataset.action) hideContextMenu(); 
+        });
+    }
+    // END: Robust Context Menu Listener
 
     // START: Robust Lightbox Listener Attachment
     if (lightboxOverlay) {
