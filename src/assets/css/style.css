@@ -6175,7 +6175,7 @@ body.light-theme .file-browser-footer {
     bottom: 1.25rem;
     right: 1.5rem;
     display: flex;
-    flex-direction: row-reverse; /* Ensures Upload is on the far right */
+    flex-direction: row-reverse; /* دکمه آپلود را در skt راست قرار می‌دهد */
     align-items: center;
     gap: 0.75rem;
     z-index: 10;
@@ -6185,14 +6185,15 @@ body.light-theme .file-browser-footer {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    display: flex; /* Ensures visibility */
+    display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    visibility: visible; /* Ensures visibility */
+    visibility: visible; /* تضمین نمایش */
+    opacity: 1; /* حالت عادی */
 }
 
 .btn-fab:hover {
@@ -6200,18 +6201,30 @@ body.light-theme .file-browser-footer {
     box-shadow: 0 6px 16px rgba(0,0,0,0.25);
 }
 
-/* This is the key change */
+/* *** این بخش کلیدی‌ترین تغییر است *** */
 .btn-fab:disabled,
 .btn-fab[disabled] {
-    background-color: var(--button-secondary-bg-dark-theme); /* Use a clear background */
-    opacity: 0.6; /* Make it clearly faded but visible */
+    opacity: 0.5; /* دکمه را نیمه‌شفاف اما قابل مشاهده می‌کند */
     cursor: not-allowed;
-    transform: none; /* No hover effect */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* Less prominent shadow */
+    transform: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    pointer-events: all !important; /* اطمینان از اینکه title نمایش داده می‌شود */
 }
+
+/* رنگ پس‌زمینه برای حالت غیرفعال در هر دو تم */
+body.dark-theme .btn-fab:disabled,
+body.dark-theme .btn-fab[disabled] {
+    background-color: rgba(128, 128, 128, 0.2);
+}
+
 body.light-theme .btn-fab:disabled,
 body.light-theme .btn-fab[disabled] {
-    background-color: var(--button-secondary-bg-light-theme);
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* اطمینان از اینکه لیست توسط دکمه‌ها پوشانده نشود */
+.file-browser-list {
+    padding-bottom: 80px;
 }
 /* --- 6. LTR Direction Specific Overrides --- */
 .uploader-modal-container[dir="ltr"] {
