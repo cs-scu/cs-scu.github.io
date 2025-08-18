@@ -292,17 +292,24 @@ const initializeUploaderModal = () => {
         const target = e.target.closest('tr[data-name]');
         if (!target || e.detail > 1) return;
 
-        deselectItem();
+        // حذف آیتم انتخاب شده قبلی
+        const currentlySelected = fileListContainer.querySelector('.selected');
+        if (currentlySelected) {
+            currentlySelected.classList.remove('selected');
+        }
+
+        // انتخاب آیتم جدید
+        target.classList.add('selected');
         selectedItem = {
             element: target,
             name: target.dataset.name,
             isFolder: target.dataset.isFolder === 'true',
             path: `${currentPath}${target.dataset.name}`
         };
-        target.classList.add('selected');
-        selectedFileInfo.textContent = selectedItem.name;
-        copySelectedLinkBtn.disabled = !selectedItem || selectedItem.isFolder;
 
+        // به‌روزرسانی اطلاعات و وضعیت دکمه
+        selectedFileInfo.textContent = selectedItem.name;
+        copySelectedLinkBtn.disabled = selectedItem.isFolder;
 
         if (selectedItem.isFolder) {
             copySelectedLinkBtn.title = 'Cannot copy link for a folder';
