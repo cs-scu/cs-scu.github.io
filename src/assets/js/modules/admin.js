@@ -169,6 +169,7 @@ const initializeUploaderModal = () => {
     // --- DOM ELEMENTS ---
     const closeModalBtn = uploaderModal.querySelector('.close-modal');
     const breadcrumbsContainer = document.getElementById('file-browser-breadcrumbs');
+    const backBtn = document.getElementById('file-browser-back-btn');
     const fileListContainer = document.getElementById('file-browser-list');
     const createFolderBtn = document.getElementById('create-folder-btn');
     const uploadFileBtn = document.getElementById('upload-file-btn');
@@ -224,6 +225,7 @@ const initializeUploaderModal = () => {
 
     const navigateTo = (path) => {
         currentPath = path;
+        backBtn.disabled = path === ''; // Disable if at root
         deselectItem();
         fetchFiles();
     };
@@ -374,7 +376,16 @@ const initializeUploaderModal = () => {
     
     const hideContextMenu = () => { if(contextMenu) contextMenu.style.display = 'none'; };
 
+    const handleGoBack = () => {
+        if (currentPath === '') return;
+        const parts = currentPath.split('/').filter(Boolean);
+        parts.pop(); // Remove the last directory
+        const newPath = parts.join('/') + (parts.length > 0 ? '/' : '');
+        navigateTo(newPath);
+    };
+
     // --- ATTACHING LISTENERS ---
+    backBtn.addEventListener('click', handleGoBack);
     openUploaderBtn.addEventListener('click', openModal);
     closeModalBtn.addEventListener('click', closeModal);
     uploaderModal.addEventListener('click', (e) => { if (e.target === uploaderModal) closeModal(); });

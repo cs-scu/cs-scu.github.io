@@ -6099,3 +6099,63 @@ body.light-theme .list-view-table tr.selected {
     color: inherit;
     opacity: 0.8;
 }
+
+/* LTR Uploader Styles */
+.uploader-modal-container[dir="ltr"] {
+    direction: ltr;
+    text-align: left;
+}
+
+.uploader-modal-container[dir="ltr"] .file-browser-header,
+.uploader-modal-container[dir="ltr"] .file-browser-nav-controls,
+.uploader-modal-container[dir="ltr"] .file-browser-main-controls,
+.uploader-modal-container[dir="ltr"] .control-group {
+    flex-direction: row;
+}
+
+.uploader-modal-container[dir="ltr"] .file-browser-header {
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+}
+
+.file-browser-nav-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-grow: 1;
+    min-width: 0; /* Prevents breadcrumbs from overflowing */
+}
+
+.uploader-modal-container[dir="ltr"] .file-browser-breadcrumbs {
+    padding: 0.5rem 0.25rem;
+    flex-grow: 1;
+}
+
+.uploader-modal-container[dir="ltr"] .breadcrumb-item {
+    gap: 0.4rem;
+}
+
+.uploader-modal-container[dir="ltr"] .breadcrumb-separator {
+    margin: 0 0.2rem;
+}
+
+.file-browser-main-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.uploader-modal-container[dir="ltr"] .list-view-table th,
+.uploader-modal-container[dir="ltr"] .list-view-table td {
+    text-align: left;
+    padding: 0.75rem 1rem;
+}
+
+.uploader-modal-container[dir="ltr"] .list-view-item-name {
+    flex-direction: row;
+}
+
+#file-browser-back-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}

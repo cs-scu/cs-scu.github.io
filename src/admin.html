@@ -73,34 +73,40 @@
                         <button class="close-modal" title="بستن">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
-                        <div class="uploader-modal-container">
+                        <div class="uploader-modal-container" dir="ltr">
                             <div class="file-browser-header">
-                                <div id="file-browser-breadcrumbs" class="file-browser-breadcrumbs"></div>
-                                <div class="file-browser-controls">
+                                <div class="file-browser-nav-controls">
+                                    <button id="file-browser-back-btn" class="btn btn-secondary btn-icon-only btn-sm" title="Back" disabled>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+                                    </button>
+                                    <div id="file-browser-breadcrumbs" class="file-browser-breadcrumbs"></div>
+                                </div>
+                                <div class="file-browser-main-controls">
                                     <div class="control-group sort-controls">
-                                        <label for="sort-by">مرتب‌سازی:</label>
+                                        <label for="sort-by">Sort by:</label>
                                         <select id="sort-by" class="form-control-sm">
-                                            <option value="name">نام</option>
-                                            <option value="updated_at">تاریخ</option>
-                                            <option value="size">حجم</option>
+                                            <option value="name">Name</option>
+                                            <option value="updated_at">Date</option>
+                                            <option value="size">Size</option>
                                         </select>
-                                        <button id="sort-order-btn" class="btn btn-secondary btn-icon-only btn-sm" title="تغییر ترتیب">
+                                        <button id="sort-order-btn" class="btn btn-secondary btn-icon-only btn-sm" title="Change order">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M18 13l-6 6M6 13l6 6"/></svg>
                                         </button>
                                     </div>
                                     <div class="control-group file-actions">
-                                        <button id="create-folder-btn" class="btn btn-secondary btn-sm">پوشه جدید</button>
-                                        <button id="upload-file-btn" class="btn btn-primary btn-sm">آپلود فایل</button>
+                                        <button id="create-folder-btn" class="btn btn-secondary btn-icon-only btn-sm" title="New Folder">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path><line x1="12" y1="10" x2="12" y2="16"></line><line x1="9" y1="13" x2="15" y2="13"></line></svg>
+                                        </button>
+                                        <button id="upload-file-btn" class="btn btn-primary btn-sm">Upload File</button>
                                         <input type="file" id="admin-file-input" class="file-upload-input" multiple hidden>
                                     </div>
                                 </div>
                             </div>
-                            <div id="file-browser-list" class="file-browser-list grid-view">
-                                </div>
+                            <div id="file-browser-list" class="file-browser-list grid-view"></div>
                             <div id="upload-progress-area" class="upload-progress-area"></div>
                             <div class="file-browser-footer">
-                                <span id="selected-file-info">فایلی انتخاب نشده</span>
-                                <button id="copy-selected-link-btn" class="btn btn-secondary" disabled>کپی لینک</button>
+                                <span id="selected-file-info">No file selected</span>
+                                <button id="copy-selected-link-btn" class="btn btn-secondary" disabled>Copy Link</button>
                             </div>
                         </div>
                     </div>
