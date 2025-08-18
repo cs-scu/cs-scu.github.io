@@ -182,7 +182,6 @@ const initializeUploaderModal = () => {
     const sortOrderBtn = document.getElementById('sort-order-btn');
     const lightboxOverlay = document.getElementById('image-lightbox-overlay');
     const lightboxImage = document.getElementById('lightbox-image');
-    const lightboxCloseBtn = document.querySelector('.lightbox-close-btn');
 
     // --- ICONS & HELPERS ---
     const FOLDER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
@@ -292,22 +291,14 @@ const initializeUploaderModal = () => {
         const target = e.target.closest('tr[data-name]');
         if (!target || e.detail > 1) return;
 
-        // حذف آیتم انتخاب شده قبلی
-        const currentlySelected = fileListContainer.querySelector('.selected');
-        if (currentlySelected) {
-            currentlySelected.classList.remove('selected');
-        }
-
-        // انتخاب آیتم جدید
-        target.classList.add('selected');
+        deselectItem();
         selectedItem = {
             element: target,
             name: target.dataset.name,
             isFolder: target.dataset.isFolder === 'true',
             path: `${currentPath}${target.dataset.name}`
         };
-
-        // به‌روزرسانی اطلاعات و وضعیت دکمه
+        target.classList.add('selected');
         selectedFileInfo.textContent = selectedItem.name;
         copySelectedLinkBtn.disabled = selectedItem.isFolder;
 
@@ -317,14 +308,14 @@ const initializeUploaderModal = () => {
             copySelectedLinkBtn.title = 'Copy Link';
         }
     };
-
+    
     const handleFileDoubleClick = (e) => {
         const target = e.target.closest('tr[data-name]');
         if (!target) return;
 
         if (target.dataset.isFolder === 'true') {
             navigateTo(`${currentPath}${target.dataset.name}/`);
-        } else if (target.dataset.isImage === 'true') {
+        } else if (target.dataset.isImage === 'true' && lightboxOverlay && lightboxImage) {
             const { data: { publicUrl } } = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(`${currentPath}${target.dataset.name}`);
             lightboxImage.src = publicUrl;
             lightboxOverlay.classList.add('visible');
@@ -332,8 +323,10 @@ const initializeUploaderModal = () => {
     };
     
     const closeLightbox = () => {
-        lightboxOverlay.classList.remove('visible');
-        lightboxImage.src = '';
+        if (lightboxOverlay && lightboxImage) {
+            lightboxOverlay.classList.remove('visible');
+            lightboxImage.src = '';
+        }
     };
 
     const handleCreateFolder = async () => {
@@ -407,7 +400,7 @@ const initializeUploaderModal = () => {
     fileListContainer.addEventListener('click', handleFileClick);
     fileListContainer.addEventListener('dblclick', handleFileDoubleClick);
     fileListContainer.addEventListener('contextmenu', showContextMenu);
-    breadcrumbsContainer.addEventListener('click', (e) => { if (e.target.classList.contains('breadcrumb-item')) navigateTo(e.target.dataset.path); });
+    breadcrumbsContainer.addEventListener('click', (e) => { if (e.target.closest('.breadcrumb-item')) navigateTo(e.target.closest('.breadcrumb-item').dataset.path); });
     createFolderBtn.addEventListener('click', handleCreateFolder);
     uploadFileBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', () => handleFileUpload(fileInput.files));
@@ -424,10 +417,21 @@ const initializeUploaderModal = () => {
     });
     document.addEventListener('click', hideContextMenu);
     contextMenu.addEventListener('click', (e) => { if(e.target.dataset.action) hideContextMenu(); });
-    if (lightboxCloseBtn) {
-        lightboxCloseBtn.addEventListener('click', closeLightbox);
+
+    // START: Robust Lightbox Listener Attachment
+    if (lightboxOverlay) {
+        const lightboxCloseBtn = lightboxOverlay.querySelector('.lightbox-close-btn');
+        if (lightboxCloseBtn) {
+            lightboxCloseBtn.addEventListener('click', closeLightbox);
+        }
+        lightboxOverlay.addEventListener('click', (e) => {
+            if (e.target === lightboxOverlay) {
+                closeLightbox();
+            }
+        });
     }
-    lightboxOverlay.addEventListener('click', (e) => { if (e.target === lightboxOverlay) closeLightbox(); });
+    // END: Robust Lightbox Listener Attachment
+    
     ['dragenter','dragover','dragleave','drop'].forEach(ev=>fileListContainer.addEventListener(ev, e=>{e.preventDefault();e.stopPropagation();}));
     ['dragenter','dragover'].forEach(ev=>fileListContainer.addEventListener(ev,()=>fileListContainer.classList.add('is-dragging')));
     ['dragleave','drop'].forEach(ev=>fileListContainer.addEventListener(ev,()=>fileListContainer.classList.remove('is-dragging')));
