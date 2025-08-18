@@ -5974,9 +5974,8 @@ body.light-theme .file-browser-header {
     align-items: center;
     gap: 0.25rem;
     flex-grow: 1;
-    padding: 0.5rem;
     background-color: rgba(128,128,128,0.1);
-    border-radius: 8px;
+    border-radius: 3rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -5987,7 +5986,7 @@ body.light-theme .file-browser-header {
     align-items: center;
     gap: 0.4rem;
     padding: 0.4rem 0.8rem;
-    border-radius: 6px;
+    border-radius: 2rem;
     background: none;
     border: none;
     color: inherit;
