@@ -236,7 +236,7 @@ const initializeUploaderModal = () => {
         selectedItem = null;
         selectedFileInfo.textContent = 'No file selected';
         copySelectedLinkBtn.disabled = true;
-        copySelectedLinkBtn.title = 'Select a file to copy its link'; // Updated title
+        copySelectedLinkBtn.title = 'Select a file to copy its link';
     };
 
     // --- RENDER LOGIC ---
@@ -292,7 +292,7 @@ const initializeUploaderModal = () => {
         const target = e.target.closest('tr[data-name]');
         if (!target || e.detail > 1) return;
 
-        deselectItem(); // This will reset the button state first
+        deselectItem();
         selectedItem = {
             element: target,
             name: target.dataset.name,
@@ -303,13 +303,13 @@ const initializeUploaderModal = () => {
         selectedFileInfo.textContent = selectedItem.name;
         copySelectedLinkBtn.disabled = selectedItem.isFolder;
 
-        // Set the appropriate title based on selection
         if (selectedItem.isFolder) {
             copySelectedLinkBtn.title = 'Cannot copy link for a folder';
         } else {
             copySelectedLinkBtn.title = 'Copy Link';
         }
     };
+    
     const handleFileDoubleClick = (e) => {
         const target = e.target.closest('tr[data-name]');
         if (!target) return;

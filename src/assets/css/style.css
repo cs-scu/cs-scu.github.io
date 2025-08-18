@@ -6169,12 +6169,14 @@ body.light-theme .file-browser-footer {
     color: var(--text-secondary-light-theme);
 }
 
-/* --- 5. Floating Action Buttons (FAB) --- */
+/* --- Floating Action Buttons (FAB) --- */
 .uploader-fab-container {
     position: absolute;
     bottom: 1.25rem;
     right: 1.5rem;
     display: flex;
+    flex-direction: row-reverse; /* Ensures Upload is on the far right */
+    align-items: center;
     gap: 0.75rem;
     z-index: 10;
 }
@@ -6183,25 +6185,34 @@ body.light-theme .file-browser-footer {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    display: flex;
+    display: flex; /* Ensures visibility */
     align-items: center;
     justify-content: center;
     padding: 0;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease-in-out;
+    visibility: visible; /* Ensures visibility */
 }
+
 .btn-fab:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0,0,0,0.25);
 }
-.btn-fab[disabled] {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
 
+/* This is the key change */
+.btn-fab:disabled,
+.btn-fab[disabled] {
+    background-color: var(--button-secondary-bg-dark-theme); /* Use a clear background */
+    opacity: 0.6; /* Make it clearly faded but visible */
+    cursor: not-allowed;
+    transform: none; /* No hover effect */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* Less prominent shadow */
+}
+body.light-theme .btn-fab:disabled,
+body.light-theme .btn-fab[disabled] {
+    background-color: var(--button-secondary-bg-light-theme);
+}
 /* --- 6. LTR Direction Specific Overrides --- */
 .uploader-modal-container[dir="ltr"] {
     direction: ltr;
