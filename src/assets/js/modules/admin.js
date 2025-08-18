@@ -301,7 +301,8 @@ const initializeUploaderModal = () => {
         };
         target.classList.add('selected');
         selectedFileInfo.textContent = selectedItem.name;
-        copySelectedLinkBtn.disabled = selectedItem.isFolder;
+        copySelectedLinkBtn.disabled = !selectedItem || selectedItem.isFolder;
+
 
         if (selectedItem.isFolder) {
             copySelectedLinkBtn.title = 'Cannot copy link for a folder';
@@ -309,7 +310,7 @@ const initializeUploaderModal = () => {
             copySelectedLinkBtn.title = 'Copy Link';
         }
     };
-    
+
     const handleFileDoubleClick = (e) => {
         const target = e.target.closest('tr[data-name]');
         if (!target) return;
