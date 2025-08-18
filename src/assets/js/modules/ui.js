@@ -91,6 +91,24 @@ export const showProfileModal = async () => {
     state.user = freshUser;
 
     const profile = state.profile;
+    const provider = state.user?.app_metadata?.provider;
+
+    // بخش جدید: فرم تغییر رمز عبور
+    const changePasswordHtml = `
+        <hr style="margin: 2rem 0;">
+        <h4>تغییر رمز عبور</h4>
+        <form id="change-password-form">
+            <div class="form-group">
+                <label for="new-password">رمز عبور جدید</label>
+                <input type="password" id="new-password" name="new-password" placeholder="حداقل ۶ کاراکتر" required>
+            </div>
+            <div class="form-status"></div>
+            <br>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">ذخیره رمز جدید</button>
+            </div>
+        </form>
+    `;
 
     const modalHtml = `
         <div class="content-box" style="padding-top: 4rem;">
@@ -107,6 +125,8 @@ export const showProfileModal = async () => {
                     <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
                 </div>
             </form>
+            
+            ${provider === 'email' ? changePasswordHtml : ''}
         </div>
     `;
     
@@ -116,7 +136,7 @@ export const showProfileModal = async () => {
     genericModal.classList.add('is-open');
 
     const profileForm = genericModalContent.querySelector('#profile-form');
-    const statusBox = profileForm.querySelector('.form-status');
+    const profileStatusBox = profileForm.querySelector('.form-status');
     profileForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const fullName = profileForm.querySelector('#full-name').value;
@@ -125,10 +145,10 @@ export const showProfileModal = async () => {
 
         const { error } = await updateProfile({ full_name: fullName });
         if (error) {
-            showStatus(statusBox, 'خطا در ذخیره اطلاعات.');
+            showStatus(profileStatusBox, 'خطا در ذخیره اطلاعات.');
             submitBtn.disabled = false;
         } else {
-            showStatus(statusBox, 'اطلاعات با موفقیت ذخیره شد.', 'success');
+            showStatus(profileStatusBox, 'اطلاعات با موفقیت ذخیره شد.', 'success');
             await getProfile();
             updateUserUI(state.user, state.profile);
             setTimeout(() => {
@@ -137,6 +157,38 @@ export const showProfileModal = async () => {
             }, 1500);
         }
     });
+
+    // بخش جدید: منطق فرم تغییر رمز عبور
+    if (provider === 'email') {
+        const passwordForm = genericModalContent.querySelector('#change-password-form');
+        const passwordStatusBox = passwordForm.querySelector('.form-status');
+        passwordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newPassword = passwordForm.querySelector('#new-password').value;
+            const submitBtn = passwordForm.querySelector('button[type="submit"]');
+
+            if (newPassword.length < 6) {
+                showStatus(passwordStatusBox, 'رمز عبور باید حداقل ۶ کاراکتر باشد.');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            hideStatus(passwordStatusBox);
+
+            const { error } = await updateUserPassword(newPassword);
+            if (error) {
+                showStatus(passwordStatusBox, 'خطا در تغییر رمز عبور.');
+                submitBtn.disabled = false;
+            } else {
+                showStatus(passwordStatusBox, 'رمز عبور با موفقیت تغییر کرد.', 'success');
+                passwordForm.reset();
+                setTimeout(() => {
+                    hideStatus(passwordStatusBox);
+                }, 3000);
+            }
+            submitBtn.disabled = false;
+        });
+    }
 };
 
 export const initializeAuthForm = () => {
