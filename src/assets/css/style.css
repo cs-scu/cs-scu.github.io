@@ -6183,6 +6183,9 @@ body.light-theme .file-browser-footer {
 .uploader-fab-container > .btn-fab + .btn-fab {
     margin-right: 0.75rem;
 }
+.copy-selected-link-btn{
+    left: 1rem;
+}
 
 .btn-fab {
     width: 50px;
