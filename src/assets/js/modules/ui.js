@@ -168,7 +168,7 @@ export const initializeAuthForm = () => {
     };
 
     let otpTimerInterval = null;
-    let otpContext = 'signup';
+    let otpContext = 'signup'; // 'signup' or 'reset'
     let tempFullName = '';
 
     const emailStep = form.querySelector('#email-step');
@@ -409,6 +409,10 @@ export const initializeAuthForm = () => {
                     handleSuccessfulLogin();
                 }
                 break;
+            
+            // =================================================================
+            // START: EDITED SECTION
+            // =================================================================
             case 'otp-step':
                 submitBtn.textContent = 'در حال تایید...';
                 const otp = otpInputs.map(input => input.value).join('');
@@ -418,16 +422,32 @@ export const initializeAuthForm = () => {
                     submitBtn.textContent = 'تایید کد';
                     return;
                 }
-                const { data, error: otpError } = await verifyOtp(currentEmail, otp);
+                
+                // **تغییر اصلی:** نوع OTP را اینجا تغییر می‌دهیم
+                const otpType = (otpContext === 'reset') ? 'recovery' : 'email';
+                const { data, error: otpError } = await verifyOtp(currentEmail, otp, otpType);
+
                 if (otpError || !data.session) {
                     showStatus(statusBox, getFriendlyAuthError(otpError || { message: 'Code is invalid' }));
                 } else {
-                    showStep(setNameStep);
-                    showStatus(statusBox, 'کد تایید شد. لطفاً نام خود را وارد کنید.', 'success');
+                    // **شرط کلیدی برای هدایت کاربر**
+                    if (otpContext === 'reset') {
+                        // اگر کاربر در حال بازنشانی رمز بود، او را به صفحه تنظیم رمز جدید ببر
+                        showStep(setPasswordStep);
+                        showStatus(statusBox, 'کد تایید شد. لطفاً رمز عبور جدید خود را تعیین کنید.', 'success');
+                    } else {
+                        // در غیر این صورت (ثبت‌نام)، او را به صفحه وارد کردن نام ببر
+                        showStep(setNameStep);
+                        showStatus(statusBox, 'کد تایید شد. لطفاً نام خود را وارد کنید.', 'success');
+                    }
                 }
                 submitBtn.textContent = 'تایید کد';
                 submitBtn.disabled = false;
                 break;
+            // =================================================================
+            // END: EDITED SECTION
+            // =================================================================
+
             case 'set-name-step':
                 tempFullName = form.querySelector('#full-name-signup').value;
                 if (tempFullName.trim().length < 3) {
@@ -473,6 +493,7 @@ export const initializeAuthForm = () => {
             if (error) {
                 showStatus(statusBox, getFriendlyAuthError(error));
             } else {
+                displayEmailOtp.textContent = currentEmail;
                 showStep(otpStep);
                 startOtpTimer();
                 showStatus(statusBox, 'کد بازنشانی رمز به ایمیل شما ارسال شد.', 'success');
