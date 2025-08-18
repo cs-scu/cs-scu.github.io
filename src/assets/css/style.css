@@ -5928,22 +5928,26 @@ body.admin-sidebar-is-open::after {
 }
 
 
-/* ================== Uploader Modal (Refactored) ================== */
+/* =================================================================== */
+/* UPLOADER MODAL STYLES                          */
+/* =================================================================== */
 
-/* --- Main Layout --- */
+/* --- 1. Main Layout --- */
 .uploader-modal-container {
     display: flex;
     flex-direction: column;
     height: 100%;
+    position: relative; /* Needed for absolute positioning of FABs */
 }
 
-/* --- Header & Controls --- */
+/* --- 2. Header Area --- */
 .file-browser-header {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* This is key */
-    padding: 0.5rem 1rem;
+    justify-content: space-between;
+    flex-wrap: wrap;
     gap: 1rem;
+    padding: 0.5rem 1rem;
     flex-shrink: 0;
     border-bottom: 1px solid var(--glass-border-dark);
 }
@@ -5951,19 +5955,33 @@ body.light-theme .file-browser-header {
     border-bottom-color: var(--glass-border-light);
 }
 
+/* 2.1 Navigation Controls (Back & Breadcrumbs) */
+.file-browser-nav-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-grow: 1;
+    min-width: 0; /* Prevents breadcrumbs from overflowing */
+}
+
+#file-browser-back-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 .file-browser-breadcrumbs {
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    font-size: 0.95rem;
-    flex-grow: 1; /* Take available space */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    flex-grow: 1;
     padding: 0.5rem;
     background-color: rgba(128,128,128,0.1);
     border-radius: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+
 .breadcrumb-item {
     display: inline-flex;
     align-items: center;
@@ -5990,24 +6008,62 @@ body.light-theme .breadcrumb-item:hover {
 .breadcrumb-separator {
     opacity: 0.5;
     font-weight: bold;
+    margin: 0 0.2rem;
 }
 
-
-.file-browser-controls {
+/* 2.2 Main Controls (New Folder & Sort) */
+.file-browser-main-controls {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
     flex-shrink: 0;
 }
-.control-group {
+
+.custom-select-wrapper {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
-.sort-controls label {
-    font-size: 0.9rem;
-    opacity: 0.8;
+
+select.custom-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    border: 1px solid var(--glass-border-dark);
+    padding: 0.5rem 2rem 0.5rem 0.75rem; /* Space for arrow */
+    font-size: 0.85rem;
+    border-radius: var(--border-radius);
+    color: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
+body.light-theme select.custom-select {
+    border-color: var(--glass-border-light);
+}
+select.custom-select:hover {
+    border-color: var(--primary-color);
+}
+body.light-theme select.custom-select:hover {
+    border-color: var(--primary-color-light-theme);
+}
+
+.custom-select-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 2.75rem; /* Position next to the select */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid currentColor;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
 #sort-order-btn svg {
     transition: transform 0.2s ease-in-out;
 }
@@ -6015,53 +6071,16 @@ body.light-theme .breadcrumb-item:hover {
     transform: rotate(180deg);
 }
 
-/* --- File List Area --- */
+/* --- 3. File List Area --- */
 .file-browser-list {
     flex-grow: 1;
     overflow-y: auto;
     position: relative;
-    padding: 0; /* list-view doesn't need padding */
-}
-/* --- Floating Action Buttons (FAB) for Upload/Copy --- */
-.uploader-fab-container {
-    position: absolute;
-    bottom: 1.25rem;
-    right: 1.5rem;
-    display: flex;
-    gap: 0.75rem;
-    z-index: 10;
-}
-.btn-fab {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-.btn-fab:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-}
-.btn-fab[disabled] {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-/* Ensure list doesn't get hidden by FABs */
-.file-browser-list {
-    padding-bottom: 80px; /* More space at the bottom */
+    padding-bottom: 80px; /* Space for FABs */
 }
 
-
-/* Drag & Drop Overlay */
 .file-browser-list.is-dragging::after {
-    content: 'فایل‌ها را برای آپلود اینجا رها کنید';
+    content: 'Drop files here to upload';
     position: absolute;
     inset: 0;
     background-color: rgba(0, 0, 0, 0.7);
@@ -6074,15 +6093,29 @@ body.light-theme .breadcrumb-item:hover {
     z-index: 10;
 }
 
-/* --- List View Table --- */
+/* 3.1 List View Table */
 .list-view-table {
     width: 100%;
     border-collapse: collapse;
 }
+
+.list-view-table thead {
+    background-color: rgba(128,128,128,0.05);
+}
+body.dark-theme .list-view-table th { background-color: rgba(232, 195, 142, 0.05); }
+body.light-theme .list-view-table th { background-color: rgba(26, 92, 93, 0.04); }
+
+.list-view-table th {
+    font-weight: bold;
+    font-size: 0.9rem;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
 .list-view-table th,
 .list-view-table td {
-    padding: 0.75rem 1.5rem;
-    text-align: right;
+    padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--glass-border-dark);
     white-space: nowrap;
 }
@@ -6090,18 +6123,6 @@ body.light-theme .list-view-table th,
 body.light-theme .list-view-table td {
     border-bottom-color: var(--glass-border-light);
 }
-.list-view-table thead {
-    background-color: rgba(128,128,128,0.05);
-}
-.list-view-table th {
-    font-weight: bold;
-    font-size: 0.9rem;
-    position: sticky; /* Make header sticky */
-    top: 0;
-    z-index: 1; /* Ensure header is above rows */
-}
-body.dark-theme .list-view-table th { background-color: rgba(232, 195, 142, 0.05); }
-body.light-theme .list-view-table th { background-color: rgba(26, 92, 93, 0.04); }
 
 .list-view-table tr {
     cursor: pointer;
@@ -6135,129 +6156,10 @@ body.light-theme .list-view-table tr.selected {
     opacity: 0.8;
 }
 
-/* LTR Uploader Styles */
-.uploader-modal-container[dir="ltr"] {
-    direction: ltr;
-    text-align: left;
-}
-
-.uploader-modal-container[dir="ltr"] .file-browser-header,
-.uploader-modal-container[dir="ltr"] .file-browser-nav-controls,
-.uploader-modal-container[dir="ltr"] .file-browser-main-controls,
-.uploader-modal-container[dir="ltr"] .control-group {
-    flex-direction: row;
-}
-
-.uploader-modal-container[dir="ltr"] .file-browser-header {
-    justify-content: space-between;
-    padding: 0.5rem 1rem;
-}
-
-.file-browser-nav-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-grow: 1;
-    min-width: 0; /* Prevents breadcrumbs from overflowing */
-}
-
-.uploader-modal-container[dir="ltr"] .file-browser-breadcrumbs {
-    padding: 0.5rem 0.25rem;
-    flex-grow: 1;
-}
-
-.uploader-modal-container[dir="ltr"] .breadcrumb-item {
-    gap: 0.4rem;
-}
-
-.uploader-modal-container[dir="ltr"] .breadcrumb-separator {
-    margin: 0 0.2rem;
-}
-
-.file-browser-main-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-/* --- Custom Select Dropdown for Sort --- */
-.custom-select-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-select.custom-select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-color: transparent;
-    border: 1px solid var(--glass-border-dark);
-    padding: 0.5rem 2rem 0.5rem 0.75rem; /* Space for arrow */
-    font-size: 0.85rem;
-    border-radius: var(--border-radius);
-    color: inherit;
-    cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-body.light-theme select.custom-select {
-    border-color: var(--glass-border-light);
-}
-select.custom-select:hover {
-    border-color: var(--primary-color);
-}
-body.light-theme select.custom-select:hover {
-    border-color: var(--primary-color-light-theme);
-}
-.custom-select-wrapper::after {
-    content: '';
-    position: absolute;
-    right: 2.75rem; /* Position next to the select */
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 6px solid currentColor;
-    opacity: 0.7;
-    pointer-events: none; /* Let clicks pass through */
-}
-
-select.custom-select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-color: transparent;
-    border: 1px solid var(--glass-border-dark);
-    padding: 0.5rem 2rem 0.5rem 0.75rem; /* Space for arrow */
-    font-size: 0.85rem;
-    border-radius: var(--border-radius);
-    color: inherit;
-    cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.uploader-modal-container[dir="ltr"] .list-view-table th,
-.uploader-modal-container[dir="ltr"] .list-view-table td {
-    text-align: left;
-    padding: 0.75rem 1rem;
-}
-
-.uploader-modal-container[dir="ltr"] .list-view-item-name {
-    flex-direction: row;
-}
-
-#file-browser-back-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-/* --- Footer Update --- */
+/* --- 4. Footer Area --- */
 .file-browser-footer {
     padding: 0.5rem 1rem;
     flex-shrink: 0;
-    text-align: left;
     border-top: 1px solid var(--glass-border-dark);
     font-size: 0.85rem;
     color: var(--text-secondary-dark-theme);
@@ -6265,4 +6167,47 @@ select.custom-select {
 body.light-theme .file-browser-footer {
     border-top-color: var(--glass-border-light);
     color: var(--text-secondary-light-theme);
+}
+
+/* --- 5. Floating Action Buttons (FAB) --- */
+.uploader-fab-container {
+    position: absolute;
+    bottom: 1.25rem;
+    right: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    z-index: 10;
+}
+
+.btn-fab {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+.btn-fab[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* --- 6. LTR Direction Specific Overrides --- */
+.uploader-modal-container[dir="ltr"] {
+    direction: ltr;
+}
+.uploader-modal-container[dir="ltr"] .list-view-table th,
+.uploader-modal-container[dir="ltr"] .list-view-table td,
+.uploader-modal-container[dir="ltr"] .file-browser-footer {
+    text-align: left;
 }
