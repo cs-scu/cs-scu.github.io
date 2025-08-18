@@ -6169,23 +6169,27 @@ body.light-theme .file-browser-footer {
     color: var(--text-secondary-light-theme);
 }
 
-/* --- Floating Action Buttons (FAB) --- */
+/* Floating Action Button for Upload */
 .uploader-fab-container {
     position: absolute;
     bottom: 1.25rem;
     right: 1.5rem;
     display: flex;
-    flex-direction: row-reverse; /* دکمه آپلود را در skt راست قرار می‌دهد */
+    flex-direction: row-reverse;
     align-items: center;
     z-index: 10;
+}
+
+.copy-selected-link-btn {
+    /* دکمه کپی را به اندازه عرض دکمه اصلی به اضافه فاصله، به چپ منتقل می‌کند */
+    transform: translateX(-calc(100% + 0.75rem));
+    transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .uploader-fab-container > .btn-fab + .btn-fab {
     margin-right: 0.75rem;
 }
-.copy-selected-link-btn{
-    left: 1rem;
-}
+
 
 .btn-fab {
     width: 50px;
@@ -6240,4 +6244,40 @@ body.light-theme .btn-fab[disabled] {
 .uploader-modal-container[dir="ltr"] .list-view-table td,
 .uploader-modal-container[dir="ltr"] .file-browser-footer {
     text-align: left;
+}
+
+/* Custom styling for the Sort By dropdown */
+.sort-options {
+    position: relative;
+    display: inline-block;
+}
+
+.sort-options select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: var(--background-color-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px; /* اضافه کردن گوشه‌های گرد */
+    padding: 0.5rem 2rem 0.5rem 0.75rem; /* ایجاد فضا برای فلش */
+    color: var(--text-color);
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.sort-options select:hover {
+    border-color: var(--primary-color);
+}
+
+/* Custom dropdown arrow */
+.sort-options::after {
+    content: '\f078'; /* Font Awesome down-arrow icon */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    transform: translateY(-50%);
+    pointer-events: none; /* Allows clicking through the icon to the select */
+    color: var(--text-color-secondary);
 }
