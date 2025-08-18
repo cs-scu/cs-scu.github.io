@@ -6180,7 +6180,7 @@ body.light-theme .file-browser-footer {
     z-index: 10;
 }
 
-.copy-selected-link-btn {
+button#copy-selected-link-btn {
     /* دکمه کپی را به اندازه عرض دکمه اصلی به اضافه فاصله، به چپ منتقل می‌کند */
     transform: translateX(-calc(100% + 0.75rem));
     transition: transform 0.3s ease, opacity 0.3s ease;
