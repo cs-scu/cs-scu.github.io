@@ -6093,104 +6093,23 @@ body.light-theme select.custom-select:hover {
     z-index: 10;
 }
 
-/* 3.1 List View Table */
-.list-view-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+/* ==========================================================================
+   5. Floating Action Buttons (FAB) & Footer Padding
+   ========================================================================== */
 
-.list-view-table thead {
-    background-color: rgba(128,128,128,0.05);
-}
-body.dark-theme .list-view-table th { background-color: rgba(232, 195, 142, 0.05); }
-body.light-theme .list-view-table th { background-color: rgba(26, 92, 93, 0.04); }
-
-.list-view-table th {
-    font-weight: bold;
-    font-size: 0.9rem;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-}
-
-.list-view-table th,
-.list-view-table td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--glass-border-dark);
-    white-space: nowrap;
-}
-body.light-theme .list-view-table th,
-body.light-theme .list-view-table td {
-    border-bottom-color: var(--glass-border-light);
-}
-
-.list-view-table tr {
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-.list-view-table tr:hover {
-    background-color: rgba(128,128,128,0.1);
-}
-.list-view-table tr.selected {
-    background-color: rgba(232, 195, 142, 0.2);
-}
-body.light-theme .list-view-table tr.selected {
-    background-color: rgba(26, 92, 93, 0.1);
-}
-
-.list-view-item-name {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-.list-view-table .item-name {
-    font-size: 0.95rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.item-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: inherit;
-    opacity: 0.8;
-}
-
-/* --- 4. Footer Area --- */
-.file-browser-footer {
-    padding: 0.5rem 1rem;
-    flex-shrink: 0;
-    border-top: 1px solid var(--glass-border-dark);
-    font-size: 0.85rem;
-    color: var(--text-secondary-dark-theme);
-}
-body.light-theme .file-browser-footer {
-    border-top-color: var(--glass-border-light);
-    color: var(--text-secondary-light-theme);
-}
-
-/* Floating Action Button for Upload */
+/* --- 5.1 FAB Container --- */
 .uploader-fab-container {
     position: absolute;
     bottom: 1.25rem;
     right: 1.5rem;
     display: flex;
+    /* آیتم‌ها از راست به چپ چیده می‌شوند (دکمه آپلود در انتها/راست) */
     flex-direction: row-reverse;
     align-items: center;
     z-index: 10;
 }
 
-button#copy-selected-link-btn {
-    /* دکمه کپی را به اندازه عرض دکمه اصلی به اضافه فاصله، به چپ منتقل می‌کند */
-    transform: translateX(-calc(100% + 0.75rem));
-    transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.uploader-fab-container > .btn-fab + .btn-fab {
-    margin-right: 0.75rem;
-}
-
-
+/* --- 5.2 Base FAB Style --- */
 .btn-fab {
     width: 50px;
     height: 50px;
@@ -6202,8 +6121,7 @@ button#copy-selected-link-btn {
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    visibility: visible; /* تضمین نمایش */
-    opacity: 1; /* حالت عادی */
+    opacity: 1; /* همیشه در حالت عادی کاملاً قابل مشاهده است */
 }
 
 .btn-fab:hover {
@@ -6211,32 +6129,55 @@ button#copy-selected-link-btn {
     box-shadow: 0 6px 16px rgba(0,0,0,0.25);
 }
 
-/* *** این بخش کلیدی‌ترین تغییر است *** */
-.btn-fab:disabled,
-.btn-fab[disabled] {
-    opacity: 0.5; /* دکمه را نیمه‌شفاف اما قابل مشاهده می‌کند */
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    pointer-events: all !important; /* اطمینان از اینکه title نمایش داده می‌شود */
+/* --- 5.3 Copy Button Specific Styles --- */
+#copy-selected-link-btn {
+    /* دکمه کپی را به اندازه عرض دکمه آپلود + 0.75rem فاصله، به سمت چپ هل می‌دهد */
+    transform: translateX(-calc(100% + 0.75rem));
+    /* رنگ پس‌زمینه متفاوت برای تمایز */
+    background-color: var(--secondary-color);
 }
 
-/* رنگ پس‌زمینه برای حالت غیرفعال در هر دو تم */
-body.dark-theme .btn-fab:disabled,
-body.dark-theme .btn-fab[disabled] {
+body.light-theme #copy-selected-link-btn {
+    background-color: var(--secondary-color-light);
+}
+
+#copy-selected-link-btn:hover {
+    /* transform حالت پایه را حفظ می‌کند */
+    transform: translateX(-calc(100% + 0.75rem)) translateY(-2px);
+}
+
+/* --- 5.4 Disabled State for ALL FABs --- */
+.btn-fab:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    /* transform در حالت غیرفعال ریست می‌شود */
+    transform: none;
+    /* این خط کلیدی است تا title (راهنمای ابزار) حتی در حالت غیرفعال هم نمایش داده شود */
+    pointer-events: all !important;
+}
+
+/* استایل پس‌زمینه دکمه کپی در حالت غیرفعال */
+#copy-selected-link-btn:disabled {
     background-color: rgba(128, 128, 128, 0.2);
 }
 
-body.light-theme .btn-fab:disabled,
-body.light-theme .btn-fab[disabled] {
+body.light-theme #copy-selected-link-btn:disabled {
     background-color: rgba(0, 0, 0, 0.1);
 }
 
-/* اطمینان از اینکه لیست توسط دکمه‌ها پوشانده نشود */
+/* --- 5.5 List Padding Adjustment --- */
+/* اطمینان از اینکه لیست توسط دکمه‌های شناور پوشانده نشود */
 .file-browser-list {
     padding-bottom: 80px;
 }
-/* --- 6. LTR Direction Specific Overrides --- */
+
+
+/* ==========================================================================
+   6. LTR & Other UI Components
+   ========================================================================== */
+
+/* --- 6.1 LTR Direction Specific Overrides --- */
 .uploader-modal-container[dir="ltr"] {
     direction: ltr;
 }
@@ -6246,7 +6187,7 @@ body.light-theme .btn-fab[disabled] {
     text-align: left;
 }
 
-/* Custom styling for the Sort By dropdown */
+/* --- 6.2 Custom Sort By Dropdown --- */
 .sort-options {
     position: relative;
     display: inline-block;
@@ -6258,8 +6199,8 @@ body.light-theme .btn-fab[disabled] {
     appearance: none;
     background-color: var(--background-color-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 8px; /* اضافه کردن گوشه‌های گرد */
-    padding: 0.5rem 2rem 0.5rem 0.75rem; /* ایجاد فضا برای فلش */
+    border-radius: 8px; /* گوشه‌های گرد */
+    padding: 0.5rem 2rem 0.5rem 0.75rem; /* ایجاد فضا برای فلش داخلی */
     color: var(--text-color);
     cursor: pointer;
     transition: border-color 0.2s;
@@ -6269,15 +6210,72 @@ body.light-theme .btn-fab[disabled] {
     border-color: var(--primary-color);
 }
 
-/* Custom dropdown arrow */
+/* فلش سفارشی برای دراپ‌داون */
 .sort-options::after {
-    content: '\f078'; /* Font Awesome down-arrow icon */
+    content: '\f078'; /* آیکون فلش به پایین از Font Awesome */
     font-family: 'Font Awesome 5 Free';
     font-weight: 900;
     position: absolute;
     top: 50%;
     right: 0.75rem;
     transform: translateY(-50%);
-    pointer-events: none; /* Allows clicking through the icon to the select */
+    pointer-events: none; /* اجازه می‌دهد کلیک از روی آیکون به select برسد */
     color: var(--text-color-secondary);
+}
+
+/* ==========================================================================
+   Orientation Lock for Admin Panel
+   ========================================================================== */
+
+/* استایل پیام قفل چرخش - به صورت پیش‌فرض مخفی است */
+#orientation-lock {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--background-color);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#orientation-lock .message {
+    color: var(--text-color);
+}
+
+#orientation-lock .message i {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+    /* انیمیشن برای آیکون موبایل */
+    animation: rotate-mobile 1.5s ease-in-out infinite;
+}
+
+#orientation-lock .message p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* انیمیشن چرخش آیکون */
+@keyframes rotate-mobile {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(90deg); }
+    100% { transform: rotate(90deg); }
+}
+
+
+/* Media Query برای دستگاه‌های موبایل در حالت عمودی */
+@media screen and (orientation: portrait) and (max-width: 768px) {
+    /* مخفی کردن تمام محتوای پنل ادمین */
+    .admin-panel {
+        display: none !important;
+    }
+
+    /* نمایش پیام قفل چرخش */
+    #orientation-lock {
+        display: flex;
+    }
 }
