@@ -364,14 +364,21 @@ export const initializeAuthForm = () => {
                 if (status === 'exists_and_confirmed') {
                     const { data: provider } = await getUserProvider(currentEmail);
                     if (provider === 'google') {
-                        displayEmailLinking.textContent = currentEmail;
-                        showStep(linkingStep);
+                        // <<-- START: EDITED SECTION -->>
+                        hideStatus(statusBox);
+                        const { error } = await signInWithGoogle();
+                        if (error) {
+                            showStatus(statusBox, getFriendlyAuthError(error));
+                            submitBtn.textContent = 'ادامه';
+                            submitBtn.disabled = false;
+                        }
+                        // <<-- END: EDITED SECTION -->>
                     } else {
                         displayEmailPassword.textContent = currentEmail;
                         showStep(passwordStep);
+                        submitBtn.textContent = 'ادامه';
+                        submitBtn.disabled = false;
                     }
-                    submitBtn.textContent = 'ادامه';
-                    submitBtn.disabled = false;
                 } else if (status === 'does_not_exist' || status === 'exists_unconfirmed') {
                     otpContext = 'signup';
                     const { error } = await sendSignupOtp(currentEmail);
@@ -410,9 +417,6 @@ export const initializeAuthForm = () => {
                 }
                 break;
             
-            // =================================================================
-            // START: EDITED SECTION
-            // =================================================================
             case 'otp-step':
                 submitBtn.textContent = 'در حال تایید...';
                 const otp = otpInputs.map(input => input.value).join('');
@@ -423,20 +427,16 @@ export const initializeAuthForm = () => {
                     return;
                 }
                 
-                // **تغییر اصلی:** نوع OTP را اینجا تغییر می‌دهیم
                 const otpType = (otpContext === 'reset') ? 'recovery' : 'email';
                 const { data, error: otpError } = await verifyOtp(currentEmail, otp, otpType);
 
                 if (otpError || !data.session) {
                     showStatus(statusBox, getFriendlyAuthError(otpError || { message: 'Code is invalid' }));
                 } else {
-                    // **شرط کلیدی برای هدایت کاربر**
                     if (otpContext === 'reset') {
-                        // اگر کاربر در حال بازنشانی رمز بود، او را به صفحه تنظیم رمز جدید ببر
                         showStep(setPasswordStep);
                         showStatus(statusBox, 'کد تایید شد. لطفاً رمز عبور جدید خود را تعیین کنید.', 'success');
                     } else {
-                        // در غیر این صورت (ثبت‌نام)، او را به صفحه وارد کردن نام ببر
                         showStep(setNameStep);
                         showStatus(statusBox, 'کد تایید شد. لطفاً نام خود را وارد کنید.', 'success');
                     }
@@ -444,9 +444,6 @@ export const initializeAuthForm = () => {
                 submitBtn.textContent = 'تایید کد';
                 submitBtn.disabled = false;
                 break;
-            // =================================================================
-            // END: EDITED SECTION
-            // =================================================================
 
             case 'set-name-step':
                 tempFullName = form.querySelector('#full-name-signup').value;
