@@ -337,33 +337,87 @@ const initializeUploaderModal = () => {
         else fetchFiles();
     };
 
-    const handleFileUpload = async (files) => {
+const handleFileUpload = (files) => {
+        // Get Supabase credentials from the existing client
+        const supabaseUrl = supabaseClient.storage.url;
+        const supabaseKey = supabaseClient.storage.headers.apikey;
+
         for (const file of files) {
             const progressId = `progress-${file.name}-${Date.now()}`;
             const progressElement = document.createElement('div');
             progressElement.id = progressId;
             progressElement.className = 'upload-progress-container';
-            progressElement.innerHTML = `<div class="file-info"><span>${file.name}</span><span class="upload-percentage">0%</span></div><div class="progress-bar"><div class="progress-bar-inner"></div></div>`;
+            progressElement.innerHTML = `
+                <div class="file-info">
+                    <span>${file.name}</span>
+                    <span class="upload-percentage">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-bar-inner"></div>
+                </div>`;
             uploadProgressArea.appendChild(progressElement);
 
-            const { error } = await supabaseClient.storage.from(BUCKET_NAME).upload(`${currentPath}${file.name}`, file, { upsert: false });
-            
-            const uploadedItem = document.getElementById(progressId);
-            if (!uploadedItem) continue;
-            const percentageSpan = uploadedItem.querySelector('.upload-percentage');
-            const progressBarInner = uploadedItem.querySelector('.progress-bar-inner');
+            const percentageSpan = progressElement.querySelector('.upload-percentage');
+            const progressBarInner = progressElement.querySelector('.progress-bar-inner');
 
-            if (error) {
-                percentageSpan.textContent = 'خطا';
-                percentageSpan.style.color = 'red';
-            } else {
-                percentageSpan.textContent = 'کامل شد';
-                progressBarInner.style.width = '100%';
-                progressBarInner.style.backgroundColor = 'var(--success-color)';
-                setTimeout(() => uploadedItem.remove(), 5000);
-            }
+            const xhr = new XMLHttpRequest();
+            const filePath = `${currentPath}${file.name}`;
+            const uploadUrl = `${supabaseUrl}/object/${BUCKET_NAME}/${filePath}`;
+
+            xhr.open('POST', uploadUrl, true);
+
+            xhr.setRequestHeader('apikey', supabaseKey);
+            xhr.setRequestHeader('Authorization', `Bearer ${supabaseKey}`);
+            xhr.setRequestHeader('x-upsert', 'false');
+            xhr.setRequestHeader('Content-Type', file.type);
+
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    const percentComplete = Math.round((event.loaded / event.total) * 100);
+                    if (percentageSpan && progressBarInner) {
+                        percentageSpan.textContent = `${percentComplete}%`;
+                        progressBarInner.style.width = `${percentComplete}%`;
+                    }
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    if (percentageSpan && progressBarInner) {
+                        percentageSpan.textContent = 'کامل شد';
+                        progressBarInner.style.backgroundColor = 'var(--primary-color-light-theme)';
+                        if(document.body.classList.contains('dark-theme')) {
+                            progressBarInner.style.backgroundColor = 'var(--primary-color)';
+                        }
+                    }
+                    setTimeout(() => progressElement.remove(), 5000);
+                    fetchFiles(); // Refresh file list
+                } else {
+                    console.error('Upload failed:', xhr.responseText);
+                    if (percentageSpan && progressBarInner) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            percentageSpan.textContent = `خطا: ${response.message || 'Upload failed'}`;
+                        } catch (e) {
+                            percentageSpan.textContent = `خطا: ${xhr.statusText}`;
+                        }
+                        percentageSpan.style.color = '#dc3545';
+                        progressBarInner.style.backgroundColor = '#dc3545';
+                    }
+                }
+            };
+
+            xhr.onerror = () => {
+                console.error('Network error during upload.');
+                if (percentageSpan && progressBarInner) {
+                    percentageSpan.textContent = 'خطای شبکه';
+                    percentageSpan.style.color = '#dc3545';
+                    progressBarInner.style.backgroundColor = '#dc3545';
+                }
+            };
+
+            xhr.send(file);
         }
-        fetchFiles();
     };
     
     const handleSortChange = () => {
