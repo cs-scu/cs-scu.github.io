@@ -93,14 +93,34 @@ export const showProfileModal = async () => {
     const profile = state.profile;
     const provider = state.user?.app_metadata?.provider;
 
-    // بخش جدید: فرم تغییر رمز عبور
+    // بخش جدید: فرم پیشرفته تغییر رمز عبور
     const changePasswordHtml = `
         <hr style="margin: 2rem 0;">
         <h4>تغییر رمز عبور</h4>
-        <form id="change-password-form">
-            <div class="form-group">
+        <form id="change-password-form" novalidate>
+            <div class="form-group password-group">
+                <label for="current-password">رمز عبور فعلی</label>
+                <input type="password" id="current-password" name="current-password" required>
+                <button type="button" class="password-toggle-btn">
+                    <svg class="icon-eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                </button>
+            </div>
+            <div class="form-group password-group">
                 <label for="new-password">رمز عبور جدید</label>
                 <input type="password" id="new-password" name="new-password" placeholder="حداقل ۶ کاراکتر" required>
+                <button type="button" class="password-toggle-btn">
+                    <svg class="icon-eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                </button>
+            </div>
+            <div class="form-group password-group">
+                <label for="confirm-new-password">تکرار رمز عبور جدید</label>
+                <input type="password" id="confirm-new-password" name="confirm-new-password" required>
+                <button type="button" class="password-toggle-btn">
+                    <svg class="icon-eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                </button>
             </div>
             <div class="form-status"></div>
             <br>
@@ -132,6 +152,18 @@ export const showProfileModal = async () => {
     
     genericModal.classList.add('wide-modal');
     genericModalContent.innerHTML = modalHtml;
+
+    // فعال‌سازی دکمه‌های نمایش/مخفی رمز عبور
+    genericModalContent.querySelectorAll('.password-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const passwordInput = btn.previousElementSibling;
+            const isOpen = passwordInput.type === 'password';
+            passwordInput.type = isOpen ? 'text' : 'password';
+            btn.querySelector('.icon-eye-open').style.display = isOpen ? 'none' : 'block';
+            btn.querySelector('.icon-eye-closed').style.display = isOpen ? 'block' : 'none';
+        });
+    });
+
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
 
@@ -158,27 +190,46 @@ export const showProfileModal = async () => {
         }
     });
 
-    // بخش جدید: منطق فرم تغییر رمز عبور
+    // بخش جدید: منطق پیشرفته فرم تغییر رمز عبور
     if (provider === 'email') {
         const passwordForm = genericModalContent.querySelector('#change-password-form');
         const passwordStatusBox = passwordForm.querySelector('.form-status');
         passwordForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const currentPassword = passwordForm.querySelector('#current-password').value;
             const newPassword = passwordForm.querySelector('#new-password').value;
+            const confirmNewPassword = passwordForm.querySelector('#confirm-new-password').value;
             const submitBtn = passwordForm.querySelector('button[type="submit"]');
 
+            hideStatus(passwordStatusBox);
+
             if (newPassword.length < 6) {
-                showStatus(passwordStatusBox, 'رمز عبور باید حداقل ۶ کاراکتر باشد.');
+                showStatus(passwordStatusBox, 'رمز عبور جدید باید حداقل ۶ کاراکتر باشد.');
+                return;
+            }
+            if (newPassword !== confirmNewPassword) {
+                showStatus(passwordStatusBox, 'رمزهای عبور جدید با یکدیگر مطابقت ندارند.');
                 return;
             }
 
             submitBtn.disabled = true;
-            hideStatus(passwordStatusBox);
+            submitBtn.textContent = 'در حال بررسی...';
 
-            const { error } = await updateUserPassword(newPassword);
-            if (error) {
-                showStatus(passwordStatusBox, 'خطا در تغییر رمز عبور.');
+            // 1. تایید رمز عبور فعلی
+            const { error: signInError } = await signInWithPassword(state.user.email, currentPassword);
+
+            if (signInError) {
+                showStatus(passwordStatusBox, 'رمز عبور فعلی شما صحیح نیست.');
                 submitBtn.disabled = false;
+                submitBtn.textContent = 'ذخیره رمز جدید';
+                return;
+            }
+
+            // 2. اگر رمز فعلی صحیح بود، رمز جدید را آپدیت کن
+            const { error: updateError } = await updateUserPassword(newPassword);
+
+            if (updateError) {
+                showStatus(passwordStatusBox, 'خطا در تغییر رمز عبور. لطفاً دوباره تلاش کنید.');
             } else {
                 showStatus(passwordStatusBox, 'رمز عبور با موفقیت تغییر کرد.', 'success');
                 passwordForm.reset();
@@ -186,7 +237,9 @@ export const showProfileModal = async () => {
                     hideStatus(passwordStatusBox);
                 }, 3000);
             }
+            
             submitBtn.disabled = false;
+            submitBtn.textContent = 'ذخیره رمز جدید';
         });
     }
 };
