@@ -5947,9 +5947,10 @@ body.admin-sidebar-is-open::after {
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 1rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 2rem;
     flex-shrink: 0;
     border-bottom: 1px solid var(--glass-border-dark);
+    padding-right: 3rem;
 }
 body.light-theme .file-browser-header {
     border-bottom-color: var(--glass-border-light);
