@@ -214,7 +214,7 @@ const initializeUploaderModal = () => {
             data.sort((a, b) => {
                 const sizeA = a.metadata?.size ?? 0;
                 const sizeB = b.metadata?.size ?? 0;
-                return sortOptions.order === 'asc' ? sizeA - sizeB : sizeB - sizeA;
+                return sortOptions.order === 'asc' ? sizeA - sizeB : sizeB - a;
             });
         }
 
@@ -405,7 +405,6 @@ const initializeUploaderModal = () => {
         if (breadcrumbItem) navigateTo(breadcrumbItem.dataset.path); 
     });
     createFolderBtn.addEventListener('click', handleCreateFolder);
-    uploadFileBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', () => handleFileUpload(fileInput.files));
     copySelectedLinkBtn.addEventListener('click', () => {
         if (selectedItem && !selectedItem.isFolder) {
