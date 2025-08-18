@@ -239,11 +239,14 @@ const initializeUploaderModal = () => {
     // --- RENDER LOGIC ---
     const renderBreadcrumbs = (path) => {
         const parts = path.split('/').filter(Boolean);
-        let html = `<span class="breadcrumb-item" data-path="">ریشه</span>`;
+        let html = `<button type="button" class="breadcrumb-item" data-path="">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                        <span>ریشه</span>
+                    </button>`;
         let current = '';
         parts.forEach(part => {
             current += `${part}/`;
-            html += `<span class="breadcrumb-item" data-path="${current}">${part}</span>`;
+            html += `<span class="breadcrumb-separator">/</span><button type="button" class="breadcrumb-item" data-path="${current}">${part}</button>`;
         });
         breadcrumbsContainer.innerHTML = html;
     };
