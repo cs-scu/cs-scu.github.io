@@ -6032,9 +6032,9 @@ select.custom-select {
     appearance: none;
     background-color: transparent;
     border: 1px solid var(--glass-border-dark);
-    padding: 0.5rem 2rem 0.5rem 0.75rem; /* Space for arrow */
+    padding: 0.4rem 2rem 0.2rem 0.75rem;
     font-size: 0.85rem;
-    border-radius: var(--border-radius);
+    border-radius: 20px;
     color: inherit;
     cursor: pointer;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -6280,6 +6280,12 @@ body.light-theme .btn-fab[disabled] {
     transform: translateY(-50%);
     pointer-events: none; /* Allows clicking through the icon to the select */
     color: var(--text-color-secondary);
+}
+
+div.control-group.sort-controls.custom-select-wrapper::after
+Specificity: (0,3,2)
+ {
+    left: 6.8rem;
 }
 
 
