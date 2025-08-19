@@ -5801,16 +5801,16 @@ body.admin-preview-is-open {
     font-weight: bold;
     transition: background-color 0.2s ease;
 }
-body.dark-theme .session-link-btn {
-}
-body.dark-light .session-link-btn {
-}
 
 :root[data-theme="dark"] .session-link-btn {
     color: var(--background-color-dark);
+    background-color: var(--primary-color);
+
 }
 :root[data-theme="light"] .session-link-btn {
     color: #fff;
+    background-color: var(--primary-color-light-theme);
+
 }
 
 .session-link-btn:hover {
