@@ -5503,6 +5503,12 @@ body.dark-theme .btn-fab {
     display: flex;
     flex-direction: column;
 }
+
+@media (max-width: 900px) {
+    .live-preview-widget {
+        width: 100%;
+    }
+}
 .live-preview-widget.is-open {
     transform: translateX(0);
     overflow-y: auto;
