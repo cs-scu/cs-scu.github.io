@@ -6422,48 +6422,33 @@ body.dark-theme .progress-bar-inner {
 
 
 /* ================================== */
-/* Pulsing Note Animation      */
+/* Simple Pulsing Note Animation      */
 /* ================================== */
 
-@keyframes pulse-animation {
+@keyframes simple-color-pulse {
   0% {
-    opacity: 0.7;
-    transform: scale(1);
+    background-color: rgba(var(--primary-rgb), 0.1);
+    border-color: rgba(var(--primary-rgb), 0.2);
   }
   50% {
-    opacity: 1;
-    transform: scale(1.02);
+    background-color: rgba(var(--primary-rgb), 0.15);
+    border-color: rgba(var(--primary-rgb), 0.4);
   }
   100% {
-    opacity: 0.7;
-    transform: scale(1);
+    background-color: rgba(var(--primary-rgb), 0.1);
+    border-color: rgba(var(--primary-rgb), 0.2);
   }
-}
-
-/* Add this to the end of style.css */
-.form-note {
-    font-size: 0.85rem;
-    text-align: center;
-    opacity: 0.8;
-    margin-top: 1rem;
 }
 
 .pulsing-note {
-  font-size: 0.85rem;
   text-align: center;
-  opacity: 0.8;
-  margin-top: 1.5rem; /* کمی فاصله بیشتر از بالا */
-  padding: 8px 12px;
+  font-size: 0.85rem;
+  margin-top: 1.5rem;
+  padding: 10px;
   border-radius: 8px;
-  background-color: rgba(var(--primary-rgb), 0.1); /* یک پس زمینه ملایم */
+  border: 1px solid;
   color: var(--primary);
-  border: 1px solid rgba(var(--primary-rgb), 0.2);
   
-  /* --- اعمال انیمیشن --- */
-  animation: pulse-animation 2s infinite ease-in-out;
-}
-
-.pulsing-note .fa-eye {
-  margin-left: 6px; /* کمی فاصله بین آیکون و متن */
-  vertical-align: middle;
+  /* --- اعمال انیمیشن ساده --- */
+  animation: simple-color-pulse 2s infinite ease-in-out;
 }
