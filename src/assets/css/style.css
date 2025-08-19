@@ -5738,7 +5738,7 @@ body.admin-preview-is-open {
 .preview-section-divider h4 {
     background-color: var(--background-color);
     padding: 0 1rem;
-    color: var(--text-color-light);
+    color: var(--text-color);
     font-size: 1rem;
     font-weight: normal;
 }
@@ -5801,6 +5801,11 @@ body.admin-preview-is-open {
     font-weight: bold;
     transition: background-color 0.2s ease;
 }
+body.dark-theme .session-link-btn {
+}
+body.dark-light .session-link-btn {
+}
+
 :root[data-theme="dark"] .session-link-btn {
     color: var(--background-color-dark);
 }
