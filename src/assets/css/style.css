@@ -5745,15 +5745,19 @@ body.admin-preview-is-open {
 
 .preview-session-card {
     background-color: var(--background-alt-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border: 3px solid var(--primary-color);
+    border-radius: 1rem;
     padding: 1.5rem;
     margin-bottom: 1rem;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+    box-shadow: 0 4px 20px rgb(0 0 0 / 17%);
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
+body.light-theme .preview-session-card {
+    border: 3px solid var(--primary-color-light-theme);
+}
+
 
 .preview-session-card h5 {
     font-size: 1.2rem;
@@ -5794,7 +5798,7 @@ body.admin-preview-is-open {
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    border-radius: 5px;
+    border-radius: 2rem;
     text-decoration: none;
     font-size: 0.9rem;
     font-weight: bold;
@@ -5803,12 +5807,10 @@ body.admin-preview-is-open {
 
 body.light-theme .session-link-btn{
     background-color: var(--primary-color-light-theme);
-    color: var(--text-color-light);
 }
 body.dark-theme .session-link-btn{
     background-color: var(--primary-color);
-    color: var(--text-color-dark);
-
+    color: var(--text-color-light);
 }
 
 :root[data-theme="dark"] .session-link-btn {
