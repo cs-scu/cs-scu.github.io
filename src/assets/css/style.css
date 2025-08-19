@@ -3499,7 +3499,10 @@ body.light-theme .admin-sidebar {
     flex-direction: column;
     gap: 0.5rem;
     flex-grow: 1;
+    overflow-y: auto;
+
 }
+
 .sidebar-nav .nav-link {
     display: flex;
     align-items: center;
@@ -5502,6 +5505,8 @@ body.dark-theme .btn-fab {
 }
 .live-preview-widget.is-open {
     transform: translateX(0);
+    overflow-y: auto;
+
 }
 body.dark-theme .live-preview-widget {
     background-color: var(--background-color-dark);
@@ -6282,12 +6287,10 @@ body.light-theme .btn-fab[disabled] {
     color: var(--text-color-secondary);
 }
 
-div.control-group.sort-controls.custom-select-wrapper::after
-Specificity: (0,3,2)
- {
+div.control-group.sort-controls.custom-select-wrapper::after{
+    Specificity: (0,3,2);
     left: 6.8rem;
 }
-
 
 /* ==========================================================================
    Orientation Lock for Admin Panel
