@@ -166,7 +166,6 @@ export const showProfileModal = async () => {
 
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
-    dom.body.classList.add('modal-is-open');
 
     const profileForm = genericModalContent.querySelector('#profile-form');
     const profileStatusBox = profileForm.querySelector('.form-status');
@@ -502,8 +501,8 @@ export const initializeAuthForm = () => {
                         showStep(otpStep);
                         startOtpTimer();
                         showStatus(statusBox, 'کد تایید به ایمیل شما ارسال شد.', 'success');
-                        submitBtn.textContent = 'ادامه';
-                        submitBtn.disabled = false;
+                        
+                        startEmailCooldown(); 
                     }
                 } else {
                     showStatus(statusBox, 'خطا در بررسی وضعیت کاربر.');
@@ -669,8 +668,8 @@ const showMemberModal = (memberId) => {
     const closeBtnInCard = cardClone.querySelector('.close-modal-incard');
     if (closeBtnInCard) {
         closeBtnInCard.addEventListener('click', () => {
-            genericModal.classList.remove('is-open');
             dom.body.classList.remove('modal-is-open');
+            genericModal.classList.remove('is-open');
         });
     }
     cardClone.querySelector('.member-card').classList.add('in-modal');
@@ -714,8 +713,8 @@ const showMemberModal = (memberId) => {
     genericModal.classList.remove('wide-modal');
     genericModalContent.innerHTML = '';
     genericModalContent.appendChild(cardClone);
-    genericModal.classList.add('is-open');
     dom.body.classList.add('modal-is-open');
+    genericModal.classList.add('is-open');
 };
 
 
