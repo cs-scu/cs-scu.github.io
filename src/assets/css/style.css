@@ -94,20 +94,6 @@ body.light-theme {
     top: 0;
     z-index: 1000;
 }
-.notification-bar {
-    text-align: center;
-    font-weight: bold;
-    width: 100%;
-    transition: background-color 0.4s, color 0.4s;
-}
-body.dark-theme .notification-bar {
-    background-color: var(--primary-color);
-    color: var(--background-color-dark);
-}
-body.light-theme .notification-bar {
-    background-color: var(--primary-color-light-theme);
-    color: #fff;
-}
 
 /* ================== Header ================== */
 .main-header .container {
