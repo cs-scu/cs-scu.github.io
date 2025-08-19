@@ -5794,7 +5794,6 @@ body.admin-preview-is-open {
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background-color: var(--primary-color);
     border-radius: 5px;
     text-decoration: none;
     font-size: 0.9rem;
@@ -5802,14 +5801,22 @@ body.admin-preview-is-open {
     transition: background-color 0.2s ease;
 }
 
+body.light-theme .session-link-btn{
+    background-color: var(--primary-color-light-theme);
+    color: var(--text-color-light);
+}
+body.dark-theme .session-link-btn{
+    background-color: var(--primary-color);
+    color: var(--text-color-dark);
+
+}
+
 :root[data-theme="dark"] .session-link-btn {
     color: var(--background-color-dark);
-    background-color: var(--primary-color);
 
 }
 :root[data-theme="light"] .session-link-btn {
     color: #fff;
-    background-color: var(--primary-color-light-theme);
 
 }
 
