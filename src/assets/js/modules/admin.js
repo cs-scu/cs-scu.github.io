@@ -2159,15 +2159,6 @@ visualEditorContainer.addEventListener('click', (e) => {
             }
         }
     });
-
-    const togglePreviewFab = document.getElementById('toggle-preview-fab');
-    const previewWidget = document.getElementById('live-preview-widget');
-
-    if (togglePreviewFab && previewWidget) {
-        togglePreviewFab.addEventListener('click', () => {
-            previewWidget.classList.toggle('is-open');
-        });
-    }
 };
 
 const initializeEventsModule = async () => {
@@ -2679,16 +2670,35 @@ const initializeEventsModule = async () => {
         }
     };
     
+    const updateEventPreview = () => {
+        serializeEventEditor();
+        serializeSchedule();
+
+        try {
+            const contentJson = JSON.parse(contentTextarea.value || '[]');
+            livePreviewEventContent.innerHTML = '';
+            livePreviewEventContent.appendChild(renderJsonContentForPreview(contentJson));
+        } catch (e) {
+            livePreviewEventContent.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش محتوا...</p>';
+        }
+
+        try {
+            const scheduleJson = JSON.parse(scheduleTextarea.value || '[]');
+            renderScheduleForPreview(scheduleJson);
+        } catch(e) {
+            livePreviewScheduleCards.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش جلسات...</p>';
+        }
+    };
+
     const togglePreviewModal = () => {
         const isOpen = previewModal.classList.contains('is-visible');
         if (!isOpen) {
-            updateLivePreview();
+            updateEventPreview();
         }
         previewModal.classList.toggle('is-visible');
         document.body.classList.toggle('admin-preview-is-open');
     };
 
-    if (togglePreviewFab) togglePreviewFab.addEventListener('click', togglePreviewModal);
     if (previewModal) previewModal.addEventListener('click', (e) => { 
         if (e.target === previewModal) {
             togglePreviewModal();
@@ -3108,6 +3118,33 @@ const initializeAdminLayout = () => {
         }
     });
 };
+
+// --- Delegated Event Listener for Preview FAB ---
+document.addEventListener('click', (e) => {
+    const fab = e.target.closest('#toggle-preview-fab');
+    if (!fab) return;
+
+    // Logic for News page preview
+    const newsPreviewWidget = document.getElementById('live-preview-widget');
+    if (newsPreviewWidget) {
+        newsPreviewWidget.classList.toggle('is-open');
+        document.body.classList.toggle('admin-preview-widget-is-open'); // For scroll lock
+        return;
+    }
+
+    // Logic for Events page preview
+    const eventPreviewModal = document.getElementById('admin-preview-modal');
+    if (eventPreviewModal) {
+        // Find the correct function and call it
+        const form = document.getElementById('add-event-form');
+        if (form) {
+             // Directly call the logic to toggle visibility and body class
+             eventPreviewModal.classList.toggle('is-visible');
+             document.body.classList.toggle('admin-preview-is-open');
+             // Note: The preview updates automatically when opening due to the previous fix.
+        }
+    }
+});
 
 const adminRoutes = {
     '/admin/messages': {
