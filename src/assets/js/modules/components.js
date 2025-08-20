@@ -68,7 +68,7 @@ export const loadLatestNews = () => {
             const newsCardHTML = `
                 <article class="news-card">
                     <a href="${item.link}" class="news-card-image-link">
-                        <img src="${item.image}" alt="${item.title}" loading="lazy">
+                        <img src="${item.image}" alt="${item.title}" loading="lazy" width="300" height="200" style="aspect-ratio: 3/2; object-fit: cover;">
                     </a>
                     <div class="news-card-content">
                         <a href="${item.link}"><h3>${item.title}</h3></a>
