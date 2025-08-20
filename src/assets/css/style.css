@@ -54,7 +54,7 @@ body {
     flex-direction: column;
     min-height: 100vh;
 }
-html.fonts-loaded body {
+body {
     font-family: 'Vazirmatn', sans-serif;
 }
 body.dark-theme {
