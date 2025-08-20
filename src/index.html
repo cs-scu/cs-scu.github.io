@@ -13,54 +13,56 @@
     <link rel="stylesheet" href="assets/css/fonts.css">
 
     <style>
+    /* 1. Preloader styles for instant display */
+    body.preloader-active{overflow:hidden}
+    #preloader{position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);background-color:rgba(0,0,0,.4);transition:opacity .5s,visibility .5s}
+    #preloader.hidden{opacity:0;visibility:hidden}
+    .dot-spinner{--uib-size:60px;--uib-speed:1.2s;--uib-color:#ffffff;display:flex;gap:15px}
+    .dot-spinner__dot{width:calc(var(--uib-size) * .2);height:calc(var(--uib-size) * .2);border-radius:50%;background-color:var(--uib-color);animation:wave var(--uib-speed) ease-in-out infinite}
+    .dot-spinner__dot:nth-child(2){animation-delay:-.2s}
+    .dot-spinner__dot:nth-child(3){animation-delay:-.4s}
+    @keyframes wave{0%,100%,60%{transform:scale(1)}30%{transform:scale(1.5)}}
 
-
+    /* 2. Other critical styles */
     :root{--primary-color:#e8c38e;--primary-color-light-theme:#1a5c5d;--background-color-dark:#012a2b;--text-color-dark:rgba(255, 255, 255, 0.9);--glass-bg-dark:rgba(20, 20, 20, 0.25);--glass-border-dark:rgba(232, 195, 142, 0.2);--background-color-light:#f0f2f5;--text-color-light:#333;--glass-bg-light:rgba(255, 255, 255, 0.5);--glass-border-light:rgba(0, 0, 0, 0.1)}
-  *{margin:0;padding:0;box-sizing:border-box}
-  html,body{overflow-x:hidden}
-  body{font-family:'Vazirmatn',Arial,sans-serif;transition:background-color .4s,color .4s;display:flex;flex-direction:column;min-height:100vh}
-  body.dark-theme{background-color:var(--background-color-dark);color:var(--text-color-dark)}
-  body.light-theme{background-color:var(--background-color-light);color:var(--text-color-light)}
-  a{color:var(--primary-color);text-decoration:none;transition:filter .2s ease-in-out}
-  body.light-theme a{color:var(--primary-color-light-theme)}
-  a:hover,a:focus{filter:brightness(1.2)}
-  .container{width:90%;max-width:1200px;margin:0 auto}
-
-  /* Header, Menu, and Theme Toggle */
-  .sticky-container{position:-webkit-sticky;position:sticky;top:0;z-index:1000}
-  .main-header .container{display:flex;align-items:center;justify-content:space-between;position:relative;padding:.2rem;border-radius:0 0 15px 15px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:none;transition:background-color .4s,border-color .4s}
-  body.dark-theme .main-header .container{background:rgba(1,42,43,.3);border:1px solid var(--glass-border-dark)}
-  body.light-theme .main-header .container{background:rgba(255,255,255,.4);border:1px solid var(--glass-border-light)}
-  .logo{font-weight:700;font-size:1.2rem;text-decoration:none}
-  body.dark-theme .logo{color:var(--primary-color)}
-  body.light-theme .logo{color:var(--primary-color-light-theme)}
-  .menu-wrapper{position:relative;display:flex;align-items:center}
-  #mobile-menu-toggle{display:flex;background:0 0;border:none;cursor:pointer;padding:.5rem;color:inherit}
-  #theme-toggle{background:0 0;border:none;cursor:pointer;padding:.5rem;display:flex;align-items:center;color:inherit}
-  #theme-toggle svg{stroke:currentColor;transition:color .3s}
-  #theme-toggle .sun,#theme-toggle .moon,#theme-toggle .system{display:none}
-  #theme-toggle[data-theme-state=light] .sun{display:block}
-  #theme-toggle[data-theme-state=dark] .moon{display:block}
-  #theme-toggle[data-theme-state=system] .system{display:block}
-
-  /* Main Content & Hero Section */
-  main{padding-top:2rem;transition:opacity .3s ease-in-out;flex-grow:1}
-  main.is-loading{opacity:0}
-  .hero{min-height:50vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem 0}
-  .hero h1{font-size:clamp(2.5rem,6vw,3.5rem);margin-bottom:1rem}
-  .hero p{font-size:clamp(1rem,2.5vw,1.2rem);max-width:900px;margin:0 auto 2rem}
-  body.dark-theme .hero h1{color:var(--primary-color);animation:pulse-glow 4s ease-in-out infinite}
-  body.light-theme .hero h1{color:var(--primary-color-light-theme)}
-  @keyframes pulse-glow{0%,100%{text-shadow:0 0 10px rgba(255,149,0,.3)}50%{text-shadow:0 0 25px rgba(232,195,142,.8)}}
-
-  /* Buttons */
-  .btn{display:inline-block;padding:.8rem 2rem;border-radius:50px;text-decoration:none;font-weight:700;transition:all .2s ease-in-out;cursor:pointer;border:2px solid transparent}
-  .btn.disabled,.btn:disabled{cursor:not-allowed;opacity:.5;pointer-events:none}
-  body.dark-theme .btn-primary{background-color:var(--primary-color);color:var(--background-color-dark)}
-  body.dark-theme .btn-primary:hover{border-color:#b38e5c;filter:brightness(1.1)}
-  body.light-theme .btn-primary{background-color:var(--primary-color-light-theme);color:#fff}
-  body.light-theme .btn-primary:hover{border-color:rgba(0,0,0,.4);filter:brightness(1.1)}
-  
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{overflow-x:hidden}
+    body{font-family:'Vazirmatn',Arial,sans-serif;transition:background-color .4s,color .4s;display:flex;flex-direction:column;min-height:100vh}
+    body.dark-theme{background-color:var(--background-color-dark);color:var(--text-color-dark)}
+    body.light-theme{background-color:var(--background-color-light);color:var(--text-color-light)}
+    a{color:var(--primary-color);text-decoration:none;transition:filter .2s ease-in-out}
+    body.light-theme a{color:var(--primary-color-light-theme)}
+    a:hover,a:focus{filter:brightness(1.2)}
+    .container{width:90%;max-width:1200px;margin:0 auto}
+    .sticky-container{position:-webkit-sticky;position:sticky;top:0;z-index:1000}
+    .main-header .container{display:flex;align-items:center;justify-content:space-between;position:relative;padding:.2rem;border-radius:0 0 15px 15px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:none;transition:background-color .4s,border-color .4s}
+    body.dark-theme .main-header .container{background:rgba(1,42,43,.3);border:1px solid var(--glass-border-dark)}
+    body.light-theme .main-header .container{background:rgba(255,255,255,.4);border:1px solid var(--glass-border-light)}
+    .logo{font-weight:700;font-size:1.2rem;text-decoration:none}
+    body.dark-theme .logo{color:var(--primary-color)}
+    body.light-theme .logo{color:var(--primary-color-light-theme)}
+    .menu-wrapper{position:relative;display:flex;align-items:center}
+    #mobile-menu-toggle{display:flex;background:0 0;border:none;cursor:pointer;padding:.5rem;color:inherit}
+    #theme-toggle{background:0 0;border:none;cursor:pointer;padding:.5rem;display:flex;align-items:center;color:inherit}
+    #theme-toggle svg{stroke:currentColor;transition:color .3s}
+    #theme-toggle .sun,#theme-toggle .moon,#theme-toggle .system{display:none}
+    #theme-toggle[data-theme-state=light] .sun{display:block}
+    #theme-toggle[data-theme-state=dark] .moon{display:block}
+    #theme-toggle[data-theme-state=system] .system{display:block}
+    main{padding-top:2rem;transition:opacity .3s ease-in-out;flex-grow:1}
+    main.is-loading{opacity:0}
+    .hero{min-height:50vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem 0}
+    .hero h1{font-size:clamp(2.5rem,6vw,3.5rem);margin-bottom:1rem}
+    .hero p{font-size:clamp(1rem,2.5vw,1.2rem);max-width:900px;margin:0 auto 2rem}
+    body.dark-theme .hero h1{color:var(--primary-color);animation:pulse-glow 4s ease-in-out infinite}
+    body.light-theme .hero h1{color:var(--primary-color-light-theme)}
+    @keyframes pulse-glow{0%,100%{text-shadow:0 0 10px rgba(255,149,0,.3)}50%{text-shadow:0 0 25px rgba(232,195,142,.8)}}
+    .btn{display:inline-block;padding:.8rem 2rem;border-radius:50px;text-decoration:none;font-weight:700;transition:all .2s ease-in-out;cursor:pointer;border:2px solid transparent}
+    .btn.disabled,.btn:disabled{cursor:not-allowed;opacity:.5;pointer-events:none}
+    body.dark-theme .btn-primary{background-color:var(--primary-color);color:var(--background-color-dark)}
+    body.dark-theme .btn-primary:hover{border-color:#b38e5c;filter:brightness(1.1)}
+    body.light-theme .btn-primary{background-color:var(--primary-color-light-theme);color:#fff}
+    body.light-theme .btn-primary:hover{border-color:rgba(0,0,0,.4);filter:brightness(1.1)}
     </style>
 
     <link rel="stylesheet" href="assets/css/style.css" media="print" onload="this.media='all'">
