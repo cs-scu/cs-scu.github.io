@@ -6448,6 +6448,5 @@ body.dark-theme .progress-bar-inner {
   color: var(--primary);
   
   /* --- اعمال انیمیشن نرم و مدرن --- */
-  /* زمان طولانی‌تر برای یک حرکت بسیار نرم و آرام */
   animation: soft-glow-animation 2.3s infinite cubic-bezier(0.4, 0, 1, 1);
 }
