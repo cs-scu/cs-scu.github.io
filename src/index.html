@@ -10,12 +10,19 @@
     
     <link rel="icon" href="https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/ui/icons/favicon.png" type="image/png">
     
-    <link rel="preload" href="assets/fonts/Vazirmatn-VF.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="assets/css/style.css" as="style">
-    <link rel="stylesheet" href="assets/css/fonts.css">
+    <link rel="preload" href="assets/fonts/Vazirmatn.woff2" as="font" type="font/woff2" crossorigin>
 
     <style>
-    /* 1. Preloader styles for instant display */
+    /* Font Definition from fonts.css is now inlined */
+    @font-face {
+      font-family: 'Vazirmatn';
+      src: url('assets/fonts/Vazirmatn.woff2') format('woff2'); /* Correct format for non-variable woff2 */
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    /* Preloader styles */
     body.preloader-active{overflow:hidden}
     #preloader{position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);background-color:rgba(0,0,0,.4);transition:opacity .5s,visibility .5s}
     #preloader.hidden{opacity:0;visibility:hidden}
@@ -25,7 +32,7 @@
     .dot-spinner__dot:nth-child(3){animation-delay:-.4s}
     @keyframes wave{0%,100%,60%{transform:scale(1)}30%{transform:scale(1.5)}}
 
-    /* 2. Other critical styles */
+    /* Other critical styles */
     :root{--primary-color:#e8c38e;--primary-color-light-theme:#1a5c5d;--background-color-dark:#012a2b;--text-color-dark:rgba(255, 255, 255, 0.9);--glass-bg-dark:rgba(20, 20, 20, 0.25);--glass-border-dark:rgba(232, 195, 142, 0.2);--background-color-light:#f0f2f5;--text-color-light:#333;--glass-bg-light:rgba(255, 255, 255, 0.5);--glass-border-light:rgba(0, 0, 0, 0.1)}
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{overflow-x:hidden}
@@ -69,7 +76,6 @@
 
     <link rel="stylesheet" href="assets/css/style.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="assets/css/style.css"></noscript>
-
 </head>
 <body>
 
