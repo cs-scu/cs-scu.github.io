@@ -337,7 +337,7 @@ const initializeUploaderModal = () => {
         else fetchFiles();
     };
 
-const handleFileUpload = async (files) => {
+    const handleFileUpload = async (files) => {
         // Get Supabase credentials from the existing client
         const supabaseUrl = supabaseClient.storage.url;
         const supabaseKey = supabaseClient.storage.headers.apikey;
@@ -347,16 +347,22 @@ const handleFileUpload = async (files) => {
 
         if (sessionError || !session) {
             console.error('Authentication Error:', sessionError?.message || 'No active session');
-            // Optionally, display an error to the user
             alert('خطای احراز هویت. لطفاً دوباره وارد شوید.');
-            // You might want to redirect to the login page here
-            // window.location.href = '/login.html';
             return;
         }
 
         const accessToken = session.access_token;
+        const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
 
         for (const file of files) {
+            // --- START: SECURITY FIX ---
+            // 1. Validate file type before processing
+            if (!allowedImageTypes.includes(file.type)) {
+                alert(`خطا: فرمت فایل "${file.name}" مجاز نیست. فقط فایل‌های تصویری (jpeg, png, gif, webp, svg) پذیرفته می‌شوند.`);
+                continue; // Skip this file and move to the next one
+            }
+            // --- END: SECURITY FIX ---
+
             const progressId = `progress-${file.name}-${Date.now()}`;
             const progressElement = document.createElement('div');
             progressElement.id = progressId;
@@ -380,11 +386,10 @@ const handleFileUpload = async (files) => {
 
             xhr.open('POST', uploadUrl, true);
 
-            // Use the public anon key for 'apikey' header
             xhr.setRequestHeader('apikey', supabaseKey);
-            // Use the user's access token for the 'Authorization' header
             xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
-            xhr.setRequestHeader('x-upsert', 'false'); // Or 'true' to allow overwriting
+            xhr.setRequestHeader('x-upsert', 'false');
+            // Set content type from validated file type
             xhr.setRequestHeader('Content-Type', file.type);
 
             xhr.upload.onprogress = (event) => {
@@ -413,7 +418,6 @@ const handleFileUpload = async (files) => {
                     if (percentageSpan && progressBarInner) {
                         try {
                             const response = JSON.parse(xhr.responseText);
-                            // Provide a more specific error for JWT issues
                             if (response.message === 'Invalid JWT' || response.error === 'Invalid JWT') {
                                 percentageSpan.textContent = `خطا: نشست نامعتبر. لطفاً دوباره وارد شوید.`;
                             } else {
