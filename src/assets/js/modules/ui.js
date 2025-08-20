@@ -71,11 +71,23 @@ const formatTimeAgo = (dateString) => {
         day: 'numeric'
     });
 };
+
 // A simple function to sanitize HTML and prevent XSS
 const sanitizeHTML = (str) => {
-    const temp = document.createElement('div');
-    temp.textContent = str;
-    return temp.innerHTML;
+    // --- START: SECURITY & NEWLINE FIX ---
+    if (!str) return '';
+
+    // 1. First, escape essential HTML characters to prevent XSS attacks.
+    const escapedStr = str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+    // 2. Then, convert newline characters to <br> tags to preserve formatting.
+    return escapedStr.replace(/\r\n|\r|\n/g, '<br>');
+    // --- END: SECURITY & NEWLINE FIX ---
 };
 
 export const showProfileModal = async () => {
