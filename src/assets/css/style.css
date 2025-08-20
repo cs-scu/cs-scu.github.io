@@ -6422,33 +6422,32 @@ body.dark-theme .progress-bar-inner {
 
 
 /* ================================== */
-/* Simple Pulsing Note Animation      */
+/* Soft & Modern Glow Animation       */
 /* ================================== */
 
-@keyframes simple-color-pulse {
-  0% {
-    background-color: rgba(var(--primary-rgb), 0.1);
-    border-color: rgba(var(--primary-rgb), 0.2);
+@keyframes soft-glow-animation {
+  /* در ابتدا و انتهای انیمیشن، متن کمی شفاف است */
+  0%, 100% {
+    opacity: 0.60;
+    text-shadow: none;
   }
+  
+  /* در میانه انیمیشن، متن کاملاً واضح شده و یک درخشش ملایم پیدا می‌کند */
   50% {
-    background-color: rgba(var(--primary-rgb), 0.15);
-    border-color: rgba(var(--primary-rgb), 0.4);
-  }
-  100% {
-    background-color: rgba(var(--primary-rgb), 0.1);
-    border-color: rgba(var(--primary-rgb), 0.2);
+    opacity: 1;
+    text-shadow: 0 0 50px rgba(var(--primary-rgb), 0.3);
   }
 }
 
 .pulsing-note {
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 500; /* کمی ضخیم‌تر برای نمایش بهتر افکت */
   margin-top: 1.5rem;
   padding: 10px;
-  border-radius: 8px;
-  border: 1px solid;
   color: var(--primary);
   
-  /* --- اعمال انیمیشن ساده --- */
-  animation: simple-color-pulse 2s infinite ease-in-out;
+  /* --- اعمال انیمیشن نرم و مدرن --- */
+  /* زمان طولانی‌تر برای یک حرکت بسیار نرم و آرام */
+  animation: soft-glow-animation 2.3s infinite cubic-bezier(0.4, 0, 1, 1);
 }
