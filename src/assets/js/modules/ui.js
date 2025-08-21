@@ -1643,12 +1643,26 @@ const buildCommentTree = (comments) => {
 };
 
 const renderComment = (comment) => {
+    // تابع کمکی برای بررسی اینکه آیا یک کامنت، پاسخی دارد که حذف نشده باشد
+    const hasVisibleReplies = (c) => {
+        // اگر کامنت پاسخی ندارد، نتیجه منفی است
+        if (!c.replies || c.replies.length === 0) {
+            return false;
+        }
+        // بررسی می‌کند که آیا حداقل یکی از پاسخ‌ها یا قابل مشاهده است (حذف نشده)
+        // یا خودش پاسخی قابل مشاهده دارد (بررسی بازگشتی)
+        return c.replies.some(reply => reply.user_id !== null || hasVisibleReplies(reply));
+    };
+
+    // اگر کامنت حذف شده باشد
     if (comment.user_id === null) {
-        return `
+        // فقط در صورتی آن را نمایش بده که پاسخ قابل مشاهده‌ای داشته باشد
+        if (hasVisibleReplies(comment)) {
+            return `
         <div class="comment-item is-deleted" id="comment-${comment.id}" data-comment-id="${comment.id}">
             <div class="comment-main">
                 <div class="comment-content">
-                    <p><em>${sanitizeHTML(comment.content)}</em></p>
+                    <p><em>[این دیدگاه حذف شده است]</em></p>
                 </div>
             </div>
             <div class="comment-replies">
@@ -1656,8 +1670,13 @@ const renderComment = (comment) => {
             </div>
         </div>
     `;
+        } else {
+            // در غیر این صورت، کامنت حذف شده را اصلا نمایش نده
+            return '';
+        }
     }
 
+    // بقیه کدهای تابع برای نمایش کامنت‌های عادی بدون تغییر باقی می‌ماند
     const userVote = comment.user_vote;
     const authorName = comment.author?.full_name || 'یک کاربر';
     const authorAvatar = (state.user?.id === comment.user_id ? state.user.user_metadata?.avatar_url : null) || DEFAULT_AVATAR_URL;

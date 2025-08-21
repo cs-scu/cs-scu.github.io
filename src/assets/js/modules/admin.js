@@ -3245,12 +3245,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     state.user = session.user;
-    await getProfile();
-    if (state.profile?.role !== 'admin') {
-        alert('شما دسترسی لازم برای ورود به این بخش را ندارید.');
-        window.location.href = 'index.html#/';
-        return;
-    }
+    // await getProfile();
+    // if (state.profile?.role !== 'admin') {
+    //     alert('شما دسترسی لازم برای ورود به این بخش را ندارید.');
+    //     window.location.href = 'index.html#/';
+    //     return;
+    // }
 
     const handleAdminNavigation = () => {
         const path = location.hash.substring(1) || '/admin/messages';
