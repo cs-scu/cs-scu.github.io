@@ -6450,3 +6450,156 @@ body.dark-theme .progress-bar-inner {
   /* --- اعمال انیمیشن نرم و مدرن --- */
   animation: soft-glow-animation 2.3s infinite cubic-bezier(0.4, 0, 1, 1);
 }
+
+/* ================== Enhanced Footer Styles ================== */
+.main-footer .container {
+    padding-top: 2rem;
+    padding-bottom: 1.5rem;
+}
+
+.footer-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 2rem;
+    text-align: right;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid;
+}
+
+body.dark-theme .footer-content {
+    border-bottom-color: var(--glass-border-dark);
+}
+
+body.light-theme .footer-content {
+    border-bottom-color: var(--glass-border-light);
+}
+
+.footer-column {
+    flex: 1;
+    min-width: 220px;
+}
+
+.footer-column h4 {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+body.dark-theme .footer-column h4 {
+    color: var(--primary-color);
+}
+
+body.light-theme .footer-column h4 {
+    color: var(--primary-color-light-theme);
+}
+
+.footer-column p {
+    line-height: 1.8;
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+.footer-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-nav li {
+    margin-bottom: 0.75rem;
+}
+
+.footer-nav a {
+    text-decoration: none;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.footer-nav a:hover {
+    opacity: 1;
+    filter: brightness(1.2); /* Existing hover effect */
+}
+
+.footer-nav a.cta-link {
+    font-weight: bold;
+    opacity: 1;
+}
+
+.footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.footer-bottom .copyright {
+    margin: 0;
+}
+
+.footer-legal a {
+    margin: 0 0.5rem;
+}
+
+@media (max-width: 700px) {
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    .footer-bottom {
+        flex-direction: column;
+    }
+}
+/* ================== Terms Agreement Text Styles ================== */
+.terms-agreement-text {
+    text-align: center;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    /* این خط تغییر کرده تا فاصله قبل از دکمه‌ها تنظیم شود */
+    margin: 1.5rem 0 0 0; 
+    color: var(--text-color-light);
+    opacity: 0.8;
+}
+
+body.dark-theme .terms-agreement-text {
+    color: var(--text-color-dark);
+}
+
+.terms-agreement-text a {
+    text-decoration: underline;
+    font-weight: bold;
+}
+/* ================== Footer Creator Credit ================== */
+.footer-credit {
+    width: 100%;
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid;
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+body.dark-theme .footer-credit {
+    border-top-color: var(--glass-border-dark);
+}
+
+body.light-theme .footer-credit {
+    border-top-color: var(--glass-border-light);
+}
+
+.footer-credit p {
+    margin: 0;
+}
+
+.footer-credit a {
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.footer-credit a:hover {
+    text-decoration: underline;
+}
