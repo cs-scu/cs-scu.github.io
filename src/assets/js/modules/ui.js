@@ -1063,6 +1063,25 @@ const handleModalClick = async (e, eventData, scheduleData) => {
 };
 // END: پایان تابع جایگزین شده
 export const initializeGlobalUI = () => {
+    const header = document.querySelector('.sticky-container');
+    if (header) {
+        let lastScrollY = window.scrollY;
+        const headerHeight = header.offsetHeight;
+
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+
+            if (currentScrollY > lastScrollY && currentScrollY > headerHeight) {
+                // Scrolling Down
+                header.classList.add('is-hidden');
+            } else {
+                // Scrolling Up
+                header.classList.remove('is-hidden');
+            }
+
+            lastScrollY = currentScrollY;
+        });
+    }
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const mobileDropdownMenu = document.getElementById('mobile-dropdown-menu');
     if (mobileMenuToggle && mobileDropdownMenu) {

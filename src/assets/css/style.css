@@ -6603,3 +6603,17 @@ body.light-theme .footer-credit {
 .footer-credit a:hover {
     text-decoration: underline;
 }
+
+/* ================== Smart Sticky Header ================== */
+.sticky-container {
+    position: fixed; /* Changed from sticky to fixed */
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease-in-out; /* Smooth animation */
+}
+
+/* This class will be added by JavaScript to hide the header */
+.sticky-container.is-hidden {
+    transform: translateY(-100%);
+}
