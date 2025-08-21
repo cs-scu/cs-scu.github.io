@@ -6617,3 +6617,14 @@ body.light-theme .footer-credit {
 .sticky-container.is-hidden {
     transform: translateY(-100%);
 }
+
+.comment-content{
+    font-size: 1rem;
+}
+
+
+@media (max-width: 425px) {
+    .comment-content{
+    font-size: 0.9rem;
+    }
+}
