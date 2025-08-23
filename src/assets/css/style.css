@@ -5804,9 +5804,15 @@ body.light-theme .preview-session-card {
 body.light-theme .session-link-btn{
     background-color: var(--primary-color-light-theme);
 }
+body.light-theme a.session-link-btn{
+    color: #fff;
+}
 body.dark-theme .session-link-btn{
     background-color: var(--primary-color);
     color: var(--text-color-light);
+}
+body.dark-theme a.session-link-btn{
+    color: #000;
 }
 
 :root[data-theme="dark"] .session-link-btn {
@@ -6627,4 +6633,9 @@ body.light-theme .footer-credit {
     .comment-content{
     font-size: 0.9rem;
     }
+}
+#visual-editor-controls-event .btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
 }

@@ -2165,302 +2165,302 @@ visualEditorContainer.addEventListener('click', (e) => {
     });
 };
 
-const initializeEventsModule = async () => {
-    const eventForm = document.getElementById('add-event-form');
-    if (!eventForm) return;
+    const initializeEventsModule = async () => {
+        const eventForm = document.getElementById('add-event-form');
+        if (!eventForm) return;
 
-    let selectedTagIds = [];
-    let currentImageUrl = '';
-    let imageUrlToDelete = null;
-    let dateRangePickerInstance = initializeDatepicker();
-    let eventBeingEdited = null;
+        let selectedTagIds = [];
+        let currentImageUrl = '';
+        let imageUrlToDelete = null;
+        let dateRangePickerInstance = initializeDatepicker();
+        let eventBeingEdited = null;
 
-    const regDateRangeInput = document.getElementById('registration-date-range');
-    let regDateRangePicker = null;
+        const regDateRangeInput = document.getElementById('registration-date-range');
+        let regDateRangePicker = null;
 
-    if (regDateRangeInput) {
-        regDateRangePicker = flatpickr(regDateRangeInput, {
-            mode: "range",
-            locale: "fa",
-            altInput: true,
-            altFormat: "Y/m/d",
-            dateFormat: "Y-m-d"
-        });
-    }
-
-    const formTitle = document.getElementById('event-form-title');
-    const submitBtn = document.getElementById('event-submit-btn');
-    const cancelBtn = document.getElementById('cancel-edit-btn');
-    const hiddenIdInput = document.getElementById('event-id');
-    const adminListContainer = document.getElementById('events-admin-list');
-    const imageUploadInput = document.getElementById('event-image-upload');
-    const locationInput = document.getElementById('event-location');
-    const locationToggle = document.getElementById('toggle-location-online');
-    const costInput = document.getElementById('event-cost');
-    const costToggle = document.getElementById('toggle-cost-free');
-    
-    const capacityInput = document.getElementById('event-capacity');
-    const capacityToggle = document.getElementById('toggle-capacity-unlimited');
-    const detailPageInput = document.getElementById('event-detail-page');
-    const instructorInput = document.getElementById('event-instructor');
-    const paymentInfoSection = document.getElementById('payment-info-section');
-    const paymentNumberInput = document.getElementById('payment-number');
-    const contactPhoneInput = document.getElementById('contact-phone');
-    const contactTelegramInput = document.getElementById('contact-telegram');
-    const contactWhatsappInput = document.getElementById('contact-whatsapp');
-    const imageUploadControls = eventForm.querySelector('.image-upload-controls');
-    const fileNameDisplay = imageUploadControls ? imageUploadControls.querySelector('.file-name-display') : null;
-    const fileClearBtn = imageUploadControls ? imageUploadControls.querySelector('.file-clear-btn') : null;
-    const fileSelectBtn = imageUploadControls ? imageUploadControls.querySelector('.file-select-btn') : null;
-    const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
-    const selectedTagsDisplay = document.getElementById('selected-tags-display');
-    
-    // START: Editor variables
-    const visualEditorContainer = document.getElementById('visual-editor-container-event');
-    const visualEditorControls = document.getElementById('visual-editor-controls-event');
-    const contentTextarea = document.getElementById('event-content');
-    
-    const previewModal = document.getElementById('admin-preview-modal');
-    const livePreviewEventContent = document.getElementById('live-preview-event-content');
-    const livePreviewScheduleCards = document.getElementById('live-preview-schedule-cards');
-    const togglePreviewFab = document.getElementById('toggle-preview-fab');
-
-    const scheduleEditorContainer = document.getElementById('schedule-editor-container');
-    const scheduleTextarea = document.getElementById('event-schedule');
-    const addSessionBtn = document.getElementById('add-session-btn');
-    // END: Editor variables
-
-    const toEnglishNumber = (str) => {
-        if (str === null || str === undefined) return '';
-        const persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-        const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-        return String(str).replace(/ تومان/g, '').replace(/٬|,/g, '').trim().split('').map(c => english[persian.indexOf(c)] || c).join('');
-    };
-
-    const formatNumber = (num) => {
-        if (num === null || num === undefined || num === '') return '';
-        const number = Number(num);
-        if (isNaN(number)) return '';
-        return new Intl.NumberFormat('fa-IR').format(number);
-    };
-
-    if (costInput) {
-        costInput.addEventListener('input', (e) => {
-            if (costToggle.checked) return;
-            const sanitizedValue = toEnglishNumber(e.target.value).replace(/[^0-9]/g, '');
-            e.target.value = formatNumber(sanitizedValue);
-        });
-    
-        costInput.addEventListener('focus', (e) => {
-            if (costToggle.checked) return;
-            e.target.value = toEnglishNumber(e.target.value);
-        });
-    
-        costInput.addEventListener('blur', (e) => {
-            if (costToggle.checked || !e.target.value) return;
-            const numericValue = toEnglishNumber(e.target.value);
-            if (numericValue && !isNaN(numericValue)) {
-                e.target.value = `${formatNumber(numericValue)} تومان`;
-            } else {
-                e.target.value = '';
-            }
-        });
-    }
-
-    if (paymentNumberInput) {
-        paymentNumberInput.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/[^0-9-]/g, '').replace(/-/g, '');
-            let formattedValue = '';
-            for (let i = 0; i < value.length; i++) {
-                if (i > 0 && i % 4 === 0) {
-                    formattedValue += '-';
-                }
-                formattedValue += value[i];
-            }
-            e.target.value = formattedValue;
-        });
-    }
-
-    const updateSelectedTagsDisplay = () => {
-        if (!selectedTagsDisplay) return;
-        selectedTagsDisplay.innerHTML = selectedTagIds.length > 0
-            ? selectedTagIds.map(id => `<span class="tag">${state.tagsMap.get(id) || '?'}</span>`).join('')
-            : 'هیچ تگی انتخاب نشده است.';
-    };
-
-    if (openTagsModalBtn) {
-        openTagsModalBtn.addEventListener('click', () => {
-            window.openTagsModal(selectedTagIds, (newSelectedIds) => {
-                selectedTagIds = newSelectedIds;
-                updateSelectedTagsDisplay();
-            });
-        });
-    }
-
-    const setupSmartContactInputs = () => {
-        const sanitizePhoneNumber = (phone) => {
-            let sanitized = phone.trim().replace(/[^\d+]/g, '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-            if (sanitized.startsWith('+98')) return sanitized.substring(3);
-            if (sanitized.startsWith('0098')) return sanitized.substring(4);
-            if (sanitized.startsWith('0')) return sanitized.substring(1);
-            return sanitized;
-        };
-        if (contactTelegramInput) {
-            contactTelegramInput.addEventListener('blur', () => {
-                let value = contactTelegramInput.value.trim();
-                if (!value || value.startsWith('https://t.me/')) return;
-                if (value.startsWith('@')) value = `https://t.me/${value.substring(1)}`;
-                else { const phone = sanitizePhoneNumber(value); if (/^9\d{9}$/.test(phone)) value = `https://t.me/+98${phone}`; }
-                contactTelegramInput.value = value;
+        if (regDateRangeInput) {
+            regDateRangePicker = flatpickr(regDateRangeInput, {
+                mode: "range",
+                locale: "fa",
+                altInput: true,
+                altFormat: "Y/m/d",
+                dateFormat: "Y-m-d"
             });
         }
-        if (contactWhatsappInput) {
-            contactWhatsappInput.addEventListener('blur', () => {
-                let value = contactWhatsappInput.value.trim();
-                if (!value || value.startsWith('https://wa.me/')) return;
-                const phone = sanitizePhoneNumber(value);
-                if (/^9\d{9}$/.test(phone)) value = `https://wa.me/98${phone}`;
-                contactWhatsappInput.value = value;
-            });
-        }
-    };
-    setupSmartContactInputs();
 
-    const togglePaymentFields = () => {
-        if (!paymentInfoSection || !costToggle) return;
-        paymentInfoSection.style.display = costToggle.checked ? 'none' : 'block';
-    };
-    if(costToggle) costToggle.addEventListener('change', togglePaymentFields);
-
-    const updateImageUploadUI = (fileName) => {
-        if (!fileNameDisplay || !fileSelectBtn || !fileClearBtn) return;
-        const isEditing = !!hiddenIdInput.value;
-        const hasFile = !!fileName;
-
-        fileNameDisplay.textContent = hasFile ? fileName : 'فایلی انتخاب نشده';
-        fileSelectBtn.textContent = isEditing && hasFile ? 'تغییر تصویر' : 'انتخاب تصویر';
+        const formTitle = document.getElementById('event-form-title');
+        const submitBtn = document.getElementById('event-submit-btn');
+        const cancelBtn = document.getElementById('cancel-edit-btn');
+        const hiddenIdInput = document.getElementById('event-id');
+        const adminListContainer = document.getElementById('events-admin-list');
+        const imageUploadInput = document.getElementById('event-image-upload');
+        const locationInput = document.getElementById('event-location');
+        const locationToggle = document.getElementById('toggle-location-online');
+        const costInput = document.getElementById('event-cost');
+        const costToggle = document.getElementById('toggle-cost-free');
         
-        fileClearBtn.style.display = isEditing ? 'none' : (hasFile ? 'inline-block' : 'none');
-    };
+        const capacityInput = document.getElementById('event-capacity');
+        const capacityToggle = document.getElementById('toggle-capacity-unlimited');
+        const detailPageInput = document.getElementById('event-detail-page');
+        const instructorInput = document.getElementById('event-instructor');
+        const paymentInfoSection = document.getElementById('payment-info-section');
+        const paymentNumberInput = document.getElementById('payment-number');
+        const contactPhoneInput = document.getElementById('contact-phone');
+        const contactTelegramInput = document.getElementById('contact-telegram');
+        const contactWhatsappInput = document.getElementById('contact-whatsapp');
+        const imageUploadControls = eventForm.querySelector('.image-upload-controls');
+        const fileNameDisplay = imageUploadControls ? imageUploadControls.querySelector('.file-name-display') : null;
+        const fileClearBtn = imageUploadControls ? imageUploadControls.querySelector('.file-clear-btn') : null;
+        const fileSelectBtn = imageUploadControls ? imageUploadControls.querySelector('.file-select-btn') : null;
+        const openTagsModalBtn = document.getElementById('open-tags-modal-btn');
+        const selectedTagsDisplay = document.getElementById('selected-tags-display');
+        
+        // START: Editor variables
+        const visualEditorContainer = document.getElementById('visual-editor-container-event');
+        const visualEditorControls = document.getElementById('visual-editor-controls-event');
+        const contentTextarea = document.getElementById('event-content');
+        
+        const previewModal = document.getElementById('admin-preview-modal');
+        const livePreviewEventContent = document.getElementById('live-preview-event-content');
+        const livePreviewScheduleCards = document.getElementById('live-preview-schedule-cards');
+        const togglePreviewFab = document.getElementById('toggle-preview-fab');
 
-    if (imageUploadInput) {
-        imageUploadInput.addEventListener('change', () => {
-            const file = imageUploadInput.files[0];
-            if (file) {
-                if (currentImageUrl) {
-                    imageUrlToDelete = currentImageUrl; 
-                }
-                updateImageUploadUI(file.name);
-            }
-        });
-    }
+        const scheduleEditorContainer = document.getElementById('schedule-editor-container');
+        const scheduleTextarea = document.getElementById('event-schedule');
+        const addSessionBtn = document.getElementById('add-session-btn');
+        // END: Editor variables
 
-    if (fileClearBtn) {
-        fileClearBtn.addEventListener('click', () => {
-            imageUploadInput.value = '';
-            updateImageUploadUI('');
-        });
-    }
-    
-    const setupToggleSwitch = (input, toggle, options = {}) => {
-        if (!input || !toggle) return;
-        const { placeholderOnCheck = '' } = options;
-        const originalPlaceholder = input.placeholder;
-        toggle.addEventListener('change', () => {
-            input.disabled = toggle.checked;
-            input.value = '';
-            input.placeholder = toggle.checked ? placeholderOnCheck : originalPlaceholder;
-            if (!toggle.checked) input.focus();
-        });
-    };
-    
-    setupToggleSwitch(locationInput, locationToggle, { placeholderOnCheck: 'آنلاین' });
-    setupToggleSwitch(costInput, costToggle, { placeholderOnCheck: 'رایگان' });
-    setupToggleSwitch(capacityInput, capacityToggle, { placeholderOnCheck: 'نامحدود' });
+        const toEnglishNumber = (str) => {
+            if (str === null || str === undefined) return '';
+            const persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            return String(str).replace(/ تومان/g, '').replace(/٬|,/g, '').trim().split('').map(c => english[persian.indexOf(c)] || c).join('');
+        };
 
-    if(detailPageInput) detailPageInput.addEventListener('blur', () => { detailPageInput.value = detailPageInput.value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-_]/g, ''); });
-    
-    const safeJsonStringify = (obj) => { try { return obj ? JSON.stringify(obj, null, 2) : ''; } catch (e) { return typeof obj === 'string' ? obj : ''; } };
-    
-    // START: Visual & Schedule Editor Logic
-    const serializeEventEditor = () => {
-        const blocks = [];
-        visualEditorContainer.querySelectorAll('.editor-block').forEach(block => {
-            const type = block.dataset.type;
-            const data = {};
-            block.querySelectorAll('.block-data').forEach(input => {
-                const key = input.dataset.key;
-                if (input.classList.contains('content-editable')) {
-                    if (key === 'items') {
-                        data[key] = (input.innerText || '').split('\n').map(item => item.trim()).filter(Boolean);
-                    } else {
-                        data[key] = input.innerHTML;
-                    }
+        const formatNumber = (num) => {
+            if (num === null || num === undefined || num === '') return '';
+            const number = Number(num);
+            if (isNaN(number)) return '';
+            return new Intl.NumberFormat('fa-IR').format(number);
+        };
+
+        if (costInput) {
+            costInput.addEventListener('input', (e) => {
+                if (costToggle.checked) return;
+                const sanitizedValue = toEnglishNumber(e.target.value).replace(/[^0-9]/g, '');
+                e.target.value = formatNumber(sanitizedValue);
+            });
+        
+            costInput.addEventListener('focus', (e) => {
+                if (costToggle.checked) return;
+                e.target.value = toEnglishNumber(e.target.value);
+            });
+        
+            costInput.addEventListener('blur', (e) => {
+                if (costToggle.checked || !e.target.value) return;
+                const numericValue = toEnglishNumber(e.target.value);
+                if (numericValue && !isNaN(numericValue)) {
+                    e.target.value = `${formatNumber(numericValue)} تومان`;
                 } else {
-                    data[key] = input.value;
+                    e.target.value = '';
                 }
             });
-            blocks.push({ type, data });
-        });
-        contentTextarea.value = JSON.stringify(blocks, null, 2);
-    };
-
-    const renderEventEditorBlock = (type, data = {}) => {
-        const blockId = `event-block-${Date.now()}-${Math.random()}`;
-        const block = document.createElement('div');
-        block.className = 'editor-block';
-        block.id = blockId;
-        block.dataset.type = type;
-
-        const mainControls = `
-            <div class="editor-block-controls main-controls">
-                <button type="button" class="move-block-up" title="انتقال به بالا"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
-                <button type="button" class="move-block-down" title="انتقال به پایین"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></button>
-                <button type="button" class="delete-block-btn" title="حذف بلوک"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
-            </div>`;
-
-        let typeSpecificControls = '';
-        let fields = '';
-        const formatControls = `
-            <div class="header-format-selector">
-                <button type="button" class="format-btn" data-format="bold" title="بولد"><b>B</b></button>
-                <button type="button" class="format-btn" data-format="italic" title="ایتالیک"><i>I</i></button>
-                <button type="button" class="format-btn" data-format="link" title="افزودن لینک"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg></button>
-            </div>`;
-
-        switch (type) {
-             case 'header':
-                const level = data.level || 2;
-                typeSpecificControls = `<div class="editor-block-controls type-controls"><div class="header-level-selector"><input type="hidden" class="block-data" data-key="level" value="${level}"><button type="button" class="level-btn ${level == 2 ? 'active' : ''}" data-level="2" title="H2">A</button><button type="button" class="level-btn ${level == 3 ? 'active' : ''}" data-level="3" title="H3">A</button></div><div class="control-separator"></div>${formatControls}</div>`;
-                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن تیتر...">${data.text || ''}</div></div>`;
-                break;
-            case 'paragraph':
-                typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
-                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن پاراگراف...">${data.text || ''}</div></div>`;
-                break;
-            case 'list':
-                const style = data.style || 'unordered';
-                typeSpecificControls = `<div class="editor-block-controls type-controls"><div class="list-style-selector"><input type="hidden" class="block-data" data-key="style" value="${style}"><button type="button" class="list-style-btn ${style === 'unordered' ? 'active' : ''}" data-style="unordered" title="لیست نقطه‌ای"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button><button type="button" class="list-style-btn ${style === 'ordered' ? 'active' : ''}" data-style="ordered" title="لیست عددی"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6H8M21 12H8M21 18H8M4 6h1v4M4 12h1v6M4.2 18H4l.2 2H5"/></svg></button></div><div class="control-separator"></div>${formatControls}</div>`;
-                const items = Array.isArray(data.items) ? data.items.join('\n') : '';
-                fields = `<div class="form-group"><div class="content-editable block-data" data-key="items" contenteditable="true" placeholder="هر آیتم در یک خط...">${items}</div></div>`;
-                break;
-            case 'quote':
-                typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
-                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن نقل‌قول...">${data.text || ''}</div></div><div class="form-group"><input type="text" class="block-data" data-key="caption" placeholder="منبع (اختیاری)" value="${data.caption || ''}"></div>`;
-                break;
-            case 'image':
-                typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
-                fields = `<div class="form-row"><div class="form-group" style="flex: 2;"><input type="url" class="block-data" data-key="url" placeholder="آدرس تصویر..." value="${data.url || ''}"></div><div class="form-group" style="flex: 3;"><div class="content-editable block-data" data-key="caption" contenteditable="true" placeholder="کپشن (اختیاری)...">${data.caption || ''}</div></div></div>`;
-                break;
         }
-        block.innerHTML = mainControls + typeSpecificControls + fields;
-        return block;
-    };
-    
-    const addBlockToEventEditor = (type, data = {}) => {
-        const blockElement = renderEventEditorBlock(type, data);
-        visualEditorContainer.appendChild(blockElement);
-    };
+
+        if (paymentNumberInput) {
+            paymentNumberInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/[^0-9-]/g, '').replace(/-/g, '');
+                let formattedValue = '';
+                for (let i = 0; i < value.length; i++) {
+                    if (i > 0 && i % 4 === 0) {
+                        formattedValue += '-';
+                    }
+                    formattedValue += value[i];
+                }
+                e.target.value = formattedValue;
+            });
+        }
+
+        const updateSelectedTagsDisplay = () => {
+            if (!selectedTagsDisplay) return;
+            selectedTagsDisplay.innerHTML = selectedTagIds.length > 0
+                ? selectedTagIds.map(id => `<span class="tag">${state.tagsMap.get(id) || '?'}</span>`).join('')
+                : 'هیچ تگی انتخاب نشده است.';
+        };
+
+        if (openTagsModalBtn) {
+            openTagsModalBtn.addEventListener('click', () => {
+                window.openTagsModal(selectedTagIds, (newSelectedIds) => {
+                    selectedTagIds = newSelectedIds;
+                    updateSelectedTagsDisplay();
+                });
+            });
+        }
+
+        const setupSmartContactInputs = () => {
+            const sanitizePhoneNumber = (phone) => {
+                let sanitized = phone.trim().replace(/[^\d+]/g, '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+                if (sanitized.startsWith('+98')) return sanitized.substring(3);
+                if (sanitized.startsWith('0098')) return sanitized.substring(4);
+                if (sanitized.startsWith('0')) return sanitized.substring(1);
+                return sanitized;
+            };
+            if (contactTelegramInput) {
+                contactTelegramInput.addEventListener('blur', () => {
+                    let value = contactTelegramInput.value.trim();
+                    if (!value || value.startsWith('https://t.me/')) return;
+                    if (value.startsWith('@')) value = `https://t.me/${value.substring(1)}`;
+                    else { const phone = sanitizePhoneNumber(value); if (/^9\d{9}$/.test(phone)) value = `https://t.me/+98${phone}`; }
+                    contactTelegramInput.value = value;
+                });
+            }
+            if (contactWhatsappInput) {
+                contactWhatsappInput.addEventListener('blur', () => {
+                    let value = contactWhatsappInput.value.trim();
+                    if (!value || value.startsWith('https://wa.me/')) return;
+                    const phone = sanitizePhoneNumber(value);
+                    if (/^9\d{9}$/.test(phone)) value = `https://wa.me/98${phone}`;
+                    contactWhatsappInput.value = value;
+                });
+            }
+        };
+        setupSmartContactInputs();
+
+        const togglePaymentFields = () => {
+            if (!paymentInfoSection || !costToggle) return;
+            paymentInfoSection.style.display = costToggle.checked ? 'none' : 'block';
+        };
+        if(costToggle) costToggle.addEventListener('change', togglePaymentFields);
+
+        const updateImageUploadUI = (fileName) => {
+            if (!fileNameDisplay || !fileSelectBtn || !fileClearBtn) return;
+            const isEditing = !!hiddenIdInput.value;
+            const hasFile = !!fileName;
+
+            fileNameDisplay.textContent = hasFile ? fileName : 'فایلی انتخاب نشده';
+            fileSelectBtn.textContent = isEditing && hasFile ? 'تغییر تصویر' : 'انتخاب تصویر';
+            
+            fileClearBtn.style.display = isEditing ? 'none' : (hasFile ? 'inline-block' : 'none');
+        };
+
+        if (imageUploadInput) {
+            imageUploadInput.addEventListener('change', () => {
+                const file = imageUploadInput.files[0];
+                if (file) {
+                    if (currentImageUrl) {
+                        imageUrlToDelete = currentImageUrl; 
+                    }
+                    updateImageUploadUI(file.name);
+                }
+            });
+        }
+
+        if (fileClearBtn) {
+            fileClearBtn.addEventListener('click', () => {
+                imageUploadInput.value = '';
+                updateImageUploadUI('');
+            });
+        }
+        
+        const setupToggleSwitch = (input, toggle, options = {}) => {
+            if (!input || !toggle) return;
+            const { placeholderOnCheck = '' } = options;
+            const originalPlaceholder = input.placeholder;
+            toggle.addEventListener('change', () => {
+                input.disabled = toggle.checked;
+                input.value = '';
+                input.placeholder = toggle.checked ? placeholderOnCheck : originalPlaceholder;
+                if (!toggle.checked) input.focus();
+            });
+        };
+        
+        setupToggleSwitch(locationInput, locationToggle, { placeholderOnCheck: 'آنلاین' });
+        setupToggleSwitch(costInput, costToggle, { placeholderOnCheck: 'رایگان' });
+        setupToggleSwitch(capacityInput, capacityToggle, { placeholderOnCheck: 'نامحدود' });
+
+        if(detailPageInput) detailPageInput.addEventListener('blur', () => { detailPageInput.value = detailPageInput.value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-_]/g, ''); });
+        
+        const safeJsonStringify = (obj) => { try { return obj ? JSON.stringify(obj, null, 2) : ''; } catch (e) { return typeof obj === 'string' ? obj : ''; } };
+        
+        // START: Visual & Schedule Editor Logic
+        const serializeEventEditor = () => {
+            const blocks = [];
+            visualEditorContainer.querySelectorAll('.editor-block').forEach(block => {
+                const type = block.dataset.type;
+                const data = {};
+                block.querySelectorAll('.block-data').forEach(input => {
+                    const key = input.dataset.key;
+                    if (input.classList.contains('content-editable')) {
+                        if (key === 'items') {
+                            data[key] = (input.innerText || '').split('\n').map(item => item.trim()).filter(Boolean);
+                        } else {
+                            data[key] = input.innerHTML;
+                        }
+                    } else {
+                        data[key] = input.value;
+                    }
+                });
+                blocks.push({ type, data });
+            });
+            contentTextarea.value = JSON.stringify(blocks, null, 2);
+        };
+
+        const renderEventEditorBlock = (type, data = {}) => {
+            const blockId = `event-block-${Date.now()}-${Math.random()}`;
+            const block = document.createElement('div');
+            block.className = 'editor-block';
+            block.id = blockId;
+            block.dataset.type = type;
+
+            const mainControls = `
+                <div class="editor-block-controls main-controls">
+                    <button type="button" class="move-block-up" title="انتقال به بالا"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
+                    <button type="button" class="move-block-down" title="انتقال به پایین"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></button>
+                    <button type="button" class="delete-block-btn" title="حذف بلوک"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                </div>`;
+
+            let typeSpecificControls = '';
+            let fields = '';
+            const formatControls = `
+                <div class="header-format-selector">
+                    <button type="button" class="format-btn" data-format="bold" title="بولد"><b>B</b></button>
+                    <button type="button" class="format-btn" data-format="italic" title="ایتالیک"><i>I</i></button>
+                    <button type="button" class="format-btn" data-format="link" title="افزودن لینک"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg></button>
+                </div>`;
+
+            switch (type) {
+                case 'header':
+                    const level = data.level || 2;
+                    typeSpecificControls = `<div class="editor-block-controls type-controls"><div class="header-level-selector"><input type="hidden" class="block-data" data-key="level" value="${level}"><button type="button" class="level-btn ${level == 2 ? 'active' : ''}" data-level="2" title="H2">A</button><button type="button" class="level-btn ${level == 3 ? 'active' : ''}" data-level="3" title="H3">A</button></div><div class="control-separator"></div>${formatControls}</div>`;
+                    fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن تیتر...">${data.text || ''}</div></div>`;
+                    break;
+                case 'paragraph':
+                    typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
+                    fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن پاراگراف...">${data.text || ''}</div></div>`;
+                    break;
+                case 'list':
+                    const style = data.style || 'unordered';
+                    typeSpecificControls = `<div class="editor-block-controls type-controls"><div class="list-style-selector"><input type="hidden" class="block-data" data-key="style" value="${style}"><button type="button" class="list-style-btn ${style === 'unordered' ? 'active' : ''}" data-style="unordered" title="لیست نقطه‌ای"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button><button type="button" class="list-style-btn ${style === 'ordered' ? 'active' : ''}" data-style="ordered" title="لیست عددی"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6H8M21 12H8M21 18H8M4 6h1v4M4 12h1v6M4.2 18H4l.2 2H5"/></svg></button></div><div class="control-separator"></div>${formatControls}</div>`;
+                    const items = Array.isArray(data.items) ? data.items.join('\n') : '';
+                    fields = `<div class="form-group"><div class="content-editable block-data" data-key="items" contenteditable="true" placeholder="هر آیتم در یک خط...">${items}</div></div>`;
+                    break;
+                case 'quote':
+                    typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
+                    fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن نقل‌قول...">${data.text || ''}</div></div><div class="form-group"><input type="text" class="block-data" data-key="caption" placeholder="منبع (اختیاری)" value="${data.caption || ''}"></div>`;
+                    break;
+                case 'image':
+                    typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
+                    fields = `<div class="form-row"><div class="form-group" style="flex: 2;"><input type="url" class="block-data" data-key="url" placeholder="آدرس تصویر..." value="${data.url || ''}"></div><div class="form-group" style="flex: 3;"><div class="content-editable block-data" data-key="caption" contenteditable="true" placeholder="کپشن (اختیاری)...">${data.caption || ''}</div></div></div>`;
+                    break;
+            }
+            block.innerHTML = mainControls + typeSpecificControls + fields;
+            return block;
+        };
+        
+        const addBlockToEventEditor = (type, data = {}) => {
+            const blockElement = renderEventEditorBlock(type, data);
+            visualEditorContainer.appendChild(blockElement);
+        };
 
     const loadEventInEditor = (eventItem) => {
         visualEditorContainer.innerHTML = '';
@@ -2472,366 +2472,388 @@ const initializeEventsModule = async () => {
             if (Array.isArray(content)) {
                 content.forEach(block => addBlockToEventEditor(block.type, block.data));
             }
+            updateLivePreview(); // اضافه شود
         } catch (e) {
             console.error("Error parsing event content for editor:", e);
         }
     };
-    
-    visualEditorControls.addEventListener('click', (e) => {
-        const btn = e.target.closest('button');
-        if (btn && btn.dataset.type) {
-            addBlockToEventEditor(btn.dataset.type);
-        }
-    });
-
-    visualEditorContainer.addEventListener('click', (e) => {
-        const btn = e.target.closest('button');
-        if (!btn) return;
-
-        const block = btn.closest('.editor-block');
-        if (!block) return;
         
-        const handleMove = (block, sibling, insertBefore) => {
-            const blockRect = block.getBoundingClientRect();
-            const siblingRect = sibling.getBoundingClientRect();
-
-            if (insertBefore) {
-                visualEditorContainer.insertBefore(block, sibling);
-            } else {
-                visualEditorContainer.insertBefore(sibling, block);
+        visualEditorControls.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (btn && btn.dataset.type) {
+                addBlockToEventEditor(btn.dataset.type);
             }
+        });
+
+        visualEditorContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+
+            const block = btn.closest('.editor-block');
+            if (!block) return;
             
-            const newBlockRect = block.getBoundingClientRect();
-            const newSiblingRect = sibling.getBoundingClientRect();
+            const handleMove = (block, sibling, insertBefore) => {
+                const blockRect = block.getBoundingClientRect();
+                const siblingRect = sibling.getBoundingClientRect();
 
-            block.style.transition = 'none';
-            sibling.style.transition = 'none';
-            block.style.transform = `translateY(${blockRect.top - newBlockRect.top}px)`;
-            sibling.style.transform = `translateY(${siblingRect.top - newSiblingRect.top}px)`;
+                if (insertBefore) {
+                    visualEditorContainer.insertBefore(block, sibling);
+                } else {
+                    visualEditorContainer.insertBefore(sibling, block);
+                }
+                
+                const newBlockRect = block.getBoundingClientRect();
+                const newSiblingRect = sibling.getBoundingClientRect();
 
-            requestAnimationFrame(() => {
-                block.style.transition = 'transform 0.3s ease';
-                sibling.style.transition = 'transform 0.3s ease';
-                block.style.transform = '';
-                sibling.style.transform = '';
-            });
+                block.style.transition = 'none';
+                sibling.style.transition = 'none';
+                block.style.transform = `translateY(${blockRect.top - newBlockRect.top}px)`;
+                sibling.style.transform = `translateY(${siblingRect.top - newSiblingRect.top}px)`;
+
+                requestAnimationFrame(() => {
+                    block.style.transition = 'transform 0.3s ease';
+                    sibling.style.transition = 'transform 0.3s ease';
+                    block.style.transform = '';
+                    sibling.style.transform = '';
+                });
+            };
+
+            if (btn.classList.contains('delete-block-btn')) { block.remove(); }
+            else if (btn.classList.contains('move-block-up') && block.previousElementSibling) { handleMove(block, block.previousElementSibling, true); }
+            else if (btn.classList.contains('move-block-down') && block.nextElementSibling) { handleMove(block, block.nextElementSibling, false); }
+            else if (btn.classList.contains('format-btn')) {
+                e.preventDefault();
+                const format = btn.dataset.format;
+                const editableElement = block.querySelector('[contenteditable="true"]');
+                if (!editableElement) return;
+                editableElement.focus();
+                if (format === 'link') {
+                    const url = prompt('آدرس لینک را وارد کنید:', 'https://');
+                    if (url) document.execCommand('createLink', false, url);
+                } else {
+                    document.execCommand(format, false, null);
+                }
+            }
+            else if (btn.classList.contains('level-btn')) {
+                block.querySelector('input[data-key="level"]').value = btn.dataset.level;
+                block.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            } else if (btn.classList.contains('list-style-btn')) {
+                block.querySelector('input[data-key="style"]').value = btn.dataset.style;
+                block.querySelectorAll('.list-style-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+        });
+
+        const parseInlineMarkdown = (text) => {
+            if (!text) return '';
+            const sanitizer = document.createElement('div');
+            sanitizer.innerHTML = text; 
+            const sanitizedText = sanitizer.textContent || sanitizer.innerText || '';
+        
+            return sanitizedText
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\[(.*?)\]\((.*?)\)/g, `<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>`)
+                .replace(/\\(\*)/g, '$1');
         };
 
-        if (btn.classList.contains('delete-block-btn')) { block.remove(); }
-        else if (btn.classList.contains('move-block-up') && block.previousElementSibling) { handleMove(block, block.previousElementSibling, true); }
-        else if (btn.classList.contains('move-block-down') && block.nextElementSibling) { handleMove(block, block.nextElementSibling, false); }
-        else if (btn.classList.contains('format-btn')) {
-            e.preventDefault();
-            const format = btn.dataset.format;
-            const editableElement = block.querySelector('[contenteditable="true"]');
-            if (!editableElement) return;
-            editableElement.focus();
-            if (format === 'link') {
-                const url = prompt('آدرس لینک را وارد کنید:', 'https://');
-                if (url) document.execCommand('createLink', false, url);
-            } else {
-                document.execCommand(format, false, null);
+        const renderJsonContentForPreview = (blocks) => {
+            const container = document.createElement('div');
+            if (!Array.isArray(blocks)) {
+                container.innerHTML = '<p>محتوای این رویداد به درستی بارگذاری نشد.</p>';
+                return container;
             }
-        }
-        else if (btn.classList.contains('level-btn')) {
-            block.querySelector('input[data-key="level"]').value = btn.dataset.level;
-            block.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        } else if (btn.classList.contains('list-style-btn')) {
-            block.querySelector('input[data-key="style"]').value = btn.dataset.style;
-            block.querySelectorAll('.list-style-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
-    });
-
-    const parseInlineMarkdown = (text) => {
-        if (!text) return '';
-        const sanitizer = document.createElement('div');
-        sanitizer.innerHTML = text; 
-        const sanitizedText = sanitizer.textContent || sanitizer.innerText || '';
-    
-        return sanitizedText
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/\[(.*?)\]\((.*?)\)/g, `<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>`)
-            .replace(/\\(\*)/g, '$1');
-    };
-
-    const renderJsonContentForPreview = (blocks) => {
-        const container = document.createElement('div');
-        if (!Array.isArray(blocks)) {
-            container.innerHTML = '<p>محتوای این رویداد به درستی بارگذاری نشد.</p>';
+        
+            blocks.forEach(block => {
+                const data = block.data || {};
+                let element;
+                switch (block.type) {
+                    case 'header':
+                        element = document.createElement(`h${data.level || 1}`);
+                        element.innerHTML = parseInlineMarkdown(data.text);
+                        break;
+                    case 'paragraph':
+                        element = document.createElement('p');
+                        element.innerHTML = parseInlineMarkdown(data.text);
+                        break;
+                    case 'list':
+                        element = document.createElement(data.style === 'ordered' ? 'ol' : 'ul');
+                        element.innerHTML = (data.items || []).map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('');
+                        break;
+                    case 'image':
+                        element = document.createElement('figure');
+                        element.innerHTML = `<img src="${data.url || ''}" alt="${data.caption || 'Image'}">${data.caption ? `<figcaption>${parseInlineMarkdown(data.caption)}</figcaption>` : ''}`;
+                        break;
+                    case 'quote':
+                        element = document.createElement('blockquote');
+                        element.innerHTML = `<p>${parseInlineMarkdown(data.text)}</p>${data.caption ? `<cite>${parseInlineMarkdown(data.caption)}</cite>` : ''}</blockquote>`;
+                        break;
+                }
+                if (element) container.appendChild(element);
+            });
             return container;
-        }
-    
-        blocks.forEach(block => {
-            const data = block.data || {};
-            let element;
-            switch (block.type) {
-                case 'header':
-                    element = document.createElement(`h${data.level || 1}`);
-                    element.innerHTML = parseInlineMarkdown(data.text);
-                    break;
-                case 'paragraph':
-                    element = document.createElement('p');
-                    element.innerHTML = parseInlineMarkdown(data.text);
-                    break;
-                case 'list':
-                    element = document.createElement(data.style === 'ordered' ? 'ol' : 'ul');
-                    element.innerHTML = (data.items || []).map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('');
-                    break;
-                case 'image':
-                    element = document.createElement('figure');
-                    element.innerHTML = `<img src="${data.url || ''}" alt="${data.caption || 'Image'}">${data.caption ? `<figcaption>${parseInlineMarkdown(data.caption)}</figcaption>` : ''}`;
-                    break;
-                case 'quote':
-                    element = document.createElement('blockquote');
-                    element.innerHTML = `<p>${parseInlineMarkdown(data.text)}</p>${data.caption ? `<cite>${parseInlineMarkdown(data.caption)}</cite>` : ''}</blockquote>`;
-                    break;
+        };
+        
+        const renderScheduleForPreview = (schedule) => {
+            if (!Array.isArray(schedule) || schedule.length === 0) {
+                livePreviewScheduleCards.innerHTML = '<p class="preview-placeholder">جلسه‌ای برای نمایش وجود ندارد.</p>';
+                return;
             }
-            if (element) container.appendChild(element);
-        });
-        return container;
-    };
-    
-    const renderScheduleForPreview = (schedule) => {
-        if (!Array.isArray(schedule) || schedule.length === 0) {
-            livePreviewScheduleCards.innerHTML = '<p class="preview-placeholder">جلسه‌ای برای نمایش وجود ندارد.</p>';
-            return;
-        }
 
-        livePreviewScheduleCards.innerHTML = '';
-        const icon_calendar = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
-        const icon_clock = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
-        const icon_pin = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
-        const icon_link = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>`;
+            livePreviewScheduleCards.innerHTML = '';
+            const icon_calendar = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
+            const icon_clock = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
+            const icon_pin = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
+            const icon_link = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>`;
 
-        schedule.forEach(session => {
-            if (!session.session || !session.session.trim()) return;
+            schedule.forEach(session => {
+                if (!session.session || !session.session.trim()) return;
 
-            const card = document.createElement('div');
-            card.className = 'preview-session-card';
-            
-            let infoGridHtml = '<div class="info-grid">';
-            if (session.date) infoGridHtml += `<div class="info-item">${icon_calendar} <span>${session.date}</span></div>`;
-            if (session.time) infoGridHtml += `<div class="info-item">${icon_clock} <span>${session.time}</span></div>`;
-            if (session.venue) infoGridHtml += `<div class="info-item">${icon_pin} <span>${session.venue}</span></div>`;
-            infoGridHtml += '</div>';
+                const card = document.createElement('div');
+                card.className = 'preview-session-card';
+                
+                let infoGridHtml = '<div class="info-grid">';
+                if (session.date) infoGridHtml += `<div class="info-item">${icon_calendar} <span>${session.date}</span></div>`;
+                if (session.time) infoGridHtml += `<div class="info-item">${icon_clock} <span>${session.time}</span></div>`;
+                if (session.venue) infoGridHtml += `<div class="info-item">${icon_pin} <span>${session.venue}</span></div>`;
+                infoGridHtml += '</div>';
 
-            let linkHtml = '';
-            if (session.link) {
-                linkHtml = `
-                    <div class="session-link-container">
-                        <a href="${session.link}" target="_blank" class="session-link-btn">
-                            ${icon_link}
-                            <span>ورود به جلسه</span>
-                        </a>
-                    </div>
+                let linkHtml = '';
+                if (session.link) {
+                    linkHtml = `
+                        <div class="session-link-container">
+                            <a href="${session.link}" target="_blank" class="session-link-btn">
+                                ${icon_link}
+                                <span>ورود به جلسه</span>
+                            </a>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <h5>${session.session}</h5>
+                    ${infoGridHtml}
+                    ${linkHtml}
                 `;
+                livePreviewScheduleCards.appendChild(card);
+            });
+            
+            if(livePreviewScheduleCards.children.length === 0){
+                livePreviewScheduleCards.innerHTML = '<p class="preview-placeholder">جلسه‌ای برای نمایش وجود ندارد.</p>';
+            }
+        };
+
+        const updateLivePreview = () => {
+            // Update Event Content Preview
+            serializeEventEditor();
+            const contentJsonStr = contentTextarea.value;
+            try {
+                const contentJson = JSON.parse(contentJsonStr || '[]');
+                if (contentJson.length === 0) {
+                    livePreviewEventContent.innerHTML = '<p class="preview-placeholder">محتوایی برای نمایش وجود ندارد...</p>';
+                } else {
+                    const newContentNode = renderJsonContentForPreview(contentJson);
+                    livePreviewEventContent.innerHTML = '';
+                    livePreviewEventContent.appendChild(newContentNode);
+                }
+            } catch (e) {
+                livePreviewEventContent.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش محتوا...</p>';
             }
 
-            card.innerHTML = `
-                <h5>${session.session}</h5>
-                ${infoGridHtml}
-                ${linkHtml}
-            `;
-            livePreviewScheduleCards.appendChild(card);
-        });
+            // Update Schedule Cards Preview
+            serializeSchedule();
+            const scheduleJsonStr = scheduleTextarea.value;
+            try {
+                const scheduleJson = JSON.parse(scheduleJsonStr || '[]');
+                renderScheduleForPreview(scheduleJson);
+            } catch(e) {
+                livePreviewScheduleCards.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش جلسات...</p>';
+            }
+        };
+        if (visualEditorContainer) {
+            visualEditorContainer.addEventListener('input', updateLivePreview);
+            visualEditorContainer.addEventListener('click', () => setTimeout(updateLivePreview, 0));
+        }
+        if (scheduleEditorContainer) {
+            scheduleEditorContainer.addEventListener('input', updateLivePreview);
+            scheduleEditorContainer.addEventListener('click', () => setTimeout(updateLivePreview, 0));
+        }
         
-        if(livePreviewScheduleCards.children.length === 0){
-             livePreviewScheduleCards.innerHTML = '<p class="preview-placeholder">جلسه‌ای برای نمایش وجود ندارد.</p>';
-        }
-    };
+        const updateEventPreview = () => {
+            serializeEventEditor();
+            serializeSchedule();
 
-    const updateLivePreview = () => {
-        // Update Event Content Preview
-        serializeEventEditor();
-        const contentJsonStr = contentTextarea.value;
-        try {
-            const contentJson = JSON.parse(contentJsonStr || '[]');
-            if (contentJson.length === 0) {
-                 livePreviewEventContent.innerHTML = '<p class="preview-placeholder">محتوایی برای نمایش وجود ندارد...</p>';
-            } else {
-                const newContentNode = renderJsonContentForPreview(contentJson);
+            try {
+                const contentJson = JSON.parse(contentTextarea.value || '[]');
                 livePreviewEventContent.innerHTML = '';
-                livePreviewEventContent.appendChild(newContentNode);
+                livePreviewEventContent.appendChild(renderJsonContentForPreview(contentJson));
+            } catch (e) {
+                livePreviewEventContent.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش محتوا...</p>';
             }
-        } catch (e) {
-            livePreviewEventContent.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش محتوا...</p>';
-        }
 
-        // Update Schedule Cards Preview
-        serializeSchedule();
-        const scheduleJsonStr = scheduleTextarea.value;
-        try {
-            const scheduleJson = JSON.parse(scheduleJsonStr || '[]');
-            renderScheduleForPreview(scheduleJson);
-        } catch(e) {
-            livePreviewScheduleCards.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش جلسات...</p>';
-        }
-    };
-    
-    const updateEventPreview = () => {
-        serializeEventEditor();
-        serializeSchedule();
+            try {
+                const scheduleJson = JSON.parse(scheduleTextarea.value || '[]');
+                renderScheduleForPreview(scheduleJson);
+            } catch(e) {
+                livePreviewScheduleCards.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش جلسات...</p>';
+            }
+        };
 
-        try {
-            const contentJson = JSON.parse(contentTextarea.value || '[]');
-            livePreviewEventContent.innerHTML = '';
-            livePreviewEventContent.appendChild(renderJsonContentForPreview(contentJson));
-        } catch (e) {
-            livePreviewEventContent.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش محتوا...</p>';
-        }
+        const togglePreviewModal = () => {
+            if (!previewModal) return;
+            const isOpen = previewModal.classList.contains('is-visible');
+            if (!isOpen) {
+                updateEventPreview(); // Update right before showing
+            }
+            previewModal.classList.toggle('is-visible');
+            document.body.classList.toggle('admin-preview-is-open');
+        };
 
-        try {
-            const scheduleJson = JSON.parse(scheduleTextarea.value || '[]');
-            renderScheduleForPreview(scheduleJson);
-        } catch(e) {
-            livePreviewScheduleCards.innerHTML = '<p class="preview-placeholder" style="color: red;">خطا در پردازش جلسات...</p>';
-        }
-    };
-
-    const togglePreviewModal = () => {
-        const isOpen = previewModal.classList.contains('is-visible');
-        if (!isOpen) {
-            updateEventPreview();
-        }
-        previewModal.classList.toggle('is-visible');
-        document.body.classList.toggle('admin-preview-is-open');
-    };
-
-    if (previewModal) previewModal.addEventListener('click', (e) => { 
-        if (e.target === previewModal) {
-            togglePreviewModal();
-        }
-    });
-
-    const reorderSessionNumbers = () => {
-        scheduleEditorContainer.querySelectorAll('.schedule-item').forEach((item, index) => {
-            const counter = item.querySelector('.session-counter');
-            if (counter) counter.textContent = `جلسه ${index + 1}`;
+        if (previewModal) previewModal.addEventListener('click', (e) => { 
+            if (e.target === previewModal) {
+                togglePreviewModal();
+            }
         });
-    };
 
-const renderSessionItem = (session = {}, index) => {
-        const sessionCount = index || (scheduleEditorContainer.children.length + 1);
-        const sessionDiv = document.createElement('div');
-        sessionDiv.className = 'schedule-item';
+        const reorderSessionNumbers = () => {
+            scheduleEditorContainer.querySelectorAll('.schedule-item').forEach((item, index) => {
+                const counter = item.querySelector('.session-counter');
+                if (counter) counter.textContent = `جلسه ${index + 1}`;
+            });
+        };
 
-        const icon_delete = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+    const renderSessionItem = (session = {}, index) => {
+            const sessionCount = index || (scheduleEditorContainer.children.length + 1);
+            const sessionDiv = document.createElement('div');
+            sessionDiv.className = 'schedule-item';
 
-        // START: HTML Change - Using a wrapper for time inputs
-        sessionDiv.innerHTML = `
-            <div class="schedule-item-header">
-                <span class="session-counter">جلسه ${sessionCount}</span>
-                <div class="schedule-item-controls">
-                    <button type="button" class="delete-session-btn" title="حذف جلسه">${icon_delete}</button>
-                </div>
-            </div>
-            <div class="schedule-item-fields">
-                <div class="form-group"><input type="text" data-key="session" placeholder="عنوان جلسه" value="${session.session || ''}"></div>
-                <div class="form-group"><input type="text" data-key="date" placeholder="تاریخ (مثال: ۲۸ مرداد)" value="${session.date || ''}"></div>
-                <div class="form-group time-range-group">
-                    <div class="time-range-inputs">
-                        <input type="text" class="time-input" data-part="start" placeholder="۱۶:۰۰" maxlength="5">
-                        <span class="time-range-separator">-</span>
-                        <input type="text" class="time-input" data-part="end" placeholder="۱۸:۰۰" maxlength="5">
-                        <input type="hidden" data-key="time" value="${session.time || ''}">
+            const icon_delete = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+
+            // START: HTML Change - Using a wrapper for time inputs
+            sessionDiv.innerHTML = `
+                <div class="schedule-item-header">
+                    <span class="session-counter">جلسه ${sessionCount}</span>
+                    <div class="schedule-item-controls">
+                        <button type="button" class="delete-session-btn" title="حذف جلسه">${icon_delete}</button>
                     </div>
                 </div>
-                <div class="form-group"><input type="text" data-key="venue" placeholder="مکان" value="${session.venue || ''}"></div>
-                <div class="form-group"><input type="url" data-key="link" placeholder="لینک جلسه" value="${session.link || ''}"></div>
-            </div>
-        `;
-        // END: HTML Change
+                <div class="schedule-item-fields">
+                    <div class="form-group"><input type="text" data-key="session" placeholder="عنوان جلسه" value="${session.session || ''}"></div>
+                    <div class="form-group"><input type="text" data-key="date" placeholder="تاریخ (مثال: ۲۸ مرداد)" value="${session.date || ''}"></div>
+                    <div class="form-group time-range-group">
+                        <div class="time-range-inputs">
+                            <input type="text" class="time-input" data-part="start" placeholder="۱۶:۰۰" maxlength="5">
+                            <span class="time-range-separator">-</span>
+                            <input type="text" class="time-input" data-part="end" placeholder="۱۸:۰۰" maxlength="5">
+                            <input type="hidden" data-key="time" value="${session.time || ''}">
+                        </div>
+                    </div>
+                    <div class="form-group"><input type="text" data-key="venue" placeholder="مکان" value="${session.venue || ''}"></div>
+                    <div class="form-group"><input type="url" data-key="link" placeholder="لینک جلسه" value="${session.link || ''}"></div>
+                </div>
+            `;
+            // END: HTML Change
 
-        // --- Persian Date Logic (Unchanged) ---
-        const dateInput = sessionDiv.querySelector('input[data-key="date"]');
-        const enforcePersianOnly = (e) => {
-            let value = e.target.value;
-            value = value.replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d])
-                         .replace(/[٠-٩]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-            value = value.replace(/[^۰-۹\u0600-\u06FF\s]/g, '');
-            e.target.value = value;
-        };
-        dateInput.addEventListener('input', enforcePersianOnly);
+            // --- Persian Date Logic (Unchanged) ---
+            const dateInput = sessionDiv.querySelector('input[data-key="date"]');
+            const enforcePersianOnly = (e) => {
+                let value = e.target.value;
+                value = value.replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d])
+                            .replace(/[٠-٩]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+                value = value.replace(/[^۰-۹\u0600-\u06FF\s]/g, '');
+                e.target.value = value;
+            };
+            dateInput.addEventListener('input', enforcePersianOnly);
 
-        // --- START: NEW DUAL-FIELD TIME LOGIC ---
-        const startTimeInput = sessionDiv.querySelector('.time-input[data-part="start"]');
-        const endTimeInput = sessionDiv.querySelector('.time-input[data-part="end"]');
-        const hiddenTimeInput = sessionDiv.querySelector('input[data-key="time"]');
-        
-        // Populate inputs if editing an existing session
-        if (session.time && session.time.includes(' - ')) {
-            const [start, end] = session.time.split(' - ');
-            startTimeInput.value = start;
-            endTimeInput.value = end;
-        }
-
-        const formatTimeValue = (input) => {
-            let value = input.value;
-            // Convert numbers to Persian and allow only valid characters
-            value = value.replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d])
-                         .replace(/[٠-٩]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d])
-                         .replace(/[^۰-۹:]/g, '');
+            // --- START: NEW DUAL-FIELD TIME LOGIC ---
+            const startTimeInput = sessionDiv.querySelector('.time-input[data-part="start"]');
+            const endTimeInput = sessionDiv.querySelector('.time-input[data-part="end"]');
+            const hiddenTimeInput = sessionDiv.querySelector('input[data-key="time"]');
             
-            // Auto-add colon
-            if (value.length === 2 && !value.includes(':')) {
-                value += ':';
+            // Populate inputs if editing an existing session
+            if (session.time && session.time.includes(' - ')) {
+                const [start, end] = session.time.split(' - ');
+                startTimeInput.value = start;
+                endTimeInput.value = end;
             }
-            if (value.length > 5) {
-                value = value.slice(0, 5);
-            }
-            input.value = value;
+
+            const formatTimeValue = (input) => {
+                let value = input.value;
+                // Convert numbers to Persian and allow only valid characters
+                value = value.replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d])
+                            .replace(/[٠-٩]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d])
+                            .replace(/[^۰-۹:]/g, '');
+                
+                // Auto-add colon
+                if (value.length === 2 && !value.includes(':')) {
+                    value += ':';
+                }
+                if (value.length > 5) {
+                    value = value.slice(0, 5);
+                }
+                input.value = value;
+            };
+
+            const updateHiddenInput = () => {
+                const start = startTimeInput.value.trim();
+                const end = endTimeInput.value.trim();
+                const regex = /^[۰-۹]{2}:[۰-۹]{2}$/;
+                // Only combine if both parts are valid
+                if (regex.test(start) && regex.test(end)) {
+                    hiddenTimeInput.value = `${start} - ${end}`;
+                } else {
+                    hiddenTimeInput.value = '';
+                }
+            };
+
+            [startTimeInput, endTimeInput].forEach(input => {
+                input.addEventListener('input', (e) => {
+                    formatTimeValue(e.target);
+                    updateHiddenInput();
+                });
+                input.addEventListener('blur', (e) => {
+                    const regex = /^[۰-۹]{2}:[۰-۹]{2}$/;
+                    if(e.target.value.trim() !== '' && !regex.test(e.target.value)){
+                        e.target.value = ''; // Clear if invalid
+                        updateHiddenInput();
+                    }
+                });
+            });
+            // --- END: NEW LOGIC ---
+
+            scheduleEditorContainer.appendChild(sessionDiv);
         };
 
-        const updateHiddenInput = () => {
-            const start = startTimeInput.value.trim();
-            const end = endTimeInput.value.trim();
-            const regex = /^[۰-۹]{2}:[۰-۹]{2}$/;
-            // Only combine if both parts are valid
-            if (regex.test(start) && regex.test(end)) {
-                hiddenTimeInput.value = `${start} - ${end}`;
-            } else {
-                hiddenTimeInput.value = '';
+        const loadSchedule = (scheduleData) => {
+            scheduleEditorContainer.innerHTML = '';
+            if (Array.isArray(scheduleData)) {
+                scheduleData.forEach((session, index) => renderSessionItem(session, index + 1));
             }
+            updateLivePreview();
         };
-
-        [startTimeInput, endTimeInput].forEach(input => {
-            input.addEventListener('input', (e) => {
-                formatTimeValue(e.target);
-                updateHiddenInput();
-            });
-            input.addEventListener('blur', (e) => {
-                 const regex = /^[۰-۹]{2}:[۰-۹]{2}$/;
-                 if(e.target.value.trim() !== '' && !regex.test(e.target.value)){
-                     e.target.value = ''; // Clear if invalid
-                     updateHiddenInput();
-                 }
-            });
-        });
-        // --- END: NEW LOGIC ---
-
-        scheduleEditorContainer.appendChild(sessionDiv);
-    };
-
-    const loadSchedule = (scheduleData) => {
-        scheduleEditorContainer.innerHTML = '';
-        if (Array.isArray(scheduleData)) {
-            scheduleData.forEach((session, index) => renderSessionItem(session, index + 1));
-        }
-    };
 
     const serializeSchedule = () => {
         const sessions = [];
         scheduleEditorContainer.querySelectorAll('.schedule-item').forEach(item => {
             const sessionData = {};
-            item.querySelectorAll('input').forEach(input => {
-                sessionData[input.dataset.key] = input.value.trim();
+            // Correctly select only direct inputs of the current schedule item
+            item.querySelectorAll('.schedule-item-fields input').forEach(input => {
+                const key = input.dataset.key || (input.dataset.part ? `time_${input.dataset.part}` : null);
+                if (key) {
+                   sessionData[key] = input.value.trim();
+                }
             });
+            // Combine time parts into a single field if they exist
+            if(sessionData.time_start && sessionData.time_end) {
+                sessionData.time = `${sessionData.time_start} - ${sessionData.time_end}`;
+            }
+            delete sessionData.time_start;
+            delete sessionData.time_end;
+            
             if (Object.values(sessionData).some(val => val)) {
                 sessions.push(sessionData);
             }
@@ -2839,252 +2861,252 @@ const renderSessionItem = (session = {}, index) => {
         scheduleTextarea.value = JSON.stringify(sessions, null, 2);
     };
 
-    if (addSessionBtn) {
-        addSessionBtn.addEventListener('click', () => {
-            renderSessionItem();
-        });
-    }
-
-    if (scheduleEditorContainer) {
-        scheduleEditorContainer.addEventListener('click', (e) => {
-            const btn = e.target.closest('button');
-            if (!btn) return;
-            const item = btn.closest('.schedule-item');
-            if (!item) return;
-
-            if (btn.classList.contains('delete-session-btn')) {
-                item.remove();
-                reorderSessionNumbers();
-            }
-        });
-    }
-    // END: Editor Logic
-
-    const resetForm = () => {
-        eventForm.reset();
-        hiddenIdInput.value = '';
-        currentImageUrl = '';
-        imageUrlToDelete = null;
-        eventBeingEdited = null;
-        updateImageUploadUI('');
-        imageUploadInput.required = true;
-        if (dateRangePickerInstance) dateRangePickerInstance.clear();
-        if (regDateRangePicker) regDateRangePicker.clear();
-        const displayDateInput = document.getElementById('event-display-date');
-        if (displayDateInput && displayDateInput._flatpickr) displayDateInput._flatpickr.clear();
-        formTitle.textContent = 'درج رویداد جدید';
-        submitBtn.textContent = 'افزودن رویداد';
-        cancelBtn.style.display = 'none';
-        [locationToggle, costToggle, capacityToggle].forEach(toggle => { if (toggle) { toggle.checked = false; toggle.dispatchEvent(new Event('change')); } });
-        selectedTagIds = [];
-        updateSelectedTagsDisplay();
-        togglePaymentFields();
-        visualEditorContainer.innerHTML = '';
-        contentTextarea.value = '';
-        scheduleEditorContainer.innerHTML = '';
-        scheduleTextarea.value = '';
-        eventForm.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    eventForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        serializeEventEditor();
-        serializeSchedule();
-        const statusBox = eventForm.querySelector('.form-status');
-        const isEditing = !!eventBeingEdited;
-        hideStatus(statusBox);
-        submitBtn.disabled = true;
-        submitBtn.textContent = isEditing ? 'در حال ویرایش...' : 'در حال افزودن...';
-
-        try {
-            const getEventDataFromForm = () => {
-                const formData = new FormData(eventForm);
-                const formatForSupabase = (date) => date ? new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 10) : null;
-                
-                let [startDate, endDate] = [null, null];
-                if (dateRangePickerInstance.selectedDates.length === 2) {
-                    [startDate, endDate] = [formatForSupabase(dateRangePickerInstance.selectedDates[0]), formatForSupabase(dateRangePickerInstance.selectedDates[1])];
-                } else if (isEditing) {
-                    [startDate, endDate] = [eventBeingEdited.startDate, eventBeingEdited.endDate];
-                }
-
-                let [regStartDate, regEndDate] = [null, null];
-                if (regDateRangePicker.selectedDates.length === 2) {
-                    [regStartDate, regEndDate] = [formatForSupabase(regDateRangePicker.selectedDates[0]), formatForSupabase(regDateRangePicker.selectedDates[1])];
-                } else if (isEditing) {
-                    [regStartDate, regEndDate] = [eventBeingEdited.registrationStartDate, eventBeingEdited.registrationEndDate];
-                }
-                
-                let displayDateValue = formData.get('displayDate');
-                if (!displayDateValue && isEditing) {
-                    displayDateValue = eventBeingEdited.displayDate;
-                }
-
-                if (!startDate || !endDate) throw new Error("بازه تاریخ اصلی رویداد الزامی است.");
-                if (!displayDateValue) throw new Error("بازه برگزاری جلسات الزامی است.");
-
-                const parseJsonField = (fieldName) => {
-                    const value = formData.get(fieldName);
-                    try { return value ? JSON.parse(value) : null; } catch (e) { throw new Error(`فرمت JSON در فیلد "${fieldName}" نامعتبر است.`); }
-                };
-                
-                const capacityValue = capacityToggle.checked ? -1 : (parseInt(formData.get('capacity'), 10) || null);
-                const contactInfo = { phone: formData.get('contact_phone').trim(), telegram: formData.get('contact_telegram').trim(), whatsapp: formData.get('contact_whatsapp').trim() };
-                const paymentInfo = { name: formData.get('payment_name').trim(), number: formData.get('payment_number').trim() };
-                
-                let costValue = costToggle.checked ? 'رایگان' : costInput.value;
-                if (!costToggle.checked) {
-                    const numericValue = toEnglishNumber(costValue);
-                    if (numericValue && !isNaN(numericValue)) costValue = `${formatNumber(numericValue)} تومان`;
-                    else costValue = '';
-                }
-                
-                const locationValue = locationToggle.checked ? 'آنلاین' : locationInput.value;
-
-                return {
-                    title: formData.get('title'), summary: formData.get('summary'),
-                    instructor_name: formData.get('instructor_name').trim() || null,
-                    location: locationValue, cost: costValue, capacity: capacityValue,
-                    displayDate: displayDateValue, startDate, endDate,
-                    registrationStartDate: regStartDate, registrationEndDate: regEndDate,
-                    detailPage: formData.get('detailPage').trim(), tag_ids: selectedTagIds,
-                    content: parseJsonField('content'), schedule: parseJsonField('schedule'),
-                    contact_link: Object.values(contactInfo).some(v => v) ? contactInfo : null,
-                    payment_card_number: (paymentInfo.name && paymentInfo.number) ? paymentInfo : null
-                };
-            };
-
-            const eventData = getEventDataFromForm();
-            const rawSlug = eventData.detailPage;
-            const imageFile = imageUploadInput.files[0];
-
-            if (!rawSlug) throw new Error("شناسه لینک (Slug) نمی‌تواند خالی باشد.");
-
-            if (isEditing) {
-                let finalImageUrl = currentImageUrl;
-                if (imageFile && imageFile.size > 0) {
-                    const { filePath: tempPath } = await uploadEventImage(imageFile, rawSlug);
-                    finalImageUrl = await renameEventImage(tempPath, eventBeingEdited.id, rawSlug);
-                }
-                
-                eventData.image = finalImageUrl;
-                eventData.detailPage = `#/events/${eventBeingEdited.id}-${rawSlug}`;
-                await updateEvent(eventBeingEdited.id, eventData);
-
-                if (imageUrlToDelete) {
-                    await deleteEventImage(imageUrlToDelete);
-                }
-
-                showStatus(statusBox, 'رویداد با موفقیت ویرایش شد.', 'success');
-                setTimeout(() => { hideStatus(statusBox); resetForm(); }, 4000);
-            } else {
-                if (!imageFile) throw new Error("تصویر رویداد الزامی است.");
-                const { publicUrl: tempUrl, filePath: tempPath } = await uploadEventImage(imageFile, rawSlug);
-                eventData.image = tempUrl;
-                delete eventData.detailPage;
-                const { data: newEvent } = await addEvent(eventData);
-                const finalImageUrl = await renameEventImage(tempPath, newEvent.id, rawSlug);
-                await updateEvent(newEvent.id, { image: finalImageUrl, detailPage: `#/events/${newEvent.id}-${rawSlug}` });
-                showStatus(statusBox, 'رویداد با موفقیت افزوده شد.', 'success');
-                setTimeout(() => { hideStatus(statusBox); resetForm(); }, 4000);
-            }
-            state.allEvents = await loadEvents();
-            renderEventsList(state.allEvents);
-        } catch (error) {
-            showStatus(statusBox, `عملیات با خطا مواجه شد: ${error.message}`, 'error');
-            setTimeout(() => hideStatus(statusBox), 4000);
-        } finally {
-            submitBtn.disabled = false;
-            if (isEditing) {
-                submitBtn.textContent = 'ذخیره تغییرات';
-            }
+        if (addSessionBtn) {
+            addSessionBtn.addEventListener('click', () => {
+                renderSessionItem();
+            });
         }
-    });
 
-    if(cancelBtn) cancelBtn.addEventListener('click', resetForm);
+        if (scheduleEditorContainer) {
+            scheduleEditorContainer.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                const item = btn.closest('.schedule-item');
+                if (!item) return;
 
-    if (adminListContainer) {
-        adminListContainer.addEventListener('click', async (event) => {
-            const editBtn = event.target.closest('.edit-event-btn');
-            if (editBtn) {
-                const id = editBtn.dataset.id;
-                const eventToEdit = state.allEvents.find(e => e.id == id);
-                if (!eventToEdit) return;
-                
-                resetForm();
-                eventBeingEdited = eventToEdit;
+                if (btn.classList.contains('delete-session-btn')) {
+                    item.remove();
+                    reorderSessionNumbers();
+                }
+            });
+        }
+        // END: Editor Logic
 
-                hiddenIdInput.value = eventToEdit.id;
-                currentImageUrl = eventToEdit.image || '';
-                imageUploadInput.required = !currentImageUrl;
-                updateImageUploadUI(currentImageUrl ? currentImageUrl.split('/').pop() : '');
+        const resetForm = () => {
+            eventForm.reset();
+            hiddenIdInput.value = '';
+            currentImageUrl = '';
+            imageUrlToDelete = null;
+            eventBeingEdited = null;
+            updateImageUploadUI('');
+            imageUploadInput.required = true;
+            if (dateRangePickerInstance) dateRangePickerInstance.clear();
+            if (regDateRangePicker) regDateRangePicker.clear();
+            const displayDateInput = document.getElementById('event-display-date');
+            if (displayDateInput && displayDateInput._flatpickr) displayDateInput._flatpickr.clear();
+            formTitle.textContent = 'درج رویداد جدید';
+            submitBtn.textContent = 'افزودن رویداد';
+            cancelBtn.style.display = 'none';
+            [locationToggle, costToggle, capacityToggle].forEach(toggle => { if (toggle) { toggle.checked = false; toggle.dispatchEvent(new Event('change')); } });
+            selectedTagIds = [];
+            updateSelectedTagsDisplay();
+            togglePaymentFields();
+            visualEditorContainer.innerHTML = '';
+            contentTextarea.value = '';
+            scheduleEditorContainer.innerHTML = '';
+            scheduleTextarea.value = '';
+            eventForm.scrollIntoView({ behavior: 'smooth' });
+        };
 
-                document.getElementById('event-title').value = eventToEdit.title || '';
-                document.getElementById('event-summary').value = eventToEdit.summary || '';
-                instructorInput.value = eventToEdit.instructor_name || '';
-                document.getElementById('event-detail-page').value = (eventToEdit.detailPage || '').replace(`#/events/${id}-`, '');
-                
-                const isOnline = eventToEdit.location === 'آنلاین';
-                locationToggle.checked = isOnline;
-                locationInput.disabled = isOnline;
-                locationInput.value = isOnline ? '' : (eventToEdit.location || '');
-                locationInput.placeholder = isOnline ? 'آنلاین' : 'مکان رویداد...';
+        eventForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            serializeEventEditor();
+            serializeSchedule();
+            const statusBox = eventForm.querySelector('.form-status');
+            const isEditing = !!eventBeingEdited;
+            hideStatus(statusBox);
+            submitBtn.disabled = true;
+            submitBtn.textContent = isEditing ? 'در حال ویرایش...' : 'در حال افزودن...';
 
-                const isFree = eventToEdit.cost === 'رایگان';
-                costToggle.checked = isFree;
-                costInput.disabled = isFree;
-                costInput.value = isFree ? '' : (eventToEdit.cost || '');
-                costInput.placeholder = isFree ? 'رایگان' : 'هزینه رویداد (تومان)';
+            try {
+                const getEventDataFromForm = () => {
+                    const formData = new FormData(eventForm);
+                    const formatForSupabase = (date) => date ? new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 10) : null;
+                    
+                    let [startDate, endDate] = [null, null];
+                    if (dateRangePickerInstance.selectedDates.length === 2) {
+                        [startDate, endDate] = [formatForSupabase(dateRangePickerInstance.selectedDates[0]), formatForSupabase(dateRangePickerInstance.selectedDates[1])];
+                    } else if (isEditing) {
+                        [startDate, endDate] = [eventBeingEdited.startDate, eventBeingEdited.endDate];
+                    }
 
-                const isUnlimited = eventToEdit.capacity === -1;
-                capacityToggle.checked = isUnlimited;
-                capacityInput.disabled = isUnlimited;
-                capacityInput.value = isUnlimited ? '' : (eventToEdit.capacity || '');
-                capacityInput.placeholder = isUnlimited ? 'نامحدود' : 'ظرفیت رویداد...';
+                    let [regStartDate, regEndDate] = [null, null];
+                    if (regDateRangePicker.selectedDates.length === 2) {
+                        [regStartDate, regEndDate] = [formatForSupabase(regDateRangePicker.selectedDates[0]), formatForSupabase(regDateRangePicker.selectedDates[1])];
+                    } else if (isEditing) {
+                        [regStartDate, regEndDate] = [eventBeingEdited.registrationStartDate, eventBeingEdited.registrationEndDate];
+                    }
+                    
+                    let displayDateValue = formData.get('displayDate');
+                    if (!displayDateValue && isEditing) {
+                        displayDateValue = eventBeingEdited.displayDate;
+                    }
 
-                selectedTagIds = eventToEdit.tag_ids || [];
-                updateSelectedTagsDisplay();
-                const contactInfo = eventToEdit.contact_link || {};
-                contactPhoneInput.value = contactInfo.phone || '';
-                contactTelegramInput.value = contactInfo.telegram || '';
-                contactWhatsappInput.value = contactInfo.whatsapp || '';
-                const paymentInfo = eventToEdit.payment_card_number || {};
-                document.getElementById('payment-name').value = paymentInfo.name || '';
-                paymentNumberInput.value = paymentInfo.number || '';
-                
-                loadEventInEditor(eventToEdit);
-                loadSchedule(eventToEdit.schedule);
+                    if (!startDate || !endDate) throw new Error("بازه تاریخ اصلی رویداد الزامی است.");
+                    if (!displayDateValue) throw new Error("بازه برگزاری جلسات الزامی است.");
 
-                formTitle.textContent = 'ویرایش رویداد';
-                submitBtn.textContent = 'ذخیره تغییرات';
-                cancelBtn.style.display = 'inline-block';
-                eventForm.scrollIntoView({ behavior: 'smooth' });
+                    const parseJsonField = (fieldName) => {
+                        const value = formData.get(fieldName);
+                        try { return value ? JSON.parse(value) : null; } catch (e) { throw new Error(`فرمت JSON در فیلد "${fieldName}" نامعتبر است.`); }
+                    };
+                    
+                    const capacityValue = capacityToggle.checked ? -1 : (parseInt(formData.get('capacity'), 10) || null);
+                    const contactInfo = { phone: formData.get('contact_phone').trim(), telegram: formData.get('contact_telegram').trim(), whatsapp: formData.get('contact_whatsapp').trim() };
+                    const paymentInfo = { name: formData.get('payment_name').trim(), number: formData.get('payment_number').trim() };
+                    
+                    let costValue = costToggle.checked ? 'رایگان' : costInput.value;
+                    if (!costToggle.checked) {
+                        const numericValue = toEnglishNumber(costValue);
+                        if (numericValue && !isNaN(numericValue)) costValue = `${formatNumber(numericValue)} تومان`;
+                        else costValue = '';
+                    }
+                    
+                    const locationValue = locationToggle.checked ? 'آنلاین' : locationInput.value;
+
+                    return {
+                        title: formData.get('title'), summary: formData.get('summary'),
+                        instructor_name: formData.get('instructor_name').trim() || null,
+                        location: locationValue, cost: costValue, capacity: capacityValue,
+                        displayDate: displayDateValue, startDate, endDate,
+                        registrationStartDate: regStartDate, registrationEndDate: regEndDate,
+                        detailPage: formData.get('detailPage').trim(), tag_ids: selectedTagIds,
+                        content: parseJsonField('content'), schedule: parseJsonField('schedule'),
+                        contact_link: Object.values(contactInfo).some(v => v) ? contactInfo : null,
+                        payment_card_number: (paymentInfo.name && paymentInfo.number) ? paymentInfo : null
+                    };
+                };
+
+                const eventData = getEventDataFromForm();
+                const rawSlug = eventData.detailPage;
+                const imageFile = imageUploadInput.files[0];
+
+                if (!rawSlug) throw new Error("شناسه لینک (Slug) نمی‌تواند خالی باشد.");
+
+                if (isEditing) {
+                    let finalImageUrl = currentImageUrl;
+                    if (imageFile && imageFile.size > 0) {
+                        const { filePath: tempPath } = await uploadEventImage(imageFile, rawSlug);
+                        finalImageUrl = await renameEventImage(tempPath, eventBeingEdited.id, rawSlug);
+                    }
+                    
+                    eventData.image = finalImageUrl;
+                    eventData.detailPage = `#/events/${eventBeingEdited.id}-${rawSlug}`;
+                    await updateEvent(eventBeingEdited.id, eventData);
+
+                    if (imageUrlToDelete) {
+                        await deleteEventImage(imageUrlToDelete);
+                    }
+
+                    showStatus(statusBox, 'رویداد با موفقیت ویرایش شد.', 'success');
+                    setTimeout(() => { hideStatus(statusBox); resetForm(); }, 4000);
+                } else {
+                    if (!imageFile) throw new Error("تصویر رویداد الزامی است.");
+                    const { publicUrl: tempUrl, filePath: tempPath } = await uploadEventImage(imageFile, rawSlug);
+                    eventData.image = tempUrl;
+                    delete eventData.detailPage;
+                    const { data: newEvent } = await addEvent(eventData);
+                    const finalImageUrl = await renameEventImage(tempPath, newEvent.id, rawSlug);
+                    await updateEvent(newEvent.id, { image: finalImageUrl, detailPage: `#/events/${newEvent.id}-${rawSlug}` });
+                    showStatus(statusBox, 'رویداد با موفقیت افزوده شد.', 'success');
+                    setTimeout(() => { hideStatus(statusBox); resetForm(); }, 4000);
+                }
+                state.allEvents = await loadEvents();
+                renderEventsList(state.allEvents);
+            } catch (error) {
+                showStatus(statusBox, `عملیات با خطا مواجه شد: ${error.message}`, 'error');
+                setTimeout(() => hideStatus(statusBox), 4000);
+            } finally {
+                submitBtn.disabled = false;
+                if (isEditing) {
+                    submitBtn.textContent = 'ذخیره تغییرات';
+                }
             }
+        });
 
-            const deleteBtn = event.target.closest('.delete-event-btn');
-            if (deleteBtn) {
-                const id = deleteBtn.dataset.id;
-                const eventToDelete = state.allEvents.find(e => e.id == id);
-                if (!eventToDelete) return;
-                if (confirm('آیا از حذف این رویداد مطمئن هستید؟ تصویر آن نیز حذف خواهد شد.')) {
-                    try {
-                        deleteBtn.disabled = true;
-                        if (eventToDelete.image) await deleteEventImage(eventToDelete.image);
-                        await deleteEvent(id);
-                        state.allEvents = state.allEvents.filter(e => e.id != id);
-                        renderEventsList(state.allEvents);
-                    } catch (error) {
-                        alert('خطا در حذف رویداد.');
-                        console.error("Deletion Error:", error);
-                        deleteBtn.disabled = false;
+        if(cancelBtn) cancelBtn.addEventListener('click', resetForm);
+
+        if (adminListContainer) {
+            adminListContainer.addEventListener('click', async (event) => {
+                const editBtn = event.target.closest('.edit-event-btn');
+                if (editBtn) {
+                    const id = editBtn.dataset.id;
+                    const eventToEdit = state.allEvents.find(e => e.id == id);
+                    if (!eventToEdit) return;
+                    
+                    resetForm();
+                    eventBeingEdited = eventToEdit;
+
+                    hiddenIdInput.value = eventToEdit.id;
+                    currentImageUrl = eventToEdit.image || '';
+                    imageUploadInput.required = !currentImageUrl;
+                    updateImageUploadUI(currentImageUrl ? currentImageUrl.split('/').pop() : '');
+
+                    document.getElementById('event-title').value = eventToEdit.title || '';
+                    document.getElementById('event-summary').value = eventToEdit.summary || '';
+                    instructorInput.value = eventToEdit.instructor_name || '';
+                    document.getElementById('event-detail-page').value = (eventToEdit.detailPage || '').replace(`#/events/${id}-`, '');
+                    
+                    const isOnline = eventToEdit.location === 'آنلاین';
+                    locationToggle.checked = isOnline;
+                    locationInput.disabled = isOnline;
+                    locationInput.value = isOnline ? '' : (eventToEdit.location || '');
+                    locationInput.placeholder = isOnline ? 'آنلاین' : 'مکان رویداد...';
+
+                    const isFree = eventToEdit.cost === 'رایگان';
+                    costToggle.checked = isFree;
+                    costInput.disabled = isFree;
+                    costInput.value = isFree ? '' : (eventToEdit.cost || '');
+                    costInput.placeholder = isFree ? 'رایگان' : 'هزینه رویداد (تومان)';
+
+                    const isUnlimited = eventToEdit.capacity === -1;
+                    capacityToggle.checked = isUnlimited;
+                    capacityInput.disabled = isUnlimited;
+                    capacityInput.value = isUnlimited ? '' : (eventToEdit.capacity || '');
+                    capacityInput.placeholder = isUnlimited ? 'نامحدود' : 'ظرفیت رویداد...';
+
+                    selectedTagIds = eventToEdit.tag_ids || [];
+                    updateSelectedTagsDisplay();
+                    const contactInfo = eventToEdit.contact_link || {};
+                    contactPhoneInput.value = contactInfo.phone || '';
+                    contactTelegramInput.value = contactInfo.telegram || '';
+                    contactWhatsappInput.value = contactInfo.whatsapp || '';
+                    const paymentInfo = eventToEdit.payment_card_number || {};
+                    document.getElementById('payment-name').value = paymentInfo.name || '';
+                    paymentNumberInput.value = paymentInfo.number || '';
+                    
+                    loadEventInEditor(eventToEdit);
+                    loadSchedule(eventToEdit.schedule);
+
+                    formTitle.textContent = 'ویرایش رویداد';
+                    submitBtn.textContent = 'ذخیره تغییرات';
+                    cancelBtn.style.display = 'inline-block';
+                    eventForm.scrollIntoView({ behavior: 'smooth' });
+                }
+
+                const deleteBtn = event.target.closest('.delete-event-btn');
+                if (deleteBtn) {
+                    const id = deleteBtn.dataset.id;
+                    const eventToDelete = state.allEvents.find(e => e.id == id);
+                    if (!eventToDelete) return;
+                    if (confirm('آیا از حذف این رویداد مطمئن هستید؟ تصویر آن نیز حذف خواهد شد.')) {
+                        try {
+                            deleteBtn.disabled = true;
+                            if (eventToDelete.image) await deleteEventImage(eventToDelete.image);
+                            await deleteEvent(id);
+                            state.allEvents = state.allEvents.filter(e => e.id != id);
+                            renderEventsList(state.allEvents);
+                        } catch (error) {
+                            alert('خطا در حذف رویداد.');
+                            console.error("Deletion Error:", error);
+                            deleteBtn.disabled = false;
+                        }
                     }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    togglePaymentFields();
-};
+        togglePaymentFields();
+    };
 
 const initializeAdminLayout = () => {
     const sidebar = document.getElementById('admin-sidebar');
