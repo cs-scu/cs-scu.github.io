@@ -1744,7 +1744,7 @@ const renderComment = (comment) => {
 
 export const renderInteractionsSection = (newsId, likeStatus, comments) => {
     const commentTree = buildCommentTree(comments);
-    const commentCount = comments?.length || 0;
+    const commentCount = comments ? comments.filter(c => c.user_id !== null && c.parent_id === null).length : 0;
     const isLiked = likeStatus?.is_liked || false;
     const likeCount = likeStatus?.like_count || 0;
 

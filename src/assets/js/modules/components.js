@@ -115,7 +115,7 @@ const renderNewsItems = (items) => {
         cardClone.querySelector('.news-item-date').textContent = item.date;
         cardClone.querySelector('.news-item-author').innerHTML = createAuthorHTML(item.authorId);
         
-        const commentsCount = item.comments[0]?.count || 0;
+        const commentsCount = item.comments.filter(comment => comment.user_id !== null && comment.parent_id === null).length;
         const likesCount = item.likes[0]?.count || 0;
         
         cardClone.querySelector('.news-item-comments .count').textContent = toPersianNumber(commentsCount);
@@ -160,7 +160,7 @@ export const loadMoreNews = async () => {
 
     const { data: newsToLoad, error } = await supabaseClient
         .from('news')
-        .select('*, likes(count), comments(count), tag_ids')
+        .select('*, likes(count), comments(user_id, parent_id), tag_ids')
         .order('id', { ascending: false })
         .range(from, to);
 

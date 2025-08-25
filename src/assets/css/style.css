@@ -4051,6 +4051,9 @@ body.light-theme .image-upload-controls {
 .image-upload-controls .file-clear-btn {
     flex-shrink: 0; /* جلوگیری از کوچک شدن دکمه‌ها */
 }
+label.btn.btn-secondary.file-select-btn {
+    margin-bottom: 0;
+}
 
 /* ================== Persian Datepicker Fix ================== */
 .datepicker-plot-area {
