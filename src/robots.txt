@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /src/admin/
+Disallow: /src/admin-events.html
+Disallow: /src/admin-journal.html
+Disallow: /src/admin-messages.html
+Disallow: /src/admin-news.html
+Disallow: /src/admin-registrations.html
+Disallow: /src/admin.html
+
+Sitemap: https://www.cs-scu.ir/sitemap.xml
