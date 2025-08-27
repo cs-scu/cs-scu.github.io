@@ -1341,33 +1341,19 @@ const initializeNewsModule = async () => {
     
 const parseInlineMarkdown = (text) => {
     if (!text) return '';
-    const sanitizer = document.createElement('div');
-    sanitizer.textContent = text;
-    let sanitizedText = sanitizer.innerHTML;
-    
-    // Convert bold and italic
-    sanitizedText = sanitizedText.replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    sanitizedText = sanitizedText.replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>');
-    
-    // Convert Markdown links to HTML anchor tags with a more robust regex
-    sanitizedText = sanitizedText.replace(/\[([^\[\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
-        // Security check for javascript: links
-        if (url.startsWith('javascript:')) {
-            return `[${linkText}]()`;
-        }
-        // Handle internal links starting with @
-        if (url.startsWith('@')) {
-            return `<a href="#/${url.substring(1)}">${linkText}</a>`;
-        }
-        // Handle external links
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
-    });
-    
-    // Unescape asterisks
-    sanitizedText = sanitizedText.replace(/\\(\*)/g, '$1');
-    
-    return sanitizedText;
-};
+        const sanitizer = document.createElement('div');
+        sanitizer.textContent = text;
+        let sanitizedText = sanitizer.innerHTML;
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>');
+        sanitizedText = sanitizedText.replace(/\[(.*?)\]\((.*?)\)/g, (match, linkText, url) => {
+            if (url.startsWith('javascript:')) return `[${linkText}]()`;
+            if (url.startsWith('@')) return `<a href="#/${url.substring(1)}">${linkText}</a>`;
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
+        });
+        sanitizedText = sanitizedText.replace(/\\(\*)/g, '$1');
+        return sanitizedText;
+    };
 
     const renderJsonContentForPreview = (blocks) => {
         const container = document.createElement('div');
