@@ -97,9 +97,9 @@ const renderPage = async (path) => {
     }
     
     const parseInlineMarkdown = (text) => {
-        // This function now directly returns the text, as the editor provides HTML.
-        // The previous implementation was incorrectly escaping the HTML.
-        return text || '';
+        if (!text) return '';
+        // Pass through existing HTML and convert newline characters to <br> tags
+        return text.replace(/\r\n|\r|\n/g, '<br>');
     };
 
     const renderJsonContent = (blocks) => {

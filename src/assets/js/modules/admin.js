@@ -1292,24 +1292,10 @@ const initializeNewsModule = async () => {
         jsonTextarea.value = JSON.stringify(blocks, null, 2);
     };
     
-    const parseInlineMarkdown = (text) => {
+const parseInlineMarkdown = (text) => {
         if (!text) return '';
-        const sanitizer = document.createElement('div');
-        sanitizer.innerHTML = text; 
-        const sanitizedText = sanitizer.textContent || sanitizer.innerText || '';
-    
-        return sanitizedText
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/\[(.*?)\]\((.*?)\)/g, (match, linkText, url) => {
-                if (url.startsWith('javascript:')) return `[${linkText}]()`;
-                if (url.startsWith('@')) return `<a href="#/${url.substring(1)}">${linkText}</a>`;
-                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
-            })
-            .replace(/\\(\*)/g, '$1');
+        // Pass through existing HTML from the editor and convert newline characters to <br> tags for the preview
+        return text.replace(/\r\n|\r|\n/g, '<br>');
     };
 
     const renderJsonContentForPreview = (blocks) => {
