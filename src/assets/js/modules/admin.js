@@ -1270,90 +1270,73 @@ const initializeNewsModule = async () => {
     const refreshRateSelect = document.getElementById('preview-refresh-rate');
 
     const serializeEditor = () => {
-            // تابع کمکی برای تبدیل HTML غنی (Rich Text) به مارک‌داون تمیز
-            const htmlToMarkdown = (html) => {
-                if (!html) return '';
+        // تابع کمکی برای تبدیل HTML غنی (Rich Text) به مارک‌داون تمیز
+        const htmlToMarkdown = (html) => {
+            if (!html) return '';
 
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = html;
+            let markdownText = html;
 
-                // تبدیل لینک‌ها به فرمت مارک‌داون: [text](url)
-                tempDiv.querySelectorAll('a').forEach(el => {
-                    const text = el.textContent || '';
-                    const href = el.getAttribute('href') || '';
-                    // از ایجاد لینک‌های خالی جلوگیری می‌شود
-                    if (text && href) {
-                        el.replaceWith(`[${text}](${href})`);
-                    } else {
-                        el.replaceWith(text);
-                    }
-                });
+            // 1. تبدیل تگ‌های <br> و <div> به خط جدید
+            markdownText = markdownText.replace(/<br\s*\/?>/gi, '\n');
+            markdownText = markdownText.replace(/<div>/g, '\n').replace(/<\/div>/g, '');
 
-                // تبدیل بولد به **text**
-                tempDiv.querySelectorAll('b, strong').forEach(el => {
-                    const text = el.textContent || '';
-                    if (text) el.replaceWith(`**${text}**`);
-                    else el.remove();
-                });
+            // 2. تبدیل لینک‌ها به فرمت مارک‌داون: [text](url)
+            markdownText = markdownText.replace(/<a href="([^"]+)"[^>]*>(.*?)<\/a>/gi, '[$2]($1)');
 
-                // تبدیل ایتالیک به *text*
-                tempDiv.querySelectorAll('i, em').forEach(el => {
-                    const text = el.textContent || '';
-                    if (text) el.replaceWith(`*${text}*`);
-                    else el.remove();
-                });
-                
-                // تبدیل خطوط جدید (div, p, br) به کاراکتر نیولاین واقعی (\n)
-                tempDiv.innerHTML = tempDiv.innerHTML.replace(/<br\s*\/?>/gi, '\n');
-                tempDiv.querySelectorAll('div, p').forEach(el => {
-                    el.after('\n');
-                });
+            // 3. تبدیل بولد به **text**
+            markdownText = markdownText.replace(/<b>(.*?)<\/b>/gi, '**$1**').replace(/<strong>(.*?)<\/strong>/gi, '**$1**');
+            
+            // 4. تبدیل ایتالیک به *text*
+            markdownText = markdownText.replace(/<i>(.*?)<\/i>/gi, '*$1*').replace(/<em>(.*?)<\/em>/gi, '*$1*');
 
-                // در نهایت، فقط متن خالص را استخراج می‌کنیم که حاوی سینتکس مارک‌داون ماست
-                let markdownText = tempDiv.textContent || '';
+            // 5. حذف تگ‌های HTML باقی‌مانده و پاک‌سازی
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = markdownText;
+            let cleanText = tempDiv.textContent || tempDiv.innerText || '';
 
-                // پاک‌سازی نیولاین‌های اضافی
-                return markdownText.replace(/\n\s*\n/g, '\n').trim();
-            };
+            // 6. پاک‌سازی نیولاین‌های اضافی
+            return cleanText.replace(/\n\s*\n/g, '\n').trim();
+        };
 
-            const blocks = [];
-            visualEditorContainer.querySelectorAll('.editor-block').forEach(block => {
-                const type = block.dataset.type;
-                const data = {};
-                if (type === 'table') {
-                    const tableEl = block.querySelector('.editor-table');
-                    const content = [];
-                    const ths = tableEl.querySelectorAll('thead th');
-                    if (ths.length > 0) {
-                        content.push(Array.from(ths).map(th => th.textContent || ''));
-                    }
-                    tableEl.querySelectorAll('tbody tr').forEach(tr => {
-                        content.push(Array.from(tr.querySelectorAll('td')).map(td => td.textContent || ''));
-                    });
-                    data.content = content;
-                    data.withHeadings = block.querySelector('[data-key="withHeadings"]').checked;
-                } else {
-                    block.querySelectorAll('.block-data').forEach(input => {
-                        const key = input.dataset.key;
-                        if (input.classList.contains('content-editable')) {
-                            const rawHtml = input.innerHTML;
-                            if (key === 'items') {
-                                const tempDiv = document.createElement('div');
-                                tempDiv.innerHTML = rawHtml.replace(/<div>/g, '\n').replace(/<\/div>/g, '');
-                                data[key] = (tempDiv.textContent || '').split('\n').map(item => item.trim()).filter(Boolean);
-                            } else {
-                                data[key] = htmlToMarkdown(rawHtml);
-                            }
-                        } else if (input.type === 'checkbox') {
-                            data[key] = input.checked;
-                        } else {
-                            data[key] = input.value;
-                        }
-                    });
+        const blocks = [];
+        visualEditorContainer.querySelectorAll('.editor-block').forEach(block => {
+            const type = block.dataset.type;
+            const data = {};
+            if (type === 'table') {
+                const tableEl = block.querySelector('.editor-table');
+                const content = [];
+                const ths = tableEl.querySelectorAll('thead th');
+                if (ths.length > 0) {
+                    content.push(Array.from(ths).map(th => th.textContent || ''));
                 }
-                blocks.push({ type, data });
-            });
-            jsonTextarea.value = JSON.stringify(blocks, null, 2);
+                tableEl.querySelectorAll('tbody tr').forEach(tr => {
+                    content.push(Array.from(tr.querySelectorAll('td')).map(td => td.textContent || ''));
+                });
+                data.content = content;
+                data.withHeadings = block.querySelector('[data-key="withHeadings"]').checked;
+            } else {
+                block.querySelectorAll('.block-data').forEach(input => {
+                    const key = input.dataset.key;
+                    if (input.classList.contains('content-editable')) {
+                        const rawHtml = input.innerHTML;
+                        if (key === 'items') {
+                            // For lists, we just need the text content split by newlines
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = rawHtml.replace(/<div>/g, '\n').replace(/<\/div>/g, '');
+                            data[key] = (tempDiv.textContent || '').split('\n').map(item => item.trim()).filter(Boolean);
+                        } else {
+                            data[key] = htmlToMarkdown(rawHtml);
+                        }
+                    } else if (input.type === 'checkbox') {
+                        data[key] = input.checked;
+                    } else {
+                        data[key] = input.value;
+                    }
+                });
+            }
+            blocks.push({ type, data });
+        });
+        jsonTextarea.value = JSON.stringify(blocks, null, 2);
     };
     
     const parseInlineMarkdown = (text) => {
@@ -2692,17 +2675,31 @@ const initializeEventsModule = async () => {
     const parseInlineMarkdown = (text) => {
         if (!text) return '';
         const sanitizer = document.createElement('div');
-        sanitizer.innerHTML = text; 
-        const sanitizedText = sanitizer.textContent || sanitizer.innerText || '';
-    
-        return sanitizedText
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/\[(.*?)\]\((.*?)\)/g, `<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>`)
-            .replace(/\\(\*)/g, '$1');
+        sanitizer.textContent = text;
+        let sanitizedText = sanitizer.innerHTML;
+        
+        // Convert bold and italic
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>');
+        
+        // Convert Markdown links to HTML anchor tags with a more robust regex
+        sanitizedText = sanitizedText.replace(/\[([^\[\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
+            // Security check for javascript: links
+            if (url.startsWith('javascript:')) {
+                return `[${linkText}]()`;
+            }
+            // Handle internal links starting with @
+            if (url.startsWith('@')) {
+                return `<a href="#/${url.substring(1)}">${linkText}</a>`;
+            }
+            // Handle external links
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
+        });
+        
+        // Unescape asterisks
+        sanitizedText = sanitizedText.replace(/\\(\*)/g, '$1');
+        
+        return sanitizedText;
     };
 
     const renderJsonContentForPreview = (blocks) => {
