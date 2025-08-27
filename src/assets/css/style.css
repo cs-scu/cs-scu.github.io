@@ -6631,3 +6631,58 @@ body.light-theme .footer-credit {
     font-size: 0.9rem;
     }
 }
+
+/* ================== Visual Editor Error State (Pulsing) ================== */
+
+@keyframes pulse-border {
+    0% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+
+.editor-block.has-error {
+    border-color: #dc3545 !important; /* رنگ قرمز برای کادر */
+    background-color: rgba(220, 53, 69, 0.05) !important; /* پس‌زمینه قرمز بسیار ملایم */
+    animation: pulse-border 2s infinite; /* اعمال انیمیشن ضربان‌دار */
+    border-radius: 8px; /* اطمینان از گرد بودن گوشه‌ها برای انیمیشن بهتر */
+}
+
+.editor-alert {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    color: #fff;
+    background-color: #323232;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    font-weight: bold;
+    font-size: 1rem;
+    max-width: 90%;
+    text-align: center;
+    /* زمان انیمیشن به ۳.۸ ثانیه تغییر یافت */
+    animation: fadeInOut 3.8s ease-in-out forwards;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    10%, 90% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+}

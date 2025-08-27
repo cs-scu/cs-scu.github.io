@@ -29,6 +29,19 @@ const debounce = (func, delay = 250) => {
     return (...args) => { clearTimeout(timeoutId); timeoutId = setTimeout(() => { func.apply(this, args); }, delay); };
 };
 
+const showTemporaryAlert = (message, duration = 3800) => { // مقدار به 3800 میلی‌ثانیه تغییر کرد
+    // جلوگیری از ایجاد پیغام‌های تکراری
+    if (document.querySelector('.editor-alert')) return;
+
+    const alertElement = document.createElement('div');
+    alertElement.className = 'editor-alert';
+    alertElement.textContent = message;
+    document.body.appendChild(alertElement);
+
+    setTimeout(() => {
+        alertElement.remove();
+    }, duration);
+};
 
 const initializeSharedTagModal = () => {
     const modal = document.getElementById('admin-generic-modal');
@@ -1225,6 +1238,8 @@ const initializeJournalModule = () => {
 
 const initializeMessagesModule = () => { /* No specific JS needed */ };
 
+
+
 const initializeNewsModule = async () => {
     const newsForm = document.getElementById('add-news-form');
     if (!newsForm) return;
@@ -1255,47 +1270,106 @@ const initializeNewsModule = async () => {
     const refreshRateSelect = document.getElementById('preview-refresh-rate');
 
     const serializeEditor = () => {
-        const blocks = [];
-        visualEditorContainer.querySelectorAll('.editor-block').forEach(block => {
-            const type = block.dataset.type;
-            const data = {};
-            if (type === 'table') {
-                const tableEl = block.querySelector('.editor-table');
-                const content = [];
-                const ths = tableEl.querySelectorAll('thead th');
-                if (ths.length > 0) {
-                    content.push(Array.from(ths).map(th => th.innerHTML));
-                }
-                tableEl.querySelectorAll('tbody tr').forEach(tr => {
-                    content.push(Array.from(tr.querySelectorAll('td')).map(td => td.innerHTML));
-                });
-                data.content = content;
-                data.withHeadings = block.querySelector('[data-key="withHeadings"]').checked;
-            } else {
-                 block.querySelectorAll('.block-data').forEach(input => {
-                    const key = input.dataset.key;
-                    if (input.classList.contains('content-editable')) {
-                        if (key === 'items') {
-                             data[key] = (input.innerText || '').split('\n').map(item => item.trim()).filter(Boolean);
-                        } else {
-                            data[key] = input.innerHTML;
-                        }
-                    } else if (input.type === 'checkbox') {
-                        data[key] = input.checked;
+            // تابع کمکی برای تبدیل HTML غنی (Rich Text) به مارک‌داون تمیز
+            const htmlToMarkdown = (html) => {
+                if (!html) return '';
+
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+
+                // تبدیل لینک‌ها به فرمت مارک‌داون: [text](url)
+                tempDiv.querySelectorAll('a').forEach(el => {
+                    const text = el.textContent || '';
+                    const href = el.getAttribute('href') || '';
+                    // از ایجاد لینک‌های خالی جلوگیری می‌شود
+                    if (text && href) {
+                        el.replaceWith(`[${text}](${href})`);
                     } else {
-                        data[key] = input.value;
+                        el.replaceWith(text);
                     }
                 });
-            }
-            blocks.push({ type, data });
-        });
-        jsonTextarea.value = JSON.stringify(blocks, null, 2);
+
+                // تبدیل بولد به **text**
+                tempDiv.querySelectorAll('b, strong').forEach(el => {
+                    const text = el.textContent || '';
+                    if (text) el.replaceWith(`**${text}**`);
+                    else el.remove();
+                });
+
+                // تبدیل ایتالیک به *text*
+                tempDiv.querySelectorAll('i, em').forEach(el => {
+                    const text = el.textContent || '';
+                    if (text) el.replaceWith(`*${text}*`);
+                    else el.remove();
+                });
+                
+                // تبدیل خطوط جدید (div, p, br) به کاراکتر نیولاین واقعی (\n)
+                tempDiv.innerHTML = tempDiv.innerHTML.replace(/<br\s*\/?>/gi, '\n');
+                tempDiv.querySelectorAll('div, p').forEach(el => {
+                    el.after('\n');
+                });
+
+                // در نهایت، فقط متن خالص را استخراج می‌کنیم که حاوی سینتکس مارک‌داون ماست
+                let markdownText = tempDiv.textContent || '';
+
+                // پاک‌سازی نیولاین‌های اضافی
+                return markdownText.replace(/\n\s*\n/g, '\n').trim();
+            };
+
+            const blocks = [];
+            visualEditorContainer.querySelectorAll('.editor-block').forEach(block => {
+                const type = block.dataset.type;
+                const data = {};
+                if (type === 'table') {
+                    const tableEl = block.querySelector('.editor-table');
+                    const content = [];
+                    const ths = tableEl.querySelectorAll('thead th');
+                    if (ths.length > 0) {
+                        content.push(Array.from(ths).map(th => th.textContent || ''));
+                    }
+                    tableEl.querySelectorAll('tbody tr').forEach(tr => {
+                        content.push(Array.from(tr.querySelectorAll('td')).map(td => td.textContent || ''));
+                    });
+                    data.content = content;
+                    data.withHeadings = block.querySelector('[data-key="withHeadings"]').checked;
+                } else {
+                    block.querySelectorAll('.block-data').forEach(input => {
+                        const key = input.dataset.key;
+                        if (input.classList.contains('content-editable')) {
+                            const rawHtml = input.innerHTML;
+                            if (key === 'items') {
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = rawHtml.replace(/<div>/g, '\n').replace(/<\/div>/g, '');
+                                data[key] = (tempDiv.textContent || '').split('\n').map(item => item.trim()).filter(Boolean);
+                            } else {
+                                data[key] = htmlToMarkdown(rawHtml);
+                            }
+                        } else if (input.type === 'checkbox') {
+                            data[key] = input.checked;
+                        } else {
+                            data[key] = input.value;
+                        }
+                    });
+                }
+                blocks.push({ type, data });
+            });
+            jsonTextarea.value = JSON.stringify(blocks, null, 2);
     };
     
-const parseInlineMarkdown = (text) => {
+    const parseInlineMarkdown = (text) => {
         if (!text) return '';
-        // Pass through existing HTML from the editor and convert newline characters to <br> tags for the preview
-        return text.replace(/\r\n|\r|\n/g, '<br>');
+        const sanitizer = document.createElement('div');
+        sanitizer.textContent = text;
+        let sanitizedText = sanitizer.innerHTML;
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>');
+        sanitizedText = sanitizedText.replace(/\[(.*?)\]\((.*?)\)/g, (match, linkText, url) => {
+            if (url.startsWith('javascript:')) return `[${linkText}]()`;
+            if (url.startsWith('@')) return `<a href="#/${url.substring(1)}">${linkText}</a>`;
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
+        });
+        sanitizedText = sanitizedText.replace(/\\(\*)/g, '$1');
+        return sanitizedText;
     };
 
     const renderJsonContentForPreview = (blocks) => {
@@ -1456,7 +1530,48 @@ const parseInlineMarkdown = (text) => {
     visualEditorContainer.addEventListener('click', () => {
         setTimeout(debouncedUpdatePreview, 0); 
     });
-    
+    visualEditorContainer.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const block = e.target.closest('.editor-block');
+            if (block && (block.dataset.type === 'paragraph' || block.dataset.type === 'header')) {
+                setTimeout(() => {
+                    block.classList.add('has-error');
+                    // متن پیغام واضح‌تر شد
+                    showTemporaryAlert('برای ایجاد خط جدید، لطفاً یک بلوک دیگر اضافه کنید.');
+                }, 0);
+            }
+        }
+    });
+    visualEditorContainer.addEventListener('paste', (e) => {
+        const block = e.target.closest('.editor-block');
+        if (block && (block.dataset.type === 'paragraph' || block.dataset.type === 'header')) {
+            const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+            if (/\r|\n/.test(text)) {
+                setTimeout(() => {
+                    block.classList.add('has-error');
+                    // متن پیغام واضح‌تر شد
+                    showTemporaryAlert('متن چندخطی در این بلوک مجاز نیست. برای هر پاراگراف یا تیتر بلوک مجزا بسازید.');
+                }, 0);
+            } else {
+                block.classList.remove('has-error');
+            }
+        }
+    });
+    // اضافه کردن این بخش جدید برای حذف هوشمند حالت خطا
+    visualEditorContainer.addEventListener('input', (e) => {
+        const block = e.target.closest('.editor-block.has-error');
+        
+        // اگر کاربر در حال تایپ در یک بلوک خطا است
+        if (block) {
+            const editableContent = block.querySelector('.content-editable');
+            if (editableContent) {
+                // اگر دیگر خط جدیدی در متن وجود نداشت، حالت خطا را حذف می‌کنیم
+                if (!editableContent.innerText.includes('\n')) {
+                    block.classList.remove('has-error');
+                }
+            }
+        }
+    });
     if (livePreviewContent) {
         livePreviewContent.addEventListener('click', (e) => {
             const platformBtn = e.target.closest('.platform-btn');
@@ -1509,12 +1624,23 @@ const parseInlineMarkdown = (text) => {
 
     populateAuthors();
     
-    if (dateInput) {
+if (dateInput) {
         flatpickr(dateInput, {
             locale: "fa",
-            altInput: true,
-            altFormat: "j F Y", 
-            dateFormat: "Y/m/d",
+            // فرمت نمایشی را روی حالت دلخواه تنظیم می‌کنیم
+            dateFormat: "j F Y", 
+            onClose: function(selectedDates, dateStr, instance) {
+                // پس از بسته شدن تقویم، اگر تاریخی انتخاب شده بود:
+                if (selectedDates.length > 0) {
+                    const date = selectedDates[0];
+                    // تاریخ را به صورت دستی با اعداد فارسی فرمت می‌کنیم
+                    const year = toPersianNumber(instance.formatDate(date, "Y"));
+                    const month = instance.formatDate(date, "F");
+                    const day = toPersianNumber(instance.formatDate(date, "j"));
+                    // مقدار نهایی را در فیلد ورودی قرار می‌دهیم
+                    instance.input.value = `${day} ${month} ${year}`;
+                }
+            }
         });
     }
 
@@ -1594,7 +1720,18 @@ const parseInlineMarkdown = (text) => {
         });
     }
 
-    // --- VISUAL EDITOR LOGIC (TEXT-BASED ICONS) ---
+
+// تابع کمکی جدید برای تبدیل مارک‌داون به HTML برای نمایش در ویرایشگر
+    const markdownToHtml = (text = '') => {
+        if (!text) return '';
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+            .replace(/\\(\*)/g, '$1')
+            .replace(/\r\n|\r|\n/g, '<br>');
+    };
+
     const renderEditorBlock = (type, data = {}) => {
         const blockId = `block-${Date.now()}-${Math.random()}`;
         const block = document.createElement('div');
@@ -1632,11 +1769,11 @@ const parseInlineMarkdown = (text) => {
                         <div class="control-separator"></div>
                         ${formatControls}
                     </div>`;
-                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن تیتر...">${data.text || ''}</div></div>`;
+                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن تیتر...">${markdownToHtml(data.text)}</div></div>`;
                 break;
             case 'paragraph':
                 typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
-                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن پاراگراف...">${data.text || ''}</div></div>`;
+                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن پاراگراف...">${markdownToHtml(data.text)}</div></div>`;
                 break;
             case 'list':
                 const style = data.style || 'unordered';
@@ -1659,11 +1796,11 @@ const parseInlineMarkdown = (text) => {
                 break;
             case 'quote':
                 typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
-                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن نقل‌قول...">${data.text || ''}</div></div><div class="form-group"><input type="text" class="block-data" data-key="caption" placeholder="منبع (اختیاری)" value="${data.caption || ''}"></div>`;
+                fields = `<div class="form-group"><div class="content-editable block-data" data-key="text" contenteditable="true" placeholder="متن نقل‌قول...">${markdownToHtml(data.text)}</div></div><div class="form-group"><input type="text" class="block-data" data-key="caption" placeholder="منبع (اختیاری)" value="${data.caption || ''}"></div>`;
                 break;
             case 'image':
                 typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
-                fields = `<div class="form-row"><div class="form-group" style="flex: 2;"><input type="url" class="block-data" data-key="url" placeholder="آدرس تصویر..." value="${data.url || ''}"></div><div class="form-group" style="flex: 3;"><div class="content-editable block-data" data-key="caption" contenteditable="true" placeholder="کپشن (اختیاری)...">${data.caption || ''}</div></div></div>`;
+                fields = `<div class="form-row"><div class="form-group" style="flex: 2;"><input type="url" class="block-data" data-key="url" placeholder="آدرس تصویر..." value="${data.url || ''}"></div><div class="form-group" style="flex: 3;"><div class="content-editable block-data" data-key="caption" contenteditable="true" placeholder="کپشن (اختیاری)...">${markdownToHtml(data.caption)}</div></div></div>`;
                 break;
             case 'table':
                 const content = data.content || [['عنوان ۱', 'عنوان ۲'], ['متن ۱', 'متن ۲']];
@@ -1706,7 +1843,7 @@ const parseInlineMarkdown = (text) => {
                 break;
             case 'video':
                 typeSpecificControls = `<div class="editor-block-controls type-controls">${formatControls}</div>`;
-                fields = `<div class="form-group"><div class="content-editable block-data" data-key="title" contenteditable="true" placeholder="عنوان ویدیو (اختیاری)...">${data.title || ''}</div></div><div class="form-row"><div class="form-group"><input type="url" class="block-data" data-key="AparatUrl" placeholder="لینک آپارات..." value="${data.AparatUrl || ''}"></div><div class="form-group"><input type="url" class="block-data" data-key="YoutubeUrl" placeholder="لینک یوتیوب..." value="${data.YoutubeUrl || ''}"></div></div><div class="form-group"><div class="content-editable block-data" data-key="description" contenteditable="true" placeholder="توضیحات ویدیو (اختیاری)...">${data.description || ''}</div></div>`;
+                fields = `<div class="form-group"><div class="content-editable block-data" data-key="title" contenteditable="true" placeholder="عنوان ویدیو (اختیاری)...">${markdownToHtml(data.title)}</div></div><div class="form-row"><div class="form-group"><input type="url" class="block-data" data-key="AparatUrl" placeholder="لینک آپارات..." value="${data.AparatUrl || ''}"></div><div class="form-group"><input type="url" class="block-data" data-key="YoutubeUrl" placeholder="لینک یوتیوب..." value="${data.YoutubeUrl || ''}"></div></div><div class="form-group"><div class="content-editable block-data" data-key="description" contenteditable="true" placeholder="توضیحات ویدیو (اختیاری)...">${markdownToHtml(data.description)}</div></div>`;
                 break;
             case 'code':
                 fields = `<div class="form-row"><div class="form-group" style="flex-grow: 1;"><textarea class="block-data" data-key="code" placeholder="کد شما...">${data.code || ''}</textarea></div><div class="form-group"><input type="text" class="block-data" data-key="language" placeholder="زبان (مثال: js)" value="${data.language || ''}"></div></div>`;
@@ -2002,18 +2139,43 @@ visualEditorContainer.addEventListener('click', (e) => {
 
     newsForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        serializeEditor(); 
+        
         const statusBox = newsForm.querySelector('.form-status');
+        hideStatus(statusBox); // ابتدا پیغام‌های قبلی را پاک کن
+
+        // ۱. بررسی وجود بلوک‌های خطادار (پاراگراف چندخطی)
+        const errorBlock = visualEditorContainer.querySelector('.editor-block.has-error');
+        if (errorBlock) {
+            showStatus(statusBox, 'ذخیره‌سازی ممکن نیست! لطفاً بلوک‌های قرمز رنگ را اصلاح کنید.', 'error');
+            errorBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return; 
+        }
+
+        // ۲. بررسی اجباری بودن تصویر برای خبر جدید
+        const imageFile = imageUploadInput.files[0];
         const isEditing = hiddenIdInput.value;
-        hideStatus(statusBox);
+        if (!isEditing && (!imageFile || imageFile.size === 0)) {
+            showStatus(statusBox, 'خطا: انتخاب تصویر برای خبر الزامی است.', 'error');
+            const imageUploadControls = newsForm.querySelector('.image-upload-controls');
+            if(imageUploadControls) {
+                imageUploadControls.style.borderColor = '#dc3545';
+                setTimeout(() => {
+                    imageUploadControls.style.borderColor = '';
+                }, 3000);
+            }
+            return;
+        }
+
+        // اگر اعتبارسنجی‌ها موفق بود، فرآیند ذخیره را ادامه بده
+        serializeEditor(); 
+        
         submitBtn.disabled = true;
         submitBtn.textContent = isEditing ? 'در حال ویرایش...' : 'در حال افزودن...';
 
         try {
             const formData = new FormData(newsForm);
             const slug = formData.get('link').trim();
-            const imageFile = formData.get('imageFile');
-
+            
             if (!slug) throw new Error("شناسه لینک (Slug) نمی‌تواند خالی باشد.");
 
             const readingTimeRawValue = formData.get('readingTime');
@@ -2044,7 +2206,7 @@ visualEditorContainer.addEventListener('click', (e) => {
 
             if (isEditing) {
                 const originalNewsItem = state.allNews.find(n => n.id == isEditing);
-                const newDateValue = dateInput._flatpickr.altInput.value;
+                const newDateValue = dateInput.value;
 
                 if (newDateValue && newDateValue !== originalNewsItem.date) {
                     newsData.date = newDateValue;
@@ -2065,11 +2227,9 @@ visualEditorContainer.addEventListener('click', (e) => {
 
                 showStatus(statusBox, 'خبر با موفقیت ویرایش شد.', 'success');
             } else {
-                const dateValue = dateInput._flatpickr.altInput.value;
+                const dateValue = dateInput.value;
                 if (!dateValue) throw new Error("تاریخ خبر الزامی است.");
                 newsData.date = dateValue;
-
-                if (!imageFile) throw new Error("تصویر خبر الزامی است.");
                 
                 const { data: newNews } = await addNews(newsData);
                 if (!newNews || !newNews.id) throw new Error("خطا در ایجاد رکورد اولیه خبر.");
@@ -2088,7 +2248,6 @@ visualEditorContainer.addEventListener('click', (e) => {
 
         } catch (error) {
             showStatus(statusBox, `عملیات با خطا مواجه شد: ${error.message}`, 'error');
-            setTimeout(() => hideStatus(statusBox), 4000);
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = isEditing ? 'ذخیره تغییرات' : 'افزودن خبر';

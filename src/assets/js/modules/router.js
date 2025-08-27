@@ -98,8 +98,18 @@ const renderPage = async (path) => {
     
     const parseInlineMarkdown = (text) => {
         if (!text) return '';
-        // Pass through existing HTML and convert newline characters to <br> tags
-        return text.replace(/\r\n|\r|\n/g, '<br>');
+        const sanitizer = document.createElement('div');
+        sanitizer.textContent = text;
+        let sanitizedText = sanitizer.innerHTML;
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        sanitizedText = sanitizedText.replace(/(?<!\\)\*(.*?)\*/g, '<em>$1</em>');
+        sanitizedText = sanitizedText.replace(/\[(.*?)\]\((.*?)\)/g, (match, linkText, url) => {
+            if (url.startsWith('javascript:')) return `[${linkText}]()`;
+            if (url.startsWith('@')) return `<a href="#/${url.substring(1)}">${linkText}</a>`;
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
+        });
+        sanitizedText = sanitizedText.replace(/\\(\*)/g, '$1');
+        return sanitizedText;
     };
 
     const renderJsonContent = (blocks) => {
