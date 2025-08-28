@@ -540,29 +540,46 @@ const initializeUploaderModal = () => {
     fileListContainer.addEventListener('drop', (e) => handleFileUpload(e.dataTransfer.files));
 };
 // --- Renderer Functions ---
+// src/assets/js/modules/admin.js
+
 const renderMessages = (contacts) => {
     const wrapper = document.getElementById('admin-content-wrapper');
     if (!wrapper) return;
     if (!contacts || contacts.length === 0) {
-        wrapper.innerHTML = '<p style="text-align: center; opacity: 0.8;">پیام جدیدی یافت نشد.</p>';
+        wrapper.innerHTML = '<p style="text-align: center; opacity: 0.8; padding: 2rem;">پیام جدیدی یافت نشد.</p>';
         return;
     }
-    let tableHTML = `
-        <div class="custom-table-wrapper">
-            <table class="custom-table">
-                <thead><tr><th>نام</th><th>ایمیل</th><th>پیام</th><th>تاریخ ارسال</th></tr></thead>
-                <tbody>
-                    ${contacts.map(contact => {
-                        const messageDate = new Date(contact.created_at).toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                        const safeName = (contact.name || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                        const safeEmail = (contact.email || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                        const safeMessage = (contact.message || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                        return `<tr><td>${safeName}</td><td><a href="mailto:${safeEmail}">${safeEmail}</a></td><td class="message-cell">${safeMessage}</td><td>${messageDate}</td></tr>`;
-                    }).join('')}
-                </tbody>
-            </table>
-        </div>`;
-    wrapper.innerHTML = tableHTML;
+
+    // Creating the accordion structure
+    let accordionHTML = '<div class="accordion-container">';
+    contacts.forEach(contact => {
+        const messageDate = new Date(contact.created_at).toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const safeName = (contact.name || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeEmail = (contact.email || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        // Replace newlines with <br> for proper display in HTML
+        const safeMessage = (contact.message || '').replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br />');
+
+        accordionHTML += `
+            <div class="accordion-item">
+                <button type="button" class="accordion-header">
+                    <div style="display: flex; flex-direction: column; align-items: flex-start; text-align: right; flex-grow: 1;">
+                        <strong style="font-size: 1rem;">${safeName}</strong>
+                        <small style="opacity: 0.8; margin-top: 0.25rem;">${safeEmail} - ${messageDate}</small>
+                    </div>
+                    <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <div class="accordion-body">
+                    <div class="accordion-body-content" style="line-height: 2; font-size: 0.95rem;">
+                        ${safeMessage}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    accordionHTML += '</div>';
+    wrapper.innerHTML = accordionHTML;
 };
 
 const renderJournalList = (issues) => {
@@ -1236,8 +1253,21 @@ const initializeJournalModule = () => {
     });
 };
 
-const initializeMessagesModule = () => { /* No specific JS needed */ };
+const initializeMessagesModule = () => {
+    const wrapper = document.getElementById('admin-content-wrapper');
+    if (!wrapper) return;
 
+    // Add click listener for the accordion functionality
+    wrapper.addEventListener('click', (e) => {
+        const header = e.target.closest('.accordion-header');
+        if (header) {
+            const item = header.closest('.accordion-item');
+            if (item) {
+                item.classList.toggle('is-open');
+            }
+        }
+    });
+};
 
 
 const initializeNewsModule = async () => {
