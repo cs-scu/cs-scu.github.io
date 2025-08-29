@@ -26,7 +26,7 @@ To get a local copy up and running, follow these simple steps.
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/cs-scu/cs-scu.github.io.git](https://github.com/cs-scu/cs-scu.github.io.git)
+    git clone https://github.com/cs-scu/cs-scu.github.io.git
     cd cs-scu.github.io
     ```
 2.  **Configure Supabase**:
