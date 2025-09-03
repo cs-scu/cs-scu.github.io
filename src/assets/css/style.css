@@ -2377,17 +2377,18 @@ body.light-theme .time-picker-widget {
 
 .time-scroll-container {
     height: 120px;
-    width: 60px; /* Made it a bit narrower */
+    width: 60px;
     overflow-y: scroll;
     overflow-x: hidden;
     text-align: center;
     font-size: 1.5rem;
     font-weight: bold;
     -webkit-overflow-scrolling: touch;
-    /* scroll-behavior: smooth; // We handle this in JS now */
     border-radius: 8px;
     position: relative;
     mask-image: linear-gradient(to bottom, transparent, black 25%, black 75%, transparent);
+    display: flex;
+    flex-direction: column;
 }
 body.dark-theme .time-scroll-container {
     background-color: rgba(255, 255, 255, 0.05);
@@ -2406,9 +2407,12 @@ body.light-theme .time-scroll-container {
 }
 .scroll-item {
     height: 40px;
-    line-height: 40px;
     opacity: 0.3;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .scroll-item.active {
