@@ -1711,7 +1711,7 @@ export const showEventRegistrationModal = async (eventId) => {
         const userPhoneNumber = state.user?.phone;
         const formatPhoneNumberForDisplay = (phone) => {
             if (!phone) return '';
-            if (phone.startsWith('+98')) return '0' + phone.substring(3);
+            if (phone.startsWith('98')) return '0' + phone.substring(2);
             return phone;
         };
 
@@ -1978,7 +1978,7 @@ export const showEventRegistrationModal = async (eventId) => {
                 full_name: formData.get('name'), 
                 student_id: formData.get('student_id'), 
                 email: user.email, 
-                phone_number: formatPhoneNumberForDisplay(userPhoneNumber), // Use the pre-filled, formatted number
+                phone_number: formatPhoneNumberForDisplay(userPhoneNumber),
                 status: isPaidEvent ? 'pending' : 'confirmed', 
                 card_last_four_digits: isPaidEvent ? formData.get('card_digits') : null, 
                 transaction_time: isPaidEvent ? transactionTime : null 
