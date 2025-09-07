@@ -115,15 +115,27 @@ export const showProfileModal = async () => {
     const provider = state.user?.app_metadata?.provider;
     const userPhoneNumber = state.user?.phone;
 
-    // بخش جدید: HTML برای مدیریت شماره تلفن
 let phoneSectionHtml = '';
+
+const formatPhoneNumberForDisplay = (phone) => {
+    if (!phone) return '';
+    // شماره را از فرمت بین‌المللی +98 به فرمت داخلی 09 تبدیل می‌کند
+    if (phone.startsWith('98')) {
+        return '0' + phone.substring(2);
+    }
+    // اگر فرمت دیگری داشت، بدون تغییر بازگردانده می‌شود
+    return phone;
+};
+
 if (userPhoneNumber) {
+    // *** تغییر اصلی اینجاست: تابع فرمت‌بندی فراخوانی می‌شود ***
+    const formattedPhone = formatPhoneNumberForDisplay(userPhoneNumber);
     phoneSectionHtml = `
         <div class="form-group">
             <label for="phone-display">شماره تلفن تایید شده</label>
-            <div class="phone-display-wrapper" style="display: flex; align-items: center; gap: 0.5rem;">
-                <input type="text" id="phone-display" value="${userPhoneNumber}" disabled dir="ltr" style="background-color: rgba(128,128,128,0.1); flex-grow: 1; text-align: left;">
-                <span class="verified-badge" style="background-color: #28a745; color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">✔ تایید شده</span>
+            <div class="phone-display-wrapper">
+                <input type="text" id="phone-display" value="${formattedPhone}" disabled dir="ltr">
+                <span class="verified-badge">✔ تایید شده</span>
             </div>
         </div>
     `;
@@ -189,14 +201,14 @@ if (userPhoneNumber) {
                     <input type="password" id="confirm-new-password" name="confirm-new-password" required>
                 </div>
                 <div class="form-status"></div>
-                <div class="form-actions" style="flex-direction: row; gap: 1rem; margin-top: 1rem;">
+                <div class="form-actions is-row" style="margin-top: 1rem;">
                     <button type="button" class="btn btn-secondary" id="cancel-password-change">انصراف</button>
                     <button type="submit" class="btn btn-primary">ذخیره رمز جدید</button>
                 </div>
             </div>
         </form>
     ` : '';
-    
+
     const modalHtml = `
         <div class="content-box" style="padding: 2rem;">
             <h2>پروفایل کاربری</h2>
@@ -384,12 +396,15 @@ if (profileForm) {
                 
                 if (signInError) {
                     showStatus(statusBox, 'رمز عبور فعلی شما صحیح نیست.');
-                    submitBtn.disabled = false;
                 } else {
-                    flipper.style.minHeight = `${flipper.offsetHeight}px`;
                     flipper.classList.add('is-flipped');
                     currentStep = 2;
                 }
+                // *** تغییر اصلی اینجاست: دکمه پس از یک تاخیر کوتاه فعال می‌شود ***
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                }, 1000);
+
             } else {
                 // Step 2: Set new password
                 const newPassword = backSide.querySelector('#new-password').value;
@@ -1692,6 +1707,36 @@ export const showEventRegistrationModal = async (eventId) => {
         const paymentInfo = event.payment_card_number;
         const isPaidEvent = event.cost && event.cost.toLowerCase() !== 'رایگان' && paymentInfo && paymentInfo.number;
         
+        // --- START: NEW PHONE LOGIC ---
+        const userPhoneNumber = state.user?.phone;
+        const formatPhoneNumberForDisplay = (phone) => {
+            if (!phone) return '';
+            if (phone.startsWith('+98')) return '0' + phone.substring(3);
+            return phone;
+        };
+
+        let phoneFieldHTML = '';
+        if (userPhoneNumber) {
+            const formattedPhone = formatPhoneNumberForDisplay(userPhoneNumber);
+            phoneFieldHTML = `
+                <div class="form-group">
+                    <label for="reg-phone">شماره تلفن</label>
+                    <input type="tel" id="reg-phone" name="phone_number" value="${formattedPhone}" required disabled style="background-color: rgba(128,128,128,0.1); direction: ltr; text-align: left;">
+                </div>
+            `;
+        } else {
+            phoneFieldHTML = `
+                <div class="form-group">
+                    <label>شماره تلفن</label>
+                    <div class="phone-prompt">
+                        <p>برای ثبت‌نام، ابتدا باید شماره تلفن خود را در پروفایل تایید کنید.</p>
+                        <button type="button" id="go-to-profile-for-phone" class="btn btn-secondary">تکمیل پروفایل</button>
+                    </div>
+                </div>
+            `;
+        }
+        // --- END: NEW PHONE LOGIC ---
+
         let paymentSectionHTML = '';
         let paymentFieldsHTML = '';
         
@@ -1750,17 +1795,26 @@ export const showEventRegistrationModal = async (eventId) => {
                 <h2>ثبت‌نام در: ${event.title}</h2>${paymentSectionHTML}
                 <form id="event-registration-form" style="margin-top: ${isPaidEvent ? '2rem' : '1rem'};">
                     <div class="form-row"><div class="form-group"><label for="reg-name">نام و نام خانوادگی</label><input type="text" id="reg-name" name="name" value="${profile?.full_name || ''}" required></div><div class="form-group"><label for="reg-email">ایمیل</label><input type="email" id="reg-email" name="email" value="${user?.email || ''}" required disabled style="background-color: rgba(128,128,128,0.1);" dir="ltr"></div></div>
-                    <div class="form-row"><div class="form-group"><label for="reg-student-id">کد دانشجویی</label><input type="text" id="reg-student-id" name="student_id" inputmode="numeric" required dir="ltr"></div><div class="form-group"><label for="reg-phone">شماره تلفن</label><input type="tel" id="reg-phone" name="phone_number" inputmode="tel" required></div></div>
+                    <div class="form-row"><div class="form-group"><label for="reg-student-id">کد دانشجویی</label><input type="text" id="reg-student-id" name="student_id" inputmode="numeric" required dir="ltr"></div>${phoneFieldHTML}</div>
                     ${paymentFieldsHTML}
                     <div class="form-group" style="margin-top: 1.5rem;"><label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="reg-confirm" name="confirm" required style="width: auto; margin-left: 0.5rem;"><span>اطلاعات وارد شده را تایید می‌کنم ${isPaidEvent ? ' و پرداخت را انجام داده‌ام.' : '.'}</span></label></div>
                     <div class="form-status"></div><br>
-                    <button type="submit" class="btn btn-primary btn-full">${isPaidEvent ? 'ارسال و ثبت‌نام موقت' : 'ثبت‌نام نهایی'}</button>
+                    <button type="submit" class="btn btn-primary btn-full" ${!userPhoneNumber ? 'disabled' : ''}>${isPaidEvent ? 'ارسال و ثبت‌نام موقت' : 'ثبت‌نام نهایی'}</button>
                 </form>
             </div>`;
         
         genericModalContent.innerHTML = modalHtml;
 
-        // --- START: COPY BUTTON & TIME PICKER LOGIC ---
+        // --- START: NEW EVENT LISTENER ---
+        const goToProfileBtn = genericModalContent.querySelector('#go-to-profile-for-phone');
+        if (goToProfileBtn) {
+            goToProfileBtn.addEventListener('click', () => {
+                genericModal.classList.remove('is-open'); // Close current modal
+                showProfileModal(); // Open profile modal
+            });
+        }
+        // --- END: NEW EVENT LISTENER ---
+
         const copyCardBtn = genericModalContent.querySelector('#copy-card-btn');
         if (copyCardBtn) {
             copyCardBtn.addEventListener('click', () => {
@@ -1781,7 +1835,6 @@ export const showEventRegistrationModal = async (eventId) => {
             });
         }
 
-// --- START: TIME PICKER LOGIC (with Magnetic Scroll & Centering) ---
         const openTimePickerBtn = genericModalContent.querySelector('#open-time-picker-btn');
         const timePickerWidget = genericModalContent.querySelector('#time-picker-widget');
 
@@ -1797,7 +1850,6 @@ export const showEventRegistrationModal = async (eventId) => {
             const paddingHeight = (containerHeight - itemHeight) / 2;
             const paddingDiv = `<div style="height: ${paddingHeight}px; flex-shrink: 0;"></div>`;
 
-            // Populate hour and minute scrolls with padding
             let hourHTML = paddingDiv;
             for (let i = 0; i < 24; i++) { hourHTML += `<div class="scroll-item">${String(i).padStart(2, '0')}</div>`; }
             hourHTML += paddingDiv;
@@ -1841,7 +1893,6 @@ export const showEventRegistrationModal = async (eventId) => {
             hourScroll.addEventListener('scroll', debouncedSnapHour);
             minuteScroll.addEventListener('scroll', debouncedSnapMinute);
 
-            // Initial positioning
             scrollToTime(hourScroll, currentHour, false);
             scrollToTime(minuteScroll, currentMinute, false);
             updateActiveItems();
@@ -1873,7 +1924,7 @@ export const showEventRegistrationModal = async (eventId) => {
                 const isHidden = timePickerWidget.style.display === 'none' || timePickerWidget.style.display === '';
                 
                 if (isHidden) {
-                    timePickerWidget.classList.add('show-above'); // Always open upwards
+                    timePickerWidget.classList.add('show-above');
                     timePickerWidget.style.display = 'block';
                     
                     scrollToTime(hourScroll, currentHour, false);
@@ -1904,7 +1955,6 @@ export const showEventRegistrationModal = async (eventId) => {
                 }
             }, { once: true });
         }
-        // --- END: LOGIC ---
 
         const registrationForm = genericModalContent.querySelector('#event-registration-form');
         registrationForm.addEventListener('submit', async (e) => {
@@ -1928,7 +1978,7 @@ export const showEventRegistrationModal = async (eventId) => {
                 full_name: formData.get('name'), 
                 student_id: formData.get('student_id'), 
                 email: user.email, 
-                phone_number: formData.get('phone_number'), 
+                phone_number: formatPhoneNumberForDisplay(userPhoneNumber), // Use the pre-filled, formatted number
                 status: isPaidEvent ? 'pending' : 'confirmed', 
                 card_last_four_digits: isPaidEvent ? formData.get('card_digits') : null, 
                 transaction_time: isPaidEvent ? transactionTime : null 

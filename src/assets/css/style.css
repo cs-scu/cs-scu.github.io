@@ -1949,27 +1949,30 @@ body.light-theme .btn-text {
 }
 .form-actions {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
     margin-top: 1.5rem;
-    width: 100%; /* این خط را اضافه کنید تا کانتینر دکمه‌ها کل عرض را بگیرد */
+    width: 100%;
 }
 
 .form-actions .btn {
-    width: 100%; /* دکمه‌ها را هم‌اندازه و به اندازه عرض والد می‌کند */
-    margin: 1rem;
-}
-.btn.btn-full {
     width: 100%;
-    padding-top: 0.8rem;
-    padding-bottom: 0.8rem;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
+    margin: 0;
 }
-.btn.btn-full:hover {
-    filter: brightness(1.1);
+
+/* Modifier for side-by-side buttons */
+.form-actions.is-row {
+    justify-content: flex-end;
 }
+
+.form-actions.is-row .btn {
+    width: auto;
+    flex-grow: 0;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+}
+
 
 /* ================== OTP Input Styles ================== */
 .otp-container {
@@ -6694,8 +6697,6 @@ body.light-theme .footer-credit {
 
 /* ================== Responsive Profile Modal Forms (Scoped & Final) ================== */
 
-/* --- All rules are now scoped to #generic-modal to prevent conflicts --- */
-
 #generic-modal .responsive-form-row {
     display: flex;
     align-items: center;
@@ -6792,36 +6793,95 @@ body.light-theme .footer-credit {
         font-size: 0.8rem;
     }
 }
+/* ================== Profile Modal Phone Display ================== */
 
+.phone-display-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.phone-display-wrapper input {
+    background-color: rgba(128, 128, 128, 0.1);
+    flex-grow: 1;
+    text-align: left;
+    cursor: default;
+}
+
+.verified-badge {
+    background-color: #28a745;
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    white-space: nowrap; /* از شکستن متن جلوگیری می‌کند */
+    flex-shrink: 0; /* از کوچک شدن دکمه جلوگیری می‌کند */
+}
 
 /* ================== Animated Flipper Form (Scoped) ================== */
 
 #generic-modal .form-flipper {
-    perspective: 1000px;
+    position: relative;
+    /* این خط برای انیمیشن نرم ارتفاع ضروری است */
+    transition: min-height 0.4s ease-in-out;
 }
 
 #generic-modal .form-flipper-front,
 #generic-modal .form-flipper-back {
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
-    backface-visibility: hidden;
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                opacity 0.3s ease-in-out,
+                visibility 0.5s;
+}
+
+#generic-modal .form-flipper-front {
+    max-height: 200px; /* ارتفاع اولیه برای نمایش محتوا */
+    opacity: 1;
+    visibility: visible;
 }
 
 #generic-modal .form-flipper-back {
-    transform: rotateY(180deg);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    display: none;
+    max-height: 0;
+    opacity: 0;
+    visibility: hidden;
 }
 
 #generic-modal .form-flipper.is-flipped .form-flipper-front {
-    transform: rotateY(-180deg);
+    max-height: 0;
+    opacity: 0;
+    visibility: hidden;
 }
 
 #generic-modal .form-flipper.is-flipped .form-flipper-back {
-    transform: rotateY(0deg);
-    display: block;
-    position: static;
+    max-height: 500px; /* ارتفاع کافی برای نمایش فرم رمز جدید */
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ================== Event Registration Phone Prompt ================== */
+.phone-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+}
+body.dark-theme .phone-prompt {
+    background-color: rgba(0,0,0,0.2);
+}
+body.light-theme .phone-prompt {
+    background-color: rgba(0,0,0,0.04);
+}
+.phone-prompt p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+.phone-prompt .btn {
+    width: auto;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
 }
