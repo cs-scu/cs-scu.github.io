@@ -6692,148 +6692,136 @@ body.light-theme .footer-credit {
 }
 
 
-/* ================== Responsive Profile Modal Forms (Final v2) ================== */
+/* ================== Responsive Profile Modal Forms (Scoped & Final) ================== */
 
-/* --- Layout for simple forms (Name, Phone Number) --- */
-.responsive-form-row {
+/* --- All rules are now scoped to #generic-modal to prevent conflicts --- */
+
+#generic-modal .responsive-form-row {
     display: flex;
     align-items: center;
     gap: 0.75rem;
 }
 
-/* --- Layout for complex forms (OTP) --- */
-.responsive-form-column {
+#generic-modal .responsive-form-column {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1rem;
 }
 
-/* Wrapper for OTP inputs and action buttons */
-.otp-input-and-actions {
+#generic-modal .otp-input-and-actions {
     display: flex;
-    flex-direction: column; /* Mobile First: Vertical layout */
+    flex-direction: column;
     align-items: center;
-    gap: 1rem; /* Space between inputs and buttons on mobile */
+    gap: 1rem;
     width: 100%;
 }
 
-/* Container for the 6 OTP input boxes */
-.otp-container {
+#generic-modal .otp-container {
     display: flex;
     justify-content: center;
     gap: 8px;
     width: 100%;
-    max-width: 330px; /* Prevent excessive stretching on tablets */
+    max-width: 330px;
 }
 
-.otp-input {
+/* Scoped OTP input styles for the modal */
+#generic-modal .otp-input {
     width: 45px;
     height: 55px;
     font-size: 1.5rem;
     flex-shrink: 0;
-    transition: all 0.2s ease-in-out; /* Add transition for smooth resizing */
+    transition: all 0.2s ease-in-out;
 }
 
-/* Container for the OTP buttons */
-.otp-actions {
+#generic-modal .otp-actions {
     display: flex;
     gap: 0.5rem;
     width: 100%;
-    max-width: 330px; /* Match the width of the inputs */
+    max-width: 330px;
 }
 
-.otp-actions button {
-    flex-grow: 1; /* Make buttons share space equally */
+#generic-modal .otp-actions button {
+    flex-grow: 1;
     padding: 0.6rem 1rem;
     font-size: 0.9rem;
-    transition: all 0.2s ease-in-out; /* Add transition for smooth resizing */
+    transition: all 0.2s ease-in-out;
 }
 
-/* --- Media Query for DESKTOP View (wider than 600px) --- */
+/* --- Media Queries scoped to the modal --- */
+
 @media (min-width: 601px) {
-    .otp-input-and-actions {
-        flex-direction: row; /* Horizontal layout on desktop */
-        justify-content: center; /* Center the whole group */
+    #generic-modal .otp-input-and-actions {
+        flex-direction: row;
+        justify-content: center;
         max-width: none;
         gap: 0.75rem;
     }
 
-    .otp-container, .otp-actions {
-        width: auto; /* Allow content to define width */
+    #generic-modal .otp-container,
+    #generic-modal .otp-actions {
+        width: auto;
     }
 }
 
-/* --- Media Query for general MOBILE View (narrower than 700px) --- */
 @media (max-width: 700px) {
-    /* Handle simple forms on mobile */
-    .responsive-form-row {
+    #generic-modal .responsive-form-row {
         flex-direction: column;
         align-items: stretch;
     }
-
-    .responsive-form-row > div {
-        width: 100%;
-    }
-    
-    .responsive-form-row button {
-        width: 100%;
-        justify-content: center;
-    }
 }
 
-/* --- CHANGED: Media Query for EXTRA SMALL screens (narrower than 400px) --- */
 @media (max-width: 400px) {
-    /* Target paragraphs inside the profile modal */
-    .modal-overlay .content-box p {
-        font-size: 0.9rem; /* کاهش اندازه فونت پاراگراف‌ها */
-        line-height: 1.7;  /* تنظیم فاصله خطوط برای خوانایی بهتر */
+    #generic-modal .content-box p {
+        font-size: 0.9rem;
+        line-height: 1.7;
+    }
+    
+    #generic-modal .otp-container {
+        gap: 5px;
     }
 
-    .otp-container {
-        gap: 5px; /* Reduce gap between inputs */
-    }
-
-    .otp-input {
-        width: 38px;  /* Make inputs smaller */
-        height: 48px; /* Make inputs smaller */
+    #generic-modal .otp-input {
+        width: 38px;
+        height: 48px;
         font-size: 1.2rem;
     }
 
-    .otp-actions button {
-        padding: 0.5rem 0.8rem; /* Make buttons smaller */
+    #generic-modal .otp-actions button {
+        padding: 0.5rem 0.8rem;
         font-size: 0.8rem;
     }
 }
 
 
-/* ================== Animated Flipper Form ================== */
-.form-flipper {
+/* ================== Animated Flipper Form (Scoped) ================== */
+
+#generic-modal .form-flipper {
     perspective: 1000px;
 }
 
-.form-flipper-front,
-.form-flipper-back {
+#generic-modal .form-flipper-front,
+#generic-modal .form-flipper-back {
     transition: transform 0.6s;
     transform-style: preserve-3d;
     backface-visibility: hidden;
 }
 
-.form-flipper-back {
+#generic-modal .form-flipper-back {
     transform: rotateY(180deg);
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    display: none; /* Initially hidden */
+    display: none;
 }
 
-.form-flipper.is-flipped .form-flipper-front {
+#generic-modal .form-flipper.is-flipped .form-flipper-front {
     transform: rotateY(-180deg);
 }
 
-.form-flipper.is-flipped .form-flipper-back {
+#generic-modal .form-flipper.is-flipped .form-flipper-back {
     transform: rotateY(0deg);
-    display: block; /* Show back side when flipped */
-    position: static; /* Let it take space normally */
+    display: block;
+    position: static;
 }
