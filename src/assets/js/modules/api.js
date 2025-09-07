@@ -805,3 +805,34 @@ export const getUserRegistrations = async (userId) => {
         return [];
     }
 };
+
+// تابع برای فراخوانی Edge Function ارسال OTP
+export const sendPhoneVerificationOtp = async (phone) => {
+    const { data, error } = await supabaseClient.functions.invoke('send-phone-otp', {
+        body: { phone },
+    });
+    return { data, error };
+};
+
+// تابع برای فراخوانی Edge Function تایید OTP
+export const verifyPhoneOtp = async (phone, otp) => {
+    // <<-- START: تغییر کلیدی اینجاست -->>
+    // ابتدا نشست (session) فعلی کاربر را دریافت می‌کنیم تا به توکن دسترسی داشته باشیم
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    
+    // اگر نشست یا توکن وجود نداشت، خطا برمی‌گردانیم
+    if (!session?.access_token) {
+        return { data: null, error: new Error("Authentication token not found. Please log in again.") };
+    }
+
+    // تابع را با هدر Authorization که به صورت دستی تنظیم شده، فراخوانی می‌کنیم
+    const { data, error } = await supabaseClient.functions.invoke('verify-phone-otp', {
+        headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: { phone, otp },
+    });
+    // <<-- END: تغییر کلیدی -->>
+
+    return { data, error };
+};

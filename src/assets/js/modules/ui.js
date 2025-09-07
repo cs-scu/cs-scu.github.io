@@ -20,7 +20,9 @@ import {
     deleteComment,
     addJournalEntry,
     updateJournalEntry,
-    deleteJournalEntry
+    deleteJournalEntry,
+    sendPhoneVerificationOtp,
+    verifyPhoneOtp
 } from './api.js';
 
 
@@ -95,165 +97,339 @@ export const showProfileModal = async () => {
     const genericModalContent = document.getElementById('generic-modal-content');
     if (!genericModal || !genericModalContent) return;
 
+    // همیشه آخرین اطلاعات کاربر را از Supabase دریافت می‌کنیم
     const { data: { user: freshUser }, error: refreshError } = await supabaseClient.auth.refreshSession();
     if (refreshError || !freshUser) {
         console.error("Could not refresh user data:", refreshError);
+        location.hash = '#/login'; // اگر نشست منقضی شده، به صفحه لاگین هدایت شو
         return;
     }
     state.user = freshUser;
 
+    // <<-- START: منطق جدید برای دریافت پروفایل -->>
+    // پروفایل را نیز مجددا واکشی می‌کنیم تا اطلاعات نام به‌روز باشد
+    await getProfile();
     const profile = state.profile;
-    const provider = state.user?.app_metadata?.provider;
+    // <<-- END: منطق جدید -->>
 
-    // بخش جدید: فرم پیشرفته تغییر رمز عبور
-    const changePasswordHtml = `
+    const provider = state.user?.app_metadata?.provider;
+    const userPhoneNumber = state.user?.phone;
+
+    // بخش جدید: HTML برای مدیریت شماره تلفن
+let phoneSectionHtml = '';
+if (userPhoneNumber) {
+    phoneSectionHtml = `
+        <div class="form-group">
+            <label for="phone-display">شماره تلفن تایید شده</label>
+            <div class="phone-display-wrapper" style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="text" id="phone-display" value="${userPhoneNumber}" disabled dir="ltr" style="background-color: rgba(128,128,128,0.1); flex-grow: 1; text-align: left;">
+                <span class="verified-badge" style="background-color: #28a745; color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">✔ تایید شده</span>
+            </div>
+        </div>
+    `;
+} else {
+    phoneSectionHtml = `
         <hr style="margin: 2rem 0;">
-        <h4>تغییر رمز عبور</h4>
-        <form id="change-password-form" novalidate>
-            <div class="form-group password-group">
-                <label for="current-password">رمز عبور فعلی</label>
-                <input type="password" id="current-password" name="current-password" required>
-                <button type="button" class="password-toggle-btn">
-                    <svg class="icon-eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    <svg class="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                </button>
+        <h4>تایید شماره تلفن</h4>
+        <p>با تایید شماره تلفن، از اطلاع‌رسانی‌های مهم رویدادها باخبر شوید.</p>
+        
+        <form id="phone-verification-form" class="responsive-form-row" novalidate>
+            <div class="form-group" style="flex-grow: 1; margin: 0;">
+                <label for="phone-input" class="visually-hidden">شماره موبایل</label>
+                <input type="tel" id="phone-input" name="phone" placeholder="شماره موبایل (مثال: 0912...)" required pattern="^09[0-9]{9}$" dir="ltr" style="text-align: left;">
             </div>
-            <div class="form-group password-group">
-                <label for="new-password">رمز عبور جدید</label>
-                <input type="password" id="new-password" name="new-password" placeholder="حداقل ۶ کاراکتر" required>
-                <button type="button" class="password-toggle-btn">
-                    <svg class="icon-eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    <svg class="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                </button>
-            </div>
-            <div class="form-group password-group">
-                <label for="confirm-new-password">تکرار رمز عبور جدید</label>
-                <input type="password" id="confirm-new-password" name="confirm-new-password" required>
-                <button type="button" class="password-toggle-btn">
-                    <svg class="icon-eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    <svg class="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                </button>
-            </div>
-            <div class="form-status"></div>
-            <br>
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">ذخیره رمز جدید</button>
+            <div style="flex-shrink: 0;">
+                <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">ارسال کد</button>
             </div>
         </form>
-    `;
 
-    const modalHtml = `
-        <div class="content-box" style="padding-top: 4rem;">
-            <h2>پروفایل کاربری</h2>
-            <p>اطلاعات خود را تکمیل یا ویرایش کنید.</p>
-            <form id="profile-form">
-                <div class="form-group">
-                    <label for="full-name">نام و نام خانوادگی</label>
-                    <input type="text" id="full-name" name="full-name" value="${profile?.full_name || ''}" required>
-                </div>
-                <div class="form-status"></div>
-                <br>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+            <form id="otp-verification-form" class="responsive-form-column" style="display: none;" novalidate>
+                <p style="text-align: center; margin-bottom: 1rem;">کد ۶ رقمی ارسال شده به شماره <strong id="display-phone-otp" dir="ltr"></strong> را وارد کنید.</p>
+                
+                <div class="otp-input-and-actions">
+                    <div class="otp-container" dir="ltr">
+                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric"><input type="text" class="otp-input" maxlength="1" inputmode="numeric"><input type="text" class="otp-input" maxlength="1" inputmode="numeric"><input type="text" class="otp-input" maxlength="1" inputmode="numeric"><input type="text" class="otp-input" maxlength="1" inputmode="numeric"><input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+                    </div>
+                    <div class="otp-actions">
+                        <button type="button" class="btn btn-secondary" id="edit-phone-btn">ویرایش</button>
+                        <button type="submit" class="btn btn-primary">تایید</button>
+                    </div>
                 </div>
             </form>
+        <div class="form-status phone-status" style="margin-top: 1rem;"></div>
+    `;
+}
+
+    // محتوای فرم تغییر رمز عبور بدون تغییر باقی می‌ماند
+    const changePasswordHtml = provider === 'email' ? `
+        <hr style="margin: 2rem 0;">
+        <h4>تغییر رمز عبور</h4>
+        <form id="change-password-form" class="form-flipper" novalidate>
+            <div class="form-flipper-front">
+                <p>برای شروع، لطفاً رمز عبور فعلی خود را وارد کنید.</p>
+                
+                <div class="responsive-form-row">
+                    <div class="form-group password-group" style="flex-grow: 1; margin: 0;">
+                        <input type="password" id="current-password" name="current-password" placeholder="رمز عبور فعلی" required>
+                    </div>
+                    <div style="flex-shrink: 0;">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">ادامه</button>
+                    </div>
+                </div>
+                <div class="form-status" style="margin-top: 0.75rem;"></div>
+            </div>
+
+            <div class="form-flipper-back">
+                <div class="form-group password-group">
+                    <label for="new-password">رمز عبور جدید</label>
+                    <input type="password" id="new-password" name="new-password" placeholder="حداقل ۶ کاراکتر" required>
+                </div>
+                <div class="form-group password-group">
+                    <label for="confirm-new-password">تکرار رمز عبور جدید</label>
+                    <input type="password" id="confirm-new-password" name="confirm-new-password" required>
+                </div>
+                <div class="form-status"></div>
+                <div class="form-actions" style="flex-direction: row; gap: 1rem; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" id="cancel-password-change">انصراف</button>
+                    <button type="submit" class="btn btn-primary">ذخیره رمز جدید</button>
+                </div>
+            </div>
+        </form>
+    ` : '';
+    
+    const modalHtml = `
+        <div class="content-box" style="padding: 2rem;">
+            <h2>پروفایل کاربری</h2>
+            <form id="profile-form" style="margin-bottom: 1.5rem;">
+                <label for="full-name" style="display: block; margin-bottom: 0.5rem;">نام و نام خانوادگی</label>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div class="form-group" style="flex-grow: 1; margin: 0;">
+                        <input type="text" id="full-name" name="full-name" value="${profile?.full_name || ''}" required>
+                    </div>
+                    
+                    <div style="flex-shrink: 0;">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">ذخیره</button>
+                    </div>
+                </div>
+                <div class="form-status profile-status" style="margin-top: 0.75rem;"></div>
+            </form>
             
-            ${provider === 'email' ? changePasswordHtml : ''}
+            ${phoneSectionHtml}
+            ${changePasswordHtml}
         </div>
     `;
     
     genericModal.classList.add('wide-modal');
     genericModalContent.innerHTML = modalHtml;
-
-    // فعال‌سازی دکمه‌های نمایش/مخفی رمز عبور
-    genericModalContent.querySelectorAll('.password-toggle-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const passwordInput = btn.previousElementSibling;
-            const isOpen = passwordInput.type === 'password';
-            passwordInput.type = isOpen ? 'text' : 'password';
-            btn.querySelector('.icon-eye-open').style.display = isOpen ? 'none' : 'block';
-            btn.querySelector('.icon-eye-closed').style.display = isOpen ? 'block' : 'none';
-        });
-    });
-
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
 
-    const profileForm = genericModalContent.querySelector('#profile-form');
-    const profileStatusBox = profileForm.querySelector('.form-status');
-    profileForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const fullName = profileForm.querySelector('#full-name').value;
-        const submitBtn = profileForm.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
+    // --- منطق فرم‌های جدید ---
+    const phoneForm = genericModalContent.querySelector('#phone-verification-form');
+    const otpForm = genericModalContent.querySelector('#otp-verification-form');
+    const phoneStatusBox = genericModalContent.querySelector('.form-status.phone-status');
 
-        const { error } = await updateProfile({ full_name: fullName });
-        if (error) {
-            showStatus(profileStatusBox, 'خطا در ذخیره اطلاعات.');
-            submitBtn.disabled = false;
-        } else {
-            showStatus(profileStatusBox, 'اطلاعات با موفقیت ذخیره شد.', 'success');
-            await getProfile();
-            updateUserUI(state.user, state.profile);
-            setTimeout(() => {
-                genericModal.classList.remove('is-open');
-                dom.body.classList.remove('modal-is-open');
-            }, 1500);
-        }
-    });
-
-    // بخش جدید: منطق پیشرفته فرم تغییر رمز عبور
-    if (provider === 'email') {
-        const passwordForm = genericModalContent.querySelector('#change-password-form');
-        const passwordStatusBox = passwordForm.querySelector('.form-status');
-        passwordForm.addEventListener('submit', async (e) => {
+    if (phoneForm && otpForm) {
+        phoneForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const currentPassword = passwordForm.querySelector('#current-password').value;
-            const newPassword = passwordForm.querySelector('#new-password').value;
-            const confirmNewPassword = passwordForm.querySelector('#confirm-new-password').value;
-            const submitBtn = passwordForm.querySelector('button[type="submit"]');
+            const phoneInput = phoneForm.querySelector('#phone-input');
+            const phone = phoneInput.value.trim();
+            const submitBtn = phoneForm.querySelector('button[type="submit"]');
 
-            hideStatus(passwordStatusBox);
-
-            if (newPassword.length < 6) {
-                showStatus(passwordStatusBox, 'رمز عبور جدید باید حداقل ۶ کاراکتر باشد.');
-                return;
-            }
-            if (newPassword !== confirmNewPassword) {
-                showStatus(passwordStatusBox, 'رمزهای عبور جدید با یکدیگر مطابقت ندارند.');
+            hideStatus(phoneStatusBox);
+            if (!phoneInput.checkValidity()) {
+                showStatus(phoneStatusBox, 'لطفاً شماره موبایل را با فرمت صحیح وارد کنید.');
                 return;
             }
 
             submitBtn.disabled = true;
-            submitBtn.textContent = 'در حال بررسی...';
+            submitBtn.textContent = 'در حال ارسال...';
 
-            // 1. تایید رمز عبور فعلی
-            const { error: signInError } = await signInWithPassword(state.user.email, currentPassword);
+            const { error } = await sendPhoneVerificationOtp(phone);
 
-            if (signInError) {
-                showStatus(passwordStatusBox, 'رمز عبور فعلی شما صحیح نیست.');
+            if (error) {
+                showStatus(phoneStatusBox, error.message);
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'ذخیره رمز جدید';
-                return;
-            }
-
-            // 2. اگر رمز فعلی صحیح بود، رمز جدید را آپدیت کن
-            const { error: updateError } = await updateUserPassword(newPassword);
-
-            if (updateError) {
-                showStatus(passwordStatusBox, 'خطا در تغییر رمز عبور. لطفاً دوباره تلاش کنید.');
+                submitBtn.textContent = 'ارسال کد تایید';
             } else {
-                showStatus(passwordStatusBox, 'رمز عبور با موفقیت تغییر کرد.', 'success');
-                passwordForm.reset();
-                setTimeout(() => {
-                    hideStatus(passwordStatusBox);
-                }, 3000);
+                showStatus(phoneStatusBox, 'کد تایید با موفقیت ارسال شد.', 'success');
+                phoneForm.style.display = 'none';
+                otpForm.style.display = 'block';
+                genericModalContent.querySelector('#display-phone-otp').textContent = phone;
+                otpForm.querySelector('.otp-input').focus();
             }
-            
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'ذخیره رمز جدید';
         });
+
+        const otpInputs = Array.from(otpForm.querySelectorAll('.otp-input'));
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', () => {
+                if (input.value && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+        });
+        
+        otpForm.querySelector('#edit-phone-btn').addEventListener('click', () => {
+            hideStatus(phoneStatusBox);
+            otpForm.style.display = 'none';
+            phoneForm.style.display = 'block';
+            const submitBtn = phoneForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'ارسال کد تایید';
+        });
+
+otpForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const phone = genericModalContent.querySelector('#display-phone-otp').textContent;
+    const otp = otpInputs.map(input => input.value).join('');
+    const submitBtn = otpForm.querySelector('button[type="submit"]');
+
+    hideStatus(phoneStatusBox);
+    if (otp.length !== 6) {
+        showStatus(phoneStatusBox, 'کد تایید باید ۶ رقم باشد.');
+        return;
     }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'در حال بررسی...';
+
+    // CHANGED: The 'phone' variable is now correctly passed to the function
+    const { error } = await verifyPhoneOtp(phone, otp);
+
+    if (error) {
+        showStatus(phoneStatusBox, error.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'تایید نهایی';
+    } else {
+        showStatus(phoneStatusBox, 'شماره تلفن شما با موفقیت تایید شد!', 'success');
+        setTimeout(() => {
+            genericModal.classList.remove('is-open');
+            dom.body.classList.remove('modal-is-open');
+            showProfileModal(); 
+        }, 2000);
+    }
+});
+    }
+    
+    // --- کدهای مربوط به فرم پروفایل و تغییر رمز ---
+const profileForm = genericModalContent.querySelector('#profile-form');
+if (profileForm) {
+    const profileStatusBox = profileForm.querySelector('.form-status.profile-status');
+    profileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fullName = profileForm.querySelector('#full-name').value;
+        const submitBtn = profileForm.querySelector('button[type="submit"]');
+        
+        // <<-- START: منطق جدید برای نمایش حالت لودینگ -->>
+        const originalButtonText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span class="visually-hidden">در حال ذخیره...</span>
+        `;
+        // <<-- END: منطق جدید -->>
+
+        hideStatus(profileStatusBox);
+
+        const { error } = await updateProfile({ full_name: fullName });
+
+        if (error) {
+            showStatus(profileStatusBox, 'خطا در ذخیره اطلاعات.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalButtonText; // بازگرداندن متن اصلی دکمه
+        } else {
+            showStatus(profileStatusBox, 'اطلاعات با موفقیت ذخیره شد.', 'success');
+            await getProfile();
+            updateUserUI(state.user, state.profile);
+            
+            // بازگرداندن ظاهر دکمه به حالت اولیه پس از نمایش پیام موفقیت
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalButtonText;
+                hideStatus(profileStatusBox);
+            }, 2000);
+        }
+    });
+}
+
+// در فایل: src/assets/js/modules/ui.js
+// این بلوک را در تابع showProfileModal جایگزین کنید
+
+      const passwordForm = genericModalContent.querySelector('#change-password-form');
+      if(passwordForm) {
+        const flipper = passwordForm;
+        const frontSide = flipper.querySelector('.form-flipper-front');
+        const backSide = flipper.querySelector('.form-flipper-back');
+        let currentStep = 1;
+
+        passwordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.submitter;
+            const statusBox = (currentStep === 1) 
+                ? frontSide.querySelector('.form-status') 
+                : backSide.querySelector('.form-status');
+            
+            hideStatus(statusBox);
+            submitBtn.disabled = true;
+
+            if (currentStep === 1) {
+                // Step 1: Verify current password
+                const currentPassword = frontSide.querySelector('#current-password').value;
+                const { error: signInError } = await signInWithPassword(state.user.email, currentPassword);
+                
+                if (signInError) {
+                    showStatus(statusBox, 'رمز عبور فعلی شما صحیح نیست.');
+                    submitBtn.disabled = false;
+                } else {
+                    flipper.style.minHeight = `${flipper.offsetHeight}px`;
+                    flipper.classList.add('is-flipped');
+                    currentStep = 2;
+                }
+            } else {
+                // Step 2: Set new password
+                const newPassword = backSide.querySelector('#new-password').value;
+                const confirmNewPassword = backSide.querySelector('#confirm-new-password').value;
+                
+                if (newPassword.length < 6) {
+                    showStatus(statusBox, 'رمز عبور جدید باید حداقل ۶ کاراکتر باشد.');
+                    submitBtn.disabled = false;
+                    return;
+                }
+                if (newPassword !== confirmNewPassword) {
+                    showStatus(statusBox, 'رمزهای عبور جدید با یکدیگر مطابقت ندارند.');
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                const { error: updateError } = await updateUserPassword(newPassword);
+                if (updateError) {
+                    showStatus(statusBox, 'خطا در تغییر رمز عبور.');
+                } else {
+                    showStatus(statusBox, 'رمز عبور با موفقیت تغییر کرد.', 'success');
+                    setTimeout(() => {
+                        flipper.classList.remove('is-flipped');
+                        passwordForm.reset();
+                        currentStep = 1;
+                        hideStatus(statusBox);
+                    }, 2000);
+                }
+                submitBtn.disabled = false;
+            }
+        });
+
+        const cancelBtn = backSide.querySelector('#cancel-password-change');
+        cancelBtn.addEventListener('click', () => {
+            flipper.classList.remove('is-flipped');
+            passwordForm.reset();
+            currentStep = 1;
+            hideStatus(backSide.querySelector('.form-status'));
+        });
+      }
 };
 
 export const initializeAuthForm = () => {
