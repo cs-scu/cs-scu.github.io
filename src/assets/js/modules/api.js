@@ -1,7 +1,7 @@
 // src/assets/js/modules/api.js
 import { state } from './state.js';
 
-const supabaseUrl = 'https://vgecvbadhoxijspowemu.supabase.co';
+export const supabaseUrl = 'https://vgecvbadhoxijspowemu.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnZWN2YmFkaG94aWpzcG93ZW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0NDI5MjksImV4cCI6MjA2OTAxODkyOX0.4XW_7NUcidoa9nOGO5BrJvreITjg-vuUzsQbSH87eaU';
 export const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
@@ -806,12 +806,40 @@ export const getUserRegistrations = async (userId) => {
     }
 };
 
-// تابع برای فراخوانی Edge Function ارسال OTP
+// تابع برای فراخوانی Edge Function ارسال OTP (نسخه اصلاح شده و اصولی)
 export const sendPhoneVerificationOtp = async (phone) => {
-    const { data, error } = await supabaseClient.functions.invoke('send-phone-otp', {
-        body: { phone },
-    });
-    return { data, error };
+    // ابتدا نشست کاربر را برای دریافت توکن دریافت می‌کنیم
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session?.access_token) {
+        return { success: false, error: "Authentication required.", status: 401 };
+    }
+
+    try {
+        // درخواست fetch در لایه api باقی می‌ماند
+        const response = await fetch(`${supabaseUrl}/functions/v1/send-phone-otp`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({ phone })
+        });
+
+        // نتیجه را به صورت JSON می‌خوانیم
+        const result = await response.json();
+
+        // اگر پاسخ موفقیت‌آمیز نبود، خطا را به همراه status برمی‌گردانیم
+        if (!response.ok) {
+            return { success: false, error: result.error || 'An unknown error occurred.', status: response.status };
+        }
+        
+        // در صورت موفقیت، نتیجه را به همراه status برمی‌گردانیم
+        return { success: true, error: null, status: response.status, data: result };
+
+    } catch (e) {
+        console.error("Fetch error in sendPhoneVerificationOtp:", e);
+        return { success: false, error: e.message, status: 500 };
+    }
 };
 
 // تابع برای فراخوانی Edge Function تایید OTP

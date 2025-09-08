@@ -1,6 +1,7 @@
 import { state, dom } from './state.js';
 import { 
-    supabaseClient, 
+    supabaseClient,
+    supabaseUrl,
     checkUserStatus, 
     sendSignupOtp, 
     sendPasswordResetOtp, 
@@ -92,119 +93,104 @@ const sanitizeHTML = (str) => {
     // --- END: SECURITY & NEWLINE FIX ---
 };
 
+let isPhoneVerificationInProgress = false;
+
 export const showProfileModal = async () => {
     const genericModal = document.getElementById('generic-modal');
     const genericModalContent = document.getElementById('generic-modal-content');
     if (!genericModal || !genericModalContent) return;
 
-    // همیشه آخرین اطلاعات کاربر را از Supabase دریافت می‌کنیم
+    // ۱. بررسی وضعیت: اگر فرآیند تایید در حال انجام بود، فقط مودال را نمایش بده و خارج شو
+    if (isPhoneVerificationInProgress && genericModalContent.querySelector('#phone-step')) {
+        dom.body.classList.add('modal-is-open');
+        genericModal.classList.add('is-open');
+        return;
+    }
+
+    // اگر فرآیند قبلی تمام شده بود، پرچم را ریست کن
+    isPhoneVerificationInProgress = false;
+
+    // واکشی آخرین اطلاعات کاربر
     const { data: { user: freshUser }, error: refreshError } = await supabaseClient.auth.refreshSession();
     if (refreshError || !freshUser) {
-        console.error("Could not refresh user data:", refreshError);
-        location.hash = '#/login'; // اگر نشست منقضی شده، به صفحه لاگین هدایت شو
+        location.hash = '#/login';
         return;
     }
     state.user = freshUser;
-
-    // <<-- START: منطق جدید برای دریافت پروفایل -->>
-    // پروفایل را نیز مجددا واکشی می‌کنیم تا اطلاعات نام به‌روز باشد
     await getProfile();
     const profile = state.profile;
-    // <<-- END: منطق جدید -->>
-
     const provider = state.user?.app_metadata?.provider;
     const userPhoneNumber = state.user?.phone;
 
-let phoneSectionHtml = '';
+    const formatPhoneNumberForDisplay = (phone) => {
+        if (!phone) return '';
+        return phone.startsWith('98') ? '0' + phone.substring(2) : phone;
+    };
 
-const formatPhoneNumberForDisplay = (phone) => {
-    if (!phone) return '';
-    // شماره را از فرمت بین‌المللی +98 به فرمت داخلی 09 تبدیل می‌کند
-    if (phone.startsWith('98')) {
-        return '0' + phone.substring(2);
-    }
-    // اگر فرمت دیگری داشت، بدون تغییر بازگردانده می‌شود
-    return phone;
-};
-
-if (userPhoneNumber) {
-    // *** تغییر اصلی اینجاست: تابع فرمت‌بندی فراخوانی می‌شود ***
-    const formattedPhone = formatPhoneNumberForDisplay(userPhoneNumber);
-    phoneSectionHtml = `
-        <div class="form-group">
-            <label for="phone-display">شماره تلفن تایید شده</label>
-            <div class="phone-display-wrapper">
-                <input type="text" id="phone-display" value="${formattedPhone}" disabled dir="ltr">
-                <span class="verified-badge">✔ تایید شده</span>
-            </div>
-        </div>
-    `;
-} else {
-    phoneSectionHtml = `
+    const phoneSectionHtml = !userPhoneNumber ? `
         <hr style="margin: 2rem 0;">
         <h4>تایید شماره تلفن</h4>
         <p>با تایید شماره تلفن، از اطلاع‌رسانی‌های مهم رویدادها باخبر شوید.</p>
-        
-        <form id="phone-verification-form" class="responsive-form-row" novalidate>
-            <div class="form-group" style="flex-grow: 1; margin: 0;">
-                <label for="phone-input" class="visually-hidden">شماره موبایل</label>
-                <input type="tel" id="phone-input" name="phone" placeholder="شماره موبایل (مثال: 0912...)" required pattern="^09[0-9]{9}$" dir="ltr" style="text-align: left;">
+        <div id="phone-step">
+            <form id="phone-verification-form" class="responsive-form-row" novalidate>
+                <div class="form-group" style="flex-grow: 1; margin: 0;">
+                    <label for="phone-input" class="visually-hidden">شماره موبایل</label>
+                    <input type="tel" id="phone-input" name="phone" placeholder="شماره موبایل (مثال: 0912...)" required pattern="^09[0-9]{9}$" dir="ltr" style="text-align: left;">
+                </div>
+                <div style="flex-shrink: 0;" id="initial-send-wrapper">
+                    <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">ارسال کد</button>
+                </div>
+            </form>
+            <div class="form-actions is-row" id="edit-mode-actions-wrapper" style="display: none; margin-top: 1rem;">
+                <button type="button" class="btn btn-secondary" id="use-previous-code-btn">وارد کردن کد قبلی</button>
+                <button type="button" class="btn btn-primary" id="send-new-code-btn">ارسال کد جدید</button>
             </div>
-            <div style="flex-shrink: 0;">
-                <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">ارسال کد</button>
-            </div>
-        </form>
-
-            <form id="otp-verification-form" class="responsive-form-column" style="display: none;" novalidate>
+        </div>
+        <div id="otp-step" style="display: none;">
+            <form id="otp-verification-form" class="responsive-form-column" novalidate>
                 <p style="text-align: center; margin-bottom: 1rem;">کد ۶ رقمی ارسال شده به شماره <strong id="display-phone-otp" dir="ltr"></strong> را وارد کنید.</p>
-                
                 <div class="otp-input-and-actions">
                     <div class="otp-container" dir="ltr">
-                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric"><input type="text" class="otp-input" maxlength="1" inputmode="numeric"><input type="text" class="otp-input" maxlength="1" inputmode="numeric"><input type="text" class="otp-input" maxlength="1" inputmode="numeric"><input type="text" class="otp-input" maxlength="1" inputmode="numeric"><input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+                        ${Array(6).fill('<input type="text" class="otp-input" maxlength="1" inputmode="numeric">').join('')}
                     </div>
                     <div class="otp-actions">
-                        <button type="button" class="btn btn-secondary" id="edit-phone-btn">ویرایش</button>
+                        <button type="button" class="btn btn-secondary" id="resend-otp-btn">ارسال مجدد</button>
+                        <button type="button" class="btn btn-secondary" id="edit-phone-btn">ویرایش شماره</button>
                         <button type="submit" class="btn btn-primary">تایید</button>
                     </div>
                 </div>
             </form>
+        </div>
         <div class="form-status phone-status" style="margin-top: 1rem;"></div>
+    ` : `
+        <div class="form-group">
+            <label for="phone-display">شماره تلفن تایید شده</label>
+            <div class="phone-display-wrapper">
+                <input type="text" id="phone-display" value="${formatPhoneNumberForDisplay(userPhoneNumber)}" disabled dir="ltr">
+                <span class="verified-badge">✔ تایید شده</span>
+            </div>
+        </div>
     `;
-}
-
-    // محتوای فرم تغییر رمز عبور بدون تغییر باقی می‌ماند
+    
     const changePasswordHtml = provider === 'email' ? `
         <hr style="margin: 2rem 0;">
         <h4>تغییر رمز عبور</h4>
         <form id="change-password-form" class="form-flipper" novalidate>
             <div class="form-flipper-front">
                 <p>برای شروع، لطفاً رمز عبور فعلی خود را وارد کنید.</p>
-                
                 <div class="responsive-form-row">
                     <div class="form-group password-group" style="flex-grow: 1; margin: 0;">
                         <input type="password" id="current-password" name="current-password" placeholder="رمز عبور فعلی" required>
                     </div>
-                    <div style="flex-shrink: 0;">
-                        <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">ادامه</button>
-                    </div>
+                    <div style="flex-shrink: 0;"><button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">ادامه</button></div>
                 </div>
                 <div class="form-status" style="margin-top: 0.75rem;"></div>
             </div>
-
             <div class="form-flipper-back">
-                <div class="form-group password-group">
-                    <label for="new-password">رمز عبور جدید</label>
-                    <input type="password" id="new-password" name="new-password" placeholder="حداقل ۶ کاراکتر" required>
-                </div>
-                <div class="form-group password-group">
-                    <label for="confirm-new-password">تکرار رمز عبور جدید</label>
-                    <input type="password" id="confirm-new-password" name="confirm-new-password" required>
-                </div>
+                <div class="form-group password-group"><label for="new-password">رمز عبور جدید</label><input type="password" id="new-password" name="new-password" placeholder="حداقل ۶ کاراکتر" required></div>
+                <div class="form-group password-group"><label for="confirm-new-password">تکرار رمز عبور جدید</label><input type="password" id="confirm-new-password" name="confirm-new-password" required></div>
                 <div class="form-status"></div>
-                <div class="form-actions is-row" style="margin-top: 1rem;">
-                    <button type="button" class="btn btn-secondary" id="cancel-password-change">انصراف</button>
-                    <button type="submit" class="btn btn-primary">ذخیره رمز جدید</button>
-                </div>
+                <div class="form-actions is-row" style="margin-top: 1rem;"><button type="button" class="btn btn-secondary" id="cancel-password-change">انصراف</button><button type="submit" class="btn btn-primary">ذخیره رمز جدید</button></div>
             </div>
         </form>
     ` : '';
@@ -215,17 +201,11 @@ if (userPhoneNumber) {
             <form id="profile-form" style="margin-bottom: 1.5rem;">
                 <label for="full-name" style="display: block; margin-bottom: 0.5rem;">نام و نام خانوادگی</label>
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <div class="form-group" style="flex-grow: 1; margin: 0;">
-                        <input type="text" id="full-name" name="full-name" value="${profile?.full_name || ''}" required>
-                    </div>
-                    
-                    <div style="flex-shrink: 0;">
-                        <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">ذخیره</button>
-                    </div>
+                    <div class="form-group" style="flex-grow: 1; margin: 0;"><input type="text" id="full-name" name="full-name" value="${profile?.full_name || ''}" required></div>
+                    <div style="flex-shrink: 0;"><button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">ذخیره</button></div>
                 </div>
                 <div class="form-status profile-status" style="margin-top: 0.75rem;"></div>
             </form>
-            
             ${phoneSectionHtml}
             ${changePasswordHtml}
         </div>
@@ -236,195 +216,205 @@ if (userPhoneNumber) {
     dom.body.classList.add('modal-is-open');
     genericModal.classList.add('is-open');
 
-    // --- منطق فرم‌های جدید ---
+    const phoneStep = genericModalContent.querySelector('#phone-step');
+    const otpStep = genericModalContent.querySelector('#otp-step');
     const phoneForm = genericModalContent.querySelector('#phone-verification-form');
     const otpForm = genericModalContent.querySelector('#otp-verification-form');
     const phoneStatusBox = genericModalContent.querySelector('.form-status.phone-status');
+    
+    const initialSendWrapper = genericModalContent.querySelector('#initial-send-wrapper');
+    const editModeActionsWrapper = genericModalContent.querySelector('#edit-mode-actions-wrapper');
+    const usePreviousCodeBtn = genericModalContent.querySelector('#use-previous-code-btn');
+    const sendNewCodeBtn = genericModalContent.querySelector('#send-new-code-btn');
+    const editPhoneBtn = genericModalContent.querySelector('#edit-phone-btn');
+    const resendOtpBtn = genericModalContent.querySelector('#resend-otp-btn');
+
+    let otpTimerInterval = null;
+
+    const startOtpTimer = (targetBtn) => {
+        clearInterval(otpTimerInterval);
+        let duration = 120;
+        
+        if (!targetBtn) return;
+        const originalText = "ارسال مجدد";
+        targetBtn.disabled = true;
+
+        const updateTimer = () => {
+            if (duration > 0) {
+                targetBtn.textContent = `${originalText} (${toPersianNumber(duration)})`;
+                duration--;
+            } else {
+                clearInterval(otpTimerInterval);
+                targetBtn.disabled = false;
+                targetBtn.textContent = originalText;
+            }
+        };
+        updateTimer();
+        otpTimerInterval = setInterval(updateTimer, 1000);
+    };
+
+    const handleSendOtp = async (phone, buttonToDisable) => {
+        hideStatus(phoneStatusBox);
+        buttonToDisable.disabled = true;
+        const originalText = buttonToDisable.textContent;
+        buttonToDisable.textContent = 'در حال ارسال...';
+        
+        const result = await sendPhoneVerificationOtp(phone);
+
+        buttonToDisable.disabled = false;
+        buttonToDisable.textContent = originalText;
+
+        if (!result.success) {
+            showStatus(phoneStatusBox, result.error || 'خطا در ارسال کد.');
+        } else {
+            isPhoneVerificationInProgress = true;
+            showStatus(phoneStatusBox, 'کد تایید با موفقیت ارسال شد.', 'success');
+            phoneStep.style.display = 'none';
+            otpStep.style.display = 'block';
+            genericModalContent.querySelector('#display-phone-otp').textContent = phone;
+            otpForm.querySelector('.otp-input').focus();
+            startOtpTimer(resendOtpBtn);
+        }
+    };
 
     if (phoneForm && otpForm) {
-        phoneForm.addEventListener('submit', async (e) => {
+        phoneForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const phoneInput = phoneForm.querySelector('#phone-input');
-            const phone = phoneInput.value.trim();
-            const submitBtn = phoneForm.querySelector('button[type="submit"]');
-
-            hideStatus(phoneStatusBox);
-            if (!phoneInput.checkValidity()) {
-                showStatus(phoneStatusBox, 'لطفاً شماره موبایل را با فرمت صحیح وارد کنید.');
-                return;
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'در حال ارسال...';
-
-            const { error } = await sendPhoneVerificationOtp(phone);
-
-            if (error) {
-                showStatus(phoneStatusBox, error.message);
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'ارسال کد تایید';
+            if (phoneInput.checkValidity()) {
+                handleSendOtp(phoneInput.value.trim(), e.submitter);
             } else {
-                showStatus(phoneStatusBox, 'کد تایید با موفقیت ارسال شد.', 'success');
-                phoneForm.style.display = 'none';
-                otpForm.style.display = 'block';
-                genericModalContent.querySelector('#display-phone-otp').textContent = phone;
-                otpForm.querySelector('.otp-input').focus();
+                showStatus(phoneStatusBox, 'لطفاً شماره موبایل را با فرمت صحیح وارد کنید.');
             }
+        });
+        
+        sendNewCodeBtn.addEventListener('click', () => {
+            const phoneInput = phoneForm.querySelector('#phone-input');
+            if (phoneInput.checkValidity()) {
+                handleSendOtp(phoneInput.value.trim(), sendNewCodeBtn);
+            } else {
+                showStatus(phoneStatusBox, 'لطفاً شماره موبایل را با فرمت صحیح وارد کنید.');
+            }
+        });
+
+        editPhoneBtn.addEventListener('click', () => {
+            hideStatus(phoneStatusBox);
+            otpStep.style.display = 'none';
+            phoneStep.style.display = 'block';
+            initialSendWrapper.style.display = 'none';
+            editModeActionsWrapper.style.display = 'flex';
+
+            clearInterval(otpTimerInterval);
+            otpTimerInterval = null;
+            if (resendOtpBtn) {
+                resendOtpBtn.disabled = false;
+                resendOtpBtn.textContent = 'ارسال مجدد';
+            }
+        });
+        
+        usePreviousCodeBtn.addEventListener('click', () => {
+            hideStatus(phoneStatusBox);
+            phoneStep.style.display = 'none';
+            otpStep.style.display = 'block';
+            otpForm.querySelector('.otp-input').focus();
+        });
+
+        resendOtpBtn.addEventListener('click', () => {
+            const phone = genericModalContent.querySelector('#display-phone-otp').textContent;
+            handleSendOtp(phone, resendOtpBtn);
         });
 
         const otpInputs = Array.from(otpForm.querySelectorAll('.otp-input'));
         otpInputs.forEach((input, index) => {
-            input.addEventListener('input', () => {
-                if (input.value && index < otpInputs.length - 1) {
-                    otpInputs[index + 1].focus();
-                }
-            });
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace' && !input.value && index > 0) {
-                    otpInputs[index - 1].focus();
-                }
-            });
+            input.addEventListener('input', () => { if (input.value && index < otpInputs.length - 1) otpInputs[index + 1].focus(); });
+            input.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !input.value && index > 0) otpInputs[index - 1].focus(); });
         });
-        
-        otpForm.querySelector('#edit-phone-btn').addEventListener('click', () => {
+
+        otpForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phone = genericModalContent.querySelector('#display-phone-otp').textContent;
+            const otp = otpInputs.map(input => input.value).join('');
+            const submitBtn = otpForm.querySelector('button[type="submit"]');
+
             hideStatus(phoneStatusBox);
-            otpForm.style.display = 'none';
-            phoneForm.style.display = 'block';
-            const submitBtn = phoneForm.querySelector('button[type="submit"]');
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'ارسال کد تایید';
+            if (otp.length !== 6) { showStatus(phoneStatusBox, 'کد تایید باید ۶ رقم باشد.'); return; }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'در حال بررسی...';
+
+            const { error } = await verifyPhoneOtp(phone, otp);
+
+            if (error) {
+                showStatus(phoneStatusBox, error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'تایید';
+            } else {
+                isPhoneVerificationInProgress = false;
+                showStatus(phoneStatusBox, 'شماره تلفن شما با موفقیت تایید شد!', 'success');
+                setTimeout(() => {
+                    genericModal.classList.remove('is-open');
+                    dom.body.classList.remove('modal-is-open');
+                    showProfileModal(); 
+                }, 2000);
+            }
         });
-
-otpForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const phone = genericModalContent.querySelector('#display-phone-otp').textContent;
-    const otp = otpInputs.map(input => input.value).join('');
-    const submitBtn = otpForm.querySelector('button[type="submit"]');
-
-    hideStatus(phoneStatusBox);
-    if (otp.length !== 6) {
-        showStatus(phoneStatusBox, 'کد تایید باید ۶ رقم باشد.');
-        return;
-    }
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'در حال بررسی...';
-
-    // CHANGED: The 'phone' variable is now correctly passed to the function
-    const { error } = await verifyPhoneOtp(phone, otp);
-
-    if (error) {
-        showStatus(phoneStatusBox, error.message);
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'تایید نهایی';
-    } else {
-        showStatus(phoneStatusBox, 'شماره تلفن شما با موفقیت تایید شد!', 'success');
-        setTimeout(() => {
-            genericModal.classList.remove('is-open');
-            dom.body.classList.remove('modal-is-open');
-            showProfileModal(); 
-        }, 2000);
-    }
-});
     }
     
-    // --- کدهای مربوط به فرم پروفایل و تغییر رمز ---
-const profileForm = genericModalContent.querySelector('#profile-form');
-if (profileForm) {
-    const profileStatusBox = profileForm.querySelector('.form-status.profile-status');
-    profileForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const fullName = profileForm.querySelector('#full-name').value;
-        const submitBtn = profileForm.querySelector('button[type="submit"]');
-        
-        // <<-- START: منطق جدید برای نمایش حالت لودینگ -->>
-        const originalButtonText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = `
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            <span class="visually-hidden">در حال ذخیره...</span>
-        `;
-        // <<-- END: منطق جدید -->>
-
-        hideStatus(profileStatusBox);
-
-        const { error } = await updateProfile({ full_name: fullName });
-
-        if (error) {
-            showStatus(profileStatusBox, 'خطا در ذخیره اطلاعات.');
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalButtonText; // بازگرداندن متن اصلی دکمه
-        } else {
-            showStatus(profileStatusBox, 'اطلاعات با موفقیت ذخیره شد.', 'success');
-            await getProfile();
-            updateUserUI(state.user, state.profile);
-            
-            // بازگرداندن ظاهر دکمه به حالت اولیه پس از نمایش پیام موفقیت
-            setTimeout(() => {
+    const profileForm = genericModalContent.querySelector('#profile-form');
+    if (profileForm) {
+        const profileStatusBox = profileForm.querySelector('.form-status.profile-status');
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = profileForm.querySelector('#full-name').value;
+            const submitBtn = profileForm.querySelector('button[type="submit"]');
+            const originalButtonText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+            hideStatus(profileStatusBox);
+            const { error } = await updateProfile({ full_name: fullName });
+            if (error) {
+                showStatus(profileStatusBox, 'خطا در ذخیره اطلاعات.');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalButtonText;
-                hideStatus(profileStatusBox);
-            }, 2000);
-        }
-    });
-}
+            } else {
+                showStatus(profileStatusBox, 'اطلاعات با موفقیت ذخیره شد.', 'success');
+                await getProfile();
+                updateUserUI(state.user, state.profile);
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalButtonText;
+                    hideStatus(profileStatusBox);
+                }, 2000);
+            }
+        });
+    }
 
-// در فایل: src/assets/js/modules/ui.js
-// این بلوک را در تابع showProfileModal جایگزین کنید
-
-      const passwordForm = genericModalContent.querySelector('#change-password-form');
-      if(passwordForm) {
+    const passwordForm = genericModalContent.querySelector('#change-password-form');
+    if(passwordForm) {
         const flipper = passwordForm;
         const frontSide = flipper.querySelector('.form-flipper-front');
         const backSide = flipper.querySelector('.form-flipper-back');
         let currentStep = 1;
-
         passwordForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = e.submitter;
-            const statusBox = (currentStep === 1) 
-                ? frontSide.querySelector('.form-status') 
-                : backSide.querySelector('.form-status');
-            
+            const statusBox = (currentStep === 1) ? frontSide.querySelector('.form-status') : backSide.querySelector('.form-status');
             hideStatus(statusBox);
             submitBtn.disabled = true;
-
             if (currentStep === 1) {
-                // Step 1: Verify current password
                 const currentPassword = frontSide.querySelector('#current-password').value;
                 const { error: signInError } = await signInWithPassword(state.user.email, currentPassword);
-                
-                if (signInError) {
-                    showStatus(statusBox, 'رمز عبور فعلی شما صحیح نیست.');
-                } else {
-                    flipper.classList.add('is-flipped');
-                    currentStep = 2;
-                }
-                // *** تغییر اصلی اینجاست: دکمه پس از یک تاخیر کوتاه فعال می‌شود ***
-                setTimeout(() => {
-                    submitBtn.disabled = false;
-                }, 1000);
-
+                if (signInError) { showStatus(statusBox, 'رمز عبور فعلی شما صحیح نیست.'); } 
+                else { flipper.classList.add('is-flipped'); currentStep = 2; }
+                setTimeout(() => { submitBtn.disabled = false; }, 1000);
             } else {
-                // Step 2: Set new password
                 const newPassword = backSide.querySelector('#new-password').value;
                 const confirmNewPassword = backSide.querySelector('#confirm-new-password').value;
-                
-                if (newPassword.length < 6) {
-                    showStatus(statusBox, 'رمز عبور جدید باید حداقل ۶ کاراکتر باشد.');
-                    submitBtn.disabled = false;
-                    return;
-                }
-                if (newPassword !== confirmNewPassword) {
-                    showStatus(statusBox, 'رمزهای عبور جدید با یکدیگر مطابقت ندارند.');
-                    submitBtn.disabled = false;
-                    return;
-                }
-
+                if (newPassword.length < 6) { showStatus(statusBox, 'رمز عبور جدید باید حداقل ۶ کاراکتر باشد.'); submitBtn.disabled = false; return; }
+                if (newPassword !== confirmNewPassword) { showStatus(statusBox, 'رمزهای عبور جدید با یکدیگر مطابقت ندارند.'); submitBtn.disabled = false; return; }
                 const { error: updateError } = await updateUserPassword(newPassword);
-                if (updateError) {
-                    showStatus(statusBox, 'خطا در تغییر رمز عبور.');
-                } else {
+                if (updateError) { showStatus(statusBox, 'خطا در تغییر رمز عبور.'); } 
+                else {
                     showStatus(statusBox, 'رمز عبور با موفقیت تغییر کرد.', 'success');
                     setTimeout(() => {
                         flipper.classList.remove('is-flipped');
@@ -436,15 +426,13 @@ if (profileForm) {
                 submitBtn.disabled = false;
             }
         });
-
-        const cancelBtn = backSide.querySelector('#cancel-password-change');
-        cancelBtn.addEventListener('click', () => {
+        backSide.querySelector('#cancel-password-change').addEventListener('click', () => {
             flipper.classList.remove('is-flipped');
             passwordForm.reset();
             currentStep = 1;
             hideStatus(backSide.querySelector('.form-status'));
         });
-      }
+    }
 };
 
 export const initializeAuthForm = () => {
