@@ -324,10 +324,35 @@ export const showProfileModal = async () => {
             handleSendOtp(phone, resendOtpBtn);
         });
 
-        const otpInputs = Array.from(otpForm.querySelectorAll('.otp-input'));
+    const otpInputs = Array.from(otpForm.querySelectorAll('.otp-input'));
         otpInputs.forEach((input, index) => {
-            input.addEventListener('input', () => { if (input.value && index < otpInputs.length - 1) otpInputs[index + 1].focus(); });
-            input.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !input.value && index > 0) otpInputs[index - 1].focus(); });
+            input.addEventListener('input', () => {
+                if (input.value && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+
+            // --- 💡 START: کد جدید برای قابلیت Paste 💡 ---
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+                
+                // اگر طول متن کپی شده مناسب بود، آن را در خانه‌ها پخش کن
+                if (pasteData.length === otpInputs.length && /^\d+$/.test(pasteData)) {
+                    otpInputs.forEach((box, i) => {
+                        box.value = pasteData[i] || '';
+                    });
+                    
+                    // فوکوس را به آخرین خانه منتقل کن
+                    otpInputs[otpInputs.length - 1].focus();
+                }
+            });
+            // --- 💡 END: کد جدید 💡 ---
         });
 
         otpForm.addEventListener('submit', async (e) => {
