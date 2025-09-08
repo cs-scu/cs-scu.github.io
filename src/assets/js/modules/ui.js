@@ -23,7 +23,8 @@ import {
     updateJournalEntry,
     deleteJournalEntry,
     sendPhoneVerificationOtp,
-    verifyPhoneOtp
+    verifyPhoneOtp,
+    signOutAndRedirectToLogin
 } from './api.js';
 
 
@@ -35,6 +36,28 @@ const hideStatus = (statusBox) => {
     if (!statusBox) return;
     statusBox.style.display = 'none';
     statusBox.textContent = '';
+};
+// Helper function to show custom toast alerts
+const showCustomAlert = (message, type = 'success') => {
+    const alertElement = document.createElement('div');
+    alertElement.className = `custom-alert ${type}`;
+    alertElement.textContent = message;
+    
+    document.body.appendChild(alertElement);
+
+    // Force reflow to enable animation
+    requestAnimationFrame(() => {
+        alertElement.classList.add('is-visible');
+    });
+
+    setTimeout(() => {
+        alertElement.classList.remove('is-visible');
+        alertElement.addEventListener('transitionend', () => {
+            if (alertElement.parentElement) {
+                alertElement.remove();
+            }
+        });
+    }, 4500); // Alert will be visible for 4 seconds
 };
 
 // Helper function to show status messages
@@ -177,6 +200,11 @@ export const showProfileModal = async () => {
         <h4>تغییر رمز عبور</h4>
         <form id="change-password-form" class="form-flipper" novalidate>
             <div class="form-flipper-front">
+                <div id="change-password-initial-state" class="password-prompt-container">
+                    <p>می‌خواهید رمز عبور خود را به‌روز کنید؟</p>
+                    <button type="button" id="show-change-password-form" class="btn btn-secondary">تغییر رمز</button>
+                </div>
+            <div id="current-password-container" style="display: none;">
                 <p>برای شروع، لطفاً رمز عبور فعلی خود را وارد کنید.</p>
                 <div class="responsive-form-row">
                     <div class="form-group password-group" style="flex-grow: 1; margin: 0;">
@@ -184,7 +212,12 @@ export const showProfileModal = async () => {
                     </div>
                     <div style="flex-shrink: 0;"><button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">ادامه</button></div>
                 </div>
+
+                <p class="form-note">
+                    رمز خود را فراموش کرده‌اید؟ ابتدا <a href="#" id="logout-from-profile-btn">از حساب کاربری خارج شوید</a>، سپس در صفحه ورود از گزینه «فراموشی رمز عبور» استفاده کنید.
+                </p>
                 <div class="form-status" style="margin-top: 0.75rem;"></div>
+            </div>
             </div>
             <div class="form-flipper-back">
                 <div class="form-group password-group"><label for="new-password">رمز عبور جدید</label><input type="password" id="new-password" name="new-password" placeholder="حداقل ۶ کاراکتر" required></div>
@@ -375,16 +408,17 @@ export const showProfileModal = async () => {
                 submitBtn.textContent = 'تایید';
             } else {
                 isPhoneVerificationInProgress = false;
-                showStatus(phoneStatusBox, 'شماره تلفن شما با موفقیت تایید شد!', 'success');
-                setTimeout(() => {
-                    genericModal.classList.remove('is-open');
-                    dom.body.classList.remove('modal-is-open');
-                    showProfileModal(); 
-                }, 2000);
+                
+                // بستن فوری مودال
+                genericModal.classList.remove('is-open');
+                dom.body.classList.remove('modal-is-open');
+                
+                // نمایش پیام سفارشی
+                showCustomAlert('شماره تلفن شما با موفقیت تایید شد!', 'success');
             }
         });
     }
-    
+
     const profileForm = genericModalContent.querySelector('#profile-form');
     if (profileForm) {
         const profileStatusBox = profileForm.querySelector('.form-status.profile-status');
@@ -415,11 +449,34 @@ export const showProfileModal = async () => {
     }
 
     const passwordForm = genericModalContent.querySelector('#change-password-form');
-    if(passwordForm) {
+    if (passwordForm) {
         const flipper = passwordForm;
         const frontSide = flipper.querySelector('.form-flipper-front');
         const backSide = flipper.querySelector('.form-flipper-back');
+        const showPasswordBtn = frontSide.querySelector('#show-change-password-form');
+        const initialState = frontSide.querySelector('#change-password-initial-state');
+        const currentPasswordContainer = frontSide.querySelector('#current-password-container');
         let currentStep = 1;
+
+        const logoutLink = frontSide.querySelector('#logout-from-profile-btn');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                // ابتدا مودال بسته می‌شود
+                genericModal.classList.remove('is-open');
+                dom.body.classList.remove('modal-is-open');
+                // سپس کاربر از حساب خارج می‌شود
+                signOutAndRedirectToLogin(); 
+            });
+        }
+
+        if (showPasswordBtn) {
+            showPasswordBtn.addEventListener('click', () => {
+                initialState.style.display = 'none';
+                currentPasswordContainer.style.display = 'block';
+                currentPasswordContainer.classList.add('form-show-active');
+            });
+        }
         passwordForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = e.submitter;
@@ -446,6 +503,11 @@ export const showProfileModal = async () => {
                         passwordForm.reset();
                         currentStep = 1;
                         hideStatus(statusBox);
+                        // ----> کد جدید برای بازگشت به حالت اولیه
+                        initialState.style.display = 'block';
+                        currentPasswordContainer.style.display = 'none';
+                        currentPasswordContainer.classList.remove('form-show-active');
+                        // ----> پایان کد جدید
                     }, 2000);
                 }
                 submitBtn.disabled = false;
@@ -456,6 +518,11 @@ export const showProfileModal = async () => {
             passwordForm.reset();
             currentStep = 1;
             hideStatus(backSide.querySelector('.form-status'));
+            // ----> کد جدید برای بازگشت به حالت اولیه
+            initialState.style.display = 'block';
+            currentPasswordContainer.style.display = 'none';
+            currentPasswordContainer.classList.remove('form-show-active');
+            // ----> پایان کد جدید
         });
     }
 };

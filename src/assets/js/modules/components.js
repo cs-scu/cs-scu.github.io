@@ -19,6 +19,28 @@ const createAuthorHTML = (authorId) => {
     `;
 };
 
+const showCustomAlert = (message, type = 'success') => {
+    const alertElement = document.createElement('div');
+    alertElement.className = `custom-alert ${type}`;
+    alertElement.textContent = message;
+    
+    document.body.appendChild(alertElement);
+
+    // Force reflow to enable animation
+    requestAnimationFrame(() => {
+        alertElement.classList.add('is-visible');
+    });
+
+    setTimeout(() => {
+        alertElement.classList.remove('is-visible');
+        alertElement.addEventListener('transitionend', () => {
+            if (alertElement.parentElement) {
+                alertElement.remove();
+            }
+        });
+    }, 4000);
+};
+
 const renderSkeletons = (count, container) => {
     let skeletonHTML = '';
     for (let i = 0; i < count; i++) {

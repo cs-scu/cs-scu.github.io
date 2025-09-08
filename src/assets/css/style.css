@@ -6946,3 +6946,131 @@ body.light-theme .phone-prompt {
     #generic-modal .otp-input { width: 38px; height: 48px; font-size: 1.2rem; }
     #generic-modal .otp-actions button { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
 }
+
+/* Animation for showing the password form */
+@keyframes slideDownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#current-password-container.form-show-active {
+    animation: slideDownFadeIn 0.4s ease-out;
+}
+
+
+/* ================== Custom Alert (Toast) Styles ================== */
+.custom-alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translate(-50%, -100px); /* Initially off-screen */
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+    z-index: 10001;
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                visibility 0.4s;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.custom-alert.is-visible {
+    transform: translate(-50%, 0);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Success type */
+.custom-alert.success {
+    background-color: #28a745;
+    color: white;
+    border: 1px solid #1e7e34;
+}
+
+/* Error type (for potential future use) */
+.custom-alert.error {
+    background-color: #dc3545;
+    color: white;
+    border: 1px solid #b22a38;
+}
+
+@media (max-width: 600px) {
+    .custom-alert {
+        width: 90%;
+        top: 20px;
+        left: 5%;
+        transform: translate(0, -100px);
+        text-align: center;
+    }
+    .custom-alert.is-visible {
+        transform: translate(0, 0);
+    }
+}
+
+
+/* Style for small form helper texts */
+.form-note {
+    font-size: 0.85rem;
+    opacity: 0.85; /* کمی خواناتر شدن متن */
+    margin-top: 1rem;
+    line-height: 1.8; /* افزایش فاصله بین خطوط برای خوانایی بهتر */
+    text-align: justify; /* تراز شدن متن از دو طرف */
+}
+.form-note a {
+    font-weight: bold;
+    /* استایل لینک بهبود یافته برای هماهنگی با تم */
+    text-decoration: none;
+    background-image: linear-gradient(var(--primary-color), var(--primary-color));
+    background-position: 0% 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 2px;
+    transition: background-size .3s;
+}
+body.light-theme .form-note a {
+    background-image: linear-gradient(var(--primary-color-light-theme), var(--primary-color-light-theme));
+}
+.form-note a:hover {
+    background-size: 100% 2px;
+}
+
+/* ================== Profile Modal Responsive Button ================== */
+.password-prompt-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    gap: 1rem; /* فاصله بین متن و دکمه */
+}
+
+.password-prompt-container p {
+    margin: 0;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.password-prompt-container .btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    flex-shrink: 0; /* جلوگیری از کوچک شدن دکمه */
+}
+
+/* --- استایل برای صفحه‌های کوچک‌تر از ۵۰۰ پیکسل --- */
+@media (max-width: 500px) {
+    .password-prompt-container {
+        flex-direction: column; /* چیدمان عمودی */
+        text-align: center;
+    }
+
+    .password-prompt-container .btn {
+        width: 80%; /* افزایش عرض دکمه */
+        max-width: 250px; /* تعیین حداکثر عرض */
+    }
+}

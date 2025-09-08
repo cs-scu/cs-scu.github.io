@@ -65,6 +65,18 @@ export const signOut = async () => {
     }
 };
 
+export const signOutAndRedirectToLogin = async () => {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) {
+        console.error("Error signing out:", error);
+    } else {
+        state.user = null;
+        state.session = null;
+        state.profile = null;
+        window.location.href = 'index.html#/login'; 
+    }
+};
+
 export const getProfile = async () => {
     if (!state.user) return null;
     try {
