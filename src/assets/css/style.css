@@ -7074,3 +7074,60 @@ body.light-theme .form-note a {
         max-width: 250px; /* تعیین حداکثر عرض */
     }
 }
+
+/* src/assets/css/style.css */
+
+/* ================== CONTACT SUPPORT BUTTON STYLE ================== */
+.btn-contact-support {
+    display: flex;
+    flex-direction: row; /* <<-- تغییر به ردیفی */
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem; /* <<-- تغییر فاصله */
+    text-align: center;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.btn-contact-support svg {
+    width: 16px; /* <<-- اعمال اندازه جدید */
+    height: 16px; /* <<-- اعمال اندازه جدید */
+    flex-shrink: 0; /* <<-- جلوگیری از کوچک شدن آیکون */
+}
+
+.support-phone-number {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    direction: ltr;
+    font-weight: normal;
+}
+
+/* ================== REJECTED MODAL BUTTONS STYLE ================== */
+.rejected-modal-actions {
+    display: flex;
+    flex-direction: row !important;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+@media (max-width: 500px) {
+    .rejected-modal-actions {
+        display: grid;
+        justify-items: center;
+    }
+}
+
+.rejected-modal-actions .btn {
+    flex-grow: 1;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+}
+
+.rejected-modal-actions .support-phone-number {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    direction: ltr;
+    font-weight: normal;
+    margin-right: 0.25rem;
+}

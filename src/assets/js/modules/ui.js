@@ -1645,7 +1645,6 @@ const showTimePickerModal = (callback) => {
     });
 };
 
-// src/assets/js/modules/ui.js
 
 export const showEventRegistrationModal = async (eventId) => {
     const genericModal = document.getElementById('generic-modal');
@@ -1730,10 +1729,32 @@ export const showEventRegistrationModal = async (eventId) => {
 
         const statusText = existingRegistration.status === 'pending' ? 'در انتظار تایید' : 'تایید شده';
         const statusClass = existingRegistration.status === 'pending' ? 'status-pending' : 'status-confirmed';
-
-        const editButtonHTML = existingRegistration.status === 'pending' 
-            ? `<button id="edit-registration-btn" class="btn btn-primary" style="flex-grow: 1;">ویرایش اطلاعات</button>` 
-            : '';
+        
+        let actionsHTML = '';
+        if (existingRegistration.status === 'pending') {
+            actionsHTML = `
+                <div class="form-actions" style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem;">
+                    <p class="form-note" style="text-align: center; margin-top: 0.5rem; margin-bottom: 0;">
+                       اگر اطلاعات را اشتباه وارد کرده‌اید با پشتیبانی تماس بگیرید.
+                    </p>
+                    <p class="form-note" style="text-align: center; margin-top: -0.5rem; margin-bottom: 0;font-size: 0.9rem; color: #ffffff33;">
+                       (یا میتوانید پس از «رد شدن» ثبت نام توسط ادمین مجددا اطلاعات خود را ویرایش نمایید.)
+                    </p>
+                    <a href="tel:09339170324" class="btn btn-secondary btn-contact-support">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        <span>تماس</span>
+                        <span class="support-phone-number">09339170324</span>
+                    </a>
+                    <button id="close-status-modal" class="btn btn-secondary">بستن</button>
+                </div>
+            `;
+        } else { // Confirmed status
+            actionsHTML = `
+                <div class="form-actions" style="margin-top: 1.5rem;">
+                     <button id="close-status-modal" class="btn btn-secondary btn-full">بستن</button>
+                </div>
+            `;
+        }
 
         const statusModalHtml = `
             <div class="content-box">
@@ -1746,11 +1767,7 @@ export const showEventRegistrationModal = async (eventId) => {
                     <div class="info-row"><span>تلفن:</span><strong>${existingRegistration.phone_number}</strong></div>
                     ${paymentInfoHTML}
                 </div>
-                
-                <div class="form-actions" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                    <button id="close-status-modal" class="btn btn-secondary" style="flex-grow: 1;">بستن</button>
-                    ${editButtonHTML}
-                </div>
+                ${actionsHTML}
             </div>`;
 
         genericModalContent.innerHTML = statusModalHtml;
@@ -1760,24 +1777,6 @@ export const showEventRegistrationModal = async (eventId) => {
             dom.body.classList.remove('modal-is-open');
         });
         
-        const editBtn = genericModalContent.querySelector('#edit-registration-btn');
-        if (editBtn) {
-            editBtn.addEventListener('click', async () => {
-                if (confirm("برای ویرایش، اطلاعات قبلی شما حذف و فرم ثبت‌نام مجدداً نمایش داده می‌شود. آیا ادامه می‌دهید؟")) {
-                    editBtn.disabled = true;
-                    editBtn.textContent = 'لطفا صبر کنید...';
-                    const { success } = await deleteEventRegistration(existingRegistration.id);
-                    if (success) {
-                        state.userRegistrations.delete(parseInt(eventId, 10));
-                        await showEventRegistrationModal(eventId);
-                    } else {
-                        alert('خطا در پردازش درخواست. لطفاً دوباره تلاش کنید.');
-                        editBtn.disabled = false;
-                        editBtn.textContent = 'ویرایش اطلاعات';
-                    }
-                }
-            });
-        }
     } else {
         const event = state.allEvents.find(e => e.id == eventId);
         if (!event) return;
@@ -1787,7 +1786,6 @@ export const showEventRegistrationModal = async (eventId) => {
         const paymentInfo = event.payment_card_number;
         const isPaidEvent = event.cost && event.cost.toLowerCase() !== 'رایگان' && paymentInfo && paymentInfo.number;
         
-        // --- START: NEW PHONE LOGIC ---
         const userPhoneNumber = state.user?.phone;
         const formatPhoneNumberForDisplay = (phone) => {
             if (!phone) return '';
@@ -1815,7 +1813,6 @@ export const showEventRegistrationModal = async (eventId) => {
                 </div>
             `;
         }
-        // --- END: NEW PHONE LOGIC ---
 
         let paymentSectionHTML = '';
         let paymentFieldsHTML = '';
@@ -1885,15 +1882,13 @@ export const showEventRegistrationModal = async (eventId) => {
         
         genericModalContent.innerHTML = modalHtml;
 
-        // --- START: NEW EVENT LISTENER ---
         const goToProfileBtn = genericModalContent.querySelector('#go-to-profile-for-phone');
         if (goToProfileBtn) {
             goToProfileBtn.addEventListener('click', () => {
-                genericModal.classList.remove('is-open'); // Close current modal
-                showProfileModal(); // Open profile modal
+                genericModal.classList.remove('is-open');
+                showProfileModal();
             });
         }
-        // --- END: NEW EVENT LISTENER ---
 
         const copyCardBtn = genericModalContent.querySelector('#copy-card-btn');
         if (copyCardBtn) {
@@ -1904,12 +1899,7 @@ export const showEventRegistrationModal = async (eventId) => {
                     navigator.clipboard.writeText(cardNumber).then(() => {
                         const originalText = copyCardBtn.textContent;
                         copyCardBtn.textContent = 'کپی شد!';
-                        setTimeout(() => {
-                            copyCardBtn.textContent = originalText;
-                        }, 2000);
-                    }).catch(err => {
-                        console.error('Failed to copy card number: ', err);
-                        alert('خطا در کپی کردن شماره کارت.');
+                        setTimeout(() => { copyCardBtn.textContent = originalText; }, 2000);
                     });
                 }
             });
@@ -1917,66 +1907,45 @@ export const showEventRegistrationModal = async (eventId) => {
 
         const openTimePickerBtn = genericModalContent.querySelector('#open-time-picker-btn');
         const timePickerWidget = genericModalContent.querySelector('#time-picker-widget');
-
         if (openTimePickerBtn && timePickerWidget) {
             const hourScroll = timePickerWidget.querySelector('#hour-scroll');
             const minuteScroll = timePickerWidget.querySelector('#minute-scroll');
             const timeDisplay = openTimePickerBtn.querySelector('#reg-tx-time-display');
-
             let currentHour = parseInt(defaultHour, 10);
             let currentMinute = parseInt(defaultMinute, 10);
             const itemHeight = 40;
             const containerHeight = 120;
             const paddingHeight = (containerHeight - itemHeight) / 2;
             const paddingDiv = `<div style="height: ${paddingHeight}px; flex-shrink: 0;"></div>`;
-
             let hourHTML = paddingDiv;
             for (let i = 0; i < 24; i++) { hourHTML += `<div class="scroll-item">${String(i).padStart(2, '0')}</div>`; }
             hourHTML += paddingDiv;
             hourScroll.innerHTML = hourHTML;
-
             let minuteHTML = paddingDiv;
             for (let i = 0; i < 60; i++) { minuteHTML += `<div class="scroll-item">${String(i).padStart(2, '0')}</div>`; }
             minuteHTML += paddingDiv;
             minuteScroll.innerHTML = minuteHTML;
-
             const updateActiveItems = () => {
                 hourScroll.querySelectorAll('.scroll-item').forEach((item, i) => item.classList.toggle('active', i === currentHour));
                 minuteScroll.querySelectorAll('.scroll-item').forEach((item, i) => item.classList.toggle('active', i === currentMinute));
             };
-
             const scrollToTime = (container, value, smooth = true) => {
                 container.scrollTo({ top: value * itemHeight, behavior: smooth ? 'smooth' : 'auto' });
             };
-            
-            const debounce = (func, delay) => {
-                let timeout;
-                return function(...args) {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => func.apply(this, args), delay);
-                };
-            };
-
+            const debounce = (func, delay) => { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), delay); }; };
             const snapToTime = (container, isHour) => {
                 const index = Math.round(container.scrollTop / itemHeight);
                 scrollToTime(container, index);
-                
-                if (isHour) currentHour = index;
-                else currentMinute = index;
-                
+                if (isHour) currentHour = index; else currentMinute = index;
                 setTimeout(updateActiveItems, 150);
             };
-
             const debouncedSnapHour = debounce(() => snapToTime(hourScroll, true), 150);
             const debouncedSnapMinute = debounce(() => snapToTime(minuteScroll, false), 150);
-
             hourScroll.addEventListener('scroll', debouncedSnapHour);
             minuteScroll.addEventListener('scroll', debouncedSnapMinute);
-
             scrollToTime(hourScroll, currentHour, false);
             scrollToTime(minuteScroll, currentMinute, false);
             updateActiveItems();
-
             timePickerWidget.addEventListener('click', (e) => {
                 const stepper = e.target.closest('.time-stepper-btn');
                 if (stepper) {
@@ -1991,22 +1960,18 @@ export const showEventRegistrationModal = async (eventId) => {
                     }
                     setTimeout(updateActiveItems, 150);
                 }
-
                 if (e.target.closest('#confirm-time-btn')) {
                     transactionTime = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`;
                     timeDisplay.textContent = transactionTime;
                     timePickerWidget.style.display = 'none';
                 }
             });
-
             openTimePickerBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const isHidden = timePickerWidget.style.display === 'none' || timePickerWidget.style.display === '';
-                
                 if (isHidden) {
                     timePickerWidget.classList.add('show-above');
                     timePickerWidget.style.display = 'block';
-                    
                     scrollToTime(hourScroll, currentHour, false);
                     scrollToTime(minuteScroll, currentMinute, false);
                     updateActiveItems();
@@ -2014,32 +1979,19 @@ export const showEventRegistrationModal = async (eventId) => {
                     timePickerWidget.style.display = 'none';
                 }
             });
-            
             const closeListener = (e) => {
                 if (!timePickerWidget.contains(e.target) && !openTimePickerBtn.contains(e.target)) {
                     timePickerWidget.style.display = 'none';
                     document.removeEventListener('click', closeListener);
                 }
             };
-            
-            openTimePickerBtn.addEventListener('click', () => {
-                if (timePickerWidget.style.display === 'block') {
-                    setTimeout(() => document.addEventListener('click', closeListener), 0);
-                }
-            });
-       
-            
-            document.addEventListener('click', (e) => {
-                if (!timePickerWidget.contains(e.target) && !openTimePickerBtn.contains(e.target)) {
-                    timePickerWidget.style.display = 'none';
-                }
-            }, { once: true });
+            openTimePickerBtn.addEventListener('click', () => { if (timePickerWidget.style.display === 'block') { setTimeout(() => document.addEventListener('click', closeListener), 0); } });
+            document.addEventListener('click', (e) => { if (!timePickerWidget.contains(e.target) && !openTimePickerBtn.contains(e.target)) { timePickerWidget.style.display = 'none'; } }, { once: true });
         }
 
         const registrationForm = genericModalContent.querySelector('#event-registration-form');
         registrationForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const submitBtn = registrationForm.querySelector('button[type="submit"]');
             const statusBox = registrationForm.querySelector('.form-status');
             hideStatus(statusBox);
 
@@ -2047,45 +1999,97 @@ export const showEventRegistrationModal = async (eventId) => {
                 showStatus(statusBox, 'لطفاً ساعت واریز را انتخاب کنید.', 'error');
                 return;
             }
-            
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'در حال ثبت ...';
+
             const formData = new FormData(registrationForm);
+            const fullName = formData.get('name');
+            const studentId = formData.get('student_id');
+            const phoneNumber = formatPhoneNumberForDisplay(userPhoneNumber);
+            const cardDigits = isPaidEvent ? formData.get('card_digits') : null;
+            const txTime = isPaidEvent ? transactionTime : null;
 
-            const registrationData = { 
-                event_id: event.id, 
-                user_id: user.id, 
-                full_name: formData.get('name'), 
-                student_id: formData.get('student_id'), 
-                email: user.email, 
-                phone_number: formatPhoneNumberForDisplay(userPhoneNumber),
-                status: isPaidEvent ? 'pending' : 'confirmed', 
-                card_last_four_digits: isPaidEvent ? formData.get('card_digits') : null, 
-                transaction_time: isPaidEvent ? transactionTime : null 
-            };
-            
-            const { data: newRegistration, error } = await supabaseClient
-                .from('event_registrations')
-                .insert(registrationData)
-                .select()
-                .single();
-
-            if (error) {
-                showStatus(statusBox, 'خطا در ثبت اطلاعات. لطفاً دوباره تلاش کنید.', 'error');
-                submitBtn.disabled = false;
-                submitBtn.textContent = isPaidEvent ? 'ارسال و ثبت‌نام موقت' : 'ثبت‌نام نهایی';
-            } else {
-                state.userRegistrations.set(newRegistration.event_id, newRegistration.status);
-                const successMessage = isPaidEvent ? 'اطلاعات شما با موفقیت ثبت شد و پس از بررسی توسط ادمین، نهایی خواهد شد.' : 'ثبت‌نام شما در این رویداد رایگان با موفقیت انجام شد!';
-                genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><h2>ثبت‌نام دریافت شد!</h2><p>${successMessage}</p></div>`;
-                setTimeout(() => { 
-                    genericModal.classList.remove('is-open'); 
-                    dom.body.classList.remove('modal-is-open');
-                    if (location.hash.startsWith('#/events')) {
-                        components.renderEventsPage();
-                    }
-                }, 4000);
+            let confirmationPaymentInfoHTML = '';
+            if (isPaidEvent) {
+                confirmationPaymentInfoHTML = `
+                    <hr>
+                    <div class="info-row"><span>۴ رقم آخر کارت:</span><strong>${cardDigits || '---'}</strong></div>
+                    <div class="info-row"><span>ساعت واریز:</span><strong>${txTime || '---'}</strong></div>
+                `;
             }
+
+            const confirmationHTML = `
+                <div class="content-box">
+                    <h2>تایید اطلاعات ثبت‌نام</h2>
+                    <p>لطفاً اطلاعات زیر را بررسی و در صورت صحت، تایید کنید.</p>
+                    <div class="registration-status-details">
+                        <div class="info-row"><span>رویداد:</span><strong>${event.title}</strong></div>
+                        <div class="info-row"><span>نام کامل:</span><strong>${fullName}</strong></div>
+                        <div class="info-row"><span>شماره دانشجویی:</span><strong>${studentId}</strong></div>
+                        <div class="info-row"><span>تلفن:</span><strong>${phoneNumber}</strong></div>
+                        ${confirmationPaymentInfoHTML}
+                    </div>
+                    <div class="form-actions is-row" style="margin-top: 1.5rem;">
+                        <button type="button" id="cancel-confirmation-btn" class="btn btn-secondary">ویرایش اطلاعات</button>
+                        <button type="button" id="confirm-registration-btn" class="btn btn-primary">تایید و ارسال</button>
+                    </div>
+                </div>`;
+            
+            genericModalContent.innerHTML = confirmationHTML;
+
+            genericModalContent.querySelector('#cancel-confirmation-btn').addEventListener('click', () => {
+                showEventRegistrationModal(eventId);
+            });
+
+            genericModalContent.querySelector('#confirm-registration-btn').addEventListener('click', async () => {
+                const confirmBtn = genericModalContent.querySelector('#confirm-registration-btn');
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'در حال ثبت...';
+                
+                const registrationData = { 
+                    event_id: event.id, 
+                    user_id: user.id, 
+                    full_name: fullName, 
+                    student_id: studentId, 
+                    email: user.email, 
+                    phone_number: phoneNumber,
+                    status: isPaidEvent ? 'pending' : 'confirmed', 
+                    card_last_four_digits: cardDigits, 
+                    transaction_time: txTime
+                };
+                
+                const { data: newRegistration, error } = await supabaseClient
+                    .from('event_registrations')
+                    .insert(registrationData)
+                    .select()
+                    .single();
+
+                if (error) {
+                    genericModalContent.innerHTML = `
+                        <div class="content-box" style="text-align: center;">
+                            <h2>خطا در ثبت اطلاعات</h2>
+                            <p>متاسفانه در هنگام ثبت اطلاعات خطایی رخ داد. لطفاً دوباره تلاش کنید.</p>
+                            <br>
+                            <div class="form-actions">
+                                <button id="back-to-form-btn" class="btn btn-primary btn-full">بازگشت به فرم</button>
+                            </div>
+                        </div>`;
+                    genericModalContent.querySelector('#back-to-form-btn').addEventListener('click', () => {
+                        showEventRegistrationModal(eventId);
+                    });
+                } else {
+                    state.userRegistrations.set(newRegistration.event_id, newRegistration.status);
+                    const successMessage = isPaidEvent 
+                        ? 'اطلاعات شما با موفقیت ثبت شد و پس از بررسی توسط ادمین، نهایی خواهد شد.' 
+                        : 'ثبت‌نام شما با موفقیت انجام شد!';
+                    genericModalContent.innerHTML = `<div class="content-box" style="text-align: center;"><h2>ثبت‌نام دریافت شد!</h2><p>${successMessage}</p></div>`;
+                    setTimeout(() => { 
+                        genericModal.classList.remove('is-open'); 
+                        dom.body.classList.remove('modal-is-open');
+                        if (location.hash.startsWith('#/events')) {
+                            components.renderEventsPage();
+                        }
+                    }, 4000);
+                }
+            });
         });
     }
 };
