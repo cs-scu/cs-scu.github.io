@@ -1,20 +1,20 @@
-// js/modules/state.js
+// State management for the application
 export const state = {
-    // Auth state
+    // User session
     user: null,
     session: null,
-    profile: null, // برای نگهداری اطلاعات پروفایل کاربر
+    profile: null,
 
     // Data stores
     allNews: [],
     membersMap: new Map(),
-    tagsMap: new Map(), // <-- این خط اضافه شود
+    tagsMap: new Map(),
     userRegistrations: new Map(),
     allEvents: [],
-    allJournalIssues: [],
-    allCourses: [],
-    coursePrerequisites: [],
-    allContacts: [], // <-- این خط اضافه شود
+    allJournalIssues: [], 
+    allCourses: [], 
+    coursePrerequisites: [], 
+    allContacts: [], 
 
     // Page cache
     pageCache: {},
@@ -23,12 +23,13 @@ export const state = {
     particlesInstance: null,
 
     // News page state
-    loadedNewsCount: 0,
+    loadedNewsCount: 0, 
     NEWS_PER_PAGE: 10,
     isLoadingNews: false,
     newsScrollHandler: null
 };
 
+// DOM elements
 export const dom = {
     body: document.body,
     mainContent: document.querySelector('main'),

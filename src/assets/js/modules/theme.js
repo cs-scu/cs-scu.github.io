@@ -1,12 +1,13 @@
-// js/modules/theme.js
 import { state, dom } from './state.js';
 
 const themeToggle = document.getElementById('theme-toggle');
 const THEME_STATES = ['system', 'light', 'dark'];
 const THEME_TITLES = { system: 'سیستم', light: 'روشن', dark: 'تیره' };
 
+// for detecting system theme changes
 const getSystemThemeClass = () => window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark-theme' : 'light-theme';
 
+// Apply the visual theme to the body and particles
 const applyVisualTheme = (themeClass) => {
     dom.body.classList.remove('light-theme', 'dark-theme');
     dom.body.classList.add(themeClass);
@@ -20,6 +21,7 @@ const applyVisualTheme = (themeClass) => {
     }
 };
 
+// for saving and applying theme state
 const setThemeState = (themeState) => {
     if (!themeToggle) return;
     themeToggle.setAttribute('data-theme-state', themeState);
@@ -31,6 +33,7 @@ const setThemeState = (themeState) => {
     localStorage.setItem('themeState', themeState);
 };
 
+// Initialize theme on page load
 export const initializeTheme = () => {
     if (!themeToggle) return;
 

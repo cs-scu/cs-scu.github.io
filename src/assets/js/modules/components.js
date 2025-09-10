@@ -6,7 +6,6 @@ import { initializeAuthForm, initializeContactForm, showEventModal, initializeIn
 
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
-// --- توابع کمکی خصوصی ---
 const createAuthorHTML = (authorId) => {
     if (!authorId) return '';
     const authorInfo = state.membersMap.get(authorId);
@@ -26,7 +25,6 @@ const showCustomAlert = (message, type = 'success') => {
     
     document.body.appendChild(alertElement);
 
-    // Force reflow to enable animation
     requestAnimationFrame(() => {
         alertElement.classList.add('is-visible');
     });
