@@ -2,7 +2,6 @@
 
 import { state, dom } from './state.js';
 import { supabaseClient, getBaseUrl } from './api.js';
-import { initializeAuthForm, initializeContactForm, showEventModal, initializeInteractions, renderInteractionsSection, showProfileModal } from './ui.js';
 
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
@@ -16,27 +15,6 @@ const createAuthorHTML = (authorId) => {
             <span class="author-name">${authorInfo.name}</span>
         </div>
     `;
-};
-
-const showCustomAlert = (message, type = 'success') => {
-    const alertElement = document.createElement('div');
-    alertElement.className = `custom-alert ${type}`;
-    alertElement.textContent = message;
-    
-    document.body.appendChild(alertElement);
-
-    requestAnimationFrame(() => {
-        alertElement.classList.add('is-visible');
-    });
-
-    setTimeout(() => {
-        alertElement.classList.remove('is-visible');
-        alertElement.addEventListener('transitionend', () => {
-            if (alertElement.parentElement) {
-                alertElement.remove();
-            }
-        });
-    }, 4000);
 };
 
 const renderSkeletons = (count, container) => {
@@ -62,7 +40,6 @@ const renderSkeletons = (count, container) => {
 };
 
 
-// --- توابع رندرکننده عمومی ---
 export const loadLatestNews = () => {
     const newsGrid = document.querySelector('.news-grid');
     if (!newsGrid) return;
