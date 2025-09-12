@@ -1,0 +1,306 @@
+/* ================== Forms ================== */
+#registration-form, #contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+.form-row .form-group {
+    flex: 1;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+.form-group label {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 0.8rem;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 1rem;
+    width: 100%;
+    border: 1px solid;
+}
+body.dark-theme .form-group input,
+body.dark-theme .form-group select,
+body.dark-theme .form-group textarea {
+    border-color: var(--glass-border-dark);
+}
+body.light-theme .form-group input,
+body.light-theme .form-group select,
+body.light-theme .form-group textarea {
+    border-color: var(--glass-border-light);
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+}
+body.dark-theme .form-group input:focus,
+body.dark-theme .form-group select:focus,
+body.dark-theme .form-group textarea:focus {
+    border-color: var(--primary-color);
+}
+body.light-theme .form-group input:focus,
+body.light-theme .form-group select:focus,
+body.light-theme .form-group textarea:focus {
+    border-color: var(--primary-color-light-theme);
+}
+.form-group select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-repeat: no-repeat;
+    background-position: left 0.75rem center;
+    padding-left: 2.5rem;
+}
+body.dark-theme .form-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='rgba(255,255,255,0.7)' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+}
+body.light-theme .form-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='rgba(0,0,0,0.7)' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+}
+.dark-theme select option {
+    background-color: var(--background-color-dark);
+    color: var(--text-color-dark);
+}
+.form-status {
+    padding: 0.8rem;
+    margin-top: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+    display: none;
+}
+.form-status.success, .form-status.error {
+    display: block;
+}
+body.dark-theme .form-status.success { background-color: rgba(0, 255, 100, 0.1); color: #96ff6f; }
+body.light-theme .form-status.success { background-color: rgba(26, 93, 54, 0.15); color: #004004; }
+body.dark-theme .form-status.error { background-color: rgba(220, 53, 69, 0.15); color: #ff8a8a; }
+body.light-theme .form-status.error { background-color: rgba(220, 53, 69, 0.15); color: #dc3545; }
+
+/* Login Form Enhancements */
+.password-group {
+    position: relative;
+}
+.password-toggle-btn {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: inherit;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.password-toggle-btn:hover {
+    opacity: 1;
+}
+#password-strength-indicator {
+    margin-top: 0.5rem;
+    height: 12px;
+    width: 100%;
+}
+.strength-bar {
+    height: 4px;
+    width: 0%;
+    border-radius: 2px;
+    background-color: #ddd;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+.strength-text {
+    display: block;
+    font-size: 0.8rem;
+    text-align: right;
+    margin-top: 4px;
+    height: 1em;
+    color: #888;
+}
+#password-strength-indicator.weak .strength-bar { width: 33%; background-color: #dc3545; }
+#password-strength-indicator.medium .strength-bar { width: 66%; background-color: #ffc107; }
+#password-strength-indicator.strong .strength-bar { width: 100%; background-color: #28a745; }
+#password-strength-indicator.weak .strength-text::after { content: "ضعیف"; color: #dc3545; }
+#password-strength-indicator.medium .strength-text::after { content: "متوسط"; color: #ffc107; }
+#password-strength-indicator.strong .strength-text::after { content: "قوی"; color: #28a745; }
+
+.email-display-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+body.dark-theme .email-display-box {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border-dark);
+}
+body.light-theme .email-display-box {
+    background-color: rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--glass-border-light);
+}
+.email-display-box span {
+    font-weight: bold;
+    direction: ltr;
+    text-align: left;
+}
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    width: 100%;
+}
+.form-actions .btn {
+    width: 100%;
+    margin: 0;
+}
+.form-actions.is-row {
+    justify-content: flex-end;
+}
+.form-actions.is-row .btn {
+    width: auto;
+    flex-grow: 0;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+}
+
+/* OTP Inputs */
+.otp-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+.otp-input {
+    width: 45px;
+    height: 55px;
+    font-size: 1.5rem;
+    text-align: center;
+    border-radius: 8px;
+    border: 1px solid;
+    background: transparent;
+    color: inherit;
+    -moz-appearance: textfield;
+}
+.otp-input::-webkit-outer-spin-button,
+.otp-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+body.dark-theme .otp-input { border-color: var(--glass-border-dark); }
+body.light-theme .otp-input { border-color: var(--glass-border-light); }
+.otp-input:focus {
+    outline: none;
+    border-width: 2px;
+    transform: scale(1.05);
+}
+body.dark-theme .otp-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 10px rgba(232, 195, 142, 0.3);
+}
+body.light-theme .otp-input:focus {
+    border-color: var(--primary-color-light-theme);
+    box-shadow: 0 0 10px rgba(26, 92, 93, 0.3);
+}
+
+/* Turnstile & OTP Timer */
+.turnstile-container {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+.otp-timer-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+}
+#resend-otp-btn {
+    text-decoration: none;
+    font-weight: normal;
+}
+#resend-otp-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    text-decoration: none;
+}
+#otp-timer {
+    font-weight: bold;
+    direction: ltr;
+    min-width: 50px;
+    text-align: center;
+}
+body.dark-theme #otp-timer { color: var(--primary-color); }
+body.light-theme #otp-timer { color: var(--primary-color-light-theme); }
+
+.form-group input.prefilled {
+    cursor: not-allowed;
+}
+body.dark-theme .form-group input.prefilled {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+body.light-theme .form-group input.prefilled {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.terms-agreement-text {
+    text-align: center;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    margin: 1.5rem 0 0 0; 
+    color: var(--text-color-light);
+    opacity: 0.8;
+}
+body.dark-theme .terms-agreement-text {
+    color: var(--text-color-dark);
+}
+.terms-agreement-text a {
+    text-decoration: underline;
+    font-weight: bold;
+}
+#current-password-container.form-show-active {
+    animation: slideDownFadeIn 0.4s ease-out;
+}
+.form-note {
+    font-size: 0.85rem;
+    opacity: 0.85;
+    margin-top: 1rem;
+    line-height: 1.8;
+    text-align: justify;
+}
+.form-note a {
+    font-weight: bold;
+    text-decoration: none;
+    background-image: linear-gradient(var(--primary-color), var(--primary-color));
+    background-position: 0% 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 2px;
+    transition: background-size .3s;
+}
+body.light-theme .form-note a {
+    background-image: linear-gradient(var(--primary-color-light-theme), var(--primary-color-light-theme));
+}
+.form-note a:hover {
+    background-size: 100% 2px;
+}

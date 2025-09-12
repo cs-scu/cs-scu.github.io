@@ -1,0 +1,97 @@
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.pulsing-note {
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 1.5rem;
+  padding: 10px;
+  color: var(--primary);
+  animation: soft-glow-animation 2.3s infinite cubic-bezier(0.4, 0, 1, 1);
+}
+
+.editor-alert {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    color: #fff;
+    background-color: #323232;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    font-weight: bold;
+    font-size: 1rem;
+    max-width: 90%;
+    text-align: center;
+    animation: fadeInOut 3.8s ease-in-out forwards;
+}
+
+.custom-alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translate(-50%, -100px);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+    z-index: 10001;
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                visibility 0.4s;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+.custom-alert.is-visible {
+    transform: translate(-50%, 0);
+    opacity: 1;
+    visibility: visible;
+}
+.custom-alert.success {
+    background-color: #28a745;
+    color: white;
+    border: 1px solid #1e7e34;
+}
+.custom-alert.error {
+    background-color: #dc3545;
+    color: white;
+    border: 1px solid #b22a38;
+}
+
+#orientation-lock {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--background-color);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+#orientation-lock .message {
+    color: var(--text-color);
+}
+#orientation-lock .message i {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+    animation: rotate-mobile 1.5s ease-in-out infinite;
+}
+#orientation-lock .message p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}

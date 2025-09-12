@@ -1,0 +1,238 @@
+/* ================== Events Page ================== */
+.events-page .page-description, .journal-page .page-description, .chart-page-container .page-description {
+    text-align: center;
+    max-width: 700px;
+    margin: -1.5rem auto 2.5rem auto;
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid;
+}
+body.dark-theme .tabs { border-bottom-color: var(--glass-border-dark); }
+body.light-theme .tabs { border-bottom-color: var(--glass-border-light); }
+.tab-link {
+    padding: 0.8rem 1.5rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: bold;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+.tab-link:hover, .tab-link.active { opacity: 1; }
+body.dark-theme .tab-link.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+body.light-theme .tab-link.active { color: var(--primary-color-light-theme); border-bottom-color: var(--primary-color-light-theme); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+}
+.no-events-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.1rem;
+    opacity: 0.8;
+    border-radius: 15px;
+}
+body.dark-theme .no-events-message { background: var(--glass-bg-dark); }
+body.light-theme .no-events-message { background: rgba(0,0,0,0.03); }
+.event-modal-meta { display: flex; gap: 1.5rem; margin-bottom: 1rem; }
+.event-actions {
+    display: grid;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.tabs-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+body.dark-theme .tabs-container{
+    border-bottom: 1px solid var(--background-color-light);
+}
+body.light-theme .tabs-container{
+    border-bottom: 1px solid var(--background-color-dark);
+}
+.highlighter {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  border-radius: 4px;
+  height: 4px;
+  transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+body.dark-theme .highlighter{background-color: var(--primary-color); }
+body.light-theme .highlighter{background-color: var(--primary-color-light-theme); }
+
+.student-notes-box {
+    margin-top: 3rem;
+    padding: 1.5rem 2rem;
+    border-radius: 15px;
+    text-align: right;
+    line-height: 1.8;
+}
+body.dark-theme .student-notes-box {
+    background: var(--glass-bg-dark);
+    border: 1px solid var(--glass-border-dark);
+}
+body.light-theme .student-notes-box {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #e0e0e0;
+}
+.student-notes-box h3 {
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+body.dark-theme .student-notes-box h3 {
+    color: var(--primary-color);
+}
+body.light-theme .student-notes-box h3 {
+    color: var(--primary-color-light-theme);
+}
+.student-notes-box ol {
+    padding-right: 2rem;
+}
+.student-notes-box ol li {
+    margin-bottom: 0.5rem;
+}
+
+.event-actions {
+    display: grid;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+}
+.event-buttons-wrapper {
+    display: grid;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    order: 1;
+}
+.countdown-text {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    text-align: center;
+    line-height: 1.2;
+    order: 2;
+}
+
+.rejected-modal-actions {
+    display: flex;
+    flex-direction: row !important;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+.rejected-modal-actions .btn {
+    flex-grow: 1;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+}
+.rejected-modal-actions .btn-contact-support {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+.rejected-modal-actions .support-phone-number {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    direction: ltr;
+    font-weight: normal;
+    margin-right: 0.25rem;
+}
+.rejected-modal-actions .btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.schedule-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+}
+.schedule-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 1px solid;
+    width: 100%;
+    max-width: 430px;
+}
+body.dark-theme .schedule-card {
+    border-color: var(--glass-border-dark);
+    background-color: rgba(0, 0, 0, 0.2);
+}
+body.light-theme .schedule-card {
+    border-color: var(--glass-border-light);
+    background-color: rgba(0, 0, 0, 0.04);
+}
+.schedule-card-session-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid;
+    width: 100%;
+}
+body.dark-theme .schedule-card-session-name {
+    color: var(--primary-color);
+    border-bottom-color: var(--glass-border-dark);
+}
+body.light-theme .schedule-card-session-name {
+    color: var(--primary-color-light-theme);
+    border-bottom-color: var(--glass-border-light);
+}
+.schedule-card-body {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+}
+.schedule-card-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    align-items: center;
+}
+.schedule-card-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+.schedule-card-item svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    stroke-width: 2;
+    opacity: 0.7;
+}
+.session-link-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid;
+}
+body.dark-theme .session-link-container { border-top-color: var(--glass-border-dark); }
+body.light-theme .session-link-container { border-top-color: var(--glass-border-light); }

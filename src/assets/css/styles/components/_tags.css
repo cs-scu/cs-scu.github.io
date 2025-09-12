@@ -1,0 +1,18 @@
+/* ================== Unified Tag Styles ================== */
+.tag, .news-tag {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.8rem;
+    border-radius: 20px;
+    font-weight: bold;
+    display: inline-block;
+}
+body.dark-theme .tag,
+body.dark-theme .news-tag {
+    background-color: rgba(232, 195, 142, 0.15);
+    color: var(--primary-color);
+}
+body.light-theme .tag,
+body.light-theme .news-tag {
+    background-color: rgba(26, 92, 93, 0.1);
+    color: var(--primary-color-light-theme);
+}

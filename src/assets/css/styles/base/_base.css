@@ -1,0 +1,118 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+html, body {
+    overflow-x: hidden;
+}
+
+body.modal-is-open {
+    overflow: hidden;
+}
+
+/* ================== Modern Themed Link Styles ================== */
+a {
+    color: var(--primary-color); 
+    text-decoration: none; 
+    transition: filter 0.2s ease-in-out;
+}
+body.light-theme a {
+    color: var(--primary-color-light-theme);
+}
+a:hover,
+a:focus {
+    filter: brightness(1.2);
+}
+.news-content-area a {
+    filter: none;
+}
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+body {
+    font-family: Arial, sans-serif;
+    transition: background-color 0.4s, color 0.4s;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+body {
+    font-family: 'Vazirmatn', sans-serif;
+}
+body.dark-theme {
+    background-color: var(--background-color-dark);
+    color: var(--text-color-dark);
+}
+body.light-theme {
+    background-color: var(--background-color-light);
+    color: var(--text-color-light);
+}
+#particles-js {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+}
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ================== Inner Pages (Generic Styles) ================== */
+.page-container, .members-container, .news-page-container, .events-page, .journal-page, .news-detail-page, .chart-page-container {
+    padding: 2rem 0;
+}
+.page-container h1, .members-container h1, .news-page-container h1, .events-page h1, .journal-page h1, .news-detail-page h1, .chart-page-container h1 {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+body.dark-theme .page-container h1, 
+body.dark-theme .members-container h1,
+body.dark-theme .news-page-container h1,
+body.dark-theme .events-page h1,
+body.dark-theme .journal-page h1,
+body.dark-theme .news-detail-page h1,
+body.dark-theme .chart-page-container h1 { color: var(--primary-color); }
+
+body.light-theme .page-container h1, 
+body.light-theme .members-container h1,
+body.light-theme .news-page-container h1,
+body.light-theme .events-page h1,
+body.light-theme .journal-page h1,
+body.light-theme .news-detail-page h1,
+body.light-theme .chart-page-container h1 { color: var(--primary-color-light-theme); }
+
+.content-box {
+    padding: 2rem;
+    border-radius: 15px;
+    line-height: 2;
+    font-size: 1.1rem;
+}
+body.dark-theme .content-box {
+    background: var(--glass-bg-dark);
+    border: 1px solid var(--glass-border-dark);
+}
+body.light-theme .content-box {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #e0e0e0;
+}
+.content-box h2 {
+    margin: 0rem 0 1rem;
+    border-bottom: 2px solid;
+    padding-bottom: 0.5rem;
+}
+body.dark-theme .content-box h2 { border-color: var(--primary-color); }
+body.light-theme .content-box h2 { border-color: var(--primary-color-light-theme); }
+.content-box ul {
+    list-style-position: inside;
+    padding-right: 1rem;
+}

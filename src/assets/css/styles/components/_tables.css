@@ -1,0 +1,108 @@
+/* ================== Custom Table Styles ================== */
+.custom-table-wrapper {
+    border-radius: 15px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 2rem 0;
+}
+body.dark-theme .custom-table-wrapper {
+    background: var(--glass-bg-dark);
+    border: 1px solid var(--glass-border-dark);
+}
+body.light-theme .custom-table-wrapper {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #e0e0e0;
+}
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: right;
+    font-size: 0.95rem;
+}
+.custom-table th,
+.custom-table td {
+    padding: 1rem 1.2rem;
+    line-height: 1.6;
+    white-space: normal;
+    word-break: break-word;
+}
+.custom-table thead th {
+    font-weight: bold;
+    font-size: 1.05rem;
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
+}
+body.dark-theme .custom-table thead th {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+body.light-theme .custom-table thead th {
+    color: var(--primary-color-light-theme);
+    border-bottom-color: var(--primary-color-light-theme);
+}
+.custom-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+.custom-table tbody td {
+    border-bottom: 1px solid;
+}
+.custom-table tbody tr:last-child td {
+    border-bottom: none;
+}
+body.dark-theme .custom-table tbody td {
+    border-bottom-color: var(--glass-border-dark);
+}
+body.light-theme .custom-table tbody td {
+    border-bottom-color: var(--glass-border-light);
+}
+body.dark-theme .custom-table tbody tr:hover {
+    background-color: rgba(232, 195, 142, 0.08);
+}
+body.light-theme .custom-table tbody tr:hover {
+    background-color: rgba(26, 92, 93, 0.05);
+}
+
+/* ================== Advanced Table Styles for Articles ================== */
+.table-wrapper {
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--glass-border-dark);
+    border-radius: 12px;
+    margin: 2rem 0;
+}
+body.light-theme .table-wrapper {
+    border-color: var(--glass-border-light);
+}
+.content-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.content-table th,
+.content-table td {
+    padding: 0.8rem 1rem;
+    text-align: right;
+    border-bottom: 1px solid var(--glass-border-dark);
+    white-space: nowrap;
+}
+body.light-theme .content-table th,
+body.light-theme .content-table td {
+    border-bottom-color: var(--glass-border-light);
+}
+.content-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.content-table thead {
+    font-weight: bold;
+}
+body.dark-theme .content-table thead {
+    background-color: rgba(232, 195, 142, 0.1);
+}
+body.light-theme .content-table thead {
+    background-color: rgba(26, 92, 93, 0.05);
+}
+body.dark-theme .content-table tbody tr:hover {
+    background-color: rgba(232, 195, 142, 0.05);
+}
+body.light-theme .content-table tbody tr:hover {
+    background-color: rgba(26, 92, 93, 0.03);
+}

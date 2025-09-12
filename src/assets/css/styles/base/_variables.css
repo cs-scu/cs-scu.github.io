@@ -1,0 +1,15 @@
+/* ================== General Settings & Font ================== */
+:root {
+    --primary-color: #e8c38e;
+    --primary-color-light-theme: #1a5c5d;
+    --background-color-dark: #012a2b;
+    --text-color-dark: rgba(255, 255, 255, 0.9);
+    --glass-bg-dark: rgba(20, 20, 20, 0.25);
+    --glass-border-dark: rgba(232, 195, 142, 0.2);
+    
+    --background-color-light: #f0f2f5;
+    --text-color-light: #333;
+    --glass-bg-light: rgba(255, 255, 255, 0.5);
+    --glass-border-light: rgba(0, 0, 0, 0.1);
+    --primary-rgb: 232, 195, 142;
+}

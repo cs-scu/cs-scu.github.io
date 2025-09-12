@@ -1,0 +1,51 @@
+/* ================== Main & Hero Section ================== */
+main {
+    padding-top: 2rem;
+    transition: opacity 0.3s ease-in-out;
+    flex-grow: 1;
+}
+main.is-loading {
+    opacity: 0;
+}
+.hero {
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem 0;
+}
+.hero h1 {
+    font-size: clamp(2.5rem, 6vw, 3.5rem);
+    margin-bottom: 1rem;
+}
+.hero p {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    max-width: 900px;
+    margin: 0 auto 2rem auto;
+}
+body.dark-theme .hero h1 {
+    color: var(--primary-color);
+    animation: pulse-glow 4s ease-in-out infinite;
+}
+body.light-theme .hero h1 {
+    color: var(--primary-color-light-theme);
+}
+
+/* ================== Latest News Section ================== */
+.latest-news {
+    padding: 4rem 0;
+    text-align: center;
+}
+.latest-news h2 {
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    margin-bottom: 3rem;
+}
+body.dark-theme .latest-news h2 { color: var(--primary-color); }
+body.light-theme .latest-news h2 { color: var(--primary-color-light-theme); }
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
