@@ -4,6 +4,7 @@ import { initializeAdminTheme } from './admin-theme.js';
 
 let adminPreviewInterval = null;
 
+// convert English numbers to Persian numbers
 const toPersianNumber = (n) => {
     if (n === null || n === undefined) return '';
     const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
@@ -17,6 +18,7 @@ const hideStatus = (statusBox) => {
     statusBox.textContent = '';
 };
 
+// type can be 'error' or 'success'
 const showStatus = (statusBox, message, type = 'error') => {
     if (!statusBox) return;
     statusBox.textContent = message;
@@ -29,6 +31,7 @@ const debounce = (func, delay = 250) => {
     return (...args) => { clearTimeout(timeoutId); timeoutId = setTimeout(() => { func.apply(this, args); }, delay); };
 };
 
+//
 const showTemporaryAlert = (message, duration = 3800) => { // مقدار به 3800 میلی‌ثانیه تغییر کرد
     // جلوگیری از ایجاد پیغام‌های تکراری
     if (document.querySelector('.editor-alert')) return;
@@ -43,6 +46,7 @@ const showTemporaryAlert = (message, duration = 3800) => { // مقدار به 38
     }, duration);
 };
 
+// --- Tag Modal Logic ---
 const initializeSharedTagModal = () => {
     const modal = document.getElementById('admin-generic-modal');
     const modalContent = document.getElementById('admin-generic-modal-content');
@@ -168,6 +172,7 @@ const initializeSharedTagModal = () => {
     });
 };
 
+// --- File Uploader Modal Logic ---
 const initializeUploaderModal = () => {
     const BUCKET_NAME = 'assets';
     const uploaderModal = document.getElementById('admin-uploader-modal');
