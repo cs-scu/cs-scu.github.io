@@ -3,7 +3,9 @@ import { supabaseClient, loadNews, addNews, updateNews, deleteNews, uploadNewsIm
 
 // Helper functions specific to this module can be placed here
 const toPersianNumber = (n) => {
-    // ... (implementation from original admin.js)
+    if (n === null || n === undefined) return '';
+    const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    return String(n).replace(/[0-9]/g, (digit) => persianNumbers[digit]);
 };
 
 const hideStatus = (statusBox) => {
