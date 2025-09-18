@@ -7,7 +7,7 @@ const toPersianNumber = (n) => {
     const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
     return String(n).replace(/[0-9]/g, (digit) => persianNumbers[digit]);
 };
-
+//اصلاح
 const hideStatus = (statusBox) => {
     // ... (implementation from original admin.js)
 };
