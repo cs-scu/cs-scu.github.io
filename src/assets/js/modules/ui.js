@@ -1,7 +1,6 @@
 import { state, dom } from './state.js';
 import { 
     supabaseClient,
-    supabaseUrl,
     checkUserStatus, 
     sendSignupOtp, 
     sendPasswordResetOtp, 
@@ -31,13 +30,12 @@ import {
 let currentEmail = '';
 const DEFAULT_AVATAR_URL = `https://vgecvbadhoxijspowemu.supabase.co/storage/v1/object/public/assets/images/members/default-avatar.png`;
 
-// Helper function to hide status messages
 const hideStatus = (statusBox) => {
     if (!statusBox) return;
     statusBox.style.display = 'none';
     statusBox.textContent = '';
 };
-// Helper function to show custom toast alerts
+
 const showCustomAlert = (message, type = 'success') => {
     const alertElement = document.createElement('div');
     alertElement.className = `custom-alert ${type}`;
@@ -60,7 +58,6 @@ const showCustomAlert = (message, type = 'success') => {
     }, 4500); // Alert will be visible for 4 seconds
 };
 
-// Helper function to show status messages
 const showStatus = (statusBox, message, type = 'error') => {
     if (!statusBox) return;
     statusBox.textContent = message;
@@ -98,12 +95,9 @@ const formatTimeAgo = (dateString) => {
     });
 };
 
-// A simple function to sanitize HTML and prevent XSS
 const sanitizeHTML = (str) => {
-    // --- START: SECURITY & NEWLINE FIX ---
     if (!str) return '';
 
-    // 1. First, escape essential HTML characters to prevent XSS attacks.
     const escapedStr = str
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -111,9 +105,7 @@ const sanitizeHTML = (str) => {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 
-    // 2. Then, convert newline characters to <br> tags to preserve formatting.
     return escapedStr.replace(/\r\n|\r|\n/g, '<br>');
-    // --- END: SECURITY & NEWLINE FIX ---
 };
 
 let isPhoneVerificationInProgress = false;
@@ -1108,7 +1100,6 @@ const parseInlineMarkdown = (text) => {
         }
         mainButtonHTML = `<button class="btn btn-primary btn-event-register" data-event-id="${event.id}" style="flex-grow: 2;" ${buttonDisabled}>${buttonText}</button>`;
     }
-    // *** END: پایان منطق جدید ***
 
     let contactInfo = null;
     try {
@@ -1214,7 +1205,6 @@ const parseInlineMarkdown = (text) => {
     genericModal.classList.add('is-open');
 };
 
-// START: این تابع را به طور کامل جایگزین کنید
 export const showEventScheduleModal = (eventId) => {
     const event = state.allEvents.find(e => e.id == eventId);
     if (!event) return;
