@@ -1,0 +1,104 @@
+/* Import Tailwind base styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* لایه پایه - تنظیمات کلی و متغیرها */
+@layer base {
+  :root {
+    /* متغیرهای رنگی اصلی از _variables.css */
+    --primary-color: #e8c38e;
+    --primary-color-light-theme: #1a5c5d;
+    --background-color-dark: #012a2b;
+    --text-color-dark: rgba(255, 255, 255, 0.9);
+    --glass-bg-dark: rgba(20, 20, 20, 0.25);
+    --glass-border-dark: rgba(232, 195, 142, 0.2);
+
+    --background-color-light: #f0f2f5;
+    --text-color-light: #333;
+    --glass-bg-light: rgba(255, 255, 255, 0.5);
+    --glass-border-light: rgba(0, 0, 0, 0.1);
+
+    /* متغیر فونت از layout.tsx */
+    --font-vazirmatn: 'Vazirmatn', sans-serif; /* Fallback */
+  }
+
+  /* استایل پایه بدنه از _base.css */
+  body {
+    font-family: var(--font-vazirmatn), sans-serif;
+    @apply flex flex-col min-h-screen transition-colors duration-400 bg-[--background-color-light] text-[--text-color-light];
+    overflow-x: hidden; /* جلوگیری از اسکرول افقی */
+  }
+
+  /* استایل تم تیره */
+  .dark body {
+    @apply bg-[--background-color-dark] text-[--text-color-dark];
+  }
+
+  /* استایل پایه لینک‌ها */
+  a {
+    @apply text-[--primary-color-light-theme] dark:text-[--primary-color] no-underline transition-all duration-200 ease-in-out;
+  }
+  a:hover, a:focus {
+    filter: brightness(1.2);
+  }
+
+  /* استایل پایه کانتینر */
+  .container {
+    @apply w-11/12 max-w-screen-lg mx-auto; /* Tailwind equivalent for width: 90%; max-width: 1200px; margin: 0 auto; */
+  }
+
+  /* استایل پایه دکمه‌ها (می‌تواند در @layer components باشد) */
+  .btn {
+    @apply inline-block py-3 px-8 rounded-full no-underline font-bold transition-all duration-200 ease-in-out cursor-pointer border-2 border-transparent;
+  }
+  .btn-primary {
+    @apply bg-[--primary-color-light-theme] text-white dark:bg-[--primary-color] dark:text-[--background-color-dark];
+  }
+  .btn-primary:hover {
+    @apply border-[rgba(0,0,0,0.4)] dark:border-[#b38e5c] brightness-110;
+  }
+  .btn-secondary {
+    @apply bg-[rgba(26,92,93,0.1)] text-[--primary-color-light-theme] dark:bg-[rgba(232,195,142,0.2)] dark:text-[--primary-color];
+  }
+  .btn-secondary:hover {
+    @apply bg-[rgba(26,92,93,0.2)] border-[--primary-color-light-theme] dark:bg-[rgba(232,195,142,0.3)] dark:border-[--primary-color];
+  }
+
+  /* انیمیشن برای هدر Hero از _animations.css */
+  @keyframes pulse-glow {
+    0%, 100% { text-shadow: 0 0 10px rgba(232, 195, 142, 0.3); } /* رنگ تم تیره */
+    50% { text-shadow: 0 0 25px rgba(232, 195, 142, 0.8); }
+  }
+  .dark .animate-pulse-glow {
+    animation: pulse-glow 4s ease-in-out infinite;
+  }
+  /* برای تم روشن (اختیاری - اگر انیمیشن متفاوتی می‌خواهید) */
+  /*
+  @keyframes pulse-glow-light { ... }
+  .light .animate-pulse-glow { animation: pulse-glow-light 4s ease-in-out infinite; }
+  */
+}
+
+/* لایه کامپوننت‌ها - استایل‌های خاص کامپوننت‌ها */
+@layer components {
+  /* استایل‌های هدر از _header.css */
+  .main-header .container {
+    @apply backdrop-blur-md border border-t-0 rounded-b-xl border-[--glass-border-light] bg-[--glass-bg-light] bg-opacity-40 dark:border-[--glass-border-dark] dark:bg-[--glass-bg-dark] dark:bg-opacity-30 border-opacity-20 dark:border-opacity-20;
+  }
+  .logo { /* در Header.tsx استفاده شده */
+    @apply text-lg font-bold text-[--primary-color-light-theme] dark:text-[--primary-color];
+  }
+  /* ... سایر استایل‌های هدر ... */
+
+  /* استایل‌های کارت خبر از _cards.css */
+  .news-card {
+    @apply rounded-2xl overflow-hidden flex flex-col transition-colors duration-300 ease-in-out text-right border dark:bg-[--glass-bg-dark] dark:border-[--glass-border-dark] bg-white border-[#ddd] shadow-md hover:shadow-lg dark:hover:border-[--primary-color] dark:hover:shadow-[0_0_15px_rgba(232,195,142,0.25)] hover:border-[--primary-color-light-theme];
+  }
+  .news-card-content {
+    @apply p-6 flex flex-col flex-grow;
+  }
+  .news-card-footer {
+    @apply flex justify-between items-center mt-auto pt-4 border-t border-[--glass-border-light] dark:border-[--glass-border-dark];
+  }
+}
