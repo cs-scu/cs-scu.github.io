@@ -1,4 +1,23 @@
+# فایل‌های فونت: کش طولانی مدت چون به ندرت تغییر می‌کنند
 /assets/fonts/(.*)
   Cache-Control: public, max-age=31536000, immutable
 
+# فایل‌های CSS و JavaScript: کش برای یک هفته، با اعتبارسنجی مجدد
+/assets/css/(.*)\.css
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/assets/js/(.*)\.js
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
 
+# تصاویر (jpg, png, webp, svg, gif): کش طولانی مدت
+/assets/images/(.*\.(?:jpg|jpeg|png|webp|svg|gif))
+  Cache-Control: public, max-age=31536000, immutable
+/(.*\.(?:jpg|jpeg|png|webp|svg|gif))
+  Cache-Control: public, max-age=31536000, immutable
+
+# سایر فایل‌های استاتیک در پوشه assets (مانند vendor js): کش برای یک هفته
+/assets/(.*)
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+# فایل‌های اصلی HTML: بدون کش یا کش کوتاه مدت برای اطمینان از تازگی محتوا
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
