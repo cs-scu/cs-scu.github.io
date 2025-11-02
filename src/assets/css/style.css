@@ -6909,6 +6909,7 @@ body.light-theme .phone-prompt {
     font-size: 1.5rem;
     flex-shrink: 0;
     transition: all 0.2s ease-in-out;
+    justify-items: center;
 }
 
 #generic-modal .otp-actions {
